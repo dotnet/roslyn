@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -59,6 +60,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
             _sourceTextProvider = sourceTextProvider;
+        }
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                    await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
         }
 
         private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
@@ -145,8 +162,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Start tracking after we entered break state so that break-state session is active.
-            // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
+            // This is potentially costly operation as source generators might get invoked in OOP
+            // to determine the spans of all active statements.
+            // We start the operation but do not wait for it to complete.
+            // The tracking session is cancelled when we exit the break state.
+
+            GetActiveStatementTrackingService().StartTracking(solution, session);
         }
 
         public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
@@ -289,9 +310,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldSolution = _committedDesignTimeSolution;
                 var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
 
-                return (sourceFilePath != null) ?
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+                return (sourceFilePath != null)
+                    ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
+                    : await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

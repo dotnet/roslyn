@@ -555,5 +555,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ToString();
         }
+
+        /// <summary>
+        /// This is ONLY used for debugging purpose
+        /// </summary>
+        internal string Dump()
+        {
+            return TreeDumper.DumpCompact(makeTree(this));
+
+            static TreeDumperNode makeTree(SyntaxNodeOrToken nodeOrToken)
+            {
+                var kind = nodeOrToken.Kind().ToString();
+
+                if (nodeOrToken.AsNode(out var node)
+                    && node is not IdentifierNameSyntax)
+                {
+                    return new TreeDumperNode(kind, null, node.ChildNodesAndTokens().Select(makeTree));
+                }
+
+                return new TreeDumperNode($"""{kind} {stringOrMissing(nodeOrToken)}""");
+            }
+
+            static string stringOrMissing(SyntaxNodeOrToken nodeOrToken)
+            {
+                return nodeOrToken.IsMissing ? "<missing>" : $@"""{nodeOrToken}""";
+            }
+        }
     }
 }

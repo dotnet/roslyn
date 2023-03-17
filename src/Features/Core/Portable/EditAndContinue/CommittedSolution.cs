@@ -414,14 +414,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (debugInfoReaderProvider == null)
                 {
-                    EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' not found", projectName, compilationOutputs.PdbDisplayPath);
+                    EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' (assembly: '{2}') not found", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath);
                 }
 
                 return debugInfoReaderProvider;
             }
             catch (Exception e)
             {
-                EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}': {2}", projectName, compilationOutputs.PdbDisplayPath, e.Message);
+                EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}' (assembly: '{2}'): {3}", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath, e.Message);
                 return null;
             }
         }

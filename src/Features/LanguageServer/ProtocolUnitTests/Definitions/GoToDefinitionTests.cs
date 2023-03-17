@@ -11,12 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
     public class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     {
+        public GoToDefinitionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGotoDefinitionAsync()
         {
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(1264627, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
         public async Task TestGotoDefinitionAsync_NoResultsOnNamespace()
         {
             var markup =

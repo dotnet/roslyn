@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new abstract CSharpSyntaxNode Root { get; }
 
-
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -625,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                 }
-
 
                 if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
                     objectCreation.Initializer == initializer &&
@@ -1654,7 +1652,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.Free();
 
-
             if ((options & LookupOptions.IncludeExtensionMethods) != 0)
             {
                 var lookupResult = LookupResult.GetInstance();
@@ -2505,10 +2502,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(method);
-            return TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, method, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, method, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a method body that did not appear in this source code.
@@ -2530,10 +2529,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(accessor);
-            return TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, accessor, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, accessor, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a type syntax node that did not appear in
@@ -2557,10 +2558,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, TypeSyntax type, out SemanticModel speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
         {
             CheckModelAndSyntaxNodeToSpeculate(type);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, type, bindingOption, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, type, bindingOption, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a statement that did not appear in
@@ -2581,10 +2584,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, StatementSyntax statement, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(statement);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, statement, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, statement, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an initializer that did not appear in
@@ -2606,10 +2611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(initializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, initializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, initializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an expression body that did not appear in
@@ -2631,10 +2638,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(expressionBody);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, expressionBody, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, expressionBody, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
@@ -2659,10 +2668,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(constructorInitializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
@@ -2686,10 +2697,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(constructorInitializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a cref that did not appear in
@@ -2714,10 +2727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(crefSyntax);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, crefSyntax, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, crefSyntax, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an attribute that did not appear in
@@ -3238,9 +3253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="forEachStatement"></param>
-        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement)
         {
             Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachStatement));
 
@@ -3275,9 +3289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="catchDeclaration"></param>
-        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration)
         {
             CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
             Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
@@ -4866,9 +4879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a position in the SyntaxTree for this SemanticModel returns the innermost
         /// NamedType that the position is considered inside of.
         /// </summary>
-        public new ISymbol GetEnclosingSymbol(
-            int position,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public ISymbol GetEnclosingSymbol(int position)
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
@@ -5093,9 +5104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this.GetDeclaredSymbol(usingDirective, cancellationToken);
                 case SyntaxKind.ForEachStatement:
-                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node);
                 case SyntaxKind.CatchDeclaration:
-                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node);
                 case SyntaxKind.JoinIntoClause:
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
@@ -5297,7 +5308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
-            return this.GetEnclosingSymbol(position, cancellationToken);
+            return this.GetEnclosingSymbol(position);
         }
 
         private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)

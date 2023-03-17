@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ParseAndRoundTripping("\0", 1);
             ParseAndRoundTripping("abc\0def", 3);
-            ParseAndRoundTripping("\0abc", 2);
+            ParseAndRoundTripping("\0abc", 3);
             ParseAndRoundTripping("class C { string s = \"\0\"; }", 0);
         }
 

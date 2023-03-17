@@ -276,7 +276,7 @@ namespace Microsoft.Cci
             var usingCounts = ArrayBuilder<int>.GetInstance();
             for (IImportScope scope = methodBody.ImportScope; scope != null; scope = scope.Parent)
             {
-                usingCounts.Add(scope.GetUsedNamespaces().Length);
+                usingCounts.Add(scope.GetUsedNamespaces(context).Length);
             }
 
             encoder.AddUsingGroups(usingCounts);
@@ -321,7 +321,7 @@ namespace Microsoft.Cci
             var s2 = previousScopes;
             while (s1 != null && s2 != null)
             {
-                if (!s1.GetUsedNamespaces().SequenceEqual(s2.GetUsedNamespaces()))
+                if (!s1.GetUsedNamespaces(context).SequenceEqual(s2.GetUsedNamespaces(context)))
                 {
                     return false;
                 }

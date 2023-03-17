@@ -1669,7 +1669,6 @@ End Module
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node2, ExpressionSyntax))
             Assert.Same(x1, semanticInfo.Symbol)
 
-
             Dim node3 As ExpressionRangeVariableSyntax = CompilationUtils.FindBindingText(Of ExpressionRangeVariableSyntax)(compilation, "a.vb", 3)
             Dim x2 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
             Assert.Equal("x", x2.Name)
@@ -2126,7 +2125,6 @@ End Namespace
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node2, ExpressionSyntax))
             Assert.Same(x1, semanticInfo.Symbol)
 
-
             Dim node3 As CollectionRangeVariableSyntax = CompilationUtils.FindBindingText(Of CollectionRangeVariableSyntax)(compilation, "a.vb", 3)
             Dim x2 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
             Assert.Equal("x", x2.Name)
@@ -2521,7 +2519,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim x1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("x", x1.Name)
@@ -2662,7 +2659,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node1, ExpressionSyntax))
@@ -2790,7 +2786,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-
             Dim node8 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 8)
 
             Dim k2 = DirectCast(semanticModel.GetDeclaredSymbol(node8.Parent.Parent), RangeVariableSymbol)
@@ -2892,7 +2887,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim x1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("x", x1.Name)
@@ -2930,7 +2924,6 @@ End Module
             Assert.Same(x4, semanticModel.GetDeclaredSymbol(node8.Parent.Parent))
             Assert.NotSame(x1, x4)
             Assert.NotSame(x2, x4)
-
 
             Dim node3 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 3)
             Dim y1 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
@@ -3300,7 +3293,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim s1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("s", s1.Name)
@@ -3309,7 +3301,6 @@ End Module
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
-
 
             Dim node2 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 2)
             Dim s2 = DirectCast(semanticModel.GetDeclaredSymbol(node2), RangeVariableSymbol)
@@ -3506,7 +3497,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim s1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("s", s1.Name)
@@ -3515,7 +3505,6 @@ End Module
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
-
 
             Dim node2 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 2)
             Dim s2 = DirectCast(semanticModel.GetDeclaredSymbol(node2), RangeVariableSymbol)
@@ -3749,9 +3738,7 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim symbolInfo As SymbolInfo
-
 
             Dim aggregateInfo As AggregateClauseSymbolInfo
 

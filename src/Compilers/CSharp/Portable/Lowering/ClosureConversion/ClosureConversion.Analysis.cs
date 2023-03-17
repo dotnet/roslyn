@@ -67,10 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode node,
                 MethodSymbol method,
                 int topLevelMethodOrdinal,
-                MethodSymbol substitutedSourceMethod,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                ArrayBuilder<ClosureDebugInfo> closureDebugInfo,
                 DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
@@ -477,7 +475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         currentScope = parentScope;
                     }
-
 
                     if (bestScope == scope) // no better scope was found, so continue
                         continue;

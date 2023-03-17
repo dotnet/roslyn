@@ -68,9 +68,13 @@ namespace Microsoft.CodeAnalysis
                     return "warning";
 
                 case DiagnosticSeverity.Hidden:
+                    // Hidden diagnostics are not reported on the command line but we still report the rule metadata for them
+                    // in the error logger. SARIF format does not have a special string for hidden diagnostics,
+                    // so we represent them similar to Info diagnostics.
+                    // In future, if required, we can represent them with a custom property in the SARIF log.
+                    goto case DiagnosticSeverity.Info;
+
                 default:
-                    // hidden diagnostics are not reported on the command line and therefore not currently given to
-                    // the error logger. We could represent it with a custom property in the SARIF log if that changes.
                     Debug.Assert(false);
                     goto case DiagnosticSeverity.Warning;
             }

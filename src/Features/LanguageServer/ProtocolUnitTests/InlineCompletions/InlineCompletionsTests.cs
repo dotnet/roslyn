@@ -10,12 +10,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 {
+    public InlineCompletionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     protected override TestComposition Composition => base.Composition
         .AddParts(typeof(TestSnippetInfoService));
 

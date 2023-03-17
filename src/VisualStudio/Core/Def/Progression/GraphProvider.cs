@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
             _streamingPresenter = streamingPresenter;
-            _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
+            _graphQueryManager = new GraphQueryManager(workspace, threadingContext, _asyncListener);
         }
 
         private void EnsureInitialized()
@@ -64,12 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        internal static List<IGraphQuery> GetGraphQueries(
+        public static ImmutableArray<IGraphQuery> GetGraphQueries(
             IGraphContext context,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener)
         {
-            var graphQueries = new List<IGraphQuery>();
+            using var _ = ArrayBuilder<IGraphQuery>.GetInstance(out var graphQueries);
 
             if (context.Direction == GraphContextDirection.Self && context.RequestedProperties.Contains(DgmlNodeProperties.ContainsChildren))
             {
@@ -153,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return graphQueries;
+            return graphQueries.ToImmutable();
         }
 
         public void BeginGetGraphData(IGraphContext context)
@@ -162,15 +164,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
-            if (graphQueries.Count > 0)
-            {
-                _graphQueryManager.AddQueries(context, graphQueries);
-            }
-            else
-            {
-                // It's an unknown query type, so we're done
-                context.OnCompleted();
-            }
+            // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
+            // for always completing the context. AddQueriesAsync is `async`, so it always returns a task and will never
+            // bubble out an exception synchronously (so CompletesAsyncOperation is safe).
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(BeginGetGraphData));
+            _ = _graphQueryManager
+                .AddQueriesAsync(context, graphQueries, _threadingContext.DisposalToken)
+                .CompletesAsyncOperation(asyncToken);
         }
 
         public IEnumerable<GraphCommand> GetCommands(IEnumerable<GraphNode> nodes)

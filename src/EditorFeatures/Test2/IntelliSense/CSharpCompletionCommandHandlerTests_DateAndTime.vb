@@ -114,7 +114,7 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/59453")>
         Public Async Function ExplicitInvokeNotInGuid(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -623,6 +623,36 @@ class c
 
                 state.SendTypeChars("f")
                 Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestDescriptionOfFullMonthName() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString("$$");
+    }
+}
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                state.SendTypeChars("MMMM")
+                Await state.AssertSelectedCompletionItem("MMMM", inlineDescription:=FeaturesResources.month_full)
+
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Dim text = description.Text
+
+                If CultureInfo.CurrentCulture.Name <> "en-US" Then
+                    Assert.Contains($"MMMM (en-US) → June", text)
+                    Assert.Contains($"MMMM ({CultureInfo.CurrentCulture.Name}) → {CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(6)}", text)
+                Else
+                    Assert.Contains("MMMM → June", text)
+                End If
             End Using
         End Function
     End Class

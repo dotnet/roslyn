@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionService
     {
-        protected CommonCompletionService(SolutionServices services)
-            : base(services)
+        protected CommonCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(services, listenerProvider)
         {
         }
 
@@ -47,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
            string filterText,
            IList<MatchResult> builder)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, matchResults, filterText, builder);
+            CompletionService.FilterItems(CompletionHelper.GetHelper(document), matchResults, filterText, builder);
         }
     }
 }

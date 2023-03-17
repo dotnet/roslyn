@@ -84,8 +84,6 @@ public class X
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
 
-
-
             // Verify use of Cyrillic namespace results in same behavior
             source = @"
 namespace решения
@@ -3142,7 +3140,6 @@ public class Test
 ";
             CompileAndVerify(source, expectedOutput: "True");
         }
-
 
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
         [Fact]

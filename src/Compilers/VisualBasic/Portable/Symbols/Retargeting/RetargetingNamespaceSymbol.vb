@@ -172,11 +172,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Dim underlying As NamedTypeSymbol = _underlyingNamespace.LookupMetadataType(fullEmittedName)
 
+            If underlying Is Nothing Then
+                Return Nothing
+            End If
+
+            Debug.Assert(Not underlying.IsErrorType())
             Debug.Assert(underlying.ContainingModule Is _retargetingModule.UnderlyingModule)
 
-            If Not underlying.IsErrorType() AndAlso underlying.IsExplicitDefinitionOfNoPiaLocalType Then
+            If underlying.IsExplicitDefinitionOfNoPiaLocalType Then
                 ' Explicitly defined local types should be hidden.
-                Return New MissingMetadataTypeSymbol.TopLevel(_retargetingModule, fullEmittedName)
+                Return Nothing
             End If
 
             Return RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)

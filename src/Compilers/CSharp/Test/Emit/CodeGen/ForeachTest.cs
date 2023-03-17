@@ -1583,7 +1583,6 @@ struct A
             CompileAndVerify(source, expectedOutput: "5");
         }
 
-
         [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeIterationVariableFieldsAreReadonly()
         {

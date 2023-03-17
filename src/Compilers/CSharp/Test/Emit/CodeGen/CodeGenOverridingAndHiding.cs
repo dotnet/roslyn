@@ -1191,7 +1191,7 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
                     string expectedOutput;
                     Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)

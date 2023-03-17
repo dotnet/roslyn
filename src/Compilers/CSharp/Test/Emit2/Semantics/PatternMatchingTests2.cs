@@ -486,10 +486,12 @@ public class Point
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
-                // (5,17): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var r = 1 switch { _ => 0, };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(5, 19),
+                // (5,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(5, 28));
 
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
@@ -780,20 +782,19 @@ class Program
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x)").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
                 // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         if (t is (int x)) { }                           // error 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
                 // (9,27): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(_)").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
                 // (10,28): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int y)").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
                 // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)
-                );
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29));
         }
 
         [Fact]
@@ -1198,21 +1199,23 @@ class Program1
             compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(expected);
 
-            expected = new[]
-            {
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
                 // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //     bool M1(object o) => o is _;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
-                // (6,26): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M2(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
-                // (12,26): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(6, 28),
+                // (6,48): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M2(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(6, 48),
+                // (12,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M4(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
-            };
-
-            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            compilation.VerifyDiagnostics(expected);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(12, 28),
+                // (12,48): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M4(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(12, 48));
         }
 
         [Fact]

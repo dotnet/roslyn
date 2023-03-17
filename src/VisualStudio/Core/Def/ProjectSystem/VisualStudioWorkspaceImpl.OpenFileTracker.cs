@@ -9,16 +9,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -28,41 +31,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class VisualStudioWorkspaceImpl
     {
         /// <summary>
-        /// Singleton the subscribes to the running document table and connects/disconnects files to files that are opened.
+        /// Singleton the updates the workspace in response to files being opened or closed.
         /// </summary>
-        public sealed class OpenFileTracker : IRunningDocumentTableEventListener
+        public sealed class OpenFileTracker : IOpenTextBufferEventListener
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
-            private readonly IAsynchronousOperationListener _asyncOperationListener;
-
-            private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
-
-            #region Fields read/written to from multiple threads to track files that need to be checked
-
-            /// <summary>
-            /// A object to be used for a gate for modifications to <see cref="_fileNamesToCheckForOpenDocuments"/>,
-            /// <see cref="_justEnumerateTheEntireRunningDocumentTable"/> and <see cref="_taskPending"/>. These are the only mutable fields
-            /// in this class that are modified from multiple threads.
-            /// </summary>
-            /// <remarks>
-            /// This lock should not be held when calling outside this class to avoid deadlocks; see the Readme.md in this folder for further
-            /// details.
-            /// </remarks>
-            private readonly object _gate = new();
-            private HashSet<string>? _fileNamesToCheckForOpenDocuments;
-
-            /// <summary>
-            /// Tracks whether we have decided to just scan the entire running document table for files that might already be in the workspace rather than checking
-            /// each file one-by-one. This starts out at true, because we are created asynchronously, and files might have already been added to the workspace
-            /// that we never got a call to <see cref="QueueCheckForFilesBeingOpen(ImmutableArray{string})"/> for.
-            /// </summary>
-            private bool _justEnumerateTheEntireRunningDocumentTable = true;
-
-            private bool _taskPending;
-
-            #endregion
+            private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+            private readonly IAsynchronousOperationListener _asynchronousOperationListener;
+            private readonly OpenTextBufferProvider _openTextBufferProvider;
 
             #region Fields read/and written to only on the UI thread to track active context for files
 
@@ -75,107 +54,138 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
                 = new();
 
+            /// <summary>
+            /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
+            /// </summary>
+            private bool _anyDocumentOpened;
+
             #endregion
 
-            /// <summary>
-            /// A cutoff to use when we should stop checking the RDT for individual documents and just rescan all open documents.
-            /// </summary>
-            /// <remarks>If a single document is added to a project, we need to check if it's already open. We can easily do
-            /// that by calling <see cref="IVsRunningDocumentTable4.GetDocumentCookie(string)"/> and going from there. That's fine
-            /// for a few documents, but is not wise during solution load when you have potentially thousands of files. In that
-            /// case, we can just enumerate all open files and check if we know about them, on the assumption the number of
-            /// open files is far less than the number of total files.
-            /// 
-            /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
-            private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
-
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IComponentModel componentModel)
             {
                 _workspace = workspace;
+                _projectSystemProjectFactory = projectSystemProjectFactory;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
-                _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
-                _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
-                    componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+                _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
+                _asynchronousOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
+                _openTextBufferProvider = componentModel.GetService<OpenTextBufferProvider>();
+                _openTextBufferProvider.AddListener(this);
             }
 
-            void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
-                => TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
+            void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
+                => TryOpeningDocumentsForMonikerAndSetContextOnUIThread(moniker, textBuffer, hierarchy);
 
-            void IRunningDocumentTableEventListener.OnCloseDocument(string moniker)
+            void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+            void IOpenTextBufferEventListener.OnCloseDocument(string moniker)
                 => TryClosingDocumentsForMoniker(moniker);
 
-            void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+            void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
                 => RefreshContextForMoniker(moniker, hierarchy);
 
-            /// <summary>
-            /// When a file is renamed, the old document is removed and a new document is added by the workspace.
-            /// </summary>
-            void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
+            void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
             {
+                TryClosingDocumentsForMoniker(oldMoniker);
+                TryOpeningDocumentsForMonikerAndSetContextOnUIThread(newMoniker, buffer, hierarchy: _openTextBufferProvider.GetDocumentHierarchy(newMoniker));
             }
 
-            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IAsyncServiceProvider asyncServiceProvider)
             {
-                var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-                Assumes.Present(runningDocumentTable);
-
                 var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
                 Assumes.Present(componentModel);
 
-                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
+                return new OpenFileTracker(workspace, projectSystemProjectFactory, componentModel);
             }
 
-            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
+            private void TryOpeningDocumentsForMonikerAndSetContextOnUIThread(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
-                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                    if (documentIds.IsDefaultOrEmpty)
+                    if (TryOpeningDocumentsForFilePathCore(w, moniker, textBuffer, hierarchy))
                     {
-                        return;
-                    }
-
-                    if (documentIds.All(w.IsDocumentOpen))
-                    {
-                        return;
-                    }
-
-                    ProjectId activeContextProjectId;
-
-                    if (documentIds.Length == 1)
-                    {
-                        activeContextProjectId = documentIds.Single().ProjectId;
-                    }
-                    else
-                    {
-                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
-                    }
-
-                    var textContainer = textBuffer.AsTextContainer();
-
-                    foreach (var documentId in documentIds)
-                    {
-                        if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
-                        {
-                            var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                            if (w.CurrentSolution.ContainsDocument(documentId))
-                            {
-                                w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-                            }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                            {
-                                w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                            }
-                            else
-                            {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
-                            }
-                        }
+                        EnsureSuggestedActionsSourceProviderEnabled();
                     }
                 });
+            }
+
+            private void EnsureSuggestedActionsSourceProviderEnabled()
+            {
+                _foregroundAffinitization.AssertIsForeground();
+
+                if (!_anyDocumentOpened)
+                {
+                    _anyDocumentOpened = true;
+
+                    // First document opened in the workspace.
+                    // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
+                    // NOTE: We need to be on the UI thread to enable the editor option.
+                    SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService);
+                }
+            }
+
+            /// <summary>
+            /// Implements the core logic of connecting a buffer to the workspace. If a hierarchy is given, this must be on the UI thread and
+            /// the hierarchy will be used to determine the correct context. Otherwise, an arbitrary context will be chosen.
+            /// </summary>
+            /// <returns>True if we actually opened at least one document.</returns>
+            private bool TryOpeningDocumentsForFilePathCore(Workspace workspace, string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
+            {
+                // If this method is given a hierarchy, we will need to be on the UI thread to use it; in any other case, we can be free-threaded.
+                if (hierarchy != null)
+                    _foregroundAffinitization.AssertIsForeground();
+
+                var documentIds = _projectSystemProjectFactory.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                if (documentIds.IsDefaultOrEmpty)
+                {
+                    return false;
+                }
+
+                if (documentIds.All(workspace.IsDocumentOpen))
+                {
+                    return false;
+                }
+
+                ProjectId activeContextProjectId;
+
+                if (documentIds.Length == 1 || hierarchy == null)
+                {
+                    activeContextProjectId = documentIds.First().ProjectId;
+                }
+                else
+                {
+                    activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
+                }
+
+                var textContainer = textBuffer.AsTextContainer();
+
+                var documentOpened = false;
+
+                foreach (var documentId in documentIds)
+                {
+                    if (!workspace.IsDocumentOpen(documentId) && !_projectSystemProjectFactory.DocumentsNotFromFiles.Contains(documentId))
+                    {
+                        var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                        if (workspace.CurrentSolution.ContainsDocument(documentId))
+                        {
+                            workspace.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                        }
+                        else if (workspace.CurrentSolution.ContainsAdditionalDocument(documentId))
+                        {
+                            workspace.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                        }
+                        else
+                        {
+                            Debug.Assert(workspace.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                            workspace.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                        }
+
+                        documentOpened = true;
+                    }
+                }
+
+                return documentOpened;
             }
 
             private ProjectId GetActiveContextProjectIdAndWatchHierarchies_NoLock(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
@@ -236,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
 
-                // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
+                // At this point, we should hopefully have only one project that matches by hierarchy. If there's multiple, at this point we can't figure anything
                 // out better.
                 var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
 
@@ -265,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -307,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty)
@@ -317,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     foreach (var documentId in documentIds)
                     {
-                        if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        if (w.IsDocumentOpen(documentId) && !_projectSystemProjectFactory.DocumentsNotFromFiles.Contains(documentId))
                         {
                             var solution = w.CurrentSolution;
 
@@ -339,98 +349,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            /// <summary>
-            /// Queues a new task to check for files being open for these file names.
-            /// </summary>
-            public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
+            public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
             {
                 ForegroundThreadAffinitizedObject.ThisCanBeCalledOnAnyThread();
 
-                var shouldStartTask = false;
-
-                lock (_gate)
+                return _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w =>
                 {
-                    // If we've already decided to enumerate the full table, nothing further to do.
-                    if (!_justEnumerateTheEntireRunningDocumentTable)
+                    foreach (var newFileName in newFileNames)
                     {
-                        // If this is going to push us over our threshold for scanning the entire table then just give up
-                        if ((_fileNamesToCheckForOpenDocuments?.Count ?? 0) + newFileNames.Length > CutoffForCheckingAllRunningDocumentTableDocuments)
+                        if (_openTextBufferProvider.TryGetBufferFromFilePath(newFileName, out var textBuffer))
                         {
-                            _fileNamesToCheckForOpenDocuments = null;
-                            _justEnumerateTheEntireRunningDocumentTable = true;
-                        }
-                        else
-                        {
-                            if (_fileNamesToCheckForOpenDocuments == null)
+                            // If we are on the UI thread, we can just grab the hierarchy and properly wire up to the correct context; if we're off the UI thread we'll instead wire up to some
+                            // document, and then asynchronously jump to the UI thread to pick the correct context. This ensures the workspace has the correct content,
+                            // even if we don't immediately know the right context.
+                            if (_workspace._threadingContext.JoinableTaskContext.IsOnMainThread)
                             {
-                                _fileNamesToCheckForOpenDocuments = new HashSet<string>(newFileNames);
+                                var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(newFileName);
+                                if (TryOpeningDocumentsForFilePathCore(w, newFileName, textBuffer, hierarchy))
+                                    EnsureSuggestedActionsSourceProviderEnabled();
                             }
                             else
                             {
-                                foreach (var filename in newFileNames)
+                                // Since we're not on the UI thread, we can't grab a hierarchy to wire up the correct context. We'll try wire up without a context
+                                // and if it was actually open, we'll schedule an update asynchronously.
+                                if (TryOpeningDocumentsForFilePathCore(w, newFileName, textBuffer, hierarchy: null))
                                 {
-                                    _fileNamesToCheckForOpenDocuments.Add(filename);
+                                    // The files are now tied to the buffer, but let's schedule work to correctly update the context.
+                                    var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(CheckForAddedFileBeingOpenMaybeAsync));
+                                    UpdateContextAfterOpenAsync(newFileName).CompletesAsyncOperation(token);
                                 }
                             }
                         }
                     }
-
-                    if (!_taskPending)
-                    {
-                        _taskPending = true;
-                        shouldStartTask = true;
-                    }
-                }
-
-                if (shouldStartTask)
-                {
-                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(QueueCheckForFilesBeingOpen));
-
-                    Task.Run(async () =>
-                    {
-                        await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                        ProcessQueuedWorkOnUIThread();
-                    }).CompletesAsyncOperation(asyncToken);
-                }
+                }).AsTask();
             }
 
-            public void ProcessQueuedWorkOnUIThread()
+            private async Task UpdateContextAfterOpenAsync(string filePath)
             {
+                await _workspace._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(filePath);
+                if (hierarchy != null)
+                    RefreshContextForMoniker(filePath, hierarchy);
+
+                EnsureSuggestedActionsSourceProviderEnabled();
+            }
+
+            internal void CheckForOpenFilesThatWeMissed()
+            {
+                // It's possible that Roslyn is loading asynchronously after documents were already opened by the user; this is a one-time check for
+                // any of those -- after this point, we are subscribed to events so we'll know of anything else.
                 _foregroundAffinitization.AssertIsForeground();
 
-                // Just pulling off the values from the shared state to the local function.
-                HashSet<string>? fileNamesToCheckForOpenDocuments;
-                bool justEnumerateTheEntireRunningDocumentTable;
-                lock (_gate)
+                foreach (var (filePath, textBuffer, hierarchy) in _openTextBufferProvider.EnumerateDocumentSet())
                 {
-                    fileNamesToCheckForOpenDocuments = _fileNamesToCheckForOpenDocuments;
-                    justEnumerateTheEntireRunningDocumentTable = _justEnumerateTheEntireRunningDocumentTable;
-
-                    _fileNamesToCheckForOpenDocuments = null;
-                    _justEnumerateTheEntireRunningDocumentTable = false;
-
-                    _taskPending = false;
-                }
-
-                if (justEnumerateTheEntireRunningDocumentTable)
-                {
-                    var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
-                    foreach (var (moniker, textBuffer, hierarchy) in documents)
-                    {
-                        TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
-                    }
-                }
-                else if (fileNamesToCheckForOpenDocuments != null)
-                {
-                    foreach (var fileName in fileNamesToCheckForOpenDocuments)
-                    {
-                        if (_runningDocumentTableEventTracker.IsFileOpen(fileName) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(fileName, out var buffer))
-                        {
-                            var hierarchy = _runningDocumentTableEventTracker.GetDocumentHierarchy(fileName);
-                            TryOpeningDocumentsForMoniker(fileName, buffer, hierarchy);
-                        }
-                    }
+                    TryOpeningDocumentsForMonikerAndSetContextOnUIThread(filePath, textBuffer, hierarchy);
                 }
             }
 

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// Per solution services provided by the host environment.  Use this instead of <see
         /// cref="Workspace.Services"/> when possible.
         /// </summary>
-        public SolutionServices Services => _state.Services.SolutionServices;
+        public SolutionServices Services => _state.Services;
 
         internal string? WorkspaceKind => _state.WorkspaceKind;
 
@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
-                return _state.Workspace;
+#pragma warning disable CS0618 // Type or member is obsolete (TODO: obsolete the property)
+                return _state.Services.WorkspaceServices.Workspace;
+#pragma warning restore
             }
         }
 
@@ -1550,6 +1552,12 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var newState = _state.WithDocumentContentsFrom(documentId, documentState);
+            return newState == _state ? this : new Solution(newState);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
@@ -1688,34 +1696,12 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
-            var projectState = _state.GetProjectState(documentId.ProjectId);
-            if (projectState == null)
-            {
-                // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
-            }
-
-            var documentState = projectState.DocumentStates.GetState(documentId);
-            if (documentState == null)
-            {
-                // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
-            }
-
-            var filePath = documentState.FilePath;
-            if (string.IsNullOrEmpty(filePath))
-            {
-                // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
-            }
-
-            var documentIds = GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
+            return _state.GetRelatedDocumentIds(documentId);
         }
 
-        internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
+        internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newState = _state.WithNewWorkspace(workspace, workspaceVersion);
+            var newState = _state.WithNewWorkspace(workspaceKind, workspaceVersion, services);
             if (newState == _state)
             {
                 return this;

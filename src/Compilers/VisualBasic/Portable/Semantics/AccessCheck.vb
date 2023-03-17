@@ -761,7 +761,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return typeSeenThroughInheritance
         End Function
 
-
         Private Shared ReadOnly s_mapAccessToAccessOutsideAssembly() As Accessibility
 
         Shared Sub New()
@@ -819,7 +818,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return accessOfMember
         End Function
-
 
         Private Shared Function IsTypeNestedIn(
             probablyNestedType As NamedTypeSymbol,
@@ -980,7 +978,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-
         ''' <summary>
         ''' This function finds the inner most enclosing scope whose Access
         ''' is lesser than or equal to the given access "StopAtAccess".
@@ -1104,7 +1101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return True
         End Function
-
 
         Public Shared Sub VerifyAccessExposureForParameterType(
             member As Symbol,

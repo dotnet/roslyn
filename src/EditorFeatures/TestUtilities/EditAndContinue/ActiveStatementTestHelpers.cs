@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -25,17 +26,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatementFlags[]? flags = null)
         {
             return ActiveStatementsDescription.GetActiveStatementDebugInfos(
-                (source, path) => SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default), path: path),
-                markedSources,
-                filePaths,
-                extension: ".cs",
+                GetUnmappedActiveStatementsCSharp(markedSources, filePaths, flags),
                 methodRowIds,
                 modules,
                 methodVersions,
-                ilOffsets,
-                flags);
-
+                ilOffsets);
         }
+
+        public static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatementsCSharp(
+            string[] markedSources,
+            string[]? filePaths = null,
+            ActiveStatementFlags[]? flags = null)
+        {
+            return ActiveStatementsDescription.GetUnmappedActiveStatements(
+                static (source, path) => SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: Encoding.UTF8, SourceHashAlgorithms.Default), path: path),
+                markedSources,
+                filePaths,
+                extension: ".cs",
+                flags);
+        }
+
         public static string Delete(string src, string marker)
         {
             while (true)
@@ -49,7 +59,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 var end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
-                src = src.Substring(0, start) + src.Substring(end);
+                src = src[..start] + src[end..];
             }
         }
 
@@ -71,11 +81,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var startOfLineCount = start + startStr.Length;
                 var endOfLineCount = src.IndexOf(']', startOfLineCount);
-                var lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
+                var lineCount = int.Parse(src[startOfLineCount..endOfLineCount]);
 
                 var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
 
-                src = src.Substring(0, start) + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src.Substring(end);
+                src = src[..start] + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src[end..];
             }
         }
 

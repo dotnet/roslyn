@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
@@ -17,6 +18,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
+        public OnAutoInsertTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task OnAutoInsert_CommentCharacter()
         {
@@ -334,7 +339,7 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
         public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines()
         {
             // The test starts with the closing brace already on a new line.
@@ -353,7 +358,7 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
         public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces()
         {
             // The test starts with the closing brace already on a new line.

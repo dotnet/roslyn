@@ -15,7 +15,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManager, IAsyncDisposable
+public abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     protected readonly ILspLogger _logger;
@@ -29,10 +29,27 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
     public bool IsInitialized { get; private set; }
 
-    // Fields used during shutdown.
-    private bool _shuttingDown;
+    /// <summary>
+    /// Ensures that we only run shutdown and exit code once in order.
+    /// Guards access to <see cref="_shutdownRequestTask"/> and <see cref="_exitNotificationTask"/>
+    /// </summary>
+    private readonly object _lifeCycleLock = new();
 
-    public bool HasShutdownStarted => _shuttingDown;
+    /// <summary>
+    /// Task representing the work done on LSP server shutdown.
+    /// </summary>
+    private Task? _shutdownRequestTask;
+
+    /// <summary>
+    /// Task representing the work down on LSP exit.
+    /// </summary>
+    private Task? _exitNotificationTask;
+
+    /// <summary>
+    /// Task completion source that is started when the server starts and completes when the server exits.
+    /// Used when callers need to wait for the server to cleanup.
+    /// </summary>
+    private readonly TaskCompletionSource<object?> _serverExitedSource = new();
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
@@ -124,13 +141,11 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
         }
     }
 
+    [JsonRpcMethod("shutdown")]
+    public Task HandleShutdownRequestAsync(CancellationToken _) => ShutdownAsync();
+
     [JsonRpcMethod("exit")]
-    public Task HandleExitNotificationAsync(CancellationToken _)
-    {
-        var lspServices = _lspServices.Value;
-        var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-        return lifeCycleManager.ExitAsync();
-    }
+    public Task HandleExitNotificationAsync(CancellationToken _) => ExitAsync();
 
     public virtual void OnInitialized()
     {
@@ -140,7 +155,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = GetHandlerProvider();
-        var queue = new RequestExecutionQueue<TRequestContext>(_logger, handlerProvider);
+        var queue = new RequestExecutionQueue<TRequestContext>(this, _logger, handlerProvider);
 
         queue.Start();
 
@@ -154,7 +169,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
     /// <summary>
     /// Wrapper class to hold the method and properties from the <see cref="AbstractLanguageServer{RequestContextType}"/>
-    /// that the method info passed to streamjsonrpc is created from.
+    /// that the method info passed to StreamJsonRpc is created from.
     /// </summary>
     private class DelegatingEntryPoint
     {
@@ -169,7 +184,6 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         public async Task NotificationEntryPointAsync<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
@@ -178,7 +192,6 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
@@ -187,7 +200,6 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         public async Task<TResponse?> EntryPointAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
@@ -195,40 +207,108 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
             return result;
         }
+    }
 
-        private void CheckServerState()
+    public Task WaitForExitAsync()
+    {
+        lock (_lifeCycleLock)
         {
-            if (_target.IsInitialized)
-                throw new InvalidOperationException($"'initialize' has not been called.");
+            // Ensure we've actually been asked to shutdown before waiting.
+            if (_shutdownRequestTask == null)
+            {
+                throw new InvalidOperationException("The language server has not yet been asked to shutdown.");
+            }
         }
+
+        // Note - we return the _serverExitedSource task here instead of the _exitNotification task as we may not have
+        // finished processing the exit notification before a client calls into us asking to restart.
+        // This is because unlike shutdown, exit is a notification where clients do not need to wait for a response.
+        return _serverExitedSource.Task;
     }
 
-    public async Task ShutdownAsync(string message = "Shutting down")
+    /// <summary>
+    /// Tells the LSP server to stop handling any more incoming messages (other than exit).
+    /// Typically called from an LSP shutdown request.
+    /// </summary>
+    public Task ShutdownAsync(string message = "Shutting down")
     {
-        _shuttingDown = true;
-        _logger.LogInformation(message);
-
-        await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
-    }
-
-    public async Task ExitAsync()
-    {
-        try
+        Task shutdownTask;
+        lock (_lifeCycleLock)
         {
+            // Run shutdown or return the already running shutdown request.
+            _shutdownRequestTask ??= Shutdown_NoLockAsync(message);
+            shutdownTask = _shutdownRequestTask;
+            return shutdownTask;
+        }
+
+        // Runs the actual shutdown outside of the lock - guaranteed to be only called once by the above code.
+        async Task Shutdown_NoLockAsync(string message)
+        {
+            // Immediately yield so that this does not run under the lock.
+            await Task.Yield();
+
+            _logger.LogInformation(message);
+
+            // Allow implementations to do any additional cleanup on shutdown.
+            var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
+            await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
+
             await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
-
-            var lspServices = GetLspServices();
-            lspServices.Dispose();
-
-            _jsonRpc.Disconnected -= JsonRpc_Disconnected;
-            _jsonRpc.Dispose();
         }
-        catch (Exception)
+    }
+
+    /// <summary>
+    /// Tells the LSP server to exit.  Requires that <see cref="ShutdownAsync(string)"/> was called first.
+    /// Typically called from an LSP exit notification.
+    /// </summary>
+    public Task ExitAsync()
+    {
+        Task exitTask;
+        lock (_lifeCycleLock)
         {
-            // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
-            // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
+            if (_shutdownRequestTask?.IsCompleted != true)
+            {
+                throw new InvalidOperationException("The language server has not yet been asked to shutdown or has not finished shutting down.");
+            }
+
+            // Run exit or return the already running exit request.
+            _exitNotificationTask ??= Exit_NoLockAsync();
+            exitTask = _exitNotificationTask;
+            return exitTask;
         }
-        _logger.LogInformation("Exiting server");
+
+        // Runs the actual exit outside of the lock - guaranteed to be only called once by the above code.
+        async Task Exit_NoLockAsync()
+        {
+            // Immediately yield so that this does not run under the lock.
+            await Task.Yield();
+
+            try
+            {
+                var lspServices = GetLspServices();
+
+                // Allow implementations to do any additional cleanup on exit.
+                var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
+                await lifeCycleManager.ExitAsync().ConfigureAwait(false);
+
+                await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
+
+                lspServices.Dispose();
+
+                _jsonRpc.Disconnected -= JsonRpc_Disconnected;
+                _jsonRpc.Dispose();
+            }
+            catch (Exception)
+            {
+                // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
+                // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
+            }
+            finally
+            {
+                _logger.LogInformation("Exiting server");
+                _serverExitedSource.TrySetResult(null);
+            }
+        }
     }
 
     private ValueTask ShutdownRequestExecutionQueueAsync()
@@ -243,38 +323,12 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     /// </summary>
     private async void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
-        if (_shuttingDown)
-        {
-            // We're already in the normal shutdown -> exit path, no need to do anything.
-            return;
-        }
-
-        var message = $"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}";
-        _logger.LogWarning(message);
-
-        var lspServices = GetLspServices();
-        var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-
-        await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
-        await lifeCycleManager.ExitAsync().ConfigureAwait(false);
+        // It is possible this gets called during normal shutdown and exit.
+        // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
+        await ShutdownAsync(message: "Shutdown triggered by JsonRpc disconnect").ConfigureAwait(false);
+        await ExitAsync().ConfigureAwait(false);
     }
 #pragma warning disable VSTHRD100
-
-    /// <summary>
-    /// Disposes the LanguageServer, clearing and shutting down the queue and exiting.
-    /// Can be called if the Server needs to be shut down outside of 'shutdown' and 'exit' requests.
-    /// </summary>
-    public async ValueTask DisposeAsync()
-    {
-        if (_logger is IDisposable disposableLogger)
-            disposableLogger.Dispose();
-
-        var lspServices = GetLspServices();
-        var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-
-        await lifeCycleManager.ShutdownAsync("Disposing").ConfigureAwait(false);
-        await lifeCycleManager.ExitAsync().ConfigureAwait(false);
-    }
 
     internal TestAccessor GetTestAccessor()
     {
@@ -302,16 +356,12 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         internal JsonRpc GetServerRpc() => _server._jsonRpc;
 
-        internal bool HasShutdownStarted() => _server.HasShutdownStarted;
-
-        internal Task ShutdownServerAsync(string message = "Shutting down")
+        internal bool HasShutdownStarted()
         {
-            return _server.ShutdownAsync(message);
-        }
-
-        internal Task ExitServerAsync()
-        {
-            return _server.ExitAsync();
+            lock (_server._lifeCycleLock)
+            {
+                return _server._shutdownRequestTask != null;
+            }
         }
     }
 }

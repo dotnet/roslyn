@@ -739,9 +739,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var directories = attemptedFilePaths.Select(path => Path.GetDirectoryName(path)).ToArray();
                 var uniqueDirectories = new HashSet<string>(directories);
 
-                writer.WriteLine(uniqueDirectories.Count == 1 ?
-                    InteractiveHostResources.Searched_in_directory_colon :
-                    InteractiveHostResources.Searched_in_directories_colon);
+                writer.WriteLine(uniqueDirectories.Count == 1
+                    ? InteractiveHostResources.Searched_in_directory_colon
+                    : InteractiveHostResources.Searched_in_directories_colon);
 
                 foreach (string directory in directories)
                 {
@@ -759,9 +759,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     var serviceState = GetServiceState();
 
-                    var task = (state == null) ?
-                        script.RunAsync(serviceState.Globals, catchException: e => true, cancellationToken: CancellationToken.None) :
-                        script.RunFromAsync(state, catchException: e => true, cancellationToken: CancellationToken.None);
+                    var task = (state == null)
+                        ? script.RunAsync(serviceState.Globals, catchException: e => true, cancellationToken: CancellationToken.None)
+                        : script.RunFromAsync(state, catchException: e => true, cancellationToken: CancellationToken.None);
 
                     var newState = await task.ConfigureAwait(false);
 

@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' A mapping from each state of the state machine to the new state that will be used to execute
-            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new 
+            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new
             ''' state and then runs MoveNext.
             ''' </summary>
             Protected ReadOnly FinalizerStateMap As New Dictionary(Of Integer, Integer)()
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol) = Nothing
 
             ''' <summary>
             ''' EnC support: the rewriter stores debug info for each await/yield in this builder.
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
-                           hoistedVariables As IReadOnlySet(Of Symbol),
+                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
@@ -262,8 +262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(local.SynthesizedKind.IsLongLived())
 
-                    ' We need to produce hoisted local scope debug information for user locals as well as 
-                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                    ' We need to produce hoisted local scope debug information for user locals as well as
+                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                     ' in Locals window.
                     If local.SynthesizedKind = SynthesizedLocalKind.UserDefined OrElse local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing

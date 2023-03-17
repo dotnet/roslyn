@@ -5,15 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -78,12 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: mock);
+            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
             Assert.True(await connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, "emptySource", Path.GetTempPath(), cancellationToken),
+                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
                 CancellationToken.None));
         }
 
@@ -98,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // doesn't matter what it returns
                 return typeof(object).Assembly;
             }
-        }
-
-        private class MockLogService : ISymbolSearchLogService
-        {
-            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
-            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

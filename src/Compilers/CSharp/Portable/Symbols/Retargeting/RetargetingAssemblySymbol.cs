@@ -278,17 +278,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _underlyingAssembly.GetGuidString(out guidString);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
-        {
-            NamedTypeSymbol underlying = _underlyingAssembly.TryLookupForwardedMetadataType(ref emittedName);
+#nullable enable
 
-            if ((object)underlying == null)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
+        {
+            NamedTypeSymbol? underlying = _underlyingAssembly.TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies: null);
+
+            if ((object?)underlying == null)
             {
                 return null;
             }
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
+
+#nullable disable
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {

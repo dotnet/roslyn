@@ -955,12 +955,12 @@ label3:
     }");
         }
 
-        [Fact, WorkItem(766133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766133")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766133")]
         public async Task RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(@"class Program
 {
@@ -1026,7 +1026,7 @@ class D
     }", false, changingOptions);
         }
 
-        [Fact, WorkItem(772298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772298")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772298")]
         public async Task IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1035,7 +1035,7 @@ class D
                 { IndentBlock, false },
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, false },
-                { NewLinesForBracesInLambdaExpressionBody, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.LambdaExpressionBody, false) },
                 { LabelPositioning, LabelPositionOptions.LeftMost }
             };
 
@@ -1149,7 +1149,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task IndentSwitch_IndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1188,7 +1188,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task IndentSwitch_IndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1227,7 +1227,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task IndentSwitch_NoIndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1266,7 +1266,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task IndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1305,7 +1305,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task NoIndentSwitch_IndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1344,7 +1344,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task NoIndentSwitch_IndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1383,7 +1383,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task NoIndentSwitch_NoIndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1422,7 +1422,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20009")]
         public async Task NoIndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1721,7 +1721,7 @@ class goo
 class goo{int x = 0;}", false, changingOptions);
         }
 
-        [Fact, WorkItem(991480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991480")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991480")]
         public async Task TestLeaveStatementMethodDeclarationSameLineNotAffectingForStatement()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1744,7 +1744,7 @@ class goo{int x = 0;}", false, changingOptions);
 }", false, changingOptions);
         }
 
-        [Fact, WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
         public async Task NewLineForOpenBracesDefault()
         {
             await AssertFormatAsync(@"class f00
@@ -1875,19 +1875,13 @@ public class goo : System.Object
 }");
         }
 
-        [Fact, WorkItem(8808, "https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
-        [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
+        [Fact, WorkItem("https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
         public async Task NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInTypes, false },
-                { NewLinesForBracesInMethods, false },
-                { NewLinesForBracesInAnonymousMethods, false },
-                { NewLinesForBracesInControlBlocks, false },
-                { NewLinesForBracesInAnonymousTypes, false },
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
-                { NewLinesForBracesInLambdaExpressionBody, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
             };
             await AssertFormatAsync(@"class f00 {
     void br() {
@@ -2131,13 +2125,13 @@ else
 }", false, changingOptions);
         }
 
-        [Fact, WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33458")]
         public async Task NoNewLineForElseChecksBraceOwner()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { NewLineForElse, false },
-                { NewLinesForBracesInControlBlocks, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(@"class Class
@@ -2669,7 +2663,7 @@ goto Goo;
 }");
         }
 
-        [Fact, WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceAfterIncrement()
         {
             var code = @"class C
@@ -2682,7 +2676,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceBeforeIncrement()
         {
             var code = @"class C
@@ -2695,7 +2689,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceAfterDecrement()
         {
             var code = @"class C
@@ -2708,7 +2702,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceBeforeDecrement()
         {
             var code = @"class C
@@ -3279,7 +3273,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [Fact, WorkItem(537763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537763")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537763")]
         public async Task NullableType()
         {
             await AssertFormatAsync(@"class Program
@@ -3297,7 +3291,7 @@ int         i           =           10                  ;
 }");
         }
 
-        [Fact, WorkItem(537766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537766")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537766")]
         public async Task SuppressWrappingOnBraces()
         {
             await AssertFormatAsync(@"class Class1
@@ -3307,7 +3301,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [Fact, WorkItem(537824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537824")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537824")]
         public async Task DoWhile()
         {
             await AssertFormatAsync(@"public class Class1
@@ -3331,7 +3325,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [Fact, WorkItem(537774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537774")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537774")]
         public async Task SuppressWrappingBug()
         {
             await AssertFormatAsync(@"class Class1
@@ -3350,7 +3344,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [Fact, WorkItem(537768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537768")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537768")]
         public async Task PreserveLineForAttribute()
         {
             await AssertFormatAsync(@"class Class1
@@ -3370,7 +3364,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537878")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537878")]
         public async Task NoFormattingOnMissingTokens()
         {
             await AssertFormatAsync(@"namespace ClassLibrary1
@@ -3396,7 +3390,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537783")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537783")]
         public async Task UnaryExpression()
         {
             await AssertFormatAsync(@"class Program
@@ -3418,7 +3412,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
         public async Task Pointer()
         {
             await AssertFormatAsync(@"class Program
@@ -3438,7 +3432,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50723")]
         public async Task TuplePointer()
         {
             var properlyFormattedCode = @"public unsafe static class Program
@@ -3453,7 +3447,7 @@ static void Main(string[] args)
             await AssertFormatAsync(properlyFormattedCode, properlyFormattedCode);
         }
 
-        [Fact, WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
         public async Task Tild()
         {
             await AssertFormatAsync(@"class Program
@@ -3475,7 +3469,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task ArrayInitializer1()
         {
             await AssertFormatAsync(@"class Program
@@ -3499,7 +3493,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task ArrayInitializer2()
         {
             await AssertFormatAsync(@"class Program
@@ -3523,7 +3517,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task ImplicitArrayInitializer()
         {
             await AssertFormatAsync(@"class Program
@@ -3547,7 +3541,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task CollectionInitializer()
         {
             await AssertFormatAsync(@"class Program
@@ -3571,7 +3565,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537916")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537916")]
         public async Task AddressOfOperator()
         {
             await AssertFormatAsync(@"unsafe class Class1
@@ -3593,7 +3587,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
         public async Task DereferenceOperator()
         {
             await AssertFormatAsync(@"unsafe class Class1
@@ -3617,7 +3611,7 @@ static void Main(string[] args)
 ");
         }
 
-        [Fact, WorkItem(537905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537905")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537905")]
         public async Task Namespaces()
         {
             await AssertFormatAsync(@"using System;
@@ -3634,7 +3628,7 @@ using System.Data;", @"using System; using System.Data;");
 }");
         }
 
-        [Fact, WorkItem(537902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537902")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537902")]
         public async Task DoWhile1()
         {
             await AssertFormatAsync(@"class Program
@@ -3728,7 +3722,7 @@ public       void       Method      (       )           {           }
 }");
         }
 
-        [Fact, WorkItem(538288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538288")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538288")]
         public async Task ColonColon1()
         {
             await AssertFormatAsync(@"class Program
@@ -3745,7 +3739,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [Fact, WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
         public async Task BugFix3939()
         {
             await AssertFormatAsync(@"using
@@ -3757,11 +3751,11 @@ public       void       Method      (       )           {
                                 Generic;");
         }
 
-        [Fact, WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
         public async Task Tab1()
             => await AssertFormatAsync(@"using System;", @"			using System;");
 
-        [Fact, WorkItem(538329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
         public async Task SuppressLinkBreakInIfElseStatement()
         {
             await AssertFormatAsync(@"class Program
@@ -3783,7 +3777,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [Fact, WorkItem(538464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538464")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538464")]
         public async Task BugFix4087()
         {
             await AssertFormatAsync(@"class Program
@@ -3801,7 +3795,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [Fact, WorkItem(538511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
         public async Task AttributeTargetSpecifier()
         {
             var code = @"public class Class1
@@ -3823,7 +3817,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(538635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538635")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538635")]
         public async Task Finalizer()
         {
             var code = @"public class Class1
@@ -3839,7 +3833,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(538743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
         public async Task BugFix4442()
         {
             var code = @"class Program
@@ -3855,7 +3849,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
         public async Task BugFix4328()
         {
             var code = @"class Program
@@ -3875,7 +3869,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
         public async Task BugFix4515()
         {
             var code = @"class Program
@@ -3939,7 +3933,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539259")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539259")]
         public async Task BugFix5143()
         {
             var code = @"class Program
@@ -3961,7 +3955,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539338")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539338")]
         public async Task BugFix5251()
         {
             var code = @"class Program
@@ -3975,7 +3969,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")]
         public async Task BugFix5277()
         {
             var code = @"
@@ -3989,7 +3983,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539542")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539542")]
         public async Task BugFix5544()
         {
             var code = @"
@@ -4015,7 +4009,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539587")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539587")]
         public async Task BugFix5602()
         {
             var code = @"    class Bug
@@ -4035,7 +4029,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")]
         public async Task BugFix5637()
         {
             var code = @"class Bug
@@ -4073,7 +4067,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
         public async Task BugFix5978()
         {
             var code = @"class Program
@@ -4117,7 +4111,7 @@ System.Console.WriteLine(""a"");
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
         public async Task BugFix5979()
         {
             var code = @"delegate int del(int i);
@@ -4147,7 +4141,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(539891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539891")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539891")]
         public async Task BugFix5993()
         {
             var code = @"public class MyClass
@@ -4175,7 +4169,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(540315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540315")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540315")]
         public async Task BugFix6536()
         {
             var code = @"public class MyClass
@@ -4195,7 +4189,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(540801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540801")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540801")]
         public async Task BugFix7211()
         {
             var code = @"class Program
@@ -4222,7 +4216,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
         public async Task BugFix7564_1()
         {
             var code = @"class Program
@@ -4249,7 +4243,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
         public async Task BugFix7564_2()
         {
             var code = @"class Program
@@ -4297,7 +4291,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(541925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541925")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541925")]
         public async Task QueryContinuation()
         {
             var code = @"using System.Linq;
@@ -4350,7 +4344,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542305")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542305")]
         public async Task AttributeFormatting1()
         {
             var code = @"class Program
@@ -4369,7 +4363,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542304")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542304")]
         public async Task CloseBracesInArgumentList()
         {
             var code = @"class Program
@@ -4402,7 +4396,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         public async Task MissingTokens()
         {
             var code = @"using System;
@@ -4421,24 +4415,24 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y=1) => { return; };
+        myDelegate x = (int y = 1) => { return; };
     }
 }";
 
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
         public async Task ColumnOfVeryFirstToken()
         {
             var code = @"			       W   )b";
 
-            var expected = @"			       W   )b";
+            var expected = @"W   )b";
 
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542718")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542718")]
         public async Task EmptySuppressionSpan()
         {
             var code = @"enum E
@@ -4454,7 +4448,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(542790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542790")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542790")]
         public async Task LabelInSwitch()
         {
             var code = @"class test
@@ -4494,7 +4488,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
         public void FormatArbitaryNode()
         {
             var expected = @"public int Prop
@@ -4535,7 +4529,7 @@ class innerClass
             Assert.Equal(expected, newProperty.ToFullString());
         }
 
-        [Fact, WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
         public async Task OmittedTypeArgument()
         {
             var code = @"using System;
@@ -4565,7 +4559,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(543131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
         public async Task TryAfterLabel()
         {
             var code = @"using System;
@@ -5063,7 +5057,7 @@ P2 : 2, P3: 3
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_NoSpaceBetweenTypeAndPositionalSubpattern()
         {
             var code = @"class C
@@ -5082,7 +5076,7 @@ _ = this is  C( 1 , 2 ){}  ; }
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceBetweenTypeAndPositionalSubpattern()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -5104,7 +5098,7 @@ _ = this is  C( 1 , 2 ){}  ; }
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsidePositionalSubpatternParentheses()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -5128,7 +5122,7 @@ _ = this is  C(  ){}  ; }
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsideEmptyPositionalSubpatternParentheses()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -5152,7 +5146,7 @@ _ = this is  C(  ){}  ; }
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(34683, "https://github.com/dotnet/roslyn/issues/34683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp);
@@ -5452,7 +5446,7 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(33839, "https://github.com/dotnet/roslyn/issues/33839")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33839")]
         public async Task FormatSwitchExpression_ExpressionBody()
         {
             var code = @"
@@ -5629,7 +5623,7 @@ void bar()
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(545335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
         public async Task PreprocessorOnSameLine()
         {
             var code = @"class C
@@ -5648,7 +5642,7 @@ void bar()
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(545626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545626")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545626")]
         public async Task ArraysInAttributes()
         {
             var code = @"[A(X = new int[] { 1 })]
@@ -5666,7 +5660,7 @@ public class A : Attribute
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         public async Task NoNewLineAfterBraceInExpression()
         {
             var code = @"public class A
@@ -5692,7 +5686,7 @@ public class A : Attribute
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         public async Task NoIndentForNestedUsingWithoutBraces()
         {
             var code = @"class C
@@ -5722,7 +5716,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         public async Task NoIndentForNestedUsingWithoutBraces2()
         {
             var code = @"class C
@@ -5754,7 +5748,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         public async Task NoIndentForNestedUsingWithoutBraces3()
         {
             var code = @"class C
@@ -5786,7 +5780,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(546678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
         public async Task UnicodeWhitespace()
         {
             var code = "\u001A";
@@ -5917,7 +5911,7 @@ goo:
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(772313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772313")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772313")]
         public async Task Bugfix_772313_ReturnKeywordBeforeQueryClauseDoesNotTriggerNewLineOnFormat()
         {
             var code = @"class C
@@ -5940,7 +5934,7 @@ goo:
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(772304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772304")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772304")]
         public async Task Bugfix_772313_PreserveMethodParameterIndentWhenAttributePresent()
         {
             var code = @"class C
@@ -6001,7 +5995,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(776513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776513")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776513")]
         public async Task Bugfix_776513_CheckBraceIfNotMissingBeforeApplyingOperationForBracedBlocks()
         {
             var code = @"var alwaysTriggerList = new[]
@@ -6012,7 +6006,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(769342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769342")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769342")]
         public async Task ShouldFormatDocCommentWithIndentSameAsTabSizeWithUseTabTrue()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -6036,7 +6030,7 @@ class C
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(797278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797278")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797278")]
         public async Task TestSpacingOptionAroundControlFlow()
         {
             const string code = @"
@@ -6123,12 +6117,16 @@ class Program
         { }
     }
 }";
-            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceWithinOtherParentheses, true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenParentheses, SpaceBetweenParentheses.DefaultValue.WithFlagValue( SpacePlacementWithinParentheses.ControlFlowStatements, true) },
+            };
+
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(37031, "https://github.com/dotnet/roslyn/issues/37031")]
-        [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37031")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
             var code = @"
@@ -6215,7 +6213,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(766212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766212")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766212")]
         public async Task TestOptionForSpacingAroundCommas()
         {
             var code = @"
@@ -6263,7 +6261,7 @@ class Program
             await AssertFormatAsync(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(772308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772308")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772308")]
         public async Task Bugfix_772308_SeparateSuppressionForEachCaseLabelEvenIfEmpty()
         {
             var code = @"
@@ -6302,7 +6300,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(844913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844913")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844913")]
         public async Task QueryExpressionInExpression()
         {
             var code = @"
@@ -6358,7 +6356,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(843479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843479")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843479")]
         public async Task EmbeddedStatementElse()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -6393,7 +6391,7 @@ class C
             await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
-        [Fact, WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         public async Task LineCommentAtTheEndOfLine()
         {
             var code = @"
@@ -6428,7 +6426,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38224")]
         public async Task BlockCommentAtTheEndOfLine1()
         {
             var code = @"
@@ -6463,7 +6461,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38224")]
         public async Task BlockCommentAtTheEndOfLine2()
         {
             var code = @"
@@ -6498,7 +6496,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38224")]
         public async Task BlockCommentAtBeginningOfLine()
         {
             var code = @"
@@ -6516,7 +6514,7 @@ class Program
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         public async Task TestTab()
         {
             var code = @"
@@ -7146,7 +7144,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14128")]
         public async Task SpaceBeforeCommasInLocalFunctionParameters()
         {
             var code = @"
@@ -7239,7 +7237,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, WorkItem(917351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917351")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917351")]
         public async Task TestLockStatement()
         {
             var code = @"
@@ -7267,13 +7265,13 @@ class Program
 
             var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, WorkItem(962416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962416")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962416")]
         public async Task TestCheckedAndUncheckedStatement()
         {
             var code = @"
@@ -7306,13 +7304,13 @@ class Program
 
             var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace , NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, WorkItem(953535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953535")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953535")]
         public async Task ConditionalMemberAccess()
         {
             var code = @"
@@ -7354,7 +7352,7 @@ class Program
             await AssertFormatAsync(expected, code, parseOptions: parseOptions);
         }
 
-        [Fact, WorkItem(924172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924172")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924172")]
         public async Task IgnoreSpacesInDeclarationStatementEnabled()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -7381,7 +7379,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(899492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899492")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899492")]
         public async Task CommentIsLeadingTriviaOfStatementNotLabel()
         {
             var code = @"
@@ -7410,7 +7408,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(991547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991547")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991547")]
         public async Task DontWrappingTryCatchFinallyIfOnSingleLine()
         {
             var code = @"
@@ -7753,7 +7751,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings11()
         {
             var code = @"
@@ -7783,7 +7781,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings12()
         {
             var code = @"
@@ -7809,7 +7807,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings13()
         {
             var code = @"
@@ -7907,8 +7905,8 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
-        [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1151")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         public async Task ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -7931,9 +7929,9 @@ class Program
 }", false, optionSet);
         }
 
-        [Fact, WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
-        [WorkItem(961559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/961559")]
-        [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1151")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/961559")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         public async Task ReconstructWhitespaceStringUsingTabs_MultiLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -7956,7 +7954,7 @@ class Program
 }", false, optionSet);
         }
 
-        [Fact, WorkItem(1100920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
         public async Task NoLineOperationAroundInterpolationSyntax()
         {
             await AssertFormatAsync(@"class Program
@@ -7974,7 +7972,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(62, "https://github.com/dotnet/roslyn/issues/62")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62")]
         public async Task SpaceAfterWhenInExceptionFilter()
         {
             const string expected = @"class C
@@ -8014,8 +8012,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8044,8 +8042,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8074,8 +8072,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashsToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8106,14 +8104,14 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1118")]
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
             Formatter.Format(block, new AdhocWorkspace().Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
-        [Fact, WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/776")]
         public async Task SpacingRulesAroundMethodCallAndParenthesisAppliedInAttributeNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8137,7 +8135,7 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/776")]
         public async Task SpacingRulesAroundMethodCallAndParenthesisAppliedInAttribute()
         {
             var code = @"[Obsolete(""Test""), Obsolete()]
@@ -8188,7 +8186,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1298")]
         public async Task DontforceAccessorsToNewLineWithPropertyInitializers()
         {
             var code = @"using System.Collections.Generic;
@@ -8217,7 +8215,7 @@ public class ExcludeValidation
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1339")]
         public async Task DontFormatAutoPropertyInitializerIfNotDifferentLine()
         {
             var code = @"class Program
@@ -8351,8 +8349,8 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
-        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4240")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4421")]
         public async Task VerifySpacingAfterMethodDeclarationName_Default()
         {
             var code = @"class Program<T>
@@ -8372,8 +8370,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
-        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4421")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4240")]
         public async Task VerifySpacingAfterMethodDeclarationName_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8397,7 +8395,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/939")]
         public async Task DontFormatInsideArrayInitializers()
         {
             var code = @"class Program
@@ -8424,8 +8422,8 @@ class Program
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(4280, "https://github.com/dotnet/roslyn/issues/4280")]
-        [WorkItem(1184285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1184285")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4280")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1184285")]
         public async Task FormatDictionaryInitializers()
         {
             var code = @"class Program
@@ -8445,7 +8443,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3256")]
         public async Task SwitchSectionHonorsNewLineForBracesinControlBlockOption_Default()
         {
             var code = @"class Program
@@ -8479,12 +8477,12 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3256")]
         public async Task SwitchSectionHonorsNewLineForBracesinControlBlockOption_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
             var code = @"class Program
 {
@@ -8518,7 +8516,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4014")]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8538,7 +8536,7 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4014")]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption2()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8560,7 +8558,7 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4014")]
         public async Task FormattingCodeWithBrokenLocalDeclarationShouldRespectFormatTabsOption()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8599,7 +8597,7 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4014")]
         public async Task FormattingCodeWithBrokenInterpolatedStringShouldRespectFormatTabsOption()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8621,13 +8619,13 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
-        [WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
         public async Task NewLinesForBracesInPropertiesTest()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Properties, false) },
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8659,13 +8657,13 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
-        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInAccessorsTest()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, false) },
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8697,14 +8695,15 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
-        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInPropertiesAndAccessorsTest()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false },
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue
+                    .WithFlagValue(NewLineBeforeOpenBracePlacement.Properties, false)
+                    .WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, false)},
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8752,7 +8751,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        [Fact, WorkItem("https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
         public async Task SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
         {
             var changedOptionSet = new OptionsCollection(LanguageNames.CSharp)
@@ -8772,7 +8771,7 @@ class C
 }", changedOptionSet: changedOptionSet);
         }
 
-        [Fact, WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4720")]
         public async Task KeepAccessorWithAttributeOnSingleLine()
         {
             await AssertFormatAsync(@"
@@ -8794,7 +8793,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsBaseConstructorInitializer()
         {
             var code = @"
@@ -8809,7 +8808,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializer()
         {
             var code = @"
@@ -8824,7 +8823,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializerAdjustSpace()
         {
             await AssertFormatAsync(@"
@@ -8846,7 +8845,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4720")]
         public async Task OneSpaceBetweenAccessorsAndAttributes()
         {
             await AssertFormatAsync(@"
@@ -8860,7 +8859,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
         public async Task FormatEmbeddedStatementInsideLockStatement()
         {
             await AssertFormatAsync(@"
@@ -8882,7 +8881,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
         public async Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
         {
             await AssertFormatAsync(@"
@@ -8958,7 +8957,7 @@ switch (o)
 }");
         }
 
-        [Fact, WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23703")]
         public async Task FormatNullableArray()
         {
             var code = @"
@@ -8969,7 +8968,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23703")]
         public async Task FormatConditionalWithArrayAccess()
         {
             var code = @"
@@ -9013,7 +9012,7 @@ class C
             return AssertFormatAsync(expected, input);
         }
 
-        [Fact, WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatElseBlockBracesOnDifferentLineToNewLines()
         {
             await AssertFormatAsync(@"
@@ -9042,7 +9041,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_1()
         {
             var code = @"
@@ -9059,7 +9058,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(11572, "https://github.com/dotnet/roslyn/issues/11572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11572")]
         public async Task FormatAttributeOnSameLineAsField()
         {
             await AssertFormatAsync(
@@ -9074,7 +9073,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributeOnSameLineAsField1()
         {
             await AssertFormatAsync(
@@ -9093,7 +9092,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributesOnSameLineAsField2()
         {
             await AssertFormatAsync(
@@ -9111,7 +9110,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
         {
             await AssertFormatAsync(
@@ -9129,7 +9128,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
         {
             var code = @"
@@ -9147,7 +9146,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
             => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
@@ -9261,7 +9260,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_CommaRemainIntheSameLine()
         {
             await AssertFormatAsync(
@@ -9291,7 +9290,7 @@ public class Test
 }");
         }
 
-        [Fact, WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_SpaceSurroundWillBeRemoved()
         {
             await AssertFormatAsync(
@@ -9321,8 +9320,8 @@ public class Test
 }");
         }
 
-        [Theory, WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
-        [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33910")]
         [CombinatorialData]
         public async Task ConversionOperator_CorrectlySpaceArgumentList(
             [CombinatorialValues("implicit", "explicit")] string operatorType,
@@ -9346,7 +9345,7 @@ public unsafe class Test
                 changedOptionSet: changedOptionSet);
         }
 
-        [Fact, WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclaration()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -9372,7 +9371,7 @@ class Program
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclarationAndPreserveSingleLine()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -9469,7 +9468,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationIgnored()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -9491,7 +9490,7 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationSingle()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -9513,7 +9512,7 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(38895, "https://github.com/dotnet/roslyn/issues/38895")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38895")]
         public async Task FormattingNbsp()
         {
             await AssertFormatAsync(
@@ -9535,7 +9534,7 @@ class C
 }".Replace("&nbsp;", "\u00A0"));
         }
 
-        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
         public async Task IndentationForMultilineWith()
         {
             var code = @"record C(int X)
@@ -9562,7 +9561,7 @@ X = 1
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
         public async Task IndentationForMultilineWith_ArrowBody()
         {
             var code = @"record C(int X)
@@ -9585,7 +9584,7 @@ X = 1
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
         public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
         {
             var code = @"record C(int X)
@@ -9608,7 +9607,7 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41022")]
         public async Task SpacingAfterAttribute()
         {
             var code = @"class C
@@ -9627,7 +9626,7 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41022")]
         public async Task SpacingAfterAttribute_Multiple()
         {
             var code = @"class C
@@ -9646,7 +9645,7 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41022")]
         public async Task SpacingAfterAttribute_Multiple2()
         {
             var code = @"class C
@@ -9665,7 +9664,7 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41022")]
         public async Task SpacingAfterAttribute_MultipleOnDeclaration()
         {
             var code = @"class C
@@ -9686,7 +9685,7 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47442")]
         public async Task IndentImplicitObjectCreationInitializer()
         {
             var code = @"
@@ -9723,7 +9722,7 @@ class C
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36913")]
         public async Task NewLinesForBraces_SwitchExpression_Default()
         {
             await AssertFormatAsync(
@@ -9750,12 +9749,12 @@ class A
 }");
         }
 
-        [Fact, WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36913")]
         public async Task NewLinesForBraces_SwitchExpression_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9781,7 +9780,7 @@ class A
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/discussions/49725")]
         public async Task NewLinesForBraces_RecordWithInitializer_Default()
         {
             await AssertFormatAsync(
@@ -9810,12 +9809,12 @@ class C
 }");
         }
 
-        [Fact, WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/discussions/49725")]
         public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9889,7 +9888,7 @@ class C
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_Default()
         {
             await AssertFormatAsync(
@@ -9920,12 +9919,12 @@ class A
 }");
         }
 
-        [Fact, WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9956,12 +9955,12 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, option) },
             };
             var code = @"
 class A
@@ -9989,6 +9988,30 @@ record  class  R(int X);
         }
 
         [Fact]
+        public async Task Class()
+        {
+            await AssertFormatAsync(
+                @"
+class R(int X);
+",
+                @"
+class  R(int X)  ;
+");
+        }
+
+        [Fact]
+        public async Task Interface()
+        {
+            await AssertFormatAsync(
+                @"
+interface R(int X);
+",
+                @"
+interface  R(int X)  ;
+");
+        }
+
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(
@@ -9997,6 +10020,18 @@ record struct R(int X);
 ",
                 @"
 record  struct  R(int X);
+");
+        }
+
+        [Fact]
+        public async Task Struct()
+        {
+            await AssertFormatAsync(
+                @"
+struct R(int X);
+",
+                @"
+struct  R(int X)  ;
 ");
         }
 
@@ -10397,7 +10432,7 @@ namespace NS;
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInImplicitObjectCreation()
         {
             await AssertFormatAsync(
@@ -10420,7 +10455,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInTupleArrayCreation()
         {
             await AssertFormatAsync(
@@ -10443,7 +10478,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInArrayCreation()
         {
             await AssertFormatAsync(
@@ -10466,7 +10501,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInImplicitArrayCreation()
         {
             await AssertFormatAsync(
@@ -10489,7 +10524,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInConstructorConstraint()
         {
             await AssertFormatAsync(
@@ -10510,7 +10545,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewMethodOverloadWithTupleReturnType()
         {
             await AssertFormatAsync(
@@ -10528,7 +10563,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewPropertyWithTupleReturnType()
         {
             await AssertFormatAsync(
@@ -10546,7 +10581,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewIndexerWithTupleReturnType()
         {
             await AssertFormatAsync(
@@ -10564,7 +10599,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambda()
         {
             await AssertFormatAsync(
@@ -10576,7 +10611,7 @@ var f =  [Attribute] () => { };
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambda_TwoAttributes()
         {
             await AssertFormatAsync(
@@ -10588,7 +10623,7 @@ var f =  [Attribute]  [Attribute2] () => { };
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnMethod_TwoAttributes()
         {
             await AssertFormatAsync(
@@ -10604,7 +10639,7 @@ void M()
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnTypeParameter_TwoAttributes()
         {
             await AssertFormatAsync(
@@ -10616,7 +10651,7 @@ class C<  [Attribute]  [Attribute2]  T  > { }
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
         {
             await AssertFormatAsync(
@@ -10634,7 +10669,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnParameter_TwoAttributes()
         {
             await AssertFormatAsync(
@@ -10652,7 +10687,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambdaWithExplicitType()
         {
             await AssertFormatAsync(
@@ -10664,7 +10699,7 @@ var f =  [Attribute] int () => 1;
 ");
         }
 
-        [Fact, WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambdaInInvocation()
         {
             await AssertFormatAsync(
@@ -10674,6 +10709,16 @@ f([Attribute] () => { });
                 code: @"
 f( [Attribute] () => { });
 ");
+        }
+
+        [Fact]
+        public async Task FormatAttributeOnLambdaParameter()
+        {
+            await AssertFormatAsync(expected: """
+                var f = ([Attribute] int x = 1) => x;
+                """, code: """
+                var f = (  [ Attribute ]int x=1)=>x;
+                """);
         }
 
         [Fact]
@@ -10698,6 +10743,34 @@ var s = $""""""{s,0: x }""""""
                 code: @"
 var s = $""""""{s, 0 : x }""""""
 ");
+        }
+
+        [Fact]
+        public async Task FormatUsingAliasToType1()
+        {
+            await AssertFormatAsync(
+                expected: @"
+f([Attribute] () => { });
+",
+                code: @"
+f( [Attribute] () => { });
+");
+        }
+
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("global   using X=int ;", "global using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public async Task TestNormalizeUsingAlias(string text, string expected)
+        {
+            await AssertFormatAsync(expected, text);
         }
     }
 }

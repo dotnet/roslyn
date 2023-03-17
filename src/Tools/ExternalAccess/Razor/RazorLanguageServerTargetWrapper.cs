@@ -17,7 +17,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             _languageServer = languageServer;
         }
-
-        public ValueTask DisposeAsync() => _languageServer.DisposeAsync();
     }
 }

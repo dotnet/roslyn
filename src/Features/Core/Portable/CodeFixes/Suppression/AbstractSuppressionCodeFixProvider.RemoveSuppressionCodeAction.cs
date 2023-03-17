@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public abstract SyntaxTree SyntaxTreeToModify { get; }
 
             public override string EquivalenceKey => FeaturesResources.Remove_Suppression + DiagnosticIdForEquivalenceKey;
-            protected override string DiagnosticIdForEquivalenceKey =>
-                _forFixMultipleContext ? string.Empty : _diagnostic.Id;
+            protected override string DiagnosticIdForEquivalenceKey
+                => _forFixMultipleContext ? string.Empty : _diagnostic.Id;
         }
     }
 }

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
-            Return Utilities.GetNodeToRemove(identifier)
+            Return GetNodeToRemove(identifier)
         End Function
 
         Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, compilation As Compilation, cancellationToken As CancellationToken) As Boolean
@@ -168,18 +168,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
             ' the autoprop read/write, And that could be opening up the property widely 
             ' (in accessibility terms) in a way the user would not want.
-            Dim containingType = field.ContainingType
-            For Each ref In containingType.DeclaringSyntaxReferences
-                Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
-                If containingNode IsNot Nothing Then
+
+            Dim propertyDecl = semanticModel.GetDeclaredSymbol(propertyDeclaration.PropertyStatement, cancellationToken)
+            If propertyDecl.DeclaredAccessibility <> Accessibility.Private Then
+                Dim containingType = field.ContainingType
+                For Each group In containingType.DeclaringSyntaxReferences.GroupBy(Function(ref) ref.SyntaxTree)
 #Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim refSemanticModel = If(containingNode.SyntaxTree Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(containingNode.SyntaxTree))
+                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(group.Key))
 #Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, refSemanticModel, cancellationToken) Then
-                        Return False
-                    End If
-                End If
-            Next
+
+                    For Each ref In group
+                        Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
+                        If containingNode IsNot Nothing Then
+                            If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, groupSemanticModel, cancellationToken) Then
+                                Return False
+                            End If
+                        End If
+                    Next
+                Next
+            End If
 
             ' No problem simplifying this field.
             Return True

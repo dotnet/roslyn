@@ -13,18 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class AttributeSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode,
-                        binder As Binder,
-                        Optional containingSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+        Friend Sub New(root As VisualBasicSyntaxNode,
+                       binder As Binder,
+                       containingPublicSemanticModel As PublicSemanticModel)
+            MyBase.New(root, binder, containingPublicSemanticModel)
         End Sub
 
         ''' <summary>
         ''' Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
+        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As AttributeBinder) As AttributeSemanticModel
             Debug.Assert(containingSemanticModel IsNot Nothing)
             Dim owner As Symbol = GetAttributeTarget(containingSemanticModel, binder)
             Dim wrappedBinder As Binder = binder
@@ -32,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 wrappedBinder = New LocationSpecificBinder(BindingLocation.Attribute, owner, binder)
             End If
 
-            Return New AttributeSemanticModel(binder.Root, wrappedBinder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
+            Return New AttributeSemanticModel(binder.Root, wrappedBinder, containingSemanticModel)
         End Function
 
         Private Shared Function GetAttributeTarget(model As SyntaxTreeSemanticModel, binder As AttributeBinder) As Symbol
@@ -45,15 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a speculative AttributeSemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
+        ''' Creates a speculative semantic model that allows asking semantic questions about an attribute node that did not appear in the original source code.
         ''' </summary>
-        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer) As AttributeSemanticModel
-            Debug.Assert(parentSemanticModel IsNot Nothing)
-            Debug.Assert(root IsNot Nothing)
-            Debug.Assert(binder IsNot Nothing)
-            Debug.Assert(binder.IsSemanticModelBinder)
-
-            Return New AttributeSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
+        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As AttributeSyntax, binder As Binder, position As Integer) As SpeculativeSemanticModelWithMemberModel
+            Return New SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, root, binder)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
@@ -79,17 +72,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Rename
     [Obsolete("Use SymbolRenameOptions or DocumentRenameOptions instead")]
     public static class RenameOptions
     {
+#pragma warning disable RS0030 // Do not used banned APIs: Option<T>
         public static Option<bool> RenameOverloads { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameOverloads), defaultValue: false);
 
         public static Option<bool> RenameInStrings { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameInStrings), defaultValue: false);
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static Option<bool> RenameInComments { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameInComments), defaultValue: false);
 
         public static Option<bool> PreviewChanges { get; } = new Option<bool>(nameof(RenameOptions), nameof(PreviewChanges), defaultValue: false);
+#pragma warning restore
     }
 
     /// <summary>

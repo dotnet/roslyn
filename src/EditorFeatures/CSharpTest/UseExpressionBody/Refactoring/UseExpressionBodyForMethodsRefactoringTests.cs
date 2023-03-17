@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyCodeRefactoringProvider();
 
-        private OptionsCollection UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+        private OptionsCollection UseExpressionBody
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
-        private OptionsCollection UseExpressionBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
+        private OptionsCollection UseExpressionBodyDisabledDiagnostic
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
 
-        private OptionsCollection UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        private OptionsCollection UseBlockBody
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
-        private OptionsCollection UseBlockBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
+        private OptionsCollection UseBlockBodyDisabledDiagnostic
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
         [Fact]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedAtStartOfMethod()
         {
             await TestInRegularAndScript1Async(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedBeforeMethodOnSameLine()
         {
             await TestInRegularAndScript1Async(
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedBeforeAttributes()
         {
             await TestInRegularAndScript1Async(
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestNotOfferedBeforeComments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestNotOfferedInComments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
         public async Task TestTriviaOnArrow1()
         {
             await TestInRegularAndScript1Async(

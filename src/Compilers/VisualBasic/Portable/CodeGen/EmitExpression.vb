@@ -287,7 +287,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Or if we have a ref-constrained T (to do box just once)
                 Dim receiver As BoundExpression = conditional.ReceiverOrCondition
                 Dim receiverType As TypeSymbol = receiver.Type
-                Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
+                Dim nullCheckOnCopy = (Not receiverType.IsReferenceType AndAlso
+                                       Not receiverType.IsValueType AndAlso
+                                       Not DirectCast(receiverType, TypeParameterSymbol).HasInterfaceConstraint) OrElse ' This could be a nullable value type, which must be copied in order to not mutate the original value
+                                      conditional.CaptureReceiver OrElse
+                                      (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
@@ -1705,7 +1709,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Function SafeToGetWriteableReference(left As BoundExpression) As Boolean
             Return AllowedToTakeRef(left, AddressKind.Writeable) AndAlso Not (left.Kind = BoundKind.ArrayAccess AndAlso left.Type.TypeKind = TypeKind.TypeParameter)
         End Function
-
 
         Private Sub InPlaceInit(target As BoundExpression, used As Boolean)
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)

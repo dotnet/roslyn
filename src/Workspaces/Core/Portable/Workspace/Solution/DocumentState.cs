@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,49 +24,46 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new();
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap = new();
 
         // properties inherited from the containing project:
-        private readonly HostLanguageServices _languageServices;
+        public LanguageServices LanguageServices { get; }
         private readonly ParseOptions? _options;
 
         // null if the document doesn't support syntax trees:
         private readonly ValueSource<TreeAndVersion>? _treeSource;
 
         protected DocumentState(
-            HostLanguageServices languageServices,
-            HostWorkspaceServices solutionServices,
+            LanguageServices languageServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion>? treeSource)
-            : base(solutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
+            : base(languageServices.SolutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
         {
             Contract.ThrowIfFalse(_options is null == _treeSource is null);
 
-            _languageServices = languageServices;
+            LanguageServices = languageServices;
             _options = options;
             _treeSource = treeSource;
         }
 
         public DocumentState(
+            LanguageServices languageServices,
             DocumentInfo info,
             ParseOptions? options,
-            LoadTextOptions loadTextOptions,
-            HostLanguageServices languageServices,
-            HostWorkspaceServices services)
-            : base(info, loadTextOptions, services)
+            LoadTextOptions loadTextOptions)
+            : base(languageServices.SolutionServices, info, loadTextOptions)
         {
-            _languageServices = languageServices;
+            LanguageServices = languageServices;
             _options = options;
 
             // If this is document that doesn't support syntax, then don't even bother holding
             // onto any tree source.  It will never be used to get a tree, and can only hurt us
             // by possibly holding onto data that might cause a slow memory leak.
-            if (languageServices.SyntaxTreeFactory == null)
+            if (languageServices.GetService<ISyntaxTreeFactoryService>() == null)
             {
                 _treeSource = null;
             }
@@ -75,20 +73,20 @@ namespace Microsoft.CodeAnalysis
                 _treeSource = CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     LoadTextOptions,
-                    info.Id.ProjectId,
                     info.Attributes.SyntaxTreeFilePath,
                     options,
                     languageServices);
             }
         }
 
+        public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
+
         [MemberNotNullWhen(true, nameof(_treeSource))]
+        [MemberNotNullWhen(true, nameof(TreeSource))]
         [MemberNotNullWhen(true, nameof(_options))]
+        [MemberNotNullWhen(true, nameof(ParseOptions))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
-
-        public HostLanguageServices LanguageServices
-            => _languageServices;
 
         public ParseOptions? ParseOptions
             => _options;
@@ -102,79 +100,53 @@ namespace Microsoft.CodeAnalysis
         protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode = PreservationMode.PreserveValue)
         {
             return new AsyncLazy<TreeAndVersion>(
-                c => FullyParseTreeAsync(newTextSource, loadTextOptions, cacheKey, filePath, options, languageServices, mode, c),
-                c => FullyParseTree(newTextSource, loadTextOptions, cacheKey, filePath, options, languageServices, mode, c),
+                c => FullyParseTreeAsync(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
+                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
                 cacheResult: true);
         }
 
         private static async Task<TreeAndVersion> FullyParseTreeAsync(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(loadTextOptions, cancellationToken).ConfigureAwait(false);
-                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 
         private static TreeAndVersion FullyParseTree(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = newTextSource.GetValue(loadTextOptions, cancellationToken);
-                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                treeAndVersion.Tree.GetRoot(cancellationToken);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 
         private static TreeAndVersion CreateTreeAndVersion(
-            ITextAndVersionSource newTextSource,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
-            PreservationMode mode,
+            LanguageServices languageServices,
             TextAndVersion textAndVersion,
             CancellationToken cancellationToken)
         {
@@ -183,12 +155,6 @@ namespace Microsoft.CodeAnalysis
             var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
             var tree = treeFactory.ParseSyntaxTree(filePath, options, text, cancellationToken);
-
-            var root = tree.GetRoot(cancellationToken);
-            if (mode == PreservationMode.PreserveValue && treeFactory.CanCreateRecoverableTree(root))
-            {
-                tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, new LoadTextOptions(text.ChecksumAlgorithm), text.Encoding, root);
-            }
 
             Contract.ThrowIfNull(tree);
             CheckTree(tree, text);
@@ -341,14 +307,12 @@ namespace Microsoft.CodeAnalysis
             var newTreeSource = SupportsSyntaxTree ? CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 newLoadTextOptions,
-                Id.ProjectId,
                 Attributes.SyntaxTreeFilePath,
                 _options,
-                _languageServices) : null;
+                LanguageServices) : null;
 
             return new DocumentState(
                 LanguageServices,
-                LanguageServices.WorkspaceServices,
                 Services,
                 Attributes,
                 _options,
@@ -384,8 +348,11 @@ namespace Microsoft.CodeAnalysis
 
             ValueSource<TreeAndVersion>? newTreeSource = null;
 
-            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree and it didn't have
-            // any, we can avoid a reparse since the tree will be parsed the same.
+            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree
+            // and it didn't have any, we can avoid a reparse since the tree will be parsed the same.
+            //
+            // We only need to care about `#if` directives as those are the only sorts of directives that can affect how
+            // a tree is parsed.
             if (onlyPreprocessorDirectiveChange &&
                 _treeSource.TryGetValue(out var existingTreeAndVersion))
             {
@@ -393,34 +360,27 @@ namespace Microsoft.CodeAnalysis
 
                 SyntaxTree? newTree = null;
 
-                if (existingTree is IRecoverableSyntaxTree recoverableTree &&
-                    !recoverableTree.ContainsDirectives)
+                var syntaxKinds = LanguageServices.GetRequiredService<ISyntaxKindsService>();
+                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
                 {
-                    // It's a recoverable tree, so we can try to reuse without even having to need the root
-                    newTree = recoverableTree.WithOptions(options);
-                }
-                else if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
-                {
-                    var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                    var treeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                     newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
                 }
 
                 if (newTree is not null)
-                    newTreeSource = new ConstantValueSource<TreeAndVersion>(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                    newTreeSource = ValueSource.Constant(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
             }
 
             // If we weren't able to reuse in a smart way, just reparse
             newTreeSource ??= CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 LoadTextOptions,
-                Id.ProjectId,
                 Attributes.SyntaxTreeFilePath,
                 options,
-                _languageServices);
+                LanguageServices);
 
             return new DocumentState(
                 LanguageServices,
-                LanguageServices.WorkspaceServices,
                 Services,
                 Attributes.With(sourceCodeKind: options.Kind),
                 options,
@@ -452,8 +412,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(attributes != Attributes);
 
             return new DocumentState(
-                _languageServices,
-                LanguageServices.WorkspaceServices,
+                LanguageServices,
                 Services,
                 attributes,
                 _options,
@@ -473,14 +432,12 @@ namespace Microsoft.CodeAnalysis
                 CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     LoadTextOptions,
-                    Id.ProjectId,
                     newAttributes.SyntaxTreeFilePath,
                     _options,
-                    _languageServices) : null;
+                    LanguageServices) : null;
 
             return new DocumentState(
-                _languageServices,
-                solutionServices,
+                LanguageServices,
                 Services,
                 newAttributes,
                 _options,
@@ -515,16 +472,14 @@ namespace Microsoft.CodeAnalysis
                 newTreeSource = CreateLazyFullyParsedTree(
                     newTextSource,
                     LoadTextOptions,
-                    Id.ProjectId,
                     Attributes.SyntaxTreeFilePath,
                     _options,
-                    _languageServices,
+                    LanguageServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
             }
 
             return new DocumentState(
                 LanguageServices,
-                solutionServices,
                 Services,
                 Attributes,
                 _options,
@@ -561,20 +516,43 @@ namespace Microsoft.CodeAnalysis
                 encoding = null;
             }
 
-            var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
             Contract.ThrowIfNull(_options);
-            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory, mode);
+            var (text, treeAndVersion) = CreateTreeWithLazyText(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory);
 
             return new DocumentState(
                 LanguageServices,
-                solutionServices,
                 Services,
                 Attributes,
                 _options,
                 textSource: text,
                 LoadTextOptions,
-                treeSource: new ConstantValueSource<TreeAndVersion>(treeAndVersion));
+                treeSource: ValueSource.Constant(treeAndVersion));
+
+            // use static method so we don't capture references to this
+            static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(
+                SyntaxNode newRoot,
+                VersionStamp textVersion,
+                VersionStamp treeVersion,
+                Encoding? encoding,
+                SourceHashAlgorithm checksumAlgorithm,
+                DocumentInfo.DocumentAttributes attributes,
+                ParseOptions options,
+                ISyntaxTreeFactoryService factory)
+            {
+                var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
+
+                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
+                var lazyTextAndVersion = new TreeTextSource(
+                    new AsyncLazy<SourceText>(
+                        tree.GetTextAsync,
+                        tree.GetText,
+                        cacheResult: true),
+                    textVersion);
+
+                return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
+            }
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
@@ -592,57 +570,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return oldRoot.IsEquivalentTo(newRoot, topLevel: true) ? oldTreeAndVersion.Version : newTextVersion;
-        }
-
-        // use static method so we don't capture references to this
-        private static (ITextAndVersionSource, TreeAndVersion) CreateRecoverableTextAndTree(
-            SyntaxNode newRoot,
-            VersionStamp textVersion,
-            VersionStamp treeVersion,
-            Encoding? encoding,
-            SourceHashAlgorithm checksumAlgorithm,
-            DocumentInfo.DocumentAttributes attributes,
-            ParseOptions options,
-            ISyntaxTreeFactoryService factory,
-            PreservationMode mode)
-        {
-            SyntaxTree tree;
-            ITextAndVersionSource lazyTextAndVersion;
-
-            if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
-            {
-                tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
-
-                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
-                lazyTextAndVersion = new TreeTextSource(
-                    new AsyncLazy<SourceText>(
-                        tree.GetTextAsync,
-                        tree.GetText,
-                        cacheResult: true),
-                    textVersion);
-            }
-            else
-            {
-                // There is a strange circularity here: the creation of lazyTextAndVersion reads this local, but will see it as non-null since it
-                // only uses it through a lambda that won't have ran. The assignment exists to placate the definite-assignment analysis (which is
-                // right to be suspicious of this).
-                tree = null!;
-
-                // Uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
-                // as the text is referenced elsewhere.
-                lazyTextAndVersion = new TreeTextSource(
-                    new WeaklyCachedValueSource<SourceText>(
-                        new AsyncLazy<SourceText>(
-                            // Build text from root, so recoverable tree won't cycle.
-                            async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding, checksumAlgorithm),
-                            cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding, checksumAlgorithm),
-                            cacheResult: false)),
-                    textVersion);
-
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, attributes.SyntaxTreeFilePath, options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
-            }
-
-            return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
         }
 
         internal override Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)

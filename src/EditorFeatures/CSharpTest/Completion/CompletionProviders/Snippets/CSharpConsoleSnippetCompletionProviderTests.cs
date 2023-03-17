@@ -82,7 +82,6 @@ class Program
 @"using System;
 
 Console.WriteLine($$);
-
 class Program
 {
     public async Task MethodAsync()
@@ -154,10 +153,6 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInLocalFunctionTest()
         {
@@ -184,17 +179,13 @@ class Program
         var x = 5;
         void LocalMethod()
         {
-            global::System.Console.WriteLine($$);
+            Console.WriteLine($$);
         }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInAnonymousFunctionTest()
         {
@@ -217,17 +208,13 @@ public delegate void Print(int value);
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        global::System.Console.WriteLine($$);
+        Console.WriteLine($$);
     };
 
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
         {
@@ -245,7 +232,7 @@ using System;
 
 Func<int, int, bool> testForEquality = (x, y) =>
 {
-    global::System.Console.WriteLine($$);
+    Console.WriteLine($$);
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -413,6 +400,39 @@ class Program
 
 class Program
 {
+    public void Method()
+    {
+        Console.WriteLine($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        /// <summary>
+        /// We want to fix this case and insert the fully qualified namespace
+        /// in a future fix.
+        /// </summary>
+        [WpfFact]
+        public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public int Console { get; set; }
+
+    public void Method()
+    {
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+
+class Program
+{
+    public int Console { get; set; }
+
     public void Method()
     {
         Console.WriteLine($$);

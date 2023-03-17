@@ -11,12 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
     public class FindImplementationsTests : AbstractLanguageServerProtocolTests
     {
+        public FindImplementationsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestFindImplementationAsync()
         {
@@ -110,7 +115,7 @@ class A : IA
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(44846, "https://github.com/dotnet/roslyn/issues/44846")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44846")]
         public async Task TestFindImplementationAsync_MultipleLocations()
         {
             var markup =

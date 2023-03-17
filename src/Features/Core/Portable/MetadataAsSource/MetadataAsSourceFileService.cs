@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -97,11 +98,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
+                // We don't want to track telemetry for signatures only requests, only where we try to show source
+                using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
+
                 foreach (var lazyProvider in _providers)
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
                         return result;
@@ -113,26 +117,30 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             throw ExceptionUtilities.Unreachable();
         }
 
-        private MetadataAsSourceWorkspace GetWorkspaceOnMainThread()
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
-            var workspace = _workspace;
-            Contract.ThrowIfNull(workspace);
             var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
             Contract.ThrowIfFalse(threadingService.IsOnMainThread);
-            return workspace;
         }
 
         public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
         {
-            var workspace = GetWorkspaceOnMainThread();
-
-            foreach (var provider in _providers)
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
+            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
+            // MetadataAsSource instead of itself.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                AssertIsMainThread(workspace);
 
-                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
-                    return true;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
+                        return true;
+                }
             }
 
             return false;
@@ -140,15 +148,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool TryRemoveDocumentFromWorkspace(string filePath)
         {
-            var workspace = GetWorkspaceOnMainThread();
-
-            foreach (var provider in _providers)
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
+            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
+            // MetadataAsSource system to see if it owns the file and should handle that event.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                AssertIsMainThread(workspace);
 
-                if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
-                    return true;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
+                        return true;
+                }
             }
 
             return false;
@@ -159,14 +174,28 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             if (filePath is null)
                 return false;
 
-            var workspace = GetWorkspaceOnMainThread();
+            var workspace = _workspace;
+
+            if (workspace == null)
+            {
+                try
+                {
+                    throw new InvalidOperationException(
+                        $"'{nameof(ShouldCollapseOnOpen)}' should only be called once outlining has already confirmed that '{filePath}' is from the {nameof(MetadataAsSourceWorkspace)}");
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+
+                return false;
+            }
+
+            AssertIsMainThread(workspace);
 
             foreach (var provider in _providers)
             {
                 if (!provider.IsValueCreated)
                     continue;
-
-                Contract.ThrowIfNull(_workspace);
 
                 if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
                     return true;

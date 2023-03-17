@@ -749,7 +749,6 @@ class C
                     e.CancellationToken.ThrowIfCancellationRequested();
                 });
 
-
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
             var oldDriver = driver;
 
@@ -885,7 +884,6 @@ class C { }
             }
 
             var generator = new CallbackGenerator((ic) => ic.RegisterForPostInitialization(postInit), (sgc) => { });
-
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
@@ -1200,7 +1198,6 @@ class C { }
                 Diagnostic("GEN001").WithLocation(1, 1),
                 Diagnostic("GEN002").WithLocation(1, 1).WithWarningAsError(true));
 
-
             void verifyDiagnosticsWithOptions(CompilationOptions options, params DiagnosticDescription[] expected)
             {
                 GeneratorDriver driver = CSharpGeneratorDriver.Create(ImmutableArray.Create(gen), parseOptions: parseOptions);
@@ -1283,6 +1280,90 @@ class C { }
             }
         }
 
+        [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
+        public void Diagnostics_Respect_SuppressMessageAttribute()
+        {
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+
+            // reported diagnostics can have a location in source
+            verify("""
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "com") },
+                Diagnostic("GEN001", "com").WithLocation(3, 7));
+
+            // diagnostics are suppressed via SuppressMessageAttribute
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "com") },
+                Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(4, 7));
+
+            // but not when they don't have a source location
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "") },
+                Diagnostic("GEN001").WithLocation(1, 1));
+
+            // different ID suppressed + multiple diagnostics
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN002")]
+                class C
+                {
+                    //comment
+                    //another
+                }
+                """,
+                new[] { (gen001, "com"), (gen001, "ano") },
+                Diagnostic("GEN001", "com").WithLocation(4, 7),
+                Diagnostic("GEN001", "ano").WithLocation(5, 7));
+
+            static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
+            {
+                var parseOptions = TestOptions.Regular;
+                source = source.Replace(Environment.NewLine, "\r\n");
+                var compilation = CreateCompilation(source, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics();
+                var syntaxTree = compilation.SyntaxTrees.Single();
+                var actualDiagnostics = reportDiagnostics.SelectAsArray(x =>
+                    {
+                        if (string.IsNullOrEmpty(x.Location))
+                        {
+                            return x.Diagnostic;
+                        }
+                        var start = source.IndexOf(x.Location);
+                        Assert.True(start >= 0, $"Not found in source: '{x.Location}'");
+                        var end = start + x.Location.Length;
+                        return x.Diagnostic.WithLocation(Location.Create(syntaxTree, TextSpan.FromBounds(start, end)));
+                    });
+
+                var gen = new CallbackGenerator(c => { }, c =>
+                {
+                    foreach (var d in actualDiagnostics)
+                    {
+                        c.ReportDiagnostic(d);
+                    }
+                });
+
+                var driver = CSharpGeneratorDriver.Create(new[] { gen }, parseOptions: parseOptions);
+                driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+                outputCompilation.VerifyDiagnostics();
+                diagnostics.Verify(expected);
+            }
+        }
+
         [Fact]
         public void GeneratorDriver_Prefers_Incremental_Generators()
         {
@@ -1303,7 +1384,6 @@ class C { }
 
             int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
             var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);
-
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
@@ -3195,6 +3275,138 @@ class D {  (int, bool) _field; }";
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
             diagnostics.Verify();
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_After_Generation()
+        {
+            // 1. run a generator, smuggling out some inputs from context
+            // 2. add a second generator, re-using the inputs from the first step and using a Combine node
+            // 3. run the new graph
+
+            var source = @"
+class C { }
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing);
+            compilation.VerifyDiagnostics();
+
+            IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
+            IncrementalValueProvider<AnalyzerConfigOptionsProvider> configOptionsProvider = default;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = parseOptionsProvider = ctx.ParseOptionsProvider;
+                var source2 = configOptionsProvider = ctx.AnalyzerConfigOptionsProvider;
+                var combine = source.Combine(source2);
+                ctx.RegisterSourceOutput(combine, (spc, c) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator });
+            driver = driver.RunGenerators(compilation);
+
+            // parse options and analyzer options are now cached
+            // add a new generator that depends on them
+            bool wasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var source = parseOptionsProvider;
+                var source2 = configOptionsProvider;
+                // this call should always be made, even though the above inputs are cached
+                var transform = source.Select((a, _) => { wasCalled = true; return new object(); });
+                // now combine source2 with the transform. Combine will call single on transform, and we'll crash if it wasn't called
+                var combine = source2.Combine(transform);
+                ctx.RegisterSourceOutput(combine, (spc, c) => { });
+            }));
+
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(wasCalled);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_After_Generation_SourceOutputNode()
+        {
+            // 1. run a generator, smuggling out some inputs from context
+            // 2. add a second generator, re-using the inputs from the first step
+            // 3. run the new graph
+
+            var source = @"
+class C { }
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing);
+            compilation.VerifyDiagnostics();
+
+            IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = parseOptionsProvider = ctx.ParseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator });
+            driver = driver.RunGenerators(compilation);
+
+            // parse options are now cached
+            // add a new generator that depends on them
+            bool wasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var source = parseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { wasCalled = true; });
+            }));
+
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(wasCalled);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_With_Syntax_After_Generation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            bool gen1Called = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen1Called = true;
+                });
+            }));
+
+            // run the generator and make sure the first node is cached
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.True(gen1Called);
+
+            // now, add another syntax node from another generator
+            var gen2Called = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen2Called = true;
+                });
+            }));
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+
+            // ensure it runs successfully
+            gen1Called = false;
+            driver = driver.RunGenerators(compilation);
+
+            Assert.False(gen1Called); // Generator 1 did not re-run
+            Assert.True(gen2Called);
         }
     }
 }

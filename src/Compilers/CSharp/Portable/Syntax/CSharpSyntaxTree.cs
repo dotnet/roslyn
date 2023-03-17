@@ -947,5 +947,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
 
+        /// <summary>
+        /// This is ONLY used for debugging purpose
+        /// </summary>
+        internal string Dump()
+        {
+            return this.GetRoot().Dump();
+        }
     }
 }

@@ -40,7 +40,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -57,7 +57,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuationCommentsAfterLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -74,7 +74,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -198,7 +198,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
         Public Sub TestCommitAfterColon()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -215,7 +215,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         Public Sub TestCommitAfterConstDirective()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -228,7 +228,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         Public Sub TestCommitAfterComment()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -241,7 +241,7 @@ rem Hello World$$|]
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         Public Sub UndoAfterCommitOnBlankLine()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -257,7 +257,7 @@ rem Hello World$$|]
             End Using
         End Sub
 
-        <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         Public Sub TestCommitAfterThenTouchingThen()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
@@ -279,7 +279,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         Public Sub TestCommitAfterThenTouchingStatement()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
@@ -301,7 +301,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
         Public Sub TestCommitAfterPropertyStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -322,7 +322,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact, WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
         Public Sub TestDontCommitInsideStringLiteral()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

@@ -9,11 +9,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
+        public ProjectsHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestProjectsAsync()
         {

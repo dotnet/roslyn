@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             SarifErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogOptions?.Path != null)
             {
-                errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
+                errorLogger = _compiler.GetErrorLogger(_console.Error);
                 if (errorLogger == null)
                 {
                     return CommonCompiler.Failed;
@@ -292,9 +292,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return;
             }
 
-            var task = (state == null) ?
-                newScript.RunAsync(globals, catchException: e => true, cancellationToken: cancellationToken) :
-                newScript.RunFromAsync(state, catchException: e => true, cancellationToken: cancellationToken);
+            var task = (state == null)
+                ? newScript.RunAsync(globals, catchException: e => true, cancellationToken: cancellationToken)
+                : newScript.RunFromAsync(state, catchException: e => true, cancellationToken: cancellationToken);
 
             state = task.GetAwaiter().GetResult();
             if (state.Exception != null)

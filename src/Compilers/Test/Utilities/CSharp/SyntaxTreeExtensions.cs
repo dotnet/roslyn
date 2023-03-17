@@ -58,53 +58,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return WithReplaceFirst(syntaxTree, oldText, string.Empty);
         }
-
-        internal static string Dump(this SyntaxNode node)
-        {
-            var visitor = new CSharpSyntaxPrinter();
-            visitor.Visit(node);
-            return visitor.Dump();
-        }
-
-        internal static string Dump(this SyntaxTree tree)
-        {
-            return tree.GetRoot().Dump();
-        }
-
-        private class CSharpSyntaxPrinter : CSharpSyntaxWalker
-        {
-            readonly PooledStringBuilder builder;
-            int indent = 0;
-
-            internal CSharpSyntaxPrinter()
-            {
-                builder = PooledStringBuilder.GetInstance();
-            }
-
-            internal string Dump()
-            {
-                return builder.ToStringAndFree();
-            }
-
-            public override void DefaultVisit(SyntaxNode node)
-            {
-                builder.Builder.Append(' ', repeatCount: indent);
-                builder.Builder.Append(node.Kind().ToString());
-                if (node.IsMissing)
-                {
-                    builder.Builder.Append(" (missing)");
-                }
-                else if (node is IdentifierNameSyntax name)
-                {
-                    builder.Builder.Append(" ");
-                    builder.Builder.Append(name.ToString());
-                }
-                builder.Builder.AppendLine();
-
-                indent += 2;
-                base.DefaultVisit(node);
-                indent -= 2;
-            }
-        }
     }
 }

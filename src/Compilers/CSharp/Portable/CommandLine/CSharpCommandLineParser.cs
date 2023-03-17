@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
-
                         case "nullable+":
                             if (valueMemory is not null)
                             {

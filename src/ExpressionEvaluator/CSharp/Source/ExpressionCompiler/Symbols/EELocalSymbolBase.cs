@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -52,7 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return null; }
         }
 
-        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -84,18 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return result;
         }
 
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint ValEscapeScope => Binder.CurrentMethodScope;
-
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint RefEscapeScope => Binder.CurrentMethodScope;
-
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

@@ -22,11 +22,6 @@
         <target state="translated">Добавлять фигурные скобки для однострочных операторов управления</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Разрешить небезопасный код в этом проекте</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Применить настройки для пустой строки после двоеточия в инициализаторе конструктора (экспериментальная функция)</target>
@@ -127,16 +122,6 @@
         <target state="translated">Применить настройки для \"var\"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">Присвоение значений параметров "out"</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">Присвоение значений параметров "out" (при запуске)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">Автовыбор отключен из-за возможного объявления переменной шаблона.</target>
@@ -161,11 +146,6 @@
         <source>Convert to method</source>
         <target state="translated">Преобразовать в метод</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Преобразовать в positional record</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -197,14 +177,14 @@
         <target state="translated">Включить типы ссылок, допускающие значение NULL, в проекте</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Включить типы ссылок, допускающие значение NULL, в решение</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Глобальные директивы using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Встроить временную переменную</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -217,25 +197,15 @@
         <target state="translated">При возможности делать частные поля доступными только для чтения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">Сделать ref struct</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Удалить ключевое слово "in"</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Удалить модификатор "new"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Обратить оператор "for"</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">Выделенный фрагмент не может быть в инициализаторе конструктора</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -275,6 +245,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">внешний псевдоним</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -415,11 +390,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Упорядочение Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">Сделать {0} задачей возврата вместо void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -682,16 +652,6 @@
         <target state="translated">Автовыбор отключен из-за возможного присутствия объявления деконструирования.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Обновить этот проект C# до версии языка "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Обновить все проекты C# до версии языка "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;имя класса&gt;</target>
@@ -712,16 +672,6 @@
         <target state="translated">&lt;имя структуры&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Преобразовать метод в асинхронный</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Сделать метод асинхронным (оставить void)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Имя&gt;</target>
@@ -737,16 +687,6 @@
         <target state="translated">(предложенное имя)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Удалить неиспользуемую функцию</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Добавить скобки</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">Преобразовать в "foreach"</target>
@@ -760,11 +700,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">Инвертировать оператор if</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Использовать "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

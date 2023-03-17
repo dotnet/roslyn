@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
             _key = new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp);
         }
 
-        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
+        public IEnumSettingViewModel CreateViewModel(Setting setting)
         {
             return new NewLineViewModel(setting);
         }
@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
     internal class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
     {
-        private readonly WhitespaceSetting _setting;
+        private readonly Setting _setting;
 
-        public NewLineViewModel(WhitespaceSetting setting)
+        public NewLineViewModel(Setting setting)
         {
             _setting = setting;
         }

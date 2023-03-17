@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(FormatOnCloseBraceCheckBox, AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp);
             BindToOption(FormatOnSemicolonCheckBox, AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp);
             BindToOption(FormatOnReturnCheckBox, AutoFormattingOptionsStorage.FormatOnReturn, LanguageNames.CSharp);
-            BindToOption(FormatOnPasteCheckBox, FormattingOptionsMetadata.FormatOnPaste, LanguageNames.CSharp);
+            BindToOption(FormatOnPasteCheckBox, FormattingOptionsStorage.FormatOnPaste, LanguageNames.CSharp);
         }
     }
 }

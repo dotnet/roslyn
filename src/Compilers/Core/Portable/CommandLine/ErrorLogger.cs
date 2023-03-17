@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -12,5 +13,6 @@ namespace Microsoft.CodeAnalysis
     internal abstract class ErrorLogger
     {
         public abstract void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo);
+        public abstract void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors);
     }
 }

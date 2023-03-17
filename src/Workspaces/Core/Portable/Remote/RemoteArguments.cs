@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
 
-        [return: NotNullIfNotNull("alias")]
+        [return: NotNullIfNotNull(nameof(alias))]
         public static SerializableSymbolAndProjectId? Dehydrate(
             IAliasSymbol? alias, Document document, CancellationToken cancellationToken)
         {

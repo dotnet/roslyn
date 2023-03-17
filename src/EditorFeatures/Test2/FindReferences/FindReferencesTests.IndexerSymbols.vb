@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_Indexer1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -34,7 +34,7 @@ class D
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -61,7 +61,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545577")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545577")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -84,7 +84,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(650779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650779")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -114,7 +114,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(661362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661362")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -146,7 +146,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39847")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_Indexer_Conditional(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -177,7 +177,7 @@ class B
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39847")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer_Conditional(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -207,7 +207,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39847")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_Indexer_CRef(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -231,7 +231,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39847")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBasic_Indexer_Cref(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -252,7 +252,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestIndexerReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -271,7 +271,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestParameterizedPropertyReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -316,6 +316,25 @@ class D
     }
 }
         </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40978")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestImplicitElementAccessExpression1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class Test
+{
+  int {|Definition:$$this|}[int index] { get => 0; set { } }
+
+  Test Create() { return new Test() { [||][0] = 0, [||][1] = 1 }; }
+}
+        </Document>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

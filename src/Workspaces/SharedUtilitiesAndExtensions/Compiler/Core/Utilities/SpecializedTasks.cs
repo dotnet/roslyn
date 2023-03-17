@@ -51,10 +51,6 @@ namespace Roslyn.Utilities
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
             => EmptyTasks<T>.EmptyEnumerable;
 
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<T> FromResult<T>(T t) where T : class
-            => FromResultCache<T>.FromResult(t);
-
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
         public static ValueTask<T[]> WhenAll<T>(IEnumerable<ValueTask<T>> tasks)
         {
@@ -193,16 +189,6 @@ namespace Roslyn.Utilities
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());
             public static readonly Task<IReadOnlyList<T>> EmptyReadOnlyList = Task.FromResult(SpecializedCollections.EmptyReadOnlyList<T>());
-        }
-
-        private static class FromResultCache<T> where T : class
-        {
-            private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new();
-            private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
-
-            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-            public static Task<T> FromResult(T t)
-                => s_fromResultCache.GetValue(t, s_taskCreationCallback);
         }
     }
 }

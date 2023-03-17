@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
+        /// <summary>
+        /// Used as a tiebreaker to position coincident type and parameter hints.
+        /// Parameter hints will always appear first.
+        /// </summary>
+        private const double Ranking = 0.0;
+
         protected enum HintKind
         {
             Literal,
@@ -104,6 +110,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
                             new TextChange(textSpan, inlineHintText),
+                            ranking: Ranking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

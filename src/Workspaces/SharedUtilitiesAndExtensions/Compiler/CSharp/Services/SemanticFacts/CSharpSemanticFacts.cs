@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -36,25 +35,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ExposesAnonymousFunctionParameterNames => false;
 
-        public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken);
 
-        public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsOnlyWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsOnlyWrittenTo();
 
-        public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInOutContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInOutContext();
 
-        public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInRefContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInRefContext();
 
-        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInInContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInInContext();
 
-        public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
+        public bool CanReplaceWithRValue(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? expression, CancellationToken cancellationToken)
             => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
 
-        public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        public ISymbol? GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var location = token.GetLocation();
 
@@ -83,9 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
                 if (CSharpSyntaxFacts.Instance.IsExecutableStatement(ancestor))
-                {
                     return null;
-                }
             }
 
             return null;
@@ -108,7 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool SupportsParameterizedProperties => false;
 
-        public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
+        public bool TryGetSpeculativeSemanticModel(
+            SemanticModel oldSemanticModel,
+            SyntaxNode oldNode,
+            SyntaxNode newNode,
+            [NotNullWhen(true)] out SemanticModel? speculativeModel)
         {
             Debug.Assert(oldNode.Kind() == newNode.Kind());
 
@@ -119,9 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out var csharpModel);
-            speculativeModel = csharpModel;
-            return success;
+            return model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out speculativeModel);
         }
 
         public ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken)
@@ -183,7 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => semanticModel.GetCollectionInitializerSymbolInfo((ExpressionSyntax)node, cancellationToken);
+
+        public IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AwaitExpressionSyntax awaitExpression)
             {
@@ -245,34 +247,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case FieldDeclarationSyntax field:
                     return field.Declaration.Variables.Select(
-                        v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
+                        v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
 
                 case EventFieldDeclarationSyntax eventField:
                     return eventField.Declaration.Variables.Select(
-                        v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
+                        v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
 
                 default:
                     return SpecializedCollections.SingletonEnumerable(
-                        semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
+                        semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken));
             }
         }
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+        public IParameterSymbol? FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
             => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+        public IParameterSymbol? FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
             => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken);
 
         // Normal arguments can't reference fields/properties in c#
-        public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+        public ISymbol? FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
             => null;
 
-        public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+        public ISymbol? FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
             => argument is AttributeArgumentSyntax { NameEquals.Name: var name }
                 ? semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol()
                 : null;
 
-        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (node == null)
                 return ImmutableArray<ISymbol>.Empty;
@@ -281,11 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
-                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
+                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken),
             };
         }
 
-        private static SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns the best symbols found that the provided token binds to.  This is similar to <see
+        /// cref="ModelExtensions.GetSymbolInfo(SemanticModel, SyntaxNode, CancellationToken)"/>, but sometimes employs
+        /// heuristics to provide a better result for tokens that users conceptually think bind to things, but which the
+        /// compiler does not necessarily return results for.
+        /// </summary>
+        private static ImmutableArray<ISymbol> GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {
@@ -301,16 +309,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var ordering = orderByClauseSyntax.Orderings[index + 1];
                             if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
-                            {
-                                return semanticModel.GetSymbolInfo(ordering, cancellationToken);
-                            }
+                                return semanticModel.GetSymbolInfo(ordering, cancellationToken).GetBestOrAllSymbols();
                         }
                     }
                     else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
                     {
                         // The first ordering is displayed on the "orderby" keyword itself if there isn't a 
                         // ascending/descending keyword.
-                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken).GetBestOrAllSymbols();
                     }
 
                     return default;
@@ -324,29 +330,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In some cases a single clause binds to more than one method. In those cases 
                         // the tokens in the clause determine which of the two SymbolInfos are returned.
                         // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
-                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
+                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo.GetBestOrAllSymbols() : queryInfo.OperationInfo.GetBestOrAllSymbols();
                     }
 
                     if (hasCastInfo)
-                    {
-                        return queryInfo.CastInfo;
-                    }
+                        return queryInfo.CastInfo.GetBestOrAllSymbols();
 
-                    return queryInfo.OperationInfo;
+                    return queryInfo.OperationInfo.GetBestOrAllSymbols();
                 case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
-                    return semanticModel.GetSymbolInfo(baseType, cancellationToken);
+                    return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
             }
 
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
+                return ImmutableArray<ISymbol>.Empty;
+
+            // If we're on 'var' then asking for the symbol-info will get us the symbol *without* nullability
+            // information. Check for that, and try to return the type with nullability info if it has it.
+            if (node is IdentifierNameSyntax { IsVar: true })
             {
-                return default;
+                var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
+                var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
+                if (type != null &&
+                    type.Equals(symbol, SymbolEqualityComparer.Default) &&
+                    !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
+                {
+                    return ImmutableArray.Create<ISymbol>(type);
+                }
             }
 
-            return semanticModel.GetSymbolInfo(node, cancellationToken);
+            return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
         }
 
-        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
 
         public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
@@ -370,7 +386,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutable();
         }
 
-        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionType, cancellationToken);
+
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
     }
 }

@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string NonExistentProject => GetText("SolutionFiles.NonExistentProject.sln");
             public static string ProjectLoadErrorOnMissingDebugType => GetText("SolutionFiles.ProjectLoadErrorOnMissingDebugType.sln");
             public static string SolutionFolder => GetText("SolutionFiles.SolutionFolder.sln");
+            public static string VisualBasic => GetText("SolutionFiles.VisualBasic.sln");
             public static string VB_and_CSharp => GetText("SolutionFiles.VB_and_CSharp.sln");
         }
 

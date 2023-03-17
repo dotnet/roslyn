@@ -433,7 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-
             public override SpecialType SpecialType
             {
                 get

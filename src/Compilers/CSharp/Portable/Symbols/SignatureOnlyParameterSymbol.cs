@@ -48,8 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
-        internal override DeclarationScope EffectiveScope
-            => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+        internal override ScopedKind EffectiveScope
+            => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
+
+        internal override bool HasUnscopedRefAttribute => false;
 
         internal override bool UseUpdatedEscapeRules => false;
 
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
                         _isParams.GetHashCode(),
-                        _refKind.GetHashCode())));
+                        ((int)_refKind).GetHashCode())));
         }
     }
 }

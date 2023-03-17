@@ -12,12 +12,17 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
 {
     public class RenameTests : AbstractLanguageServerProtocolTests
     {
+        public RenameTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestRenameAsync()
         {

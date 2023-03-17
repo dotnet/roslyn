@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'DebuggerDisplay' 특성을 추가합니다.</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_member_name">
-        <source>Add member name</source>
-        <target state="translated">멤버 이름 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">모든 매개 변수에 대한 null 검사 추가</target>
@@ -63,11 +58,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">생성자에 선택적 매개 변수 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">'{0}'(및 재정의/구현)에 매개 변수 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -350,6 +340,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">기본 클래스에 구현되지 않아 액세스할 수 없는 멤버가 포함되어 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">변경 내용을 적용할 수 없음 -- 예기치 않은 오류: '{0}'</target>
@@ -495,6 +490,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} 표시 유형을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="translated">'{0}'의 코드 조각</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">주석이 허용되지 않습니다.</target>
@@ -538,11 +538,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">LINQ로 변환</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">'{0}'에 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -613,6 +608,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Decompiled">
         <source>decompiled</source>
         <target state="translated">디컴파일됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -743,6 +743,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">{0}의 데이터 흐름 분석 실패</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
+        <source>'Find All References' not invoked on applicable symbol</source>
+        <target state="new">'Find All References' not invoked on applicable symbol</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -973,6 +978,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}'을(를) 인라인으로 지정 및 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">인라인 임시 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1288,6 +1298,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">이 요소의 이름을 바꾸기 전에 코드 오류를 해결하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2475,19 +2490,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">너비가 0인 긍정 lookbehind 어설션</target>
         <note />
       </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">메타데이터에서 찾은 관련 메서드 시그니처가 업데이트되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">지원되지 않는 문서 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">'async' 한정자 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -2538,6 +2543,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
         <target state="translated">캡처된 변수의 이름을 '{0}'에서 '{1}'(으)로 바꾸려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">익명 형식의 멤버 이름은 아직 바꿀 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2678,6 +2688,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_symbol_has_no_implementations">
         <source>The symbol has no implementations.</source>
         <target state="translated">기호에 구현이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -3000,6 +3015,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">탐색 모음을 사용하여 컨텍스트를 전환할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">이전 전송 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">메타데이터에서 정의된 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">연산자의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">이 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">식별자의 이름을 바꿔야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' 기본</target>
@@ -3085,9 +3125,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}'은(는) 여기에서 null일 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">'{0}' 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3418,6 +3468,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="translated">else 문</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">포함됨</target>
@@ -3490,6 +3545,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">제네릭 오버로드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">
@@ -4418,11 +4478,6 @@ DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 
         <target state="translated">{0} 분석기 어셈블리를 로드할 수 없습니다. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">소스: {0}</target>
@@ -4585,16 +4640,6 @@ This version used in: {2}</source>
         <target state="translated">{0}(으)로 형식 이름 바꾸기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">태그 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">누락된 매개 변수 노드 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(알 수 없음)</target>
@@ -4650,26 +4695,6 @@ This version used in: {2}</source>
         <target state="translated">인수 이름 '{0}' 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">'{0}' 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">둘 다 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">맨 아래 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">맨 위 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_variable">
         <source>Remove unused variable</source>
         <target state="translated">사용하지 않는 변수 제거</target>
@@ -4708,11 +4733,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">구분 기호 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">'{0}'에 매개 변수 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">
@@ -4940,6 +4960,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 DateTimeOffset 값의 경우, 이 형식 지정자는 UTC에서 가져온 DateTimeOffset 값의 오프셋을 나타냅니다(단위: 시간).
 
 오프셋은 항상 앞에 있는 부호와 함께 표시됩니다. 더하기 부호(+)는 UTC보다 앞선 시간을, 빼기 부호(-)는 UTC보다 늦은 시간을 나타냅니다. 한 자릿수 오프셋은 앞에 0이 있는 형식으로 지정됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="translated">while 루프</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

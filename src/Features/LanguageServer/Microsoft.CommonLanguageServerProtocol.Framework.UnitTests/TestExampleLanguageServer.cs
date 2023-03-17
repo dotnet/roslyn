@@ -11,6 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using StreamJsonRpc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -18,7 +19,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 {
     private readonly JsonRpc _clientRpc;
 
-    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger)
+    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, logger, addExtraHandlers)
     {
         _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientSteam, clientSteam, CreateJsonMessageFormatter()))
         {
@@ -45,32 +46,30 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 
     protected override ILifeCycleManager GetLifeCycleManager()
     {
-        return new TestLifeCycleManager(this, _shuttingDown, _exiting);
+        return new TestLifeCycleManager(_shuttingDown, _exiting);
     }
 
     private class TestLifeCycleManager : ILifeCycleManager
     {
-        private readonly ILifeCycleManager _lifeCycleManager;
         private readonly TaskCompletionSource<int> _shuttingDownSource;
         private readonly TaskCompletionSource<int> _exitingSource;
 
-        public TestLifeCycleManager(ILifeCycleManager lifeCycleManager, TaskCompletionSource<int> shuttingDownSource, TaskCompletionSource<int> exitingSource)
+        public TestLifeCycleManager(TaskCompletionSource<int> shuttingDownSource, TaskCompletionSource<int> exitingSource)
         {
-            _lifeCycleManager = lifeCycleManager;
             _shuttingDownSource = shuttingDownSource;
             _exitingSource = exitingSource;
         }
 
-        public async Task ExitAsync()
+        public Task ExitAsync()
         {
-            await _lifeCycleManager.ExitAsync();
             _exitingSource.SetResult(0);
+            return Task.CompletedTask;
         }
 
-        public async Task ShutdownAsync(string message = "Shutting down")
+        public Task ShutdownAsync(string message = "Shutting down")
         {
-            await _lifeCycleManager.ShutdownAsync(message);
             _shuttingDownSource.SetResult(0);
+            return Task.CompletedTask;
         }
     }
 
@@ -102,17 +101,29 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return await _exiting.Task;
     }
 
-    public new ValueTask DisposeAsync()
-    {
-        _clientRpc.Dispose();
-        return base.DisposeAsync();
-    }
-
     private static JsonMessageFormatter CreateJsonMessageFormatter()
     {
         var messageFormatter = new JsonMessageFormatter();
         messageFormatter.JsonSerializer.AddVSInternalExtensionConverters();
         return messageFormatter;
+    }
+
+    internal static TestExampleLanguageServer CreateBadLanguageServer(ILspLogger logger)
+    {
+        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, CreateJsonMessageFormatter()));
+
+        var extraHandlers = (IServiceCollection serviceCollection) =>
+            {
+                serviceCollection.AddSingleton<IMethodHandler, ExtraDidOpenHandler>();
+            };
+
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger, extraHandlers);
+
+        jsonRpc.StartListening();
+        server.InitializeTest();
+        return server;
     }
 
     internal static TestExampleLanguageServer CreateLanguageServer(ILspLogger logger)
@@ -121,7 +132,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, CreateJsonMessageFormatter()));
 
-        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger);
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger, addExtraHandlers: null);
 
         jsonRpc.StartListening();
         server.InitializeTest();
@@ -146,5 +157,17 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         var result = await ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, request, CancellationToken.None);
 
         return result;
+    }
+}
+
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+public class ExtraDidOpenHandler :
+    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>
+{
+    public bool MutatesSolutionState => throw new System.NotImplementedException();
+
+    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    {
+        throw new System.NotImplementedException();
     }
 }

@@ -107,9 +107,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            output.AppendLine(outOfDateCount == 0 ?
-                "All closed documents up to date." :
-                $"{Environment.NewLine}{outOfDateCount} documents out of date.");
+            output.AppendLine(outOfDateCount == 0
+                ? "All closed documents up to date."
+                : $"{Environment.NewLine}{outOfDateCount} documents out of date.");
         }
     }
 }

@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override string CreateResultForString(int start, int end, bool hasEmbeddedQuote)
             {
-                var substring = Data.Substring(start, end - start);
+                var substring = Data[start..end];
                 var result = hasEmbeddedQuote
                     ? substring.Replace("\"\"", "\"")
                     : substring;

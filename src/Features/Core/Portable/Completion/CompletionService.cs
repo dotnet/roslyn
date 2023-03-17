@@ -11,12 +11,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(SolutionServices services)
+        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _services = services;
-            _providerManager = new(this);
+            _providerManager = new(this, listenerProvider);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionSet.Empty;
 
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
@@ -251,14 +251,14 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            var filterDataList = new SegmentedList<MatchResult>(items.Select(
-                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var helper = new PatternMatchHelper(filterText);
+            var filterDataList = new SegmentedList<MatchResult>(
+                items.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
 
             var builder = s_listOfMatchResultPool.Allocate();
             try
             {
-                FilterItems(helper, filterDataList, filterText, builder);
+                FilterItems(CompletionHelper.GetHelper(document), filterDataList, filterText, builder);
                 return builder.SelectAsArray(result => result.CompletionItem);
             }
             finally
@@ -280,8 +280,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-            var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var completionPatternMatchers = new PatternMatchHelper(filterText);
+            builder.AddRange(filteredItems.Select(item => completionPatternMatchers.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
 
         /// <summary>
@@ -334,14 +334,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating MEF providers only.
         /// </summary>
-        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
-            => _providerManager.GetLazyImportedProviders();
+        internal void LoadImportedProviders()
+            => _providerManager.LoadProviders();
 
         /// <summary>
-        /// Don't call. Used for pre-populating NuGet providers only.
+        /// Don't call. Used for pre-load project providers only.
         /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
-            => ProviderManager.GetProjectCompletionProviders(project);
+        internal void TriggerLoadProjectProviders(Project project)
+                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
 
         internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);
@@ -356,10 +356,13 @@ namespace Microsoft.CodeAnalysis.Completion
             public TestAccessor(CompletionService completionServiceWithProviders)
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
-            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles, Project? project = null)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProviders(roles, project);
+            public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
-            internal async Task<CompletionContext> GetContextAsync(
+            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+
+            public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
                 Document document,
                 int position,

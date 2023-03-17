@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly DebuggingSessionId Id;
 
         /// <summary>
+        /// Incremented on every emit update invocation. Used by logging.
+        /// </summary>
+        private int _updateOrdinal;
+
+        /// <summary>
         /// The solution captured when the debugging session entered run mode (application debugging started),
         /// or the solution which the last changes committed to the debuggee at the end of edit session were calculated from.
         /// The solution reflecting the current state of the modules loaded in the debugee.
@@ -522,9 +527,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             ThrowIfDisposed();
 
-            var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var updateId = new UpdateId(Id, Interlocked.Increment(ref _updateOrdinal));
 
-            LogSolutionUpdate(solutionUpdate);
+            var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, cancellationToken).ConfigureAwait(false);
+
+            LogSolutionUpdate(solutionUpdate, updateId);
 
             if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
@@ -536,11 +543,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits, solutionUpdate.SyntaxError);
         }
 
-        private void LogSolutionUpdate(SolutionUpdate update)
+        private void LogSolutionUpdate(SolutionUpdate update, UpdateId updateId)
         {
             var log = EditAndContinueWorkspaceService.Log;
 
-            log.Write("Solution update status: {0}", update.ModuleUpdates.Status);
+            log.Write("Solution update {0}.{1} status: {2}", updateId.SessionId.Ordinal, updateId.Ordinal, update.ModuleUpdates.Status);
 
             foreach (var moduleUpdate in update.ModuleUpdates.Updates)
             {
@@ -1010,10 +1017,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/1204
                         // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
                         // correspond to the PDB.
-                        var id = (oldProject?.SupportsEditAndContinue() == true) ?
-                            await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) :
-                            null;
+                        var id = (oldProject?.SupportsEditAndContinue() == true)
+                            ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false)
+                            : null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)

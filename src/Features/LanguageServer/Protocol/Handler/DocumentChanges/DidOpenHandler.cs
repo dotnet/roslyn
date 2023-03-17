@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             // Add the document and ensure the text we have matches whats on the client
             // TODO (https://github.com/dotnet/roslyn/issues/63583):
             // Create SourceText from binary representation of the document, retrieve encoding from the request and checksum algorithm from the project.
-            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.Default);
+            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
 

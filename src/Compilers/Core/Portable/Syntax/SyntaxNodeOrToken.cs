@@ -477,7 +477,6 @@ namespace Microsoft.CodeAnalysis
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-
         /// <summary>
         /// Determines whether the underlying node or token has any descendant preprocessor directives.
         /// </summary>

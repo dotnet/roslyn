@@ -28,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Friend MustOverride Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
             cmd As CommonCompiler,
-            sourceFilePath As String) As String
+            sourceFilePath As String,
+            ParamArray suppressionKinds As String()) As String
 
         Friend MustOverride Function GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(
             cmd As MockVisualBasicCompiler) As String
@@ -142,7 +143,7 @@ End Class
             Assert.NotEqual(0, exitCode)
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
-            Dim expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFilePath)
+            Dim expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFilePath, "inSource")
 
             Assert.Equal(expectedOutput, actualOutput)
 

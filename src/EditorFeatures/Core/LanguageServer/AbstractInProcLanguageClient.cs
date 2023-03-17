@@ -9,16 +9,17 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
@@ -28,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly IThreadingContext _threadingContext;
         private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspServiceLoggerFactory _lspLoggerFactory;
+        private readonly ExportProvider _exportProvider;
 
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
+        protected readonly AbstractLspServiceProvider LspServiceProvider;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -103,12 +105,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IGlobalOptionService globalOptions,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
+            ExportProvider exportProvider,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
-            _lspServiceProvider = lspServiceProvider;
+            LspServiceProvider = lspServiceProvider;
             GlobalOptions = globalOptions;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
+            _exportProvider = exportProvider;
             _middleLayer = middleLayer;
         }
 
@@ -148,9 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (_languageServer is not null)
             {
-                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
-
-                await _languageServer.DisposeAsync().ConfigureAwait(false);
+                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
+        internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
@@ -209,27 +211,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            var server = languageClient.Create(
+            var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
+            var server = Create(
                 jsonRpc,
                 languageClient,
                 serverKind,
-                logger);
+                logger,
+                hostServices);
 
             jsonRpc.StartListening();
             return server;
         }
 
-        public AbstractLanguageServer<RequestContext> Create(
+        public virtual AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger)
+            ILspServiceLogger logger,
+            HostServices hostServices)
         {
             var server = new RoslynLanguageServer(
-                _lspServiceProvider,
+                LspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
                 logger,
+                hostServices,
                 SupportedLanguages,
                 serverKind);
 

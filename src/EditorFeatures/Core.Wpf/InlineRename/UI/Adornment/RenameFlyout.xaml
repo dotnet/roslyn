@@ -18,6 +18,7 @@
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
              Focusable="False"
              UseLayoutRounding="True"
+             Cursor="Arrow"
              x:Name="control">
 
     <UserControl.Resources>
@@ -42,7 +43,7 @@
                     Grid.Column="0"
                     x:Name="IdentifierTextBox" 
                     Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
-                    GotFocus="IdentifierTextBox_GotFocus" 
+                    GotFocus="IdentifierTextBox_GotFocus"
                     HorizontalAlignment="Stretch" />
 
                 <!-- Expand/Collapse button and glyph -->

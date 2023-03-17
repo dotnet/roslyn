@@ -23,6 +23,7 @@
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0" />
             </Style>
+            <vsui:BrushToColorConverter x:Key="BrushToColorConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -108,14 +109,33 @@
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
                                         VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
 
-                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16" AutomationProperties.Name="{Binding CloseTab}" KeyboardNavigation.TabIndex="2">
-                                        <Button.Template>
-                                            <ControlTemplate>
-                                                <Grid Background="{TemplateBinding Background}">
-                                                    <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Margin="0" Width="14" Height="14" />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Button.Template>
+                                    <Button 
+                                        Grid.Row="0" 
+                                        Grid.Column="1" 
+                                        Command="{Binding CloseClick}" 
+                                        Margin="0" 
+                                        Padding="0" 
+                                        BorderThickness="0" 
+                                        Width="16" 
+                                        MinWidth="16" 
+                                        MinHeight="16" 
+                                        Height="16" 
+                                        AutomationProperties.Name="{Binding CloseTab}" 
+                                        KeyboardNavigation.TabIndex="2"
+                                        vsui:ImageThemingUtilities.ImageBackgroundColor="{Binding RelativeSource={RelativeSource Self}, Path=Background, Converter={StaticResource BrushToColorConverter}}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsFocused" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowButtonDownKey}}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsFocused" Value="False">
+                                                        <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Margin="0" Width="14" Height="14" />
                                     </Button>
 
                                     <!-- the line under the text to indicate that this label is selected -->

@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (location.IsInSource)
                 {
-                    builder.AddIfNotNull(CreateLocation(document.Project.GetRequiredDocument(location.SourceTree), location));
+                    builder.AddIfNotNull(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {

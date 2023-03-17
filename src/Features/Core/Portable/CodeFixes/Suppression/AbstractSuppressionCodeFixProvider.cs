@@ -139,8 +139,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
+            if (textDocument is not Document document)
+                return Task.FromResult(ImmutableArray<CodeFix>.Empty);
+
             return GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
         }
 

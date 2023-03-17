@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
-                var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
+                var infos = typeInferenceService.GetTypeInferenceInfo(semanticModel, position, cancellationToken);
 
-                if (types.Length == 0)
-                    types = ImmutableArray.Create<ITypeSymbol>(semanticModel.Compilation.ObjectType);
+                if (infos.Length == 0)
+                    infos = ImmutableArray.Create(new TypeInferenceInfo(semanticModel.Compilation.ObjectType));
 
-                foreach (var type in types)
-                    await HandleSingleTypeAsync(context, semanticModel, token, type, cancellationToken).ConfigureAwait(false);
+                foreach (var (type, isParams) in infos)
+                    await HandleSingleTypeAsync(context, semanticModel, token, type, isParams, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
@@ -104,8 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static async Task HandleSingleTypeAsync(CompletionContext context, SemanticModel semanticModel, SyntaxToken token, ITypeSymbol type, CancellationToken cancellationToken)
+        private static async Task HandleSingleTypeAsync(
+            CompletionContext context, SemanticModel semanticModel, SyntaxToken token, ITypeSymbol type, bool isParams, CancellationToken cancellationToken)
         {
+            if (isParams && type is IArrayTypeSymbol arrayType)
+                type = arrayType.ElementType;
+
             // If we have a Nullable<T>, unwrap it.
             if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {

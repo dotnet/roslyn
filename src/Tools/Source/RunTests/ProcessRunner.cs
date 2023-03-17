@@ -64,8 +64,8 @@ namespace RunTests
             Dictionary<string, string>? environmentVariables = null,
             Action<Process>? onProcessStartHandler = null,
             Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-            CancellationToken cancellationToken = default) =>
-            CreateProcess(
+            CancellationToken cancellationToken = default)
+            => CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,

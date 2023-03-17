@@ -25,7 +25,8 @@ namespace Roslyn.Test.Utilities
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly string _baseDirectoryName;
-        private readonly List<string> _artifactFilePath = new List<string>();
+        private readonly List<string> _filePaths = new List<string>();
+        private readonly List<string> _directoryPaths = new List<string>();
         private bool _success = false;
 
         public ArtifactUploadUtil(ITestOutputHelper testOutputHelper, string? baseDirectoryName = null)
@@ -34,9 +35,14 @@ namespace Roslyn.Test.Utilities
             _baseDirectoryName = baseDirectoryName ?? Guid.NewGuid().ToString();
         }
 
-        public void AddArtifact(string filePath)
+        public void AddFile(string filePath)
         {
-            _artifactFilePath.Add(filePath);
+            _filePaths.Add(filePath);
+        }
+
+        public void AddDirectory(string directory)
+        {
+            _directoryPaths.Add(directory);
         }
 
         public void SetSucceeded()
@@ -46,28 +52,57 @@ namespace Roslyn.Test.Utilities
 
         public void Dispose()
         {
-            if (!_success)
+            if (_success)
             {
-                var uploadDir = Environment.GetEnvironmentVariable("HELIX_WORKITEM_UPLOAD_ROOT");
-                if (string.IsNullOrEmpty(uploadDir))
+                return;
+            }
+
+            var uploadDir = Environment.GetEnvironmentVariable("HELIX_WORKITEM_UPLOAD_ROOT");
+            if (string.IsNullOrEmpty(uploadDir))
+            {
+                _testOutputHelper.WriteLine("Skipping artifact upload as not running in helix");
+                _testOutputHelper.WriteLine("Files:");
+                foreach (var filePath in _filePaths)
                 {
-                    _testOutputHelper.WriteLine("Skipping artifact upload as not running in helix");
-                    _testOutputHelper.WriteLine("Artifacts");
-                    foreach (var filePath in _artifactFilePath)
-                    {
-                        _testOutputHelper.WriteLine(filePath);
-                    }
+                    _testOutputHelper.WriteLine(filePath);
                 }
-                else
+
+                _testOutputHelper.WriteLine("Directories:");
+                foreach (var directory in _directoryPaths)
                 {
-                    uploadDir = Path.Combine(uploadDir, _baseDirectoryName);
-                    Directory.CreateDirectory(uploadDir);
-                    _testOutputHelper.WriteLine($"Uploading artifacts by copying to {uploadDir}");
-                    foreach (var filePath in _artifactFilePath)
+                    _testOutputHelper.WriteLine(directory);
+                }
+            }
+            else
+            {
+                uploadDir = Path.Combine(uploadDir, _baseDirectoryName);
+                Directory.CreateDirectory(uploadDir);
+                _testOutputHelper.WriteLine($"Uploading artifacts by copying to {uploadDir}");
+                foreach (var filePath in _filePaths)
+                {
+                    _testOutputHelper.WriteLine($"Copying file {filePath}");
+                    var fileName = Path.GetFileName(filePath);
+                    File.Copy(filePath, Path.Combine(uploadDir, fileName));
+                }
+
+                foreach (var directory in _directoryPaths)
+                {
+                    _testOutputHelper.WriteLine($"Copying directory {directory}");
+                    var destDirectory = Path.Combine(uploadDir, Path.GetFileName(directory));
+                    Directory.CreateDirectory(destDirectory);
+                    foreach (var filePath in Directory.EnumerateFiles(directory, searchPattern: "*.*", SearchOption.AllDirectories))
                     {
-                        _testOutputHelper.WriteLine($"Copying {filePath}");
-                        var fileName = Path.GetFileName(filePath);
-                        File.Copy(filePath, Path.Combine(uploadDir, fileName));
+                        _testOutputHelper.WriteLine($"\tCopying file {filePath}");
+
+                        var destFilePath = filePath.Substring(directory.Length);
+                        if (destFilePath.Length > 0 && destFilePath[0] == Path.DirectorySeparatorChar)
+                        {
+                            destFilePath = destFilePath.Substring(1);
+                        }
+
+                        destFilePath = Path.Combine(destDirectory, destFilePath);
+                        Directory.CreateDirectory(Path.GetDirectoryName(destFilePath)!);
+                        File.Copy(filePath, destFilePath);
                     }
                 }
             }

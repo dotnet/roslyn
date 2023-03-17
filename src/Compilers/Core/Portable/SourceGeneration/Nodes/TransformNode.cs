@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
             => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
-            if (sourceTable.IsCached)
+            if (sourceTable.IsCached && previousTable is not null)
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {

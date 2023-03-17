@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal sealed class FailingTextLoader : TextLoader
         {
-            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document should never be loaded");
                 throw ExceptionUtilities.Unreachable();
@@ -578,9 +578,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 loader: new FailingTextLoader(),
                 filePath: sourceFileD.Path));
 
-            var captureMatchingDocuments = captureAllDocuments ?
-                ImmutableArray<DocumentId>.Empty :
-                (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
+            var captureMatchingDocuments = captureAllDocuments
+                ? ImmutableArray<DocumentId>.Empty
+                : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
 
             var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
@@ -781,31 +781,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open)
+        public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
         {
-            var sourceA = "class A { }";
-            var sourceB = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
-            var sourceB2 = (language == LanguageNames.CSharp) ? "class B2 { }" : "Class C2 : End Class";
+            var source = "class A { }";
+            var sourceDesignTimeOnly = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
+            var sourceDesignTimeOnly2 = (language == LanguageNames.CSharp) ? "class B2 { }" : "Class C2 : End Class";
 
             var dir = Temp.CreateDirectory();
-            var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA, Encoding.UTF8);
+
+            var extension = (language == LanguageNames.CSharp) ? ".cs" : ".vb";
+
+            var sourceFileName = "a" + extension;
+            var sourceFilePath = dir.CreateFile(sourceFileName).WriteAllText(source, Encoding.UTF8).Path;
+
+            var designTimeOnlyFileName = "b.g.i" + extension;
+            var designTimeOnlyFilePath = Path.Combine(dir.Path, designTimeOnlyFileName);
 
             using var _ = CreateWorkspace(out var solution, out var service);
 
-            // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
+            // The workspace starts with 
+            // [added == false] a version of the source that's not updated with the output of single file generator (or design-time build):
+            // [added == true] without the output of single file generator (design-time build has not completed)
 
             var projectId = ProjectId.CreateNewId();
-            var documentAId = DocumentId.CreateNewId(projectId);
-            var documentBId = DocumentId.CreateNewId(projectId);
+            var documentId = DocumentId.CreateNewId(projectId);
+            var designTimeOnlyDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.
                 AddProject(projectId, "test", "test", language).
-                AddDocument(documentAId, "a.xx", CreateText(sourceA), filePath: sourceFileA.Path).
-                AddDocument(documentBId, "b.g.i.xx", CreateText(sourceB), filePath: Path.Combine(dir.Path, "b.g.i.xx")).
-                AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
+                AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddDocument(documentId, sourceFileName, CreateText(source), filePath: sourceFilePath);
 
-            // only compile A; B is design-time-only:
-            var moduleId = EmitLibrary(sourceA, sourceFilePath: sourceFileA.Path);
+            if (!designTimeOnlyAddedAfterSessionStarts)
+            {
+                solution = solution.AddDocument(designTimeOnlyDocumentId, designTimeOnlyFileName, SourceText.From(sourceDesignTimeOnly, Encoding.UTF8), filePath: designTimeOnlyFilePath);
+            }
+
+            // only compile actual source document, not design-time-only document:
+            var moduleId = EmitLibrary(source, sourceFilePath: sourceFilePath);
 
             if (!delayLoad)
             {
@@ -815,39 +828,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // make sure renames are not supported:
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
 
-            var openDocumentIds = open ? ImmutableArray.Create(documentBId) : ImmutableArray<DocumentId>.Empty;
+            var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : ImmutableArray<DocumentId>.Empty;
             var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
-            var documentB = solution.GetDocument(documentBId);
+            if (designTimeOnlyAddedAfterSessionStarts)
+            {
+                solution = solution.AddDocument(designTimeOnlyDocumentId, designTimeOnlyFileName, SourceText.From(sourceDesignTimeOnly, Encoding.UTF8), filePath: designTimeOnlyFilePath);
+            }
 
             var activeLineSpan = new LinePositionSpan(new(0, 0), new(0, 1));
             var activeStatements = ImmutableArray.Create(
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1),
-                    documentB.FilePath,
+                    designTimeOnlyFilePath,
                     activeLineSpan.ToSourceSpan(),
                     ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.MethodUpToDate));
 
             EnterBreakState(debuggingSession, activeStatements);
 
             // change the source (rude edit):
-            solution = solution.WithDocumentText(documentBId, CreateText(sourceB2));
+            solution = solution.WithDocumentText(designTimeOnlyDocumentId, CreateText(sourceDesignTimeOnly2));
 
-            var documentB2 = solution.GetDocument(documentBId);
+            var designTimeOnlyDocument2 = solution.GetDocument(designTimeOnlyDocumentId);
 
-            Assert.True(documentB2.State.SupportsEditAndContinue());
-            Assert.True(documentB2.Project.SupportsEditAndContinue());
+            Assert.False(designTimeOnlyDocument2.State.SupportsEditAndContinue());
+            Assert.True(designTimeOnlyDocument2.Project.SupportsEditAndContinue());
 
             var activeStatementMap = await debuggingSession.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None);
             Assert.NotEmpty(activeStatementMap.DocumentPathMap);
 
             // Active statements in design-time documents should be left unchanged.
-            var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentBId), CancellationToken.None);
-            Assert.Equal(activeLineSpan, asSpans.Single().Single().LineSpan);
+            var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(designTimeOnlyDocumentId), CancellationToken.None);
+            Assert.Empty(asSpans.Single());
 
             // no Rude Edits reported:
-            Assert.Empty(await service.GetDocumentDiagnosticsAsync(documentB2, s_noActiveSpans, CancellationToken.None));
+            Assert.Empty(await service.GetDocumentDiagnosticsAsync(designTimeOnlyDocument2, s_noActiveSpans, CancellationToken.None));
 
             // validate solution update status and emit:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2055,8 +2071,8 @@ class C { int Y => 2; }
             Assert.Equal(1, generatorExecutionCount);
         }
 
-        [Fact, WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
-        [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
             var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
@@ -2236,7 +2252,7 @@ class C { int Y => 2; }
             }, _telemetryLog);
         }
 
-        [Fact, WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56431")]
         public async Task Capabilities_NoTypesEmitted()
         {
             var sourceV1 = @"
@@ -3613,9 +3629,9 @@ class C { int Y => 1; }
             var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
 
             // syntax error (missing ';') unless testing out-of-sync document
-            var sourceV2 = isOutOfSync ?
-                "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }" :
-                "class C { int x void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
+            var sourceV2 = isOutOfSync
+                ? "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }"
+                : "class C { int x void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
 
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document1) = AddDefaultTestProject(solution, sourceV1);
@@ -3732,7 +3748,7 @@ class C { int Y => 1; }
             Assert.Empty(baseSpans.Single());
         }
 
-        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24320")]
         public async Task ActiveStatements_LinkedDocuments()
         {
             var markedSources = new[]
@@ -4008,7 +4024,7 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact, WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
@@ -4110,7 +4126,7 @@ class C
         ///    version executes.
         /// 3) Break and apply EnC edit. This edit is to F v3 (Hot Reload) of the method. We will produce remapping F v3 -> v4.
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
         {
             var markedSourceV1 =
@@ -4358,7 +4374,7 @@ class C
         /// - edit and apply edit that deletes non-leaf active statement
         /// - break
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakAfterRunModeChangeDeletesNonLeafActiveStatement()
         {
             var markedSource1 =

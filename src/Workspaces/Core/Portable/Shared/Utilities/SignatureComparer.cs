@@ -28,31 +28,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             // NOTE - we're deliberately using reference equality here for speed.
             if (symbol1 == symbol2)
-            {
                 return true;
-            }
 
             if (symbol1 == null || symbol2 == null)
-            {
                 return false;
-            }
 
             if (symbol1.Kind != symbol2.Kind)
-            {
                 return false;
-            }
 
-            switch (symbol1.Kind)
+            return symbol1.Kind switch
             {
-                case SymbolKind.Method:
-                    return HaveSameSignature((IMethodSymbol)symbol1, (IMethodSymbol)symbol2, caseSensitive);
-                case SymbolKind.Property:
-                    return HaveSameSignature((IPropertySymbol)symbol1, (IPropertySymbol)symbol2, caseSensitive);
-                case SymbolKind.Event:
-                    return HaveSameSignature((IEventSymbol)symbol1, (IEventSymbol)symbol2, caseSensitive);
-            }
-
-            return true;
+                SymbolKind.Method => HaveSameSignature((IMethodSymbol)symbol1, (IMethodSymbol)symbol2, caseSensitive),
+                SymbolKind.Property => HaveSameSignature((IPropertySymbol)symbol1, (IPropertySymbol)symbol2, caseSensitive),
+                SymbolKind.Event => HaveSameSignature((IEventSymbol)symbol1, (IEventSymbol)symbol2, caseSensitive),
+                _ => true,
+            };
         }
 
         private static bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
@@ -93,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (method1.MethodKind != MethodKind.AnonymousFunction)
             {
                 if (!IdentifiersMatch(method1.Name, method2.Name, caseSensitive))
-                {
                     return false;
-                }
             }
 
             if (method1.MethodKind != method2.MethodKind ||
@@ -152,14 +140,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             // NOTE - we're deliberately using reference equality here for speed.
             if (symbol1 == symbol2)
-            {
                 return true;
-            }
 
             if (!HaveSameSignature(symbol1, symbol2, caseSensitive))
-            {
                 return false;
-            }
 
             switch (symbol1.Kind)
             {
@@ -172,7 +156,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var property1 = (IPropertySymbol)symbol1;
                     var property2 = (IPropertySymbol)symbol2;
 
-                    return HaveSameReturnType(property1, property2) && HaveSameAccessors(property1, property2);
+                    return property1.ReturnsByRef == property2.ReturnsByRef &&
+                           property1.ReturnsByRefReadonly == property2.ReturnsByRefReadonly &&
+                           this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type) &&
+                           HaveSameAccessors(property1, property2);
                 case SymbolKind.Event:
                     var ev1 = (IEventSymbol)symbol1;
                     var ev2 = (IEventSymbol)symbol2;
@@ -210,15 +197,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private bool HaveSameSignatureAndConstraintsAndReturnType(IMethodSymbol method1, IMethodSymbol method2)
         {
-            if (method1.ReturnsVoid != method2.ReturnsVoid)
+            if (method1.ReturnsVoid != method2.ReturnsVoid ||
+                method1.ReturnsByRef != method2.ReturnsByRef ||
+                method1.ReturnsByRefReadonly != method2.ReturnsByRefReadonly)
             {
                 return false;
             }
 
             if (!method1.ReturnsVoid && !this.SignatureTypeEquivalenceComparer.Equals(method1.ReturnType, method2.ReturnType))
-            {
                 return false;
-            }
 
             for (var i = 0; i < method1.TypeParameters.Length; i++)
             {
@@ -226,9 +213,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var typeParameter2 = method2.TypeParameters[i];
 
                 if (!HaveSameConstraints(typeParameter1, typeParameter2))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -251,9 +236,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return typeParameter1.ConstraintTypes.SetEquals(
                 typeParameter2.ConstraintTypes, this.SignatureTypeEquivalenceComparer);
         }
-
-        private bool HaveSameReturnType(IPropertySymbol property1, IPropertySymbol property2)
-            => this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
 
         private bool HaveSameReturnType(IEventSymbol ev1, IEventSymbol ev2)
             => this.SignatureTypeEquivalenceComparer.Equals(ev1.Type, ev2.Type);

@@ -18,8 +18,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal readonly record struct LoadTextOptions(SourceHashAlgorithm ChecksumAlgorithm);
-
     /// <summary>
     /// A class that represents access to a source text and its version from a storage location.
     /// </summary>
@@ -43,14 +41,16 @@ namespace Microsoft.CodeAnalysis
         /// Load a text and a version of the document.
         /// </summary>
         /// <param name="options">
-        /// Use <see cref="LoadTextOptions.ChecksumAlgorithm"/> when creating <see cref="SourceText"/> from an original binary representation.
-        /// Ignore if the <see cref="SourceText"/> is not created from a binary representation.
+        /// Implementations of this method should use <see cref="LoadTextOptions.ChecksumAlgorithm"/> when creating <see cref="SourceText"/> from an original binary representation and
+        /// ignore it otherwise.
+        /// Callers of this method should pass <see cref="LoadTextOptions"/> specifying the desired properties of <see cref="SourceText"/>. The implementation may return a <see cref="SourceText"/>
+        /// that does not satisfy the given requirements. For example, legacy types that do not override this method would ignore all <paramref name="options"/>.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
-        internal virtual Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             if (s_isObsoleteLoadTextAndVersionAsyncOverriden.GetValue(
@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
+        [Obsolete("Use/override LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)")]
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
 
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             internal TextDocumentLoader(TextAndVersion textAndVersion)
                 => _textAndVersion = textAndVersion;
 
-            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis
             internal override string? FilePath
                 => _filePath;
 
-            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)

@@ -9,12 +9,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
 {
     public class ValidateBreakableRange : AbstractLanguageServerProtocolTests
     {
+        public ValidateBreakableRange(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task SimpleStatement()
         {
@@ -99,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact, WorkItem(1501785, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
         public async Task InvalidExistingBreakpoint1()
         {
             var markup =
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact, WorkItem(1501882, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
         public async Task InvalidExistingBreakpoint2()
         {
             var markup =

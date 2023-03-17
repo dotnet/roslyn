@@ -8,7 +8,7 @@
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Test\Core\IsExternalInit.cs" />
+    <Compile Include="..\Portable\InternalUtilities\IsExternalInit.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />

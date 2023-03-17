@@ -55,7 +55,6 @@ End Module
     expectedOutput:="Hello, world 135.2 42")
         End Sub
 
-
         <Fact>
         Public Sub LocalWithSimpleInitialization()
             CompileAndVerify(
@@ -118,7 +117,6 @@ End Module
     expectedOutput:="hello")
         End Sub
 
-
         <Fact>
         Public Sub LocalAsNewArrayError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -146,7 +144,6 @@ BC30053: Arrays cannot be declared with 'New'.
                    ~~~    
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub LocalAsNewArrayError001()
@@ -198,7 +195,6 @@ BC30205: End of statement expected.
                        ~
 </expected>)
         End Sub
-
 
         <WorkItem(545766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
         <Fact>
@@ -367,7 +363,6 @@ BC30454: Expression is not a method.
 </expected>)
         End Sub
 
-
         ' related to bug 4247
         <Fact>
         Public Sub CallStatementNamespaceAsInvocationExpression()
@@ -396,8 +391,6 @@ BC30112: 'N1.N2' is a namespace and cannot be used as an expression.
 
 </expected>)
         End Sub
-
-
 
         ' related to bug 4247
         <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
@@ -428,8 +421,6 @@ BC30110: 'Integer' is a structure type and cannot be used as an expression.
                          ~~~~~~~
 </expected>)
         End Sub
-
-
 
         <Fact>
         Public Sub AssignmentStatement()
@@ -656,7 +647,6 @@ End Module
 ]]>)
         End Sub
 
-
         <Fact>
         Public Sub SingleLineIfStatement1()
             CompileAndVerify(
@@ -786,7 +776,6 @@ End Module
 </compilation>,
     expectedOutput:="Iterate 1")
         End Sub
-
 
         <Fact>
         Public Sub DoLoop4()
@@ -1230,7 +1219,6 @@ End Module
                 Diagnostic(ERRID.ERR_ArrayRankLimit, "(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,)"))
         End Sub
 
-
         <Fact>
         Public Sub GotoIf()
             CompileAndVerify(
@@ -1582,7 +1570,6 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 </expected>)
         End Sub
 
-
         <Fact()>
         Public Sub CatchNotLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1747,7 +1734,6 @@ BC31082: 'Goo' is not a local variable or parameter, and so cannot be used as a 
                           ~~~
 </expected>)
         End Sub
-
 
         <Fact()>
         Public Sub CatchDuplicate()
@@ -2114,7 +2100,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2146,7 +2131,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2191,7 +2175,6 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
                                 ~~~
 </expected>)
         End Sub
-
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter()
@@ -2345,7 +2328,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 

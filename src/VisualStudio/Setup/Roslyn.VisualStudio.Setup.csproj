@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <IsShippingAssembly>false</IsShippingAssembly>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>

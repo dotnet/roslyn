@@ -310,6 +310,11 @@
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_AddressOfInAsync:
                     return true;
                 default:
                     return false;

@@ -45,17 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
 #pragma warning disable CS0618 // This test is intentionally calling the obsolete method to assert the diagnosticOptions input is now ignored
 
-            var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}",
-                options: null,
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+/// <see cref=""x...y""/>
+class C { }",
+                options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
                 path: "",
                 encoding: null,
-                diagnosticOptions: CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)),
+                diagnosticOptions: CreateImmutableDictionary(("CS1584", ReportDiagnostic.Suppress)),
                 cancellationToken: default);
 
             tree.GetDiagnostics().Verify(
-                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // class C { long _f = 0l;}
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'x...y'
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "x").WithArguments("x...y").WithLocation(2, 16),
+                // (2,17): warning CS1658: Unexpected character '.'. See also error CS1056.
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '.'", "1056").WithLocation(2, 17));
 
 #pragma warning restore CS0618
         }
@@ -111,10 +116,7 @@ class C {
 long _f = 0l;
 #pragma warning restore CS0078
 }");
-            tree.GetDiagnostics().Verify(
-                // (4,12): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // long _f = 0l;
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 12));
+            tree.GetDiagnostics().Verify();
 
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
@@ -1477,7 +1479,6 @@ var a = new C2();
                 comp = comp.ReplaceReference(ref1, ref2);
             });
 
-
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
             // Replace a non-existing item with another valid item and disorder the args
             Assert.Throws<ArgumentException>(
@@ -1977,7 +1978,6 @@ public class TestClass
 
             c2 = c1.WithOptions(TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             Assert.False(c1.ReferenceManagerEquals(c2));
-
 
             c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseModule);
 
@@ -3089,6 +3089,61 @@ class C
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
         }
 
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference()
+        {
+            var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Module);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(2, comp.Assembly.Modules.Length);
+        }
+
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference_AssemblySpecifiedAsModule()
+        {
+            var module = CreateCompilation(string.Empty);
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Module);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics(
+                // error CS1542: '<in-memory module>' cannot be added to this assembly because it already is an assembly
+                Diagnostic(ErrorCode.ERR_AddModuleAssembly).WithArguments("<in-memory module>").WithLocation(1, 1));
+            Assert.Equal(1, comp.Assembly.Modules.Length);
+        }
+
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference_ModuleSpecifiedAsAssembly()
+        {
+            var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Assembly);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics(
+                // error CS1509: The referenced file '<in-memory assembly>' is not an assembly
+                Diagnostic(ErrorCode.ERR_ImportNonAssembly).WithArguments("<in-memory assembly>").WithLocation(1, 1));
+            Assert.Equal(1, comp.Assembly.Modules.Length);
+        }
+
         #region Script return values
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -3179,7 +3234,7 @@ class C
             script.VerifyDiagnostics(
                 // (1,8): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 // return System.Threading.Tasks.Task.FromResult(42);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(1, 8));
             Assert.True(script.HasSubmissionResult());
         }
 
@@ -3442,7 +3497,6 @@ $@"namespace N;
             comp.VerifyDiagnostics();
 
             var types = comp.GetTypesByMetadataName("N.C`1");
-
 
             Assert.Single(types);
             AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());

@@ -3,108 +3,99 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using System.IO.Pipes;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace PrepareTests;
 internal class TestDiscovery
 {
-    public static void RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
+    public static bool RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
     {
         var binDirectory = Path.Combine(repoRootDirectory, "artifacts", "bin");
         var assemblies = GetAssemblies(binDirectory, isUnix);
+        var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
+        var (dotnetCoreWorker, dotnetFrameworkWorker) = GetWorkers(binDirectory);
 
         Console.WriteLine($"Found {assemblies.Count} test assemblies");
 
-        var vsTestConsole = Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(dotnetPath)!, "sdk"), "vstest.console.dll", SearchOption.AllDirectories).OrderBy(s => s).Last();
-
-        var vstestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsole, new ConsoleParameters
-        {
-            LogFilePath = Path.Combine(repoRootDirectory, "logs", "test_discovery_logs.txt"),
-            TraceLevel = TraceLevel.Error,
-        });
-
-        var discoveryHandler = new DiscoveryHandler();
-
+        var success = true;
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        vstestConsoleWrapper.DiscoverTests(assemblies, @"<RunSettings><RunConfiguration><MaxCpuCount>0</MaxCpuCount></RunConfiguration></RunSettings>", discoveryHandler);
-        stopwatch.Stop();
-
-        var tests = discoveryHandler.GetTests();
-
-        Console.WriteLine($"Discovered {tests.Length} tests in {stopwatch.Elapsed}");
-
-        stopwatch.Restart();
-        var testGroupedByAssembly = tests.GroupBy(test => test.Source);
-        foreach (var assemblyGroup in testGroupedByAssembly)
+        Parallel.ForEach(assemblies, assembly =>
         {
-            var directory = Path.GetDirectoryName(assemblyGroup.Key);
+            var workerPath = assembly.Contains("net472")
+                ? dotnetFrameworkWorker
+                : dotnetCoreWorker;
 
-            // Tests with combinatorial data are output multiple times with the same fully qualified test name.
-            // We only need to include it once as run all combinations under the same filter.
-            var testToWrite = assemblyGroup.Select(test => test.FullyQualifiedName).Distinct().ToList();
-
-            using var fileStream = File.Create(Path.Combine(directory!, "testlist.json"));
-            JsonSerializer.Serialize(fileStream, testToWrite);
-        }
+            success &= RunWorker(dotnetPath, workerPath, assembly);
+        });
         stopwatch.Stop();
-        Console.WriteLine($"Serialized tests in {stopwatch.Elapsed}");
+
+        Console.WriteLine($"Discovered tests in {stopwatch.Elapsed}");
+        return success;
     }
 
-    private class DiscoveryHandler : ITestDiscoveryEventsHandler
+    static (string dotnetCoreWorker, string dotnetFrameworkWorker) GetWorkers(string binDirectory)
     {
-        private readonly ConcurrentBag<TestCase> _tests = new();
-        private bool _isComplete = false;
+        var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
+        var configuration = Directory.Exists(Path.Combine(testDiscoveryWorkerFolder, "Debug")) ? "Debug" : "Release";
+        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net7.0", "TestDiscoveryWorker.dll"),
+                Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
+    }
 
-        public void HandleDiscoveredTests(IEnumerable<TestCase>? discoveredTestCases)
+    static bool RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
+    {
+        var success = true;
+        var pipeClient = new Process();
+        var arguments = new List<string>();
+        if (pathToWorker.EndsWith("dll"))
         {
-            if (discoveredTestCases != null)
+            arguments.Add(pathToWorker);
+            pipeClient.StartInfo.FileName = dotnetPath;
+        }
+        else
+        {
+            pipeClient.StartInfo.FileName = pathToWorker;
+        }
+
+        using (var pipeServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable))
+        {
+            // Pass the client process a handle to the server.
+            arguments.Add(pipeServer.GetClientHandleAsString());
+            pipeClient.StartInfo.Arguments = string.Join(" ", arguments);
+            pipeClient.StartInfo.UseShellExecute = false;
+            pipeClient.Start();
+
+            pipeServer.DisposeLocalCopyOfClientHandle();
+
+            try
             {
-                foreach (var test in discoveredTestCases)
-                {
-                    _tests.Add(test);
-                }
+                // Read user input and send that to the client process.
+                using var sw = new StreamWriter(pipeServer);
+                sw.AutoFlush = true;
+                // Send a 'sync message' and wait for client to receive it.
+                sw.WriteLine("ASSEMBLY");
+                // Send the console input to the client process.
+                sw.WriteLine(pathToAssembly);
+            }
+            // Catch the IOException that is raised if the pipe is broken
+            // or disconnected.
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Error: {e.Message}");
+                success = false;
             }
         }
 
-        public void HandleDiscoveryComplete(long totalTests, IEnumerable<TestCase>? lastChunk, bool isAborted)
-        {
-            if (lastChunk != null)
-            {
-                foreach (var test in lastChunk)
-                {
-                    _tests.Add(test);
-                }
-            }
-
-            _isComplete = true;
-        }
-
-        public void HandleLogMessage(TestMessageLevel level, string? message)
-        {
-            Console.WriteLine(message);
-        }
-
-        public void HandleRawMessage(string rawMessage)
-        {
-        }
-
-        public ImmutableArray<TestCase> GetTests()
-        {
-            Contract.Assert(_isComplete);
-            return _tests.ToImmutableArray();
-        }
+        pipeClient.WaitForExit();
+        success &= pipeClient.ExitCode == 0;
+        pipeClient.Close();
+        return success;
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)

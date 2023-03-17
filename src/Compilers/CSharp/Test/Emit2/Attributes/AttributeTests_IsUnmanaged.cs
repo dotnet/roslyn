@@ -100,7 +100,6 @@ public class Test
             });
         }
 
-
         [Fact]
         public void AttributeUsedIfExists_FromSource_Delegate()
         {

@@ -12,12 +12,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
+        public RequestOrderingTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         protected override TestComposition Composition => base.Composition
             .AddParts(typeof(MutatingRequestHandler))
             .AddParts(typeof(NonMutatingRequestHandler))

@@ -11,12 +11,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class WorkspaceSymbolsTests : AbstractLanguageServerProtocolTests
     {
+        public WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
             => Assert.True(expected.ToHashSet().SetEquals(results));
 
@@ -56,13 +61,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
             };
 
-            using var progress = BufferedProgress.Create<LSP.SymbolInformation>(null);
+            using var progress = BufferedProgress.Create<LSP.SymbolInformation[]>(null);
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A", progress).ConfigureAwait(false);
 
             Assert.Null(results);
 
-            results = progress.GetValues().ToArray();
+            results = progress.GetFlattenedValues();
             AssertSetEquals(expected, results);
         }
 

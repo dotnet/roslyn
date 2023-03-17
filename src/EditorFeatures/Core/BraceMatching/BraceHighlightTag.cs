@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal class BraceHighlightTag : TextMarkerTag
+    internal sealed class BraceHighlightTag : TextMarkerTag
     {
         public static readonly BraceHighlightTag StartTag = new(navigateToStart: true);
         public static readonly BraceHighlightTag EndTag = new(navigateToStart: false);

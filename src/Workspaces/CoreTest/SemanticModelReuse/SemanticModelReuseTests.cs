@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Property_CSharp()
         {
             var source = "class C { int M { get { return 0; } } }";
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Event_CSharp()
         {
             var source = "class C { event System.Action E { add { return 0; } } }";
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Indexer_CSharp()
         {
             var source = "class C { int this[int i] { get { return 0; } } }";
@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
         }
 
         [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_CSharp()
         {
             var source = "class C { void M() { return; } }";
@@ -228,6 +228,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
 
             // ensure this doesn't crash.
             CSharpSyntaxContext.CreateContext(document2, model2, source.IndexOf("void"), CancellationToken.None);
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        public async Task TestOutOfBoundsInSyntaxContext2_CSharp()
+        {
+            // These two tree are considered equavilent at top level, but the change in trivia around the method
+            // makes it tricky to decide whether it's safe to use the speculative model at a given position.
+
+            var source1 = "class C { void M() { return; } }";
+            //                                ^ this is the position used to set OriginalPositionForSpeculation when creating the speculative model.  
+            var source2 = "class C {                             void M() { return null; } }";
+            //                                                            ^ it's unsafe to use the speculative model at this position, even though it's after OriginalPositionForSpeculation 
+
+            // First call will prime the cache to point at the real semantic model.
+            var document1 = CreateDocument(source1, LanguageNames.CSharp);
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source1.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From(source2));
+
+            // Because the change in trivia shifted the method definition, we are not able to get a speculative model based on previous model
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source2.IndexOf("{ return"), CancellationToken.None);
+            Assert.False(model2.IsSpeculativeSemanticModel);
+
+            // ensure this doesn't crash.
+            CSharpSyntaxContext.CreateContext(document2, model2, source2.IndexOf("{ return"), CancellationToken.None);
         }
 
         #endregion
@@ -358,7 +386,8 @@ end class"));
         [Fact]
         public async Task MultipleBodyEditsShouldProduceFreshModel_VisualBasic()
         {
-            var source = @"class C
+            var source = @"
+class C
     sub M()
         return
     end sub
@@ -481,8 +510,8 @@ end class"));
         }
 
         [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_VisualBasic()
         {
             var source = @"
@@ -510,6 +539,39 @@ end class"));
 
             // Ensure this doesn't crash.
             VisualBasicSyntaxContext.CreateContext(document2, model2, source.IndexOf("sub"), CancellationToken.None);
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        public async Task TestOutOfBoundsInSyntaxContext2_VisualBasic()
+        {
+            var source = @"
+class C
+    sub M()
+        return
+    end sub
+end class";
+            var document1 = CreateDocument(source, LanguageNames.VisualBasic);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From(@"
+class C
+class C
+                                    sub M()
+        return nothing
+    end sub
+end class"));
+
+            // Because the change in trivia shifted the method definition, we are not able to get a speculative model based on previous model
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model2.IsSpeculativeSemanticModel);
+
+            // Ensure this doesn't crash.
+            VisualBasicSyntaxContext.CreateContext(document2, model2, source.IndexOf("return"), CancellationToken.None);
         }
 
         #endregion

@@ -10,12 +10,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Highlights
 {
     public class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     {
+        public DocumentHighlightTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGetDocumentHighlightAsync()
         {
@@ -44,7 +49,7 @@ class A
             AssertJsonEquals(expected, results);
         }
 
-        [Fact, WorkItem(59120, "https://github.com/dotnet/roslyn/issues/59120")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59120")]
         public async Task TestGetDocumentHighlightAsync_Keywords()
         {
             var markup =

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // so when the document first opens, there won't be any tags yet. When the tags do come in
             // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
             // because the document will already be open.
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+            if (!GlobalOptions.GetOption(OutliningOptionsStorage.Outlining, openDocument.Project.Language))
                 return false;
 
             var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
@@ -222,6 +222,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var tag = new StructureTag(this, span, snapshot);
                 context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
+        }
+
+        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is StructureTag);
+            Contract.ThrowIfFalse(tag2 is StructureTag);
+            return tag1.Equals(tag2);
         }
 
         internal abstract object? GetCollapsedHintForm(StructureTag structureTag);

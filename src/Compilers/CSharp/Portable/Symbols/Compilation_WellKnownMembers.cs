@@ -145,11 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = this.Assembly.GetTypeByMetadataName(
                         mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    Debug.Assert(result?.IsErrorType() != true);
                 }
 
                 if (result is null)
                 {
-                    // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())
                     {
@@ -470,6 +470,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, mid),
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, low)
                 ));
+        }
+
+        internal SynthesizedAttributeData? SynthesizeDateTimeConstantAttribute(DateTime value)
+        {
+            var ticks = new TypedConstant(GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, value.Ticks);
+
+            return TrySynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                ImmutableArray.Create(ticks));
         }
 
         internal SynthesizedAttributeData? SynthesizeDebuggerBrowsableNeverAttribute()

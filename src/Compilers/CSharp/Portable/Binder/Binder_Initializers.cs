@@ -114,17 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parentBinder = parentBinder.GetFieldInitializerBinder(fieldSymbol);
 
                                 BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
-
-                                if (!boundInitializer.Value.HasAnyErrors)
-                                {
-                                    var field = boundInitializer.Field;
-                                    if (field.Type.IsRefLikeType)
-                                    {
-                                        BoundExpression value = parentBinder.ValidateEscape(boundInitializer.Value, CallingMethodScope, isByRef: false, diagnostics);
-                                        boundInitializer = boundInitializer.Update(field, boundInitializer.Locals, value);
-                                    }
-                                }
-
                                 boundInitializers.Add(boundInitializer);
                                 break;
 
@@ -160,10 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder = this;
 
-            if (!fieldSymbol.IsStatic && fieldSymbol.ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault() is SynthesizedRecordConstructor recordCtor)
-            {
-                binder = new InMethodBinder(recordCtor, binder);
-            }
+            binder = new WithPrimaryConstructorParametersBinder(fieldSymbol.ContainingType, binder);
 
             return new LocalScopeBinder(binder).WithAdditionalFlagsAndContainingMemberOrLambda(suppressBinderFlagsFieldInitializer ? BinderFlags.None : BinderFlags.FieldInitializer, fieldSymbol);
         }

@@ -9068,7 +9068,6 @@ BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
                 </expected>)
         End Sub
 
-
         <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
         Public Sub MethodGroupWithConversionNoSpill()
 
@@ -9843,7 +9842,6 @@ Before Assignment arr[0].y is: True").VerifyIL("Program.VB$StateMachine_0_Assign
   IL_00d8:  ret
 }")
         End Sub
-
 
         <Fact>
         <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>

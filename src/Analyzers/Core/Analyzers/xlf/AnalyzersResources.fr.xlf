@@ -262,6 +262,11 @@
         <target state="translated">Supprimer le cast inutile</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Supprimer des modificateurs d'accessibilité</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Supprimer l'égalité redondante</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Simplifier les noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Simplifier la vérification</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

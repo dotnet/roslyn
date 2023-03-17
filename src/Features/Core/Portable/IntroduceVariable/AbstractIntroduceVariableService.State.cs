@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (IsInitializerOfConstant(document, Expression))
                     return false;
 
+                // Too noisy to offer introduce-local on `this/me`.
+                var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsThisExpression(Expression))
+                    return false;
+
                 var expressionType = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
                 if (expressionType is IErrorTypeSymbol)
                     return false;

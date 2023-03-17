@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _sessionId = default;
         }
 
-
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);

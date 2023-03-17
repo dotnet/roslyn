@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
+            private readonly Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService? _solutionCrawlerOptionsService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource = new();
             private readonly CancellationToken _shutdownToken;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #if false // Not used in unit testing crawling
                 _documentTrackingService = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
 #endif
-                _workspaceConfigurationService = _registration.Services.GetService<IWorkspaceConfigurationService>();
+                _solutionCrawlerOptionsService = _registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
 
                 // event and worker queues
                 _shutdownToken = _shutdownNotificationSource.Token;
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         // If all features are enabled for source generated documents, the solution crawler needs to
                         // include them in incremental analysis.
-                        if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        if (_solutionCrawlerOptionsService?.EnableDiagnosticsInSourceGeneratedFiles == true)
                         {
                             // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
                             // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 // If all features are enabled for source generated documents, the solution crawler needs to
                 // include them in incremental analysis.
-                if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                if (_solutionCrawlerOptionsService?.EnableDiagnosticsInSourceGeneratedFiles == true)
                 {
                     foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
                         await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
