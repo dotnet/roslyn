@@ -29,43 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Sub AnalyzeCompilationUnit(context As SemanticModelAnalysisContext, root As SyntaxNode, analysisResults As List(Of AnalysisResult))
-            AnalyzeMembers(context, DirectCast(root, CompilationUnitSyntax).Members, analysisResults)
-        End Sub
-
-        Private Sub AnalyzeMembers(context As SemanticModelAnalysisContext,
-                                   members As SyntaxList(Of StatementSyntax),
-                                   analysisResults As List(Of AnalysisResult))
-            For Each member In members
-                AnalyzeMember(context, member, analysisResults)
-            Next
-        End Sub
-
-        Private Sub AnalyzeMember(context As SemanticModelAnalysisContext,
-                                  member As StatementSyntax,
-                                  analysisResults As List(Of AnalysisResult))
-
-            If member.Kind() = SyntaxKind.NamespaceBlock Then
-                Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
-                AnalyzeMembers(context, namespaceBlock.Members, analysisResults)
-            End If
-
-            ' If we have a class or struct or module, recurse inwards.
-            If member.IsKind(SyntaxKind.ClassBlock) OrElse
-               member.IsKind(SyntaxKind.StructureBlock) OrElse
-               member.IsKind(SyntaxKind.ModuleBlock) Then
-
-                Dim typeBlock = DirectCast(member, TypeBlockSyntax)
-                AnalyzeMembers(context, typeBlock.Members, analysisResults)
-            End If
-
-            Dim propertyDeclaration = TryCast(member, PropertyBlockSyntax)
-            If propertyDeclaration IsNot Nothing Then
-                AnalyzeProperty(context, propertyDeclaration, analysisResults)
-            End If
-        End Sub
-
-        Protected Overrides Sub RegisterIneligibleFieldsAction(analysisResults As List(Of AnalysisResult), ineligibleFields As HashSet(Of IFieldSymbol), compilation As Compilation, cancellationToken As CancellationToken)
+        Protected Overrides Sub RegisterIneligibleFieldsAction(ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
