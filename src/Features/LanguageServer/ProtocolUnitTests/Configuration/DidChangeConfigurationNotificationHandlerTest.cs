@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -64,7 +62,6 @@ public class A { }";
                 markup,
                 initializationOptions: initializationOptions);
 
-            await WaitAsync(server.TestWorkspace, Methods.InitializedName).ConfigureAwait(false);
             Assert.True(clientCallbackTarget.WorkspaceDidChangeConfigurationRegistered);
 
             // 2. Server should fetched all the values from client, options should have non-default values now.
@@ -75,7 +72,6 @@ public class A { }";
             clientCallbackTarget.SetClientSideOptionValues(setToDefaultValue: true);
 
             await server.ExecuteRequestAsync<DidChangeConfigurationParams, object>(Methods.WorkspaceDidChangeConfigurationName, new DidChangeConfigurationParams(), CancellationToken.None).ConfigureAwait(false);
-            await WaitAsync(server.TestWorkspace, Methods.WorkspaceDidChangeConfigurationName).ConfigureAwait(false);
             VerifyValuesInServer(server.TestWorkspace, clientCallbackTarget.MockClientSideValues);
         }
 
@@ -107,50 +103,28 @@ public class A { }";
             }
         }
 
-        private static async Task WaitAsync(TestWorkspace testWorkspace, string name)
-        {
-            var listenerProvider = testWorkspace.GetService<AsynchronousOperationListenerProvider>();
-            await listenerProvider.GetWaiter(name).ExpeditedWaitAsync();
-        }
-
         private class ClientCallbackTarget
         {
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
             public List<ConfigurationItem> ReceivedConfigurationItems { get; } = new();
             public List<string> MockClientSideValues { get; } = new();
 
-            [JsonRpcMethod(Methods.ClientRegisterCapabilityName)]
-            public void ClientRegisterCapability(JToken @params, CancellationToken _)
+            [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
+            public void ClientRegisterCapability(RegistrationParams @registrationParams, CancellationToken _)
             {
-                var registrationParams = JsonConvert.DeserializeObject<RegistrationParams>(@params.ToString());
-                if (registrationParams == null)
+                if (WorkspaceDidChangeConfigurationRegistered)
                 {
-                    AssertEx.Fail($"Can't parse {@params} to {nameof(RegistrationParams)}");
+                    AssertEx.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
                     return;
                 }
 
-                if (registrationParams.Registrations.Any(item => item.Method == Methods.WorkspaceDidChangeConfigurationName))
-                {
-                    if (WorkspaceDidChangeConfigurationRegistered)
-                    {
-                        AssertEx.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
-                    }
-
-                    WorkspaceDidChangeConfigurationRegistered = true;
-                }
-
+                WorkspaceDidChangeConfigurationRegistered = registrationParams.Registrations.Any(item => item.Method == Methods.WorkspaceDidChangeConfigurationName);
                 return;
             }
 
-            [JsonRpcMethod(Methods.WorkspaceConfigurationName)]
-            public JArray WorkspaceConfigurationName(JToken configurationParamsToken, CancellationToken _)
+            [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
+            public JArray WorkspaceConfigurationName(ConfigurationParams configurationParams, CancellationToken _)
             {
-                var configurationParams = JsonConvert.DeserializeObject<ConfigurationParams>(configurationParamsToken.ToString());
-                if (configurationParams == null)
-                {
-                    AssertEx.Fail($"Can't parse {configurationParams} to {nameof(ConfigurationParams)}.");
-                }
-
                 var expectConfigurationItemsNumber = DidChangeConfigurationNotificationHandler.SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1);
                 Assert.Equal(expectConfigurationItemsNumber, configurationParams!.Items.Length);
                 Assert.Equal(expectConfigurationItemsNumber, MockClientSideValues.Count);

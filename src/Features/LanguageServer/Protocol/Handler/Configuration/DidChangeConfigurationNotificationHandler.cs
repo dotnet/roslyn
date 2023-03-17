@@ -57,11 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         public bool RequiresLSPSolution => false;
 
-        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
-        {
-            using var _ = _asynchronousOperationListener.BeginAsyncOperation(Methods.WorkspaceDidChangeConfigurationName);
-            await RefreshOptionsAsync(cancellationToken).ConfigureAwait(false);
-        }
+        public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+            => RefreshOptionsAsync(cancellationToken);
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
