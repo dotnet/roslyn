@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     {
                         builder.Add(new ConfigurationItem()
                         {
-                            Section = string.Concat(s_languageNameToPrefix[language], '.', fullOptionName),
+                            Section = string.Concat(s_languageNameToPrefix[language], '|', fullOptionName),
                         });
                     }
                 }

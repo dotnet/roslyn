@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
     {
         // A regex help to check the message we send to client.
         // It should look like "feature_group.feature_name"
-        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\.)?([\w_]+)\.([\w_]+)$";
+        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_]+)\.([\w_]+)$";
 
         public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {
