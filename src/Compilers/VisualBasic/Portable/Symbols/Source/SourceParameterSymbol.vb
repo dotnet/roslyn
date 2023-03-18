@@ -96,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 If Me.ContainingSymbol.IsImplicitlyDeclared Then

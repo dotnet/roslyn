@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Remove_accessibility_modifiers">
         <source>Remove accessibility modifiers</source>
-        <target state="new">Remove accessibility modifiers</target>
+        <target state="translated">アクセシビリティ修飾子を削除する</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Simplify_check">
         <source>Simplify check</source>
-        <target state="new">Simplify check</target>
+        <target state="translated">チェックの簡略化</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -384,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
-        <target state="new">Use coalesce expression</target>
+        <target state="translated">coalesce 式を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">

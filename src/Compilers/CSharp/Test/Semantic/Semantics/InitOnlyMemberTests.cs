@@ -2278,6 +2278,7 @@ public interface IWithInitWithExplicitImplementation : I1, I2
                 targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
 
             comp.VerifyEmitDiagnostics(
                 // (12,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
@@ -2370,6 +2371,7 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
                 targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
 
             comp.VerifyEmitDiagnostics(
                 // (13,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
@@ -4206,8 +4208,6 @@ public readonly struct S
     public int I { get; init; }
 }
 " }, verify: Verification.FailsPEVerify, expectedOutput: "1");
-
-
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {

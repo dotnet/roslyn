@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (object?)this == obj;
         }
 
-        public sealed override int GetHashCode()
-        {
-            return ReferenceEqualityComparer.GetHashCode(this);
-        }
+        public sealed override int GetHashCode() => base.GetHashCode();
 
         public sealed override string ToString()
         {

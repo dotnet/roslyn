@@ -37,6 +37,7 @@ using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo.AbstractNavigateToTests;
+using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -50,7 +51,7 @@ namespace Roslyn.Test.Utilities
             TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -291,8 +292,8 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
             => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities });
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions);
@@ -496,23 +497,6 @@ namespace Roslyn.Test.Utilities
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
-            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind, ILspServiceLogger logger)
-            {
-                TestWorkspace = testWorkspace;
-                ClientCapabilities = clientCapabilities;
-                _locations = locations;
-
-                var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                LanguageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind, logger);
-
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
-                {
-                    ExceptionStrategy = ExceptionProcessing.ISerializable,
-                };
-
-                InitializeClientRpc();
-            }
-
             private TestLspServer(
                 TestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
@@ -530,6 +514,9 @@ namespace Roslyn.Test.Utilities
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
+
+                // Workspace listener events do not run in tests, so we manually register the lsp misc workspace.
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
 
                 InitializeClientRpc();
             }
@@ -552,12 +539,21 @@ namespace Roslyn.Test.Utilities
             internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, initializationOptions.ServerKind, logger);
+
+                var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+                var languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, initializationOptions.ServerKind, logger);
+
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
                     Capabilities = initializationOptions.ClientCapabilities,
                 }, CancellationToken.None);
+
+                if (initializationOptions.CallInitialized)
+                {
+                    await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
+                }
 
                 return server;
             }
@@ -571,6 +567,8 @@ namespace Roslyn.Test.Utilities
                 {
                     Capabilities = clientCapabilities,
                 }, CancellationToken.None);
+
+                await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
 
                 return server;
             }
@@ -589,6 +587,7 @@ namespace Roslyn.Test.Utilities
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
                     logger,
+                    workspace.Services.HostServices,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);
 
@@ -691,6 +690,7 @@ namespace Roslyn.Test.Utilities
             public async ValueTask DisposeAsync()
             {
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
 
                 var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
                 solutionCrawlerRegistrationService.Unregister(TestWorkspace);

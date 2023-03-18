@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static IOperation? WalkDownConversion(this IOperation? operation)
         {
             while (operation is IConversionOperation conversionOperation)
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis
                    notImplementedExceptionType.Equals(objectCreation.Type);
         }
 
-        [return: NotNullIfNotNull("value")]
+        [return: NotNullIfNotNull(nameof(value))]
         public static IOperation? UnwrapImplicitConversion(this IOperation? value)
             => value is IConversionOperation conversion && conversion.IsImplicit
                 ? conversion.Operand

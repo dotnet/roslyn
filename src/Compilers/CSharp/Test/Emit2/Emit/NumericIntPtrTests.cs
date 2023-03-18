@@ -1249,7 +1249,6 @@ class Program
     }
 }";
 
-
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (6,34): error CS0103: The name 'nint' does not exist in the current context
@@ -8999,7 +8998,7 @@ $@"public class Library
                 comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, verify: Verification.PassesOrFailFast | Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
+                CompileAndVerify(comp, verify: new Verification() { Status = VerificationStatus.PassesOrFailFast | VerificationStatus.FailsPEVerify }, expectedOutput: IncludeExpectedOutput(expectedResult));
                 Assert.NotNull(expectedResult);
             }
 
@@ -9034,7 +9033,7 @@ class Program
                 }
 
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, verify: Verification.FailsPEVerify | Verification.PassesOrFailFast, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
+                CompileAndVerify(comp, verify: new Verification() { Status = VerificationStatus.FailsPEVerify | VerificationStatus.PassesOrFailFast }, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
                 Assert.NotNull(expectedResult);
             }
         }
@@ -10132,7 +10131,6 @@ $@"static class NativeInts
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
 
-
             // type to IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
             verify(sourceType: "string", destType: "System.IntPtr", noConversion: true);
@@ -10556,7 +10554,6 @@ class D : C<System.IntPtr> { }
 
             comp.VerifyDiagnostics();
         }
-
 
         [Theory]
         [InlineData(false)]

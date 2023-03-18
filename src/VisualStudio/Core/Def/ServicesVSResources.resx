@@ -1806,10 +1806,6 @@ Additional information: {1}</value>
     <value>Updating namespaces...</value>
     <comment>"namespaces" is the programming language concept</comment>
   </data>
-  <data name="Namespaces_have_been_updated" xml:space="preserve">
-    <value>Namespaces have been updated.</value>
-    <comment>"Namespaces" is the programming language concept</comment>
-  </data>
   <data name="No_namespaces_needed_updating" xml:space="preserve">
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
@@ -2028,5 +2024,11 @@ Additional information: {1}</value>
   </data>
   <data name="Analyze_source_generated_files" xml:space="preserve">
     <value>Analyze source generated files</value>
+  </data>
+  <data name="Prefer_read_only_struct_member" xml:space="preserve">
+    <value>Prefer read-only struct member</value>
+  </data>
+  <data name="Sync_namespaces_changes" xml:space="preserve">
+    <value>Sync namespaces changes</value>
   </data>
 </root>

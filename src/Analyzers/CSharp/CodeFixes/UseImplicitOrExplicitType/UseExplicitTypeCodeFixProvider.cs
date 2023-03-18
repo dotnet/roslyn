@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

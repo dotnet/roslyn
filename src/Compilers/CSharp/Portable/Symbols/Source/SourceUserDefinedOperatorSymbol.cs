@@ -85,12 +85,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
         internal OperatorDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         protected override int GetParameterCountFromSyntax()

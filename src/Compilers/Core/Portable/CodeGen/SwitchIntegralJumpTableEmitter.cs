@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //      emitting conditional jumps if current bucket sub-array has more than one bucket and
             //      emitting the switch instruction when we are down to a single bucket in the sub-array.
 
-
             // (a) Sort switch labels: This was done in the constructor
 
             Debug.Assert(!_sortedCaseLabels.IsEmpty);

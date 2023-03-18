@@ -18,6 +18,8 @@
     </PackageDescription>
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- It's fine to suppress since this is a source package -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   <ItemGroup>
     <!-- ⚠ Consuming projects outside dotnet/roslyn will be required to manually reproduce the APIs for any linked files added here -->

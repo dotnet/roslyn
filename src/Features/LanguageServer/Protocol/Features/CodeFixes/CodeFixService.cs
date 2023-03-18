@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
-                includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
+                includeSuppressedDiagnostics: false, priority, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
@@ -312,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
                 new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+            Contract.ThrowIfNull(solution);
 
             return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));
         }
@@ -726,9 +727,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                .Select(d => d.Id)
                                                .ToImmutableHashSet();
 
-                var diagnosticProvider = fixAllForInSpan ?
-                    new FixAllPredefinedDiagnosticProvider(allDiagnostics) :
-                    (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
+                var diagnosticProvider = fixAllForInSpan
+                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
+                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
 
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 

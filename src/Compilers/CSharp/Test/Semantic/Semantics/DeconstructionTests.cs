@@ -5272,7 +5272,6 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
 
-
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
             Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());

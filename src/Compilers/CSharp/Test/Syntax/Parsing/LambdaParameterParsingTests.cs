@@ -3300,7 +3300,6 @@ class C {
             EOF();
         }
 
-
         [Fact]
         public void TestDefaultValueWithAttributeOnParam()
         {
@@ -3555,7 +3554,6 @@ class C {
             }
             EOF();
         }
-
 
         [Fact]
         public void TestDefaultValueWithComplexExpression1()
@@ -5679,9 +5677,9 @@ class C {
                 // (1,3): error CS1001: Identifier expected
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
-                // (1,3): error CS1001: Identifier expected
+                // (1,3): error CS1003: Syntax error, ',' expected
                 // [ => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 3),
                 // (1,9): error CS1003: Syntax error, ']' expected
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 9),

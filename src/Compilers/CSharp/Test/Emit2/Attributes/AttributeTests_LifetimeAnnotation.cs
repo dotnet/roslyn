@@ -260,22 +260,22 @@ ref struct R { }
             var method = comp.GetMember<MethodSymbol>("A.F1");
             Assert.Equal("void A.F1(scoped R r)", method.ToTestDisplayString());
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
             Assert.Equal("void A.F2(System.Int32 y)", method.ToTestDisplayString());
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
+            Assert.Equal(ScopedKind.None, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToTestDisplayString());
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedRef, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
             Assert.Equal("void A.F4(scoped ref R r)", method.ToTestDisplayString());
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedRef, parameter.EffectiveScope);
         }
 
         [Fact]

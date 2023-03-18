@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnpendException(pendingExceptionLocal),
                 UnpendBranches(
                     frame,
-                    pendingBranchVar,
-                    pendingExceptionLocal));
+                    pendingBranchVar));
 
             BoundStatement syntheticFinally = syntheticFinallyBlock;
             if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
@@ -283,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement UnpendBranches(
             AwaitFinallyFrame frame,
-            SynthesizedLocal pendingBranchVar,
-            SynthesizedLocal pendingException)
+            SynthesizedLocal pendingBranchVar)
         {
             var parent = frame.ParentOpt;
 

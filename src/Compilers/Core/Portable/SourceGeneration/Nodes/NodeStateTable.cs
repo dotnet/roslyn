@@ -550,7 +550,6 @@ namespace Microsoft.CodeAnalysis
                 public T Current => _entry.GetItem(_index);
             }
 
-
 #if DEBUG
             public override string ToString()
             {

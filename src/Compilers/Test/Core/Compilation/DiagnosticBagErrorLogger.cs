@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -18,6 +19,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             Diagnostics.Add(diagnostic);
+        }
+
+        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
+        {
         }
     }
 }

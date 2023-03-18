@@ -567,9 +567,9 @@ namespace IOperationGenerator
                             }
                             else
                             {
-                                var initializer = IsIOperationType(prop.Type) ?
-                                    $"SetParentOperation({prop.Name.ToCamelCase()}, this)" :
-                                    prop.Name.ToCamelCase();
+                                var initializer = IsIOperationType(prop.Type)
+                                    ? $"SetParentOperation({prop.Name.ToCamelCase()}, this)"
+                                    : prop.Name.ToCamelCase();
                                 WriteLine($"{prop.Name} = {initializer};");
                             }
                         }

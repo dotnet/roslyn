@@ -225,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public override bool Equals(object? obj)
-        {
-            return obj is TextSpan && Equals((TextSpan)obj);
-        }
+            => obj is TextSpan span && Equals(span);
 
         /// <summary>
         /// Produces a hash code for <see cref="TextSpan"/>.

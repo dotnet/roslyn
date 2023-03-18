@@ -4617,23 +4617,6 @@ namespace System
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
-        public void RecursiveParameterDefault()
-        {
-            var text = @"
-class C
-{
-    public static void Main(int arg)
-    {
-        int Local(int x = Local()) => 2;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(text);
-            compilation.VerifyDiagnostics(
-                );
-        }
-
         [Fact]
         [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()

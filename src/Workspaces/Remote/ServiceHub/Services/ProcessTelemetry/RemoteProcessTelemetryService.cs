@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
-                    var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
+                    // We know in the remote layer that this type must exist.
+                    var globalOperationNotificationService = services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
                     _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
                 }
 
@@ -110,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask InitializeWorkspaceConfigurationOptionsAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
+        public ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
                 var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
                 service.InitializeOptions(options);
 
-                return ValueTaskFactory.CompletedTask;
+                return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
             }, cancellationToken);
         }
     }

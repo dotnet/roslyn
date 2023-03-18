@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
 
-
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 
@@ -158,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredAccessExpression,
                         null,
                         currentConditionalAccessID,
+                        forceCopyOfNullableValueType: true,
                         type);
 
                     break;

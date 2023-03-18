@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(id.HasPublicKey);
             Assert.False(id.IsStrongName);
 
-
             name = new AssemblyName("goo");
             name.SetPublicKey(PublicKey1);
             name.Version = new Version(1, 2, 3, 4);
@@ -113,7 +112,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(id.HasPublicKey);
             Assert.True(id.IsStrongName);
             AssertEx.Equal(id.PublicKey, PublicKey1);
-
 
             name = new AssemblyName("goo");
             name.ContentType = AssemblyContentType.WindowsRuntime;

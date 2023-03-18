@@ -1468,7 +1468,6 @@ class C
             CompileAndVerify(src);
         }
 
-
         [Fact]
         [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()
@@ -2455,7 +2454,6 @@ if (true)
 ";
             VerifyOutputInMain(source, "2", "System");
         }
-
 
         [Fact]
         public void Property()
@@ -6300,7 +6298,7 @@ public class Program
             CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = default)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics

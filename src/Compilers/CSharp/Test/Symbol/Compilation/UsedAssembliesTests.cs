@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -186,7 +187,8 @@ public class C2
 ");
             builder.Append(afterUsings);
 
-            var parseOptions = ((CSharpParseOptions)tree.Options).WithLanguageVersion(LanguageVersion.CSharp10);
+            LanguageVersion treeLanguageVersion = ((CSharpParseOptions)tree.Options).LanguageVersion;
+            var parseOptions = ((CSharpParseOptions)tree.Options).WithLanguageVersion(treeLanguageVersion > LanguageVersion.CSharp10 ? treeLanguageVersion : LanguageVersion.CSharp10);
             yield return (comp.ReplaceSyntaxTree(tree, CSharpTestBase.Parse(builder.ToString(), tree.FilePath, parseOptions)), before, after);
 
             // With global usings in a separate unit
@@ -249,8 +251,11 @@ public class C2
         }
 
         private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, params MetadataReference[] expected)
+            => AssertUsedAssemblyReferences(source, references, expected, parseOptions: null);
+
+        private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, MetadataReference[] expected, CSharpParseOptions parseOptions, CSharpCompilationOptions options = null)
         {
-            Compilation comp = CreateCompilation(source, references: references);
+            Compilation comp = CreateCompilation(source, parseOptions: parseOptions, references: references, options: options);
             AssertUsedAssemblyReferences(comp, expected, references);
             return comp;
         }
@@ -1837,7 +1842,6 @@ public class C3
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(2005, 20)
                 );
 
-
             var source6 =
 @"
 public class C3
@@ -1978,7 +1982,6 @@ public class C2
 
             verify<PEAssemblySymbol>(source2, comp1ImageRef);
             verify<SourceAssemblySymbol>(source2, comp1Ref);
-
 
             var source3 =
 @"
@@ -3631,7 +3634,116 @@ public class C2
 
             void verify(MetadataReference reference0, MetadataReference reference1, string source)
             {
-                AssertUsedAssemblyReferences(source, reference0, reference1);
+                var references = new[] { reference0, reference1 };
+                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular11);
+            }
+        }
+
+        [Fact]
+        public void ArraysAndPointers_01_WithUnsafeContext()
+        {
+            var source0 =
+@"
+public class C0 {}
+";
+            var comp0 = CreateCompilation(source0);
+            var comp0Ref = comp0.ToMetadataReference();
+
+            var source1 =
+@"
+public class C1<T>
+{
+    public enum E1
+    {
+        F1 = 0
+    }
+}
+
+public struct S<T>
+{ }
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+            var comp1Ref = comp1.ToMetadataReference();
+
+            verify(comp0Ref, comp1Ref,
+@"
+public class C2
+{
+    public unsafe static void Main()
+    {
+        _ = C1<S<C0>*[]>.E1.F1 + 1;
+    }
+}
+");
+
+            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
+using static C1<S<C0>*[]>;
+public class C2
+{
+    public static void Main()
+    {
+        _ = E1.F1 + 1;
+    }
+}
+",
+                // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using static C1<S<C0>*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17));
+
+            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
+using static C1<S<C0>*[]>.E1;
+public class C2
+{
+    public static void Main()
+    {
+        _ = F1 + 1;
+    }
+}
+",
+                // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using static C1<S<C0>*[]>.E1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17));
+
+            verify(comp0Ref, comp1Ref,
+@"
+using unsafe @alias = C1<S<C0>*[]>.E1;
+public class C2
+{
+    public static void Main()
+    {
+        _ = alias.F1 + 1;
+    }
+}
+");
+
+            verify(comp0Ref, comp1Ref,
+@"
+using unsafe @alias = C1<S<C0>*[]>;
+public class C2
+{
+    public static void Main()
+    {
+        _ = alias.E1.F1 + 1;
+    }
+}
+");
+
+            void verifyDiagnostics(MetadataReference reference0, MetadataReference reference1, string source, params DiagnosticDescription[] diagnostics)
+            {
+                var references = new[] { reference0, reference1 };
+                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: references, options: TestOptions.UnsafeDebugDll);
+                comp.VerifyDiagnostics(diagnostics);
+            }
+
+            void verify(MetadataReference reference0, MetadataReference reference1, string source)
+            {
+                var references = new[] { reference0, reference1 };
+                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             }
         }
 

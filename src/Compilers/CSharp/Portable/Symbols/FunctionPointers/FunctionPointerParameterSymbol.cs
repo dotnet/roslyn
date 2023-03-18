@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
-        internal override DeclarationScope EffectiveScope
-            => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+        internal override ScopedKind EffectiveScope
+            => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
         internal override bool HasUnscopedRefAttribute => false;
         internal override bool UseUpdatedEscapeRules => _containingSymbol.UseUpdatedEscapeRules;
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int MethodHashCode()
-            => Hash.Combine(TypeWithAnnotations.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode());
+            => Hash.Combine(TypeWithAnnotations.GetHashCode(), ((int)FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind)).GetHashCode());
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;

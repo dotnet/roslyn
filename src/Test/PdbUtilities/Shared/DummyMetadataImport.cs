@@ -32,10 +32,10 @@ namespace Roslyn.Test.PdbUtilities
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            Dispose(true);
+            DisposeCore();
         }
 
-        private void Dispose(bool disposing)
+        private void DisposeCore()
         {
             _metadataOwnerOpt?.Dispose();
 
@@ -47,7 +47,7 @@ namespace Roslyn.Test.PdbUtilities
 
         ~DummyMetadataImport()
         {
-            Dispose(false);
+            DisposeCore();
         }
 
         [PreserveSig]

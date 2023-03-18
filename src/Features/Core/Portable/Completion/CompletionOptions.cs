@@ -24,8 +24,18 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool TargetTypedCompletionFilter { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
+
+        /// <summary>
+        /// Test-only option.
+        /// </summary>
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
+
+        /// <summary>
+        /// Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
+        /// (cache will always be refreshed when provider is triggered)
+        /// </summary>
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
+
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
@@ -36,9 +46,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionOptions Default = new();
 
         public RecommendationServiceOptions ToRecommendationServiceOptions()
-            => new(
-                FilterOutOfScopeLocals: FilterOutOfScopeLocals,
-                HideAdvancedMembers: HideAdvancedMembers);
+            => new()
+            {
+                FilterOutOfScopeLocals = FilterOutOfScopeLocals,
+                HideAdvancedMembers = HideAdvancedMembers
+            };
 
         /// <summary>
         /// Whether items from unimported namespaces should be included in the completion list.

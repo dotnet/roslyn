@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class IPropertySymbolExtensions
+    internal static partial class IPropertySymbolExtensions
     {
         public static IPropertySymbol RenameParameters(this IPropertySymbol property, ImmutableArray<string> parameterNames)
         {
@@ -66,18 +66,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.SetMethod,
                 property.IsIndexer);
 
-            static bool ShouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg) =>
-                arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+            static bool ShouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg)
+                => arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)
             => property.SetMethod != null || ContainsBackingField(property);
-
-        public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
-            => property.ContainingType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));
 
         private static bool ContainsBackingField(IPropertySymbol property)
             => property.GetBackingFieldIfAny() != null;

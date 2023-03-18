@@ -329,10 +329,8 @@ Long: -25
             CompileAndVerify(c1, expected)
         End Sub
 
-
         <Fact>
         Public Sub Test2()
-
 
             Dim compilationDef =
 <compilation name="Test2">
@@ -405,7 +403,6 @@ BC30487: Operator '-' is not defined for type 'Date'.
 
         End Sub
 
-
         <Fact>
         Public Sub Test3()
 
@@ -429,7 +426,6 @@ End Module</text>.Value
                         )},
                 references:=Nothing, options:=TestOptions.ReleaseDll)
 
-
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
 BC31091: Import of type 'Object' from assembly or module 'Test3.dll' failed.
@@ -450,7 +446,6 @@ BC42105: Function 'Main' doesn't return a value on all code paths. A null refere
 </expected>)
 
         End Sub
-
 
         <Fact>
         Public Sub Test4()
@@ -525,8 +520,6 @@ BC30439: Constant expression not representable in type 'Long'.
 
         End Sub
 
-
-
         <Fact>
         Public Sub Test5()
 
@@ -550,7 +543,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim expected =
 <expected>
@@ -806,7 +798,6 @@ End Class
 
         <Fact()>
         Public Sub CheckedIntrinsicSymbols()
-
 
             Dim source =
 <compilation>

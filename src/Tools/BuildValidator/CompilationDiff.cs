@@ -107,8 +107,8 @@ namespace BuildValidator
 
         public static CompilationDiff CreateMiscError(
             AssemblyInfo assemblyInfo,
-            string message) =>
-            new CompilationDiff(
+            string message)
+            => new CompilationDiff(
                 assemblyInfo,
                 RebuildResult.MiscError,
                 message: message);
@@ -116,8 +116,8 @@ namespace BuildValidator
         public static unsafe CompilationDiff CreateMissingReferences(
             AssemblyInfo assemblyInfo,
             LocalReferenceResolver resolver,
-            ImmutableArray<MetadataReferenceInfo> references) =>
-            new CompilationDiff(
+            ImmutableArray<MetadataReferenceInfo> references)
+            => new CompilationDiff(
                 assemblyInfo,
                 RebuildResult.MissingReferences,
                 localReferenceResolver: resolver,
@@ -216,7 +216,7 @@ namespace BuildValidator
                     writeMissingReferences();
                     break;
                 case RebuildResult.MiscError:
-                    // No artifacts to write here
+                    File.WriteAllText(Path.Combine(debugPath, "error.txt"), MiscErrorMessage);
                     break;
                 default:
                     throw new Exception($"Unexpected value {Result}");

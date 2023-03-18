@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return true;
         }
 
-        private static bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>
-            left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
+        private static bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right)
+            => left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

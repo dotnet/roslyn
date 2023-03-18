@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis
                 identity.Name.StartsWith("windows.", StringComparison.OrdinalIgnoreCase);
         }
 
+        internal const string WindowsRuntimeIdentitySimpleName = "windows";
+
         // Windows[.winmd]
         internal static bool IsWindowsRuntime(this AssemblyIdentity identity)
         {
             return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
-                string.Equals(identity.Name, "windows", StringComparison.OrdinalIgnoreCase);
+                string.Equals(identity.Name, WindowsRuntimeIdentitySimpleName, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

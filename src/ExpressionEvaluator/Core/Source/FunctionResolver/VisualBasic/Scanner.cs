@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             private string GetDebuggerDisplay()
             {
-                return (Text == null) ?
-                    Kind.ToString() :
-                    $"{Kind}: \"{Text}\"";
+                return (Text == null)
+                    ? Kind.ToString()
+                    : $"{Kind}: \"{Text}\"";
             }
         }
 

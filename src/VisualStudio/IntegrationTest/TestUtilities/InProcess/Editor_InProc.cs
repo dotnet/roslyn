@@ -36,7 +36,6 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using UIAutomationClient;
-using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -60,13 +59,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
-
-        private static IVsTextView GetActiveVsTextView()
-        {
-            var (textView, hr) = TryGetActiveVsTextView();
-            Marshal.ThrowExceptionForHR(hr);
-            return textView;
-        }
 
         private static (IVsTextView textView, int hr) TryGetActiveVsTextView()
         {
@@ -160,17 +152,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public string GetActiveBufferName()
-        {
-            return GetDTE().ActiveDocument.Name;
-        }
-
-        public void WaitForActiveView(string expectedView)
-        {
-            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-            Retry(_ => GetActiveBufferName(), (actual, _) => actual == expectedView, TimeSpan.FromMilliseconds(100), cts.Token);
-        }
-
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
@@ -246,16 +227,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return text[(bufferPosition.Position - line.Start)..];
             });
 
-        public string GetSelectedText()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                Contract.ThrowIfNull(subjectBuffer);
-
-                var selectedSpan = view.Selection.SelectedSpans[0];
-                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
-            });
-
         public void MoveCaret(int position)
             => ExecuteOnActiveView(view =>
             {
@@ -277,9 +248,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var broker = GetComponentModelService<ISignatureHelpBroker>();
                 return broker.IsSignatureHelpActive(view);
             });
-
-        public string[] GetErrorTags()
-            => GetTags<IErrorTag>();
 
         public string[] GetHighlightTags()
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
@@ -432,58 +400,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _sendKeys.Send(keys);
         }
 
-        public void SendKeysToNavigateTo(object[] keys)
-        {
-            var dialogAutomationElement = FindNavigateTo();
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
-            }
-
-            dialogAutomationElement.SetFocus();
-            _sendKeys.Send(keys);
-        }
-
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
-        }
-
-        private static IUIAutomationElement FindNavigateTo()
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle(GetDTE().MainWindow.HWnd);
-            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
-        }
-
-        private T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
-        {
-            do
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                T retval;
-                try
-                {
-                    retval = action(cancellationToken);
-                }
-                catch (COMException)
-                {
-                    // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-
-                    Thread.Sleep(delay);
-                    continue;
-                }
-
-                if (stoppingCondition(retval, cancellationToken))
-                {
-                    return retval;
-                }
-                else
-                {
-                    Thread.Sleep(delay);
-                }
-            }
-            while (true);
         }
 
         public void AddWinFormButton(string buttonName)
@@ -658,12 +577,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return properties[propertyName].GetValue(button) as string;
         }
 
-        public void FormatDocumentViaCommand()
-            => ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
-
-        public void Paste()
-            => ExecuteCommand(WellKnownCommandNames.Edit_Paste);
-
         public void Undo()
             => ExecuteCommand(WellKnownCommandNames.Edit_Undo);
 
@@ -711,13 +624,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
 
                 return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
-            });
-
-        public void SendExplicitFocus()
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                var view = GetActiveVsTextView();
-                view.SendExplicitFocus();
             });
 
         public void WaitForEditorOperations(TimeSpan timeout)

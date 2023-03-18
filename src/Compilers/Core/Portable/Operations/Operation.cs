@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(parent == null || ((Operation)parent).OwningSemanticModel == OwningSemanticModel);
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static T? SetParentOperation<T>(T? operation, IOperation? parent) where T : IOperation
         {
             // For simplicity of implementation of derived types, we handle `null` children, as some children

@@ -164,7 +164,6 @@ class C
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
 
-
             Assert.True(semanticInfo.Type.IsDynamic());
             Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);

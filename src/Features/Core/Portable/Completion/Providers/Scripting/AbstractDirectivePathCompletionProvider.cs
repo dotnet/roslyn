@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
-        protected static bool IsDirectorySeparator(char ch) =>
-             ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
+        protected static bool IsDirectorySeparator(char ch)
+             => ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool EndsWithQuote(string quotedPath)
-            => quotedPath.Length >= 2 && quotedPath[quotedPath.Length - 1] == '"';
+            => quotedPath is [.., _, '"'];
 
         /// <summary>
         /// Returns the index right after the last slash that precedes 'position'.  If there is no

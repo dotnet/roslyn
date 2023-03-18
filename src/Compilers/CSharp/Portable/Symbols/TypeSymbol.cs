@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
             => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-
         public override bool HasUnsupportedMetadata
         {
             get
@@ -1862,6 +1861,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 (implementingType, isExplicit),
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
+                        }
+
+                        if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
                         }
                     }
 

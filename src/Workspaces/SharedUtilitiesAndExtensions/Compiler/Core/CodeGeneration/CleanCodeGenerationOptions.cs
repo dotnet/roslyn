@@ -7,7 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 

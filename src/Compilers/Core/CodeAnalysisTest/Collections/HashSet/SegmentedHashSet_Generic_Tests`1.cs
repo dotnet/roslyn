@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             foreach (int i in NonSquares(count))
                 source.Remove(sourceElements[i]);// Unevenly spaced survivors increases chance of catching any spacing-related bugs.
 
-
             SegmentedHashSet<T> set = new SegmentedHashSet<T>(source, GetIEqualityComparer());
             Assert.True(set.SetEquals(source));
         }

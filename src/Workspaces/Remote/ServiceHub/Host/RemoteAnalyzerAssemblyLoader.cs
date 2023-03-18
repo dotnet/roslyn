@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// in-proc and OOP e.g. in-proc (VS) running on desktop clr and OOP running on ServiceHub .Net6
     /// host. We need to make sure to use the ones from the same location as the remote.
     /// </summary>
-    internal sealed class RemoteAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
+    internal sealed class RemoteAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private readonly string _baseDirectory;
 
@@ -21,30 +21,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _baseDirectory = baseDirectory;
         }
 
-        protected override string GetPathToLoad(string fullPath)
+        protected override string PreparePathToLoad(string fullPath)
         {
             var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(fullPath)));
             return File.Exists(fixedPath) ? fixedPath : fullPath;
         }
-
-#if NETCOREAPP
-
-        // The following are special assemblies since they contain IDE analyzers and/or their dependencies,
-        // but in the meantime, they also contain the host of compiler in remote process. Therefore on coreclr,
-        // we must ensure they are only loaded once and in the same ALC compiler asemblies are loaded into.
-        // Otherwise these analyzers will fail to interoperate with the host due to mismatch in assembly identity.
-        private static readonly ImmutableHashSet<string> s_ideAssemblySimpleNames =
-            CompilerAssemblySimpleNames.Union(new[]
-            {
-                    "Microsoft.CodeAnalysis.Features",
-                    "Microsoft.CodeAnalysis.CSharp.Features",
-                    "Microsoft.CodeAnalysis.VisualBasic.Features",
-                    "Microsoft.CodeAnalysis.Workspaces",
-                    "Microsoft.CodeAnalysis.CSharp.Workspaces",
-                    "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
-            });
-
-        internal override ImmutableHashSet<string> AssemblySimpleNamesToBeLoadedInCompilerContext => s_ideAssemblySimpleNames;
-#endif
     }
 }

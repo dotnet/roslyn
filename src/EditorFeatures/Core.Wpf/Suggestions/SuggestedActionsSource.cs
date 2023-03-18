@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
-            [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
+            [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
             private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, SuggestedActionsSourceProvider owner, ITextBuffer subjectBuffer)
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         _ => throw ExceptionUtilities.Unreachable()
                     };
 
-                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
-                    => unifiedSuggestedActionSetPriority switch
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
+                    => priority switch
                     {
-                        UnifiedSuggestedActionSetPriority.Lowest => SuggestedActionSetPriority.None,
-                        UnifiedSuggestedActionSetPriority.Low => SuggestedActionSetPriority.Low,
-                        UnifiedSuggestedActionSetPriority.Medium => SuggestedActionSetPriority.Medium,
-                        UnifiedSuggestedActionSetPriority.High => SuggestedActionSetPriority.High,
+                        CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
+                        CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                        CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.High => SuggestedActionSetPriority.High,
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
             }

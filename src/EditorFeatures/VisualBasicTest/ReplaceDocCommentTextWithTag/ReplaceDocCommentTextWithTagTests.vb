@@ -319,16 +319,22 @@ interface I
 end interface")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        Public Async Function TestNotApplicableKeyword() As Task
-            Await TestMissingAsync(
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31208")>
+        Public Async Function TestApplicableKeyword() As Task
+            Await TestInRegularAndScript1Async(
 "
 ''' Testing keyword interf[||]ace
+class C(Of TKey)
+end class",
+"
+''' Testing keyword <see langword=""interface""/>
 class C(Of TKey)
 end class")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
@@ -339,7 +345,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
@@ -350,7 +356,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -363,7 +369,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "

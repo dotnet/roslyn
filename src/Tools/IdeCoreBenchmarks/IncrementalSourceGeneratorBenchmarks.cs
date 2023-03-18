@@ -52,7 +52,7 @@ namespace IdeCoreBenchmarks
         private void RestoreCompilerSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Compilers.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"Compilers.slnf");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {_solutionPath}");
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)

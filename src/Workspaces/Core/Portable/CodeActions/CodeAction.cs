@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -20,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -136,25 +136,25 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-            => GetOperationsAsync(new ProgressTracker(), cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, new ProgressTracker(), cancellationToken);
 
         internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return GetOperationsCoreAsync(progressTracker, cancellationToken);
+            return GetOperationsCoreAsync(originalSolution, progressTracker, cancellationToken);
         }
 
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
         internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var operations = await this.ComputeOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<CodeActionOperation>.Empty;
@@ -163,13 +163,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// The sequence of operations used to construct a preview.
         /// </summary>
-        public async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+            => GetPreviewOperationsAsync(originalSolution: null!, cancellationToken);
+
+        internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
+            Solution originalSolution, CancellationToken cancellationToken)
         {
             var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<CodeActionOperation>.Empty;
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution?> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        internal async Task<Solution?> GetChangedSolutionInternalAsync(Solution originalSolution, bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
@@ -248,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return solution;
             }
 
-            return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+            return await this.PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
         }
 
         internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -260,33 +264,48 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="operations">A list of operations.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A new list of operations with post processing steps applied to any <see cref="ApplyChangesOperation"/>'s.</returns>
-        protected async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+            => PostProcessAsync(originalSolution: null!, operations, cancellationToken);
+
+        internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+            Solution originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
-            var arrayBuilder = new ArrayBuilder<CodeActionOperation>();
+            using var result = TemporaryArray<CodeActionOperation>.Empty;
 
             foreach (var op in operations)
             {
                 if (op is ApplyChangesOperation ac)
                 {
-                    arrayBuilder.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                    result.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
                 }
                 else
                 {
-                    arrayBuilder.Add(op);
+                    result.Add(op);
                 }
             }
 
-            return arrayBuilder.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>
-        ///  Apply post processing steps to solution changes, like formatting and simplification.
+        /// Apply post processing steps to solution changes, like formatting and simplification.
         /// </summary>
         /// <param name="changedSolution">The solution changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token</param>
-        protected async Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
+        protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
+            => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
+
+        internal async Task<Solution> PostProcessChangesAsync(
+            Solution originalSolution,
+            Solution changedSolution,
+            CancellationToken cancellationToken)
         {
-            var solutionChanges = changedSolution.GetChanges(changedSolution.Workspace.CurrentSolution);
+            // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
+            // current solution.  This is not ideal (as that is a mutable field that could be changing out from
+            // underneath us).  But it's the only option we have for the compat case with existing public extension
+            // points.
+            originalSolution ??= changedSolution.Workspace.CurrentSolution;
+            var solutionChanges = changedSolution.GetChanges(originalSolution);
 
             var processedSolution = changedSolution;
 
@@ -332,9 +351,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
-                // TODO: avoid ILegacyGlobalOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
-                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-                var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+                // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+                var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
                 var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
@@ -418,18 +437,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
         /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
         public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+            => Create(title, nestedActions, isInlinable, priority: CodeActionPriority.Default);
+
+        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority)
         {
             if (title is null)
-            {
                 throw new ArgumentNullException(nameof(title));
-            }
 
             if (nestedActions == null)
-            {
                 throw new ArgumentNullException(nameof(nestedActions));
-            }
 
-            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable);
+            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
         internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
@@ -500,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public static CodeActionWithNestedActions Create(
+            public static new CodeActionWithNestedActions Create(
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,

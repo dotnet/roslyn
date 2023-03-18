@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Structure;
@@ -65,7 +63,7 @@ Blah|}
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -85,7 +83,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
             const string code = @"
@@ -104,7 +102,7 @@ class P {
             await VerifyNoBlockSpansAsync(code);
         }
 
-        [Fact, WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -124,7 +122,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -146,7 +144,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -168,7 +166,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -192,7 +190,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
             const string code = @"
@@ -213,7 +211,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
             const string code = @"
@@ -233,7 +231,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
             const string code = @"
@@ -262,7 +260,7 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(1100600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {
             const string code = @"

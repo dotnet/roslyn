@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.LocalFunctionStatement,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -90,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -278,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
@@ -288,9 +293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordDeclaration))
+                updatedNode.IsKind(SyntaxKind.RecordDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.StructDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.ClassDeclaration))
             {
-                var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
+                var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -304,10 +311,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode is RecordDeclarationSyntax { ParameterList: not null } record)
+            if (updatedNode is TypeDeclarationSyntax { ParameterList: not null } typeWithParameters)
             {
-                var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-                return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var updatedParameters = UpdateDeclaration(typeWithParameters.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return typeWithParameters.WithParameterList(typeWithParameters.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode is LocalFunctionStatementSyntax localFunction)
@@ -747,7 +754,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return result.ToImmutable();
         }
 
-        private ImmutableArray<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
+            Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!node.HasLeadingTrivia)
             {
@@ -765,7 +773,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return ImmutableArray<SyntaxTrivia>.Empty;
             }
 
-            return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
+            var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options);
         }
 
         private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)

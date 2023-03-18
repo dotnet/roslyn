@@ -218,11 +218,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var fallbackOptions = targetDocument.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
-
+            var fallbackOptions = globalOptions.GetCleanCodeGenerationOptions(targetDocument.Project.Services);
             var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
-            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
+            var info = codeGenerationService.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), options.GenerationOptions, destinationType.SyntaxTree.Options);
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
@@ -302,9 +301,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS ?
-                semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null) :
-                type.GetMembers();
+            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS
+                ? semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null)
+                : type.GetMembers();
 
             var members = allMembers.Where(m => IncludeMember(m, codeMemberType, compilation));
             return members.Select(m => Tuple.Create(m.Name, ConstructMemberId(m)));

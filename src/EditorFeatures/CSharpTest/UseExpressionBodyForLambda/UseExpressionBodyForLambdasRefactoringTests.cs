@@ -21,170 +21,192 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyForLambdaCodeRefactoringProvider();
 
-        private OptionsCollection UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
+        private OptionsCollection UseExpressionBody
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
-        private OptionsCollection UseExpressionBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+        private OptionsCollection UseExpressionBodyDisabledDiagnostic
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
-        private OptionsCollection UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
+        private OptionsCollection UseBlockBody
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
-        private OptionsCollection UseBlockBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        private OptionsCollection UseBlockBodyDisabledDiagnostic
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [|=>|]
-        {
-            return x.ToString();
-        }
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [|=>|]
+                        {
+                            return x.ToString();
+                        }
+                    }
+                }
+                """, parameters: new TestParameters(options: UseExpressionBody));
         }
 
         [Fact]
         public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=>
-        {
-            return x.ToString();
-        };
-    }
-}",
-@"using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [||]=>
+                        {
+                            return x.ToString();
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x => x.ToString();
-    }
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x => x.ToString();
+                    }
+                }
+                """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
         }
 
         [Fact]
         public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=>
-        {
-            return x.ToString();
-        };
-    }
-}",
-@"using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [||]=>
+                        {
+                            return x.ToString();
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x => x.ToString();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x => x.ToString();
+                    }
+                }
+                """, parameters: new TestParameters(options: UseBlockBody));
         }
 
         [Fact]
         public async Task TestNotOfferedInMethod()
         {
             await TestMissingAsync(
-@"class C
-{
-    int [|Goo|]()
-    {
-        return 1;
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+                """
+                class C
+                {
+                    int [|Goo|]()
+                    {
+                        return 1;
+                    }
+                }
+                """, parameters: new TestParameters(options: UseBlockBody));
         }
 
         [Fact]
         public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=> x.ToString();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [||]=> x.ToString();
+                    }
+                }
+                """, parameters: new TestParameters(options: UseBlockBody));
         }
 
         [Fact]
         public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=> x.ToString();
-    }
-}",
-@"using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [||]=> x.ToString();
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        {
-            return x.ToString();
-        };
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x =>
+                        {
+                            return x.ToString();
+                        };
+                    }
+                }
+                """, parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
         }
 
         [Fact]
         public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=> x.ToString();
-    }
-}",
-@"using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x [||]=> x.ToString();
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        {
-            return x.ToString();
-        };
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<int, string> f = x =>
+                        {
+                            return x.ToString();
+                        };
+                    }
+                }
+                """, parameters: new TestParameters(options: UseExpressionBody));
         }
     }
 }

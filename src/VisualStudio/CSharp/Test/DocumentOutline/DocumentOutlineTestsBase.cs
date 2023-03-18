@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 => _disposable.DisposeAsync();
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));

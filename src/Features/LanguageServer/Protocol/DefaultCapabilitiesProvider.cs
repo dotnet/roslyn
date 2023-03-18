@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -69,7 +68,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
             capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
-            capabilities.ReferencesProvider = true;
+            capabilities.ReferencesProvider = new ReferenceOptions
+            {
+                WorkDoneProgress = true,
+            };
+
             capabilities.FoldingRangeProvider = true;
             capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
@@ -94,6 +97,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };
+
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = true,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
+            };
+
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
 
             return capabilities;
         }

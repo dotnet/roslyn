@@ -32,11 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             if (filePath is null)
                 return null;
 
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value)).ToList();
+            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settingsToUpdate.Select(x => GetOptionValueAndLanguage(x.option, x.value)));
 
-            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
-
-            static (string option, string value, Language language) TryGetOptionValueAndLanguage(AnalyzerSetting diagnostic, DiagnosticSeverity severity)
+            static (string option, string value, Language language) GetOptionValueAndLanguage(AnalyzerSetting diagnostic, DiagnosticSeverity severity)
             {
                 var optionName = $"{DiagnosticOptionPrefix}{diagnostic.Id}{SeveritySuffix}";
                 var optionValue = severity.ToEditorConfigString();
@@ -45,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  OptionSet optionSet,
-                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -57,23 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             if (filePath is null)
                 return null;
 
-            var updatedText = originalText;
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, optionSet))
-                                           .Where(x => x.success)
-                                           .Select(x => (x.option, x.value, x.language))
-                                           .ToList();
+            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settingsToUpdate.Select(x => GetOptionValueAndLanguage(x.option, x.value)));
 
-            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
-
-            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, OptionSet optionSet)
+            static (string option, string value, Language language) GetOptionValueAndLanguage(IOption2 option, object value)
             {
-                if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
-                {
-                    return (false, null!, null!, default);
-                }
+                var optionName = option.Definition.ConfigName;
+                var optionValue = option.Definition.Serializer.Serialize(value);
 
-                var optionName = storageLocation.KeyName;
-                var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
                     var severity = codeStyleOption.Notification.Severity switch
@@ -98,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
                     };
                 }
-                else if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                else if (option.IsPerLanguage)
                 {
                     language = Language.CSharp | Language.VisualBasic;
                 }
@@ -107,21 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     throw ExceptionUtilities.UnexpectedValue(option);
                 }
 
-                return (true, optionName, optionValue, language);
+                return (optionName, optionValue, language);
             }
         }
 
         public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
                                                                   string filePath,
-                                                                  IReadOnlyList<(string option, string value, Language language)> settingsToUpdate)
+                                                                  IEnumerable<(string option, string value, Language language)> settingsToUpdate)
         {
-            if (originalText is null)
-                throw new ArgumentNullException(nameof(originalText));
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
-            if (settingsToUpdate is null)
-                throw new ArgumentNullException(nameof(settingsToUpdate));
-
             var updatedText = originalText;
             TextLine? lastValidHeaderSpanEnd;
             TextLine? lastValidSpecificHeaderSpanEnd;

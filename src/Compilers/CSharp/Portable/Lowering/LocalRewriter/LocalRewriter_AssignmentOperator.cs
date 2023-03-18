@@ -118,11 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(eventAccess.IsUsableAsField);
                     if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                     {
-                        const bool isDynamic = false;
                         return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
                                                                             eventAccess.EventSymbol,
                                                                             EventAssignmentKind.Assignment,
-                                                                            isDynamic,
                                                                             eventAccess.ReceiverOpt,
                                                                             rewrittenRight);
                     }
@@ -225,12 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     {
                         Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            isRef,
-                            type);
+                            type,
+                            isRef);
                     }
 
                 case BoundKind.DiscardExpression:
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     {
                         Debug.Assert(!isRef);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
@@ -302,13 +300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            arguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+            arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+                storesOpt: null,
+                ref argTempsBuilder);
 
             arguments = MakeArguments(
                 syntax,

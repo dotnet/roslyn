@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
 
-            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services) =>
-                _services = services;
+            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services)
+                => _services = services;
 
             public (string type, string layer)[] Metadata
                 => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();

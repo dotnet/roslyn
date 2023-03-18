@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             return (type as INamedTypeSymbol)?.EnumUnderlyingType;
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
         {
             return GetEnumUnderlyingType(type) ?? type;

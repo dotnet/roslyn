@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis
                     throw ExceptionUtilities.UnexpectedValue(nameof(maxLength));
                 }
 
-
                 var psb = PooledStringBuilder.GetInstance();
                 var stack = new Stack<Rope>();
                 stack.Push(this);

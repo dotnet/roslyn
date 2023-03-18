@@ -50,11 +50,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Ajouter l'attribut 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_member_name">
-        <source>Add member name</source>
-        <target state="translated">Ajouter le nom du membre</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Ajouter des vérifications de valeur null pour tous les paramètres</target>
@@ -63,11 +58,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">Ajouter un paramètre optionnel au constructeur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">Ajouter un paramètre à '{0}' (et aux remplacements/implémentations)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -350,6 +340,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Les classes de base contiennent des membres non implémentés inaccessibles</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Impossible d'appliquer les changements -- Erreur inattendue : '{0}'</target>
@@ -497,7 +492,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
-        <target state="new">Code snippet for '{0}'</target>
+        <target state="translated">Extrait de code pour '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments_not_allowed">
@@ -543,11 +538,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Convertir en LINQ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">Ajouter à '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -618,6 +608,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Decompiled">
         <source>decompiled</source>
         <target state="translated">décompilé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -748,6 +743,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Impossible d’analyser le flux de données pour : {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
+        <source>'Find All References' not invoked on applicable symbol</source>
+        <target state="new">'Find All References' not invoked on applicable symbol</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -982,7 +982,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Variable temporaire inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1302,7 +1302,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <target state="translated">Corrigez les erreurs dans votre code avant de renommer cet élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2490,19 +2490,9 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">assertion arrière positive de largeur nulle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">Les signatures de méthode associées dans les métadonnées ne sont pas mises à jour.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">Suppression du document non prise en charge</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Supprimer le modificateur 'async'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -2557,7 +2547,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <target state="translated">Le changement de nom des membres de type anonyme n'est pas encore pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2698,6 +2688,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="The_symbol_has_no_implementations">
         <source>The symbol has no implementations.</source>
         <target state="translated">Le symbole n'a pas d'implémentations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -3022,27 +3017,27 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
         <source>You cannot rename elements from previous submissions.</source>
-        <target state="new">You cannot rename elements from previous submissions.</target>
+        <target state="translated">Vous ne pouvez pas renommer des éléments de soumissions précédentes.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
         <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <target state="translated">Vous ne pouvez pas renommer des éléments définis dans les métadonnées.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_operators">
         <source>You cannot rename operators.</source>
-        <target state="new">You cannot rename operators.</target>
+        <target state="translated">Vous ne pouvez pas renommer des opérateurs.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element">
         <source>You cannot rename this element.</source>
-        <target state="new">You cannot rename this element.</target>
+        <target state="translated">Vous ne pouvez pas renommer cet élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
         <source>You must rename an identifier.</source>
-        <target state="new">You must rename an identifier.</target>
+        <target state="translated">Vous devez renommer un identificateur.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -3130,9 +3125,19 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">'{0}' a peut-être une valeur null ici.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">'Références '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3463,6 +3468,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
         <target state="translated">discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="translated">instruction else</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">Rapport</target>
@@ -3535,6 +3545,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">surcharges génériques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">
@@ -4463,11 +4478,6 @@ Si le spécificateur de format "K" est utilisé sans autres spécificateurs de f
         <target state="translated">Impossible de charger l'assembly Analyseur {0} : {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Rendre la méthode synchrone</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">de {0}</target>
@@ -4630,16 +4640,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Renommer le type en {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Supprimer une étiquette</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Ajouter les nœuds de paramètre manquants</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Inconnu)</target>
@@ -4695,26 +4695,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Ajouter le nom d'argument '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Prendre '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Prendre les deux</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Prendre le bas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Prendre le haut</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_variable">
         <source>Remove unused variable</source>
         <target state="translated">Supprimer la variable inutilisée</target>
@@ -4753,11 +4733,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">Supprimer les séparateurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">Ajouter un paramètre à '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">
@@ -4989,7 +4964,7 @@ Le décalage est toujours affiché avec un signe de début. Le signe plus (+) in
       </trans-unit>
       <trans-unit id="while_loop">
         <source>while loop</source>
-        <target state="new">while loop</target>
+        <target state="translated">pendant la boucle</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

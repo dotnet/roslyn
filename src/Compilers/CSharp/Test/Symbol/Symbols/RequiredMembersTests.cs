@@ -2676,7 +2676,6 @@ class Derived3 : Derived { }";
         );
     }
 
-
     /// <summary>
     /// This IL is the equivalent of:
     /// public record Derived : Base
@@ -3615,7 +3614,8 @@ struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_01()
     {
         var code = @"
 using System.Diagnostics.CodeAnalysis;
@@ -3623,13 +3623,129 @@ using System.Diagnostics.CodeAnalysis;
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
 }";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field1;
+    private string _field2;
+    [MemberNotNull(nameof(_field1))]
+    public required string Property
+    { 
+        get => _field1 ??= "";
+        [MemberNotNull(nameof(_field2))]
+        set
+        {
+            _field1 = value; 
+            _field2 = value; 
+        }
+    }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    [MemberNotNull(nameof(Property2))]
+    public required string Property1 { get => Property2 ??= ""; set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_06()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
             // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
@@ -3637,33 +3753,467 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_07()
     {
-        var code = @"
+        var code = """
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_08()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (6,60): error CS9034: Required member 'C.Property' must be settable.
+            //     [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Property").WithArguments("C.Property").WithLocation(6, 60)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_09()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class C
+{
+    public required string Prop1 { get => Prop2; [MemberNotNull(nameof(Prop2))] set => Prop2 = value; }
+    public string Prop2 { get => Prop3; [MemberNotNull(nameof(Prop3))] set => Prop3 = value; }
+    public string Prop3 { get; set; }
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop3").WithLocation(8, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
     public C(bool unused) : this()
     { 
         _field.ToString();
-        Field.ToString();
+        Property.ToString();
     }
-}";
+}
+""";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-            //     public C() { }
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12),
-            // (13,9): warning CS8602: Dereference of a possibly null reference.
-            //         Field.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field").WithLocation(13, 9)
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
         );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(12, 9),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(13, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    [SetsRequiredMembers]
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property2").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable property 'Property1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property1").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_01()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_02()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_03()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived() { _field = ""; }
+    public Derived(bool unused) : this()
+    { 
+        // No warning, as the _field in the MemberNotNull isn't visible in this type, and the one that is visible was set by the chained ctor
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (10,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(10, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_04()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived()
+    {
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (4,20): warning CS0169: The field 'Derived._field' is never used
+            //     private string _field;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("Derived._field").WithLocation(4, 20),
+            // (5,13): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     private Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "_field").WithLocation(5, 13)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_05()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class Derived : Base
+{
+    [SetsRequiredMembers]
+    public Derived()
+    {
+        _field.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(6, 12),
+            // (8,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(8, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]

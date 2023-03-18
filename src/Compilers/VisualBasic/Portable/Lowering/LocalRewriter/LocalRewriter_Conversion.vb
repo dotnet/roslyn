@@ -100,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-
             ' Set "inExpressionLambda" if we're converting lambda to expression tree.
             Dim returnValue As BoundNode
             Dim wasInExpressionlambda As Boolean = _inExpressionLambda
@@ -309,7 +308,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False, considerTupleNames:=False)
 
         End Function
-
 
         ' Rewrite Anonymous Delegate conversion into a delegate creation
         Private Function RewriteAnonymousDelegateConversion(node As BoundConversion) As BoundNode
@@ -663,7 +661,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-
             If resultType.IsNullableType Then
                 ' RefType --> T? , this is just an unboxing conversion.
                 Dim useSiteInfo = GetNewCompoundUseSiteInfo()
@@ -679,7 +676,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Throw ExceptionUtilities.Unreachable
         End Function
-
 
         Private Function RewriteNullableUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode
             ' User defined conversions rewrite as:
@@ -794,7 +790,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
         End Function
-
 
 #Region "Post-rewrite conversion"
 

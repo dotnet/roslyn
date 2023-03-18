@@ -232,7 +232,6 @@ End Class
             TestTypeDefinitionDocuments({source})
         End Sub
 
-
         <Fact>
         Public Sub AbstractMethod()
             Dim source As String = "

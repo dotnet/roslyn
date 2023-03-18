@@ -127,7 +127,7 @@ namespace RunTests
                 executable: _options.DotnetFilePath,
                 arguments: "build helix-tmp.csproj",
                 captureOutput: true,
-                onOutputDataReceived: (e) => ConsoleUtil.WriteLine(e.Data),
+                onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
                 cancellationToken: cancellationToken);
             var result = await process.Result;
 

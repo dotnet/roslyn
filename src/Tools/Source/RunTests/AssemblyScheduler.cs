@@ -18,7 +18,7 @@ namespace RunTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
-        internal string DisplayName
+        internal readonly string DisplayName
         {
             get
             {
@@ -267,7 +267,6 @@ namespace RunTests
                 accumulatedValue = addFunc(test, accumulatedValue);
             }
         }
-
 
         private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {

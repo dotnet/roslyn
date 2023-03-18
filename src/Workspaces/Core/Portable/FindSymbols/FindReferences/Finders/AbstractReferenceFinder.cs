@@ -50,11 +50,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SymbolsMatchAsync(symbol, state, parent, cancellationToken);
         }
 
-        protected static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+        protected static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol searchSymbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
         {
             var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);
 
+            return MatchesAsync(searchSymbol, state, symbolInfo, cancellationToken);
+        }
+
+        protected static async ValueTask<(bool matched, CandidateReason reason)> MatchesAsync(
+            ISymbol searchSymbol, FindReferencesDocumentState state, SymbolInfo symbolInfo, CancellationToken cancellationToken)
+        {
             if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false))
                 return (matched: true, CandidateReason.None);
 
@@ -160,11 +166,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            if (symbol.IsAnonymousType())
+            if (identifier == "")
             {
-                // Anonymous types don't have a name, so we return without further searching since the text-based index
+                // Certain symbols don't have a name, so we return without further searching since the text-based index
                 // and lookup never terminates if searching for an empty string.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118
                 return ImmutableArray<FinderLocation>.Empty;
             }
 
@@ -172,7 +179,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
         }
 
-        protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
@@ -199,20 +206,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        protected static FinderLocation CreateFinderLocation(
-            FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
-        {
-            RoslynDebug.Assert(token.Parent != null);
+        protected static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
+            => new(token.GetRequiredParent(), CreateReferenceLocation(state, token, reason, cancellationToken));
 
-            return new FinderLocation(token.Parent, new ReferenceLocation(
+        public static ReferenceLocation CreateReferenceLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
+            => new(
                 state.Document,
                 state.Cache.GetAliasInfo(state.SemanticFacts, token, cancellationToken),
                 token.GetLocation(),
                 isImplicit: false,
-                GetSymbolUsageInfo(token.Parent, state, cancellationToken),
-                GetAdditionalFindUsagesProperties(token.Parent, state),
-                reason));
-        }
+                GetSymbolUsageInfo(token.GetRequiredParent(), state, cancellationToken),
+                GetAdditionalFindUsagesProperties(token.GetRequiredParent(), state),
+                reason);
 
         private static IAliasSymbol? GetAliasSymbol(
             FindReferencesDocumentState state,
@@ -423,6 +428,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
+        protected Task<ImmutableArray<FinderLocation>> FindReferencesInCollectionInitializerAsync(
+            ISymbol symbol,
+            FindReferencesDocumentState state,
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsCollectionInitializer;
+
+            void CollectMatchingReferences(
+                SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
+            {
+                if (!state.SyntaxFacts.IsObjectCollectionInitializer(node))
+                    return;
+
+                var expressions = state.SyntaxFacts.GetExpressionsOfObjectCollectionInitializer(node);
+                foreach (var expression in expressions)
+                {
+                    var info = state.SemanticFacts.GetCollectionInitializerSymbolInfo(state.SemanticModel, expression, cancellationToken);
+
+                    if (Matches(info, symbol))
+                    {
+                        var location = expression.GetFirstToken().GetLocation();
+                        var symbolUsageInfo = GetSymbolUsageInfo(expression, state, cancellationToken);
+
+                        locations.Add(new FinderLocation(expression, new ReferenceLocation(
+                            state.Document,
+                            alias: null,
+                            location: location,
+                            isImplicit: true,
+                            symbolUsageInfo,
+                            GetAdditionalFindUsagesProperties(expression, state),
+                            candidateReason: CandidateReason.None)));
+                    }
+                }
+            }
+        }
+
         protected Task<ImmutableArray<FinderLocation>> FindReferencesInDeconstructionAsync(
             ISymbol symbol,
             FindReferencesDocumentState state,
@@ -515,6 +559,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
+        protected static bool Matches(SymbolInfo info, ISymbol notNullOriginalUnreducedSymbol2)
+        {
+            if (Matches(info.Symbol, notNullOriginalUnreducedSymbol2))
+                return true;
+
+            foreach (var symbol in info.CandidateSymbols)
+            {
+                if (Matches(symbol, notNullOriginalUnreducedSymbol2))
+                    return true;
+            }
+
+            return false;
+        }
+
         protected static bool Matches(ISymbol? symbol1, ISymbol notNullOriginalUnreducedSymbol2)
         {
             Contract.ThrowIfFalse(notNullOriginalUnreducedSymbol2.GetOriginalUnreducedDefinition().Equals(notNullOriginalUnreducedSymbol2));
@@ -532,13 +590,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var semanticFacts = state.SemanticFacts;
             var semanticModel = state.SemanticModel;
 
-            if (syntaxFacts.IsInNamespaceOrTypeContext(node))
-            {
-                var typeOrNamespaceUsageInfo = GetTypeOrNamespaceUsageInfo();
-                return SymbolUsageInfo.Create(typeOrNamespaceUsageInfo);
-            }
+            return IsInNamespaceOrTypeContext()
+                ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
+                : GetSymbolUsageInfoCommon();
 
-            return GetSymbolUsageInfoCommon();
+            bool IsInNamespaceOrTypeContext()
+            {
+                var current = node;
+                while (syntaxFacts.IsQualifiedName(current.Parent))
+                    current = current.Parent;
+
+                return syntaxFacts.IsInNamespaceOrTypeContext(current);
+            }
 
             // Local functions.
             TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
@@ -557,9 +620,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 while (syntaxFacts.IsQualifiedName(node.Parent))
-                {
                     node = node.Parent;
-                }
 
                 if (syntaxFacts.IsTypeArgumentList(node.Parent))
                 {

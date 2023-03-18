@@ -832,7 +832,6 @@ End Class
 }
 ]]>)
 
-
             verifier.VerifyIL("Module1.Test9",
             <![CDATA[
 {

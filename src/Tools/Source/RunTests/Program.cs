@@ -72,7 +72,7 @@ namespace RunTests
                 int result;
                 if (options.Timeout is { } timeout)
                 {
-                    result = await RunAsync(options, timeout, cts.Token);
+                    result = await RunCoreAsync(options, cts.Token);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);

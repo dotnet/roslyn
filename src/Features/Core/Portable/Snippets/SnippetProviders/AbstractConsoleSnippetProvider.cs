@@ -18,12 +18,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractConsoleSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
@@ -31,19 +32,17 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string Description => FeaturesResources.console_writeline;
 
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("WriteLine");
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
             if (consoleSymbol is null)
             {
                 return false;
             }
 
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
+            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)

@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
-    internal interface IGlobalOperationNotificationService : IWorkspaceService
+    /// <summary>
+    /// Optional interface that can be used to hear about when expensive global operations (like a 'build') occur in the
+    /// current host.
+    /// </summary>
+    internal interface IGlobalOperationNotificationService
     {
         /// <summary>
         /// raised when global operation is started
