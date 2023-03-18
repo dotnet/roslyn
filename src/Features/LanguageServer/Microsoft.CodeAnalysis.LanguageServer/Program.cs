@@ -7,6 +7,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -23,11 +24,6 @@ return await parser.InvokeAsync(args);
 
 static async Task RunAsync(bool launchDebugger, string? solutionPath, string? brokeredServicePipeName, LogLevel minimumLogLevel, CancellationToken cancellationToken)
 {
-    if (launchDebugger)
-    {
-        _ = Debugger.Launch();
-    }
-
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
@@ -44,6 +40,27 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
             })
         ));
     });
+
+    if (launchDebugger)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Debugger.Launch() only works on Windows.
+            _ = Debugger.Launch();
+        }
+        else
+        {
+            var logger = loggerFactory.CreateLogger<Program>();
+            var timeout = TimeSpan.FromMinutes(1);
+            logger.LogInformation($"Server started with process ID {Environment.ProcessId}");
+            logger.LogInformation($"Waiting {timeout:g} for a debugger to attach");
+            using var timeoutSource = new CancellationTokenSource(timeout);
+            while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
+            {
+                await Task.Delay(100, CancellationToken.None);
+            }
+        }
+    }
 
     // Register and load the appropriate MSBuild assemblies before we create the MEF composition.
     // This is required because we need to include types from MS.CA.Workspaces.MSBuild which has a dependency on MSBuild dlls being loaded.
