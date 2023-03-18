@@ -560,8 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (convertedExpression is BoundConversion conversion && conversion.ConversionKind is ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined)
                     {
                         Debug.Assert(conversion.Operand is not null);
-                        SymbolDistinguisher distinguisher1 = new SymbolDistinguisher(this.Compilation, conversion.Operand.Type, inputType);
-                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, distinguisher1.First, distinguisher1.Second);
+                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, inputType);
                     }
                     else
                     {

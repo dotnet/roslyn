@@ -1132,7 +1132,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS9098: Cannot implicitly convert type 'Convertible' to type 'int' using user-defined conversion in pattern expression
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "default(Convertible)").WithArguments("Convertible", "int").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "default(Convertible)").WithArguments("Convertible", "int").WithLocation(8, 18)
                 );
         }
 
@@ -1162,7 +1162,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS9098: Cannot implicitly convert type 'Convertible' to type 'int' using user-defined conversion in pattern expression
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "c").WithArguments("Convertible", "int").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "c").WithArguments("Convertible", "int").WithLocation(9, 18)
                 );
         }
 

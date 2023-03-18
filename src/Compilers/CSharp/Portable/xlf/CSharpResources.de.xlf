@@ -397,6 +397,11 @@
         <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht von einem Muster vom Typ "{1}" behandelt werden. Verwenden Sie Sprachversion {2} oder höher, um einen offenen Typ mit einem konstanten Muster abzugleichen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Ein Kopierkonstruktor in einem Datensatz muss einen Kopierkonstruktor der Basis oder einen parameterlosen Objektkonstruktor aufrufen, wenn der Datensatz von einem Objekt erbt.</target>
@@ -1125,11 +1130,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Das Ausgabeverzeichnis konnte nicht bestimmt werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NonConstantConversionInConstantPattern">
-        <source>Cannot convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</source>
-        <target state="new">Cannot convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">

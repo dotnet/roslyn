@@ -1471,7 +1471,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // (8,18): error CS9098: Cannot implicitly convert type 'long' to type 'MyClass' using user-defined conversion in pattern expression
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "1").WithArguments("long", "MyClass").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("long", "MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"

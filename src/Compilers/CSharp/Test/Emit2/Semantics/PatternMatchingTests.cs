@@ -8689,9 +8689,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,58): error CS9098: Cannot convert type 'char[]' to type 'System.ReadOnlySpan<char>' using user-defined conversion in pattern expression
+                // (5,58): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "null").WithArguments("char[]", "System.ReadOnlySpan<char>").WithLocation(5, 58),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 58),
                 // (6,58): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(ReadOnlySpan<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 58));
@@ -8762,10 +8762,10 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                // (5,63): error CS9098: Cannot convert type 'char[]' to type 'System.ReadOnlySpan<char>' using user-defined conversion in pattern expression
-                //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "null").WithArguments("char[]", "System.ReadOnlySpan<char>").WithLocation(5, 63)
-            );
+                    // (5,63): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
+                    //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63)
+                );
         }
 
         [Fact]
@@ -10290,9 +10290,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,50): error CS9098: Cannot convert type 'char[]' to type 'System.Span<char>' using user-defined conversion in pattern expression
+                // (5,50): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool M1(Span<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "null").WithArguments("char[]", "System.Span<char>").WithLocation(5, 50),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.Span<char>").WithLocation(5, 50),
                 // (6,50): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(Span<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
@@ -10363,9 +10363,9 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (5,55): error CS9098: Cannot convert type 'char[]' to type 'System.Span<char>' using user-defined conversion in pattern expression
+                // (5,55): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "null").WithArguments("char[]", "System.Span<char>").WithLocation(5, 55)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.Span<char>").WithLocation(5, 55)
             );
         }
 
@@ -12296,9 +12296,9 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,38): error CS9098: Cannot convert type 'string' to type 'A' using user-defined conversion in pattern expression
+                    // (8,38): error CS9133: A constant value of type 'A' is expected
                     //     static bool M(A a) => a switch { "implicitA" => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"""implicitA""").WithArguments("string", "A").WithLocation(8, 38)
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""implicitA""").WithArguments("A").WithLocation(8, 38)
                 );
         }
 
@@ -12318,9 +12318,9 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,38): error CS9098: Cannot convert type 'string' to type 'A' using user-defined conversion in pattern expression
-                    //     static bool M(A a) => a switch { "implicitA" => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"(A)""castedA""").WithArguments("string", "A").WithLocation(8, 38)
+                    // (8,38): error CS9133: A constant value of type 'A' is expected
+                    //     static bool M(A a) => a switch { (A)"castedA" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"(A)""castedA""").WithArguments("A").WithLocation(8, 38)
                 );
         }
 
