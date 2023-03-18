@@ -14,22 +14,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     internal class DidChangeConfigurationNotificationHandlerFactory : ILspServiceFactory
     {
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DidChangeConfigurationNotificationHandlerFactory(
-            IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            IGlobalOptionService globalOptionService)
         {
             _globalOptionService = globalOptionService;
-            _asynchronousOperationListener = asynchronousOperationListenerProvider.GetListener(nameof(DidChangeConfigurationNotificationHandler));
         }
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var clientManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspLogger = lspServices.GetRequiredService<ILspServiceLogger>();
-            return new DidChangeConfigurationNotificationHandler(lspLogger, _globalOptionService, clientManager, _asynchronousOperationListener);
+            return new DidChangeConfigurationNotificationHandler(lspLogger, _globalOptionService, clientManager);
         }
     }
 }

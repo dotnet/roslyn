@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
-        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
         private readonly Guid _registrationId;
 
         /// <summary>
@@ -48,14 +47,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public DidChangeConfigurationNotificationHandler(
             ILspLogger logger,
             IGlobalOptionService globalOptionService,
-            IClientLanguageServerManager clientLanguageServerManager,
-            IAsynchronousOperationListener asynchronousOperationListener)
+            IClientLanguageServerManager clientLanguageServerManager)
         {
             _lspLogger = logger;
             _globalOptionService = globalOptionService;
             _clientLanguageServerManager = clientLanguageServerManager;
             _registrationId = Guid.NewGuid();
-            _asynchronousOperationListener = asynchronousOperationListener;
             _configurationItems = GenerateGlobalConfigurationItems();
             _optionsAndLanguageNamesToRefresh = GenerateOptionsNeedsToRefresh();
             RoslynDebug.Assert(_configurationItems.Length == _optionsAndLanguageNamesToRefresh.Length);
