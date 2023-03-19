@@ -27,6 +27,20 @@ using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
+    internal interface IInlineHintKeyProcessor
+    {
+        /// <summary>
+        /// The current state of the keyprocessor.  i.e. whether or not the key binding is currently being held down or
+        /// not.  Can be read on any thread.
+        /// </summary>
+        bool State { get; }
+
+        /// <summary>
+        /// Called when the state of the keyprocessor changes.  Only fired on UI thread.
+        /// </summary>
+        event Action StateChanged;
+    }
+
     /// <summary>
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
@@ -36,7 +50,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
     internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
+        private sealed class InlineHintKeyProcessorEventSource : AbstractTaggerEventSource
+        {
+            private readonly IInlineHintKeyProcessor? _inlineHintKeyProcessor;
+
+            public InlineHintKeyProcessorEventSource(IInlineHintKeyProcessor? inlineHintKeyProcessor)
+                => _inlineHintKeyProcessor = inlineHintKeyProcessor;
+
+            public override void Connect()
+            {
+                if (_inlineHintKeyProcessor != null)
+                    _inlineHintKeyProcessor.StateChanged += this.RaiseChanged;
+            }
+
+            public override void Disconnect()
+            {
+                if (_inlineHintKeyProcessor != null)
+                    _inlineHintKeyProcessor.StateChanged -= this.RaiseChanged;
+            }
+        }
+
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor;
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
@@ -53,11 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
+            _inlineHintKeyProcessor = inlineHintKeyProcessor;
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
@@ -68,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
-                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsGlobalStateOption.DisplayAllOverride),
+                new InlineHintKeyProcessorEventSource(_inlineHintKeyProcessor),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForParameters),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLiteralParameters),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForIndexerParameters),
@@ -114,7 +151,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
+            var hints = await service.GetInlineHintsAsync(
+                document, snapshotSpan.Span.ToTextSpan(), options,
+                displayAllOverride: _inlineHintKeyProcessor?.State is true,
+                cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
                 // If we don't have any text to actually show the user, then don't make a tag.
