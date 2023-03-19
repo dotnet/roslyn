@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
 
-        /// <summary>
-        /// All the diagnostics for this event.  Most clients should not use this.  The only clients that should are
-        /// ones that are aggregating the values transparently and then forwarding on later on to other clients that
-        /// will make this decision.
-        /// </summary>
         public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
         private DiagnosticsUpdatedArgs(
