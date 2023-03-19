@@ -49,12 +49,6 @@ jobs:
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
     - task: PowerShell@2
-      displayName: Install Basic Compiler Log
-      inputs:
-        targetType: inline
-        script: .\.dotnet\dotnet tool install Basic.CompilerLog --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources
-
-    - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
