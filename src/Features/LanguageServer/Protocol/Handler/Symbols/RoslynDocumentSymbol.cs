@@ -18,9 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [DataMember(IsRequired = false, Name = "glyph")]
         public int Glyph { get; set; }
 
-        // Deliberately override the value in the base.
+        // Deliberately override the value in the base so that our serializers/deserializers know to include the custom
+        // data we have on the children as well.
         [DataMember(Name = "children")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public new RoslynDocumentSymbol[]? Children { get; set; }
+        public new RoslynDocumentSymbol[]? Children
+        {
+            get => (RoslynDocumentSymbol[])base.Children;
+            set => base.Children = value;
+        }
     }
 }
