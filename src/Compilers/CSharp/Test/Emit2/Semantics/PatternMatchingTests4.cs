@@ -55,9 +55,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'T' is expected
                 //             case default(T):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(T)").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "default(T)").WithArguments("T").WithLocation(8, 18));
         }
 
         [Fact]
@@ -95,33 +95,33 @@ class C
                 // (9,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //             case M1:
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
-                // (15,18): error CS0150: A constant value is expected
+                // (15,18): error CS9133: A constant value of type 'T' is expected
                 //         _ = t is M2;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
-                // (18,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M2").WithArguments("T").WithLocation(15, 18),
+                // (18,18): error CS9133: A constant value of type 'T' is expected
                 //             case M2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M2").WithArguments("T").WithLocation(18, 18));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         _ = o is M1;
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
-                // (6,18): error CS0150: A constant value is expected
+                // (6,18): error CS9133: A constant value of type 'object' is expected
                 //         _ = o is M1;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M1").WithArguments("object").WithLocation(6, 18),
                 // (9,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //             case M1:
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
-                // (9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'object' is expected
                 //             case M1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(9, 18),
-                // (15,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M1").WithArguments("object").WithLocation(9, 18),
+                // (15,18): error CS9133: A constant value of type 'T' is expected
                 //         _ = t is M2;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
-                // (18,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M2").WithArguments("T").WithLocation(15, 18),
+                // (18,18): error CS9133: A constant value of type 'T' is expected
                 //             case M2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "M2").WithArguments("T").WithLocation(18, 18));
         }
 
         [Fact]
@@ -157,13 +157,13 @@ class C
                 // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //             case stackalloc int[1] { 0 }:
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
-                // (10,18): error CS0150: A constant value is expected
+                // (10,18): error CS9133: A constant value of type 'T' is expected
                 //             case stackalloc int[1] { 0 }:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "stackalloc int[1] { 0 }").WithLocation(10, 18),
-                // (12,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "stackalloc int[1] { 0 }").WithArguments("T").WithLocation(10, 18),
+                // (12,18): error CS9133: A constant value of type 'T' is expected
                 //             case new { X = 0 }:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new { X = 0 }").WithArguments("T").WithLocation(12, 18)
+            );
         }
 
         [Fact]
@@ -3430,16 +3430,16 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // 0.cs(5,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is {}) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
-                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                // 0.cs(6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         if (p is 1) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
-                // (6,18): error CS0150: A constant value is expected
+                // 0.cs(6,18): error CS9133: A constant value of type 'int*' is expected
                 //         if (p is 1) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
-                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("int*").WithLocation(6, 18),
+                // 0.cs(7,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );

@@ -1068,10 +1068,10 @@ public struct S
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyEmitDiagnostics(
-                // (6,18): error CS0150: A constant value is expected
+                // (6,18): error CS9133: A constant value of type 'int' is expected
                 //         if (0 is s->X) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "s->X").WithLocation(6, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "s->X").WithArguments("int").WithLocation(6, 18)
+            );
         }
 
         [Fact]
