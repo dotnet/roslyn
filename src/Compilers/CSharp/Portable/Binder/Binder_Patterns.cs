@@ -564,7 +564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
-
                     }
                     hasErrors = true;
                 }
