@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute は、既定値を含むパラメーターにのみ適用できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">非同期 foreach では動的な型のコレクションを使用できません</target>
