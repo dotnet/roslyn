@@ -282,23 +282,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             return symbols;
         }
 
-        protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseListContext()
+        protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseList(INamespaceOrTypeSymbol? container = null)
         {
             var semanticModel = _context.SemanticModel;
             var systemNamespace = (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
                 _context.Position,
-                container: semanticModel.Compilation.GlobalNamespace,
+                container: container is null ? semanticModel.Compilation.GlobalNamespace : container,
                 name: "System").FirstOrDefault(s => s is INamespaceSymbol);
-
-            if (systemNamespace is null)
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
 
             var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);
 
-            builder.Add(systemNamespace);
-
+            builder.AddIfNotNull(systemNamespace);
             builder.AddIfNotNull(GetSpecialTypeSymbol("Byte", SpecialType.System_Byte));
             builder.AddIfNotNull(GetSpecialTypeSymbol("SByte", SpecialType.System_SByte));
             builder.AddIfNotNull(GetSpecialTypeSymbol("Int16", SpecialType.System_Int16));
@@ -314,6 +308,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             {
                 return _context.SemanticModel.LookupNamespacesAndTypes(
                     _context.Position,
+                    container: container,
                     name: name).SingleOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
             }
         }

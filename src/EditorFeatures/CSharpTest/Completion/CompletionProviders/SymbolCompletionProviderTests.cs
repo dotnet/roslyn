@@ -12118,6 +12118,36 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "UInt64");
         }
 
+        [Fact]
+        public async Task EnumBaseList5()
+        {
+            var source = "enum E : System.$$";
+
+            await VerifyItemIsAbsentAsync(source, "System");
+
+            await VerifyItemExistsAsync(source, "Byte");
+            await VerifyItemExistsAsync(source, "SByte");
+            await VerifyItemExistsAsync(source, "Int16");
+            await VerifyItemExistsAsync(source, "UInt16");
+            await VerifyItemExistsAsync(source, "Int32");
+            await VerifyItemExistsAsync(source, "UInt32");
+            await VerifyItemExistsAsync(source, "Int64");
+            await VerifyItemExistsAsync(source, "UInt64");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Fact]
+        public async Task EnumBaseList6()
+        {
+            var source = "enum E : System.Collections.Generic.$$";
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
         public async Task InRangeExpression()
         {
