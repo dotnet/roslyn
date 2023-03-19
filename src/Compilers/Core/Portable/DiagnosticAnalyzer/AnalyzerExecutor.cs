@@ -547,19 +547,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModelActions">Semantic model actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="semanticModel">Semantic model to analyze.</param>
-        /// <param name="compilationUnitCompletedEvent">Compilation event for semantic model analysis.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
         public void ExecuteSemanticModelActions(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            CompilationUnitCompletedEvent compilationUnitCompletedEvent,
             AnalysisScope analysisScope,
             bool isGeneratedCode)
         {
-            Debug.Assert(!compilationUnitCompletedEvent.FilterSpan.HasValue || _isCompilerAnalyzer!(analyzer), "Only compiler analyzer supports span-based semantic model action callbacks");
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
             {
