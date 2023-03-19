@@ -1014,18 +1014,6 @@ class A {
             Assert.Empty(results);
         }
 
-        //        [Theory, CombinatorialData]
-        //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics)
-        //        {
-        //            var markup1 =
-        //@"class A {";
-        //            var markup2 = "";
-        //            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-        //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
-
-        //            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
-        //        }
-
         [Theory, CombinatorialData]
         public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage(bool useVSDiagnostics)
         {
