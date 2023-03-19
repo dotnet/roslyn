@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 
         protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
         {
-            var analyzerReferences = projectsInScope.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
+            var analyzerReferences = RoslynEnumerableExtensions.DistinctBy(projectsInScope.SelectMany(p => p.AnalyzerReferences), a => a.Id).ToImmutableArray();
             foreach (var analyzerReference in analyzerReferences)
             {
                 var configSettings = GetSettings(analyzerReference, options.EditorConfigOptions);

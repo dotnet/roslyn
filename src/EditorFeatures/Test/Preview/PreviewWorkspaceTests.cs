@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem(923121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         [WpfFact]
         public void TestPreviewOpenCloseFile()
         {
@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
+            var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(service);
+            Assert.False(registrationService.Register(previewWorkspace));
 
             var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
@@ -133,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
-        [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
-        [WpfFact]
+        [WpfFact, WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         public async Task TestPreviewDiagnostic()
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
@@ -179,15 +179,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var previewWorkspace = new PreviewWorkspace();
             Assert.NotNull(previewWorkspace.CurrentSolution);
-            var project = previewWorkspace.CurrentSolution.AddProject("project", "project.dll", LanguageNames.CSharp);
-            Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
-            var solutionObjectReference = ObjectReference.Create(previewWorkspace.CurrentSolution);
+            var solutionObjectReference = ObjectReference.CreateFromFactory(
+                static previewWorkspace =>
+                {
+                    var project = previewWorkspace.CurrentSolution.AddProject("project", "project.dll", LanguageNames.CSharp);
+                    Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
+                    return previewWorkspace.CurrentSolution;
+                },
+                previewWorkspace);
 
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CommonDiagnosticAnalyzers.NotConfigurableDiagnosticAnalyzer());
             ExecuteAnalyzers(previewWorkspace, analyzers);
 
             previewWorkspace.Dispose();
             solutionObjectReference.AssertReleased();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        public void TestPreviewWorkspaceDoesNotLeakItself()
+        {
+            var composition = EditorTestCompositions.EditorFeatures;
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+            var previewWorkspaceReference = ObjectReference.CreateFromFactory(
+                static composition => new PreviewWorkspace(composition.GetHostServices()),
+                composition);
+
+            // Verify the GC can reclaim member for a workspace which has not been disposed.
+            previewWorkspaceReference.AssertReleased();
+
+            // Keep the export provider alive longer than the workspace to further ensure that the workspace is not GC
+            // rooted within the export provider instance.
+            GC.KeepAlive(exportProvider);
         }
 
         private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)

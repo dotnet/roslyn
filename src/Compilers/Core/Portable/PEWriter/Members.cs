@@ -488,7 +488,16 @@ namespace Microsoft.Cci
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
         StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
-        DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
+        /// <summary>
+        /// Code coverage spans produced by <see cref="InstrumentationKind.TestCoverage"/> instrumentation.
+        /// <see cref="ImmutableArray{SourceSpan}.Empty"/> if not applicable.
+        /// </summary>
+        ImmutableArray<SourceSpan> CodeCoverageSpans { get; }
+
+        /// <summary>
+        /// True if this is a body of a Primary Constructor.
+        /// </summary>
+        bool IsPrimaryConstructor { get; }
     }
 
     /// <summary>

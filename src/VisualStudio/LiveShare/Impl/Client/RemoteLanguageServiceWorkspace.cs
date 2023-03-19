@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener
+    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IOpenTextBufferEventListener
     {
         /// <summary>
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
@@ -50,8 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
         private const string ExternalProjectName = "ExternalDocuments";
@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ExportProvider exportProvider,
             IGlobalOptionService globalOptions,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            OpenTextBufferProvider openTextBufferProvider,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
@@ -95,8 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
-            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
+            _openTextBufferProvider = openTextBufferProvider;
+            _openTextBufferProvider.AddListener(this);
             _threadingContext = threadingContext;
             _globalOptions = globalOptions;
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
@@ -105,16 +106,18 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
+        void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
 
-        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
+
+        void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
             // Handled by Add/Remove
         }
 
-        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
+        void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
         {
             // Handled by Add/Remove.
         }
@@ -241,7 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public async Task RefreshAllFilesAsync()
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-            var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
+            var documents = _openTextBufferProvider.EnumerateDocumentSet();
             foreach (var (moniker, textBuffer, _) in documents)
             {
                 NotifyOnDocumentOpened(moniker, textBuffer);
@@ -430,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         frame.ShowNoActivate();
                     }
 
-                    if (_runningDocumentTableEventTracker.IsFileOpen(doc.FilePath) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(doc.FilePath, out var buffer))
+                    if (_openTextBufferProvider.IsFileOpen(doc.FilePath) && _openTextBufferProvider.TryGetBufferFromFilePath(doc.FilePath, out var buffer))
                     {
                         NotifyOnDocumentOpened(doc.FilePath, buffer);
                     }
@@ -456,7 +459,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void AddOpenedDocument(string filePath, DocumentId docId)
         {
-            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
+            if (_openTextBufferProvider.IsFileOpen(filePath))
             {
                 _openedDocs = _openedDocs.SetItem(filePath, docId);
             }
@@ -465,7 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void RemoveOpenedDocument(string filePath)
         {
-            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
+            if (_openTextBufferProvider.IsFileOpen(filePath))
             {
                 _openedDocs = _openedDocs.Remove(filePath);
             }

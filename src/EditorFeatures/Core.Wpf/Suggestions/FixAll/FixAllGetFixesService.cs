@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-            return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+            return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             return await GetFixAllOperationsAsync(
-                codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
@@ -102,8 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            CodeAction codeAction, bool showPreviewChangesDialog,
-            IFixAllState fixAllState, CancellationToken cancellationToken)
+            CodeAction codeAction,
+            bool showPreviewChangesDialog,
+            IProgressTracker progressTracker,
+            IFixAllState fixAllState,
+            CancellationToken cancellationToken)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -111,14 +115,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var workspace = fixAllState.Project.Solution.Workspace;
 
             cancellationToken.ThrowIfCancellationRequested();
-            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeAction.GetOperationsAsync(
+                fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
             if (operations == null)
             {
                 return ImmutableArray<CodeActionOperation>.Empty;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            var newSolution = await codeAction.GetChangedSolutionInternalAsync(
+                fixAllState.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (showPreviewChangesDialog)
             {

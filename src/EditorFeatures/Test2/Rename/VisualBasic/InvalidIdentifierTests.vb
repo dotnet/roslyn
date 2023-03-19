@@ -54,7 +54,7 @@ End Class
         End Sub
 
         <Theory>
-        <CombinatorialData, WorkItem(545164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545164")>
+        <CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545164")>
         Public Sub RenamingToUnderscoreAttribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

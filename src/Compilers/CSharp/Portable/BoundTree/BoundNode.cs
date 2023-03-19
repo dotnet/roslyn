@@ -498,9 +498,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBlock(BoundBlock node)
             {
+                if (node.Instrumentation != null)
+                {
+                    var added = DeclaredLocals.Add(node.Instrumentation.Local);
+                    Debug.Assert(added);
+
+                    _ = Visit(node.Instrumentation.Prologue);
+                }
+
                 AddAll(node.Locals);
                 base.VisitBlock(node);
                 RemoveAll(node.Locals);
+
+                if (node.Instrumentation != null)
+                {
+                    _ = Visit(node.Instrumentation.Epilogue);
+
+                    var removed = DeclaredLocals.Remove(node.Instrumentation.Local);
+                    Debug.Assert(removed);
+                }
+
                 return null;
             }
 

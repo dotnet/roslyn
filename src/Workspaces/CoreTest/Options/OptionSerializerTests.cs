@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -25,10 +26,10 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            CompletionViewOptions.EnableArgumentCompletionSnippets,
+            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.ShowInheritanceMargin,
-            SuggestionsOptions.Asynchronous,
+            InheritanceMarginOptionsStorage.ShowInheritanceMargin,
+            SuggestionsOptionsStorage.Asynchronous,
             WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
             SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
@@ -69,7 +70,7 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            InlineDiagnosticsOptions.Location,
+            InlineDiagnosticsOptionsStorage.Location,
             WorkspaceConfigurationOptionsStorage.Database,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,

@@ -390,7 +390,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32510")]
         public async Task TestDeconstructionAssignment_InvalidDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(

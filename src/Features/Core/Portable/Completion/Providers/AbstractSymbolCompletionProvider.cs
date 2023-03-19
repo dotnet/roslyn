@@ -210,9 +210,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected static string GetFilterTextDefault(ISymbol symbol, string displayText, TSyntaxContext context)
         {
-            return (displayText == symbol.Name) ||
-                (displayText.Length > 0 && displayText[0] == '@') ||
-                (context.IsAttributeNameContext && symbol.IsAttribute())
+            return displayText == symbol.Name || displayText is ['@', ..] || (context.IsAttributeNameContext && symbol.IsAttribute())
                 ? displayText
                 : symbol.Name;
         }
