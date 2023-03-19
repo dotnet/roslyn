@@ -288,19 +288,19 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             var systemNamespace = container is not (null or INamespaceSymbol { IsGlobalNamespace: true }) ? null : (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
                 _context.Position,
                 container: container,
-                name: "System").FirstOrDefault(s => s is INamespaceSymbol);
+                name: nameof(System)).FirstOrDefault(s => s is INamespaceSymbol);
 
             var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);
 
             builder.AddIfNotNull(systemNamespace);
-            builder.AddIfNotNull(GetSpecialTypeSymbol("Byte", SpecialType.System_Byte));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("SByte", SpecialType.System_SByte));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("Int16", SpecialType.System_Int16));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt16", SpecialType.System_UInt16));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("Int32", SpecialType.System_Int32));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt32", SpecialType.System_UInt32));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("Int64", SpecialType.System_Int64));
-            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt64", SpecialType.System_UInt64));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Byte), SpecialType.System_Byte));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(SByte), SpecialType.System_SByte));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int16), SpecialType.System_Int16));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt16), SpecialType.System_UInt16));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int32), SpecialType.System_Int32));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt32), SpecialType.System_UInt32));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int64), SpecialType.System_Int64));
+            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt64), SpecialType.System_UInt64));
 
             return builder.ToImmutableAndFree();
 
