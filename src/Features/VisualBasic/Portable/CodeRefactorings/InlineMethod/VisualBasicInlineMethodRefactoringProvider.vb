@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         End Function
 
         Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As ExpressionSyntax
-            Return GenerateExpression(typeSymbol, value, canUseFieldReference:=True)
+            Return GenerateExpression(VisualBasicSyntaxGenerator.Instance, typeSymbol, value, canUseFieldReference:=True)
         End Function
 
         Protected Overrides Function IsFieldDeclarationSyntax(node As SyntaxNode) As Boolean

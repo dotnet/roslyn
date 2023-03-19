@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(_updateSources.Contains(source));
 
-                // The diagnostic service itself caches all diagnostics produced by the IDiagnosticUpdateSource's.  As
-                // such, we grab all the diagnostics and cache inside ourselves.
                 var diagnostics = args.Diagnostics;
 
                 // check cheap early bail out

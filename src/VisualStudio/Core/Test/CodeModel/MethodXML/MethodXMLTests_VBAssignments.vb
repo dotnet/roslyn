@@ -358,7 +358,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(462922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/462922")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/462922")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_Bug462922()
             Dim definition =
@@ -521,7 +521,7 @@ End Enum
             Test(definition, expected)
         End Sub
 
-        <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_PropertyOffParameter()
             Dim definition =
@@ -565,7 +565,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_NullableValue()
             Dim definition =
@@ -607,7 +607,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_ClosedGeneric1()
             Dim definition =
@@ -640,7 +640,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_ClosedGeneric2()
             Dim definition =
@@ -673,7 +673,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_ClosedGeneric3()
             Dim definition =
@@ -706,7 +706,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_ClosedGeneric4()
             Dim definition =
@@ -739,7 +739,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_TypeConfluence()
             Dim definition =
@@ -772,7 +772,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_EscapedNames()
             Dim definition =
@@ -941,7 +941,7 @@ End Class
             End Try
         End Sub
 
-        <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4312")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_PropertyAssignedWithEmptyArray()
             Dim definition =
@@ -993,7 +993,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4149")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_RoundTrippedDoubles()
             Dim definition =
@@ -1025,7 +1025,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4149")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_RoundTrippedSingles()
             Dim definition =

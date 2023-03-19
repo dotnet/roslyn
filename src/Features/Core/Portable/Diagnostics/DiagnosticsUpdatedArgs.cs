@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
 
-        /// <summary>
-        /// All the diagnostics for this event.  Most clients should not use this.  The only clients that should are
-        /// ones that are aggregating the values transparently and then forwarding on later on to other clients that
-        /// will make this decision.
-        /// </summary>
         public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
         private DiagnosticsUpdatedArgs(
@@ -30,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdatedKind kind)
             : base(id, workspace, projectId, documentId)
         {
-            // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
-            // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
-
+            Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;

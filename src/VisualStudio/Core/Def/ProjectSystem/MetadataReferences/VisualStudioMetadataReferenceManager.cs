@@ -59,8 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
-        internal IVsFileChangeEx FileChangeService { get; }
-
         private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
         internal VisualStudioMetadataReferenceManager(
@@ -76,8 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
             Assumes.Present(SmartOpenScopeServiceOpt);
 
-            FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            Assumes.Present(FileChangeService);
             _temporaryStorageService = temporaryStorageService;
             _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);

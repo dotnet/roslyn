@@ -10,12 +10,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle;
 
 internal record class IdeCodeStyleOptions
 {
-    private protected static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
-        new(value: true, notification: NotificationOption2.Suggestion);
-
-    private protected static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
-        new(value: true, notification: NotificationOption2.Silent);
-
     private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
         new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 
@@ -36,32 +30,32 @@ internal record class IdeCodeStyleOptions
     /// </summary>
     internal static readonly IdeCodeStyleOptions CommonDefaults = new();
 
-    [DataMember] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping { get; init; } = OperatorPlacementWhenWrappingPreference.BeginningOfLine;
-    [DataMember] public CodeStyleOption2<bool> PreferCoalesceExpression { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferNullPropagation { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferExplicitTupleNames { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferAutoProperties { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferInferredTupleNames { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferInferredAnonymousTypeMemberNames { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferIsNullCheckOverReferenceEqualityMethod { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferCompoundAssignment { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedInterpolation { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferCoalesceExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferNullPropagation { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferExplicitTupleNames { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferAutoProperties { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferInferredTupleNames { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferInferredAnonymousTypeMemberNames { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferIsNullCheckOverReferenceEqualityMethod { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferCompoundAssignment { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedInterpolation { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<UnusedParametersPreference> UnusedParameters { get; init; } = s_preferAllMethodsUnusedParametersPreference;
     [DataMember] public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired { get; init; } = s_accessibilityModifiersRequiredDefault;
-    [DataMember] public CodeStyleOption2<bool> PreferReadonly { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferReadonly { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses { get; init; } = s_alwaysForClarityPreference;
     [DataMember] public CodeStyleOption2<ParenthesesPreference> OtherBinaryParentheses { get; init; } = s_alwaysForClarityPreference;
     [DataMember] public CodeStyleOption2<ParenthesesPreference> RelationalBinaryParentheses { get; init; } = s_alwaysForClarityPreference;
     [DataMember] public CodeStyleOption2<ParenthesesPreference> OtherParentheses { get; init; } = s_neverIfUnnecessaryPreference;
     [DataMember] public CodeStyleOption2<ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSource { get; init; } = s_forEachExplicitCastInSourceNonLegacyPreference;
-    [DataMember] public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowMultipleBlankLines { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowMultipleBlankLines { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
     [DataMember] public string RemoveUnnecessarySuppressionExclusions { get; init; } = "";
 
     private protected IdeCodeStyleOptions()

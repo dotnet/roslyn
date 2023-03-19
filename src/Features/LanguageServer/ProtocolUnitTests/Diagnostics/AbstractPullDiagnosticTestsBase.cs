@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
@@ -61,73 +62,103 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles, includeTaskListItems);
-            await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
             {
-                BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
-                var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
-                    VSInternalMethods.WorkspacePullDiagnosticName,
-                    CreateWorkspaceDiagnosticParams(previousResults, progress, category),
-                    CancellationToken.None).ConfigureAwait(false);
-
-                if (useProgress)
-                {
-                    Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetFlattenedValues();
-                }
-
-                AssertEx.NotNull(diagnostics);
-                return diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!, d.ResultId!, d.Diagnostics)).ToImmutableArray();
+                return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category);
             }
             else
             {
-                BufferedProgress<WorkspaceDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticPartialReport>(null) : null;
-                var returnedResult = await testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(
-                    Methods.WorkspaceDiagnosticName,
-                    CreateProposedWorkspaceDiagnosticParams(previousResults, progress),
-                    CancellationToken.None).ConfigureAwait(false);
+                return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, triggerConnectionClose: true);
+            }
+        }
 
-                if (useProgress)
-                {
-                    Assert.Empty(returnedResult!.Items);
-                    var progressValues = progress!.Value.GetValues();
-                    Assert.NotNull(progressValues);
-                    return progressValues.SelectMany(value => value.Match(v => v.Items, v => v.Items)).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+        private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunVSGetWorkspacePullDiagnosticsAsync(
+            TestLspServer testLspServer,
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
+            bool useProgress = false,
+            string? category = null)
+        {
+            await testLspServer.WaitForDiagnosticsAsync();
 
-                }
+            BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
+            var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
+                VSInternalMethods.WorkspacePullDiagnosticName,
+                CreateWorkspaceDiagnosticParams(previousResults, progress, category),
+                CancellationToken.None).ConfigureAwait(false);
 
-                AssertEx.NotNull(returnedResult);
-                return returnedResult.Items.Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+            if (useProgress)
+            {
+                Assert.Null(diagnostics);
+                diagnostics = progress!.Value.GetFlattenedValues();
             }
 
-            static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
+            AssertEx.NotNull(diagnostics);
+            return diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!, d.ResultId!, d.Diagnostics)).ToImmutableArray();
+        }
+
+        private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunPublicGetWorkspacePullDiagnosticsAsync(
+            TestLspServer testLspServer,
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
+            bool useProgress = false,
+            bool triggerConnectionClose = true)
+        {
+            await testLspServer.WaitForDiagnosticsAsync();
+
+            BufferedProgress<WorkspaceDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticPartialReport>(null) : null;
+            var diagnosticsTask = testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(
+                Methods.WorkspaceDiagnosticName,
+                CreateProposedWorkspaceDiagnosticParams(previousResults, progress),
+                CancellationToken.None).ConfigureAwait(false);
+
+            if (triggerConnectionClose)
+            {
+                // Public spec diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
+                var service = testLspServer.GetRequiredLspService<PublicWorkspacePullDiagnosticsHandler>();
+                service.GetTestAccessor().TriggerConnectionClose();
+            }
+
+            var returnedResult = await diagnosticsTask;
+
+            if (useProgress)
+            {
+                Assert.Empty(returnedResult!.Items);
+                var progressValues = progress!.Value.GetValues();
+                Assert.NotNull(progressValues);
+                return progressValues.SelectMany(value => value.Match(v => v.Items, v => v.Items)).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+
+            }
+
+            AssertEx.NotNull(returnedResult);
+            return returnedResult.Items.Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+        }
+
+        private static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
                 ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
                 IProgress<WorkspaceDiagnosticPartialReport>? progress = null)
+        {
+            var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
             {
-                var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
-                {
-                    Uri = r.identifier.Uri,
-                    Value = r.resultId
-                }).ToArray() ?? Array.Empty<PreviousResultId>();
-                return new WorkspaceDiagnosticParams
-                {
-                    PreviousResultId = previousResultsLsp,
-                    PartialResultToken = progress
-                };
-            }
+                Uri = r.identifier.Uri,
+                Value = r.resultId
+            }).ToArray() ?? Array.Empty<PreviousResultId>();
+            return new WorkspaceDiagnosticParams
+            {
+                PreviousResultId = previousResultsLsp,
+                PartialResultToken = progress
+            };
+        }
 
-            static TestDiagnosticResult ConvertWorkspaceDiagnosticResult(SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport> workspaceReport)
+        private static TestDiagnosticResult ConvertWorkspaceDiagnosticResult(SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport> workspaceReport)
+        {
+            if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
             {
-                if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
-                {
-                    return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = fullReport.Uri }, fullReport.ResultId!, fullReport.Items);
-                }
-                else
-                {
-                    var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
-                    return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = unchangedReport.Uri }, unchangedReport.ResultId!, null);
-                }
+                return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = fullReport.Uri }, fullReport.ResultId!, fullReport.Items);
+            }
+            else
+            {
+                var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
+                return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = unchangedReport.Uri }, unchangedReport.ResultId!, null);
             }
         }
 

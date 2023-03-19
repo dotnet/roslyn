@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
                 RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
+                RegisterRemoteBrokeredService(new RemoteKeepAliveService.Factory());
                 RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());

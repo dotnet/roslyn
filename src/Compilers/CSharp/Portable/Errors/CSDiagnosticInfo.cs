@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _additionalLocations = original._additionalLocations;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new CSDiagnosticInfo(this, severity);
         }
