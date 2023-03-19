@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
         /// <summary>
-        /// Converts an immutable array of DocumentSymbolData to an immutable array of <see cref="DocumentSymbolDataViewModel"/>.
+        /// Converts an immutable array of <see cref="DocumentSymbolData" /> to an immutable array of <see cref="DocumentSymbolDataViewModel"/>.
         /// </summary>
         public static ImmutableArray<DocumentSymbolDataViewModel> GetDocumentSymbolItemViewModels(
             SortOption sortOption,
