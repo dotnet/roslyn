@@ -285,9 +285,9 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseList(INamespaceOrTypeSymbol? container = null)
         {
             var semanticModel = _context.SemanticModel;
-            var systemNamespace = (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
+            var systemNamespace = container is not (null or INamespaceSymbol { IsGlobalNamespace: true }) ? null : (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
                 _context.Position,
-                container: container is null ? semanticModel.Compilation.GlobalNamespace : container,
+                container: container,
                 name: "System").FirstOrDefault(s => s is INamespaceSymbol);
 
             var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);

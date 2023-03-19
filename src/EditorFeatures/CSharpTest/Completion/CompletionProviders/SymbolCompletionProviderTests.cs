@@ -12148,6 +12148,29 @@ public static class Extension
             await VerifyNoItemsExistAsync(source);
         }
 
+        [Fact]
+        public async Task EnumBaseList7()
+        {
+            var source = """
+                namespace MyNamespace
+                {
+                    namespace System {}
+                    public struct Byte {}
+                    public struct SByte {}
+                    public struct Int16 {}
+                    public struct UInt16 {}
+                    public struct Int32 {}
+                    public struct UInt32 {}
+                    public struct Int64 {}
+                    public struct UInt64 {}
+                }
+
+                enum E : MyNamespace.$$
+                """;
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
         public async Task InRangeExpression()
         {
