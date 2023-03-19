@@ -5,7 +5,10 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
@@ -25,15 +28,34 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     internal sealed class InlineHintsKeyProcessorProvider : IKeyProcessorProvider, IInlineHintKeyProcessor
     {
         private readonly IGlobalOptionService _globalOptions;
-
-        public bool State { get; private set; }
+        private readonly IThreadingContext _threadingContext;
+        private int _state;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptions)
+        public InlineHintsKeyProcessorProvider(
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
+
+        public bool State
+        {
+            get
+            {
+                // Can be read on any thread.
+                return Volatile.Read(ref _state) == 1;
+            }
+
+            private set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                Volatile.Write(ref _state, value ? 1 : 0);
+            }
+        }
+
 
         public event Action? StateChanged;
 
