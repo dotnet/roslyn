@@ -23,12 +23,12 @@ public class SwitchExpressionParsingTests : ParsingTests
                 case 1 => 2,
             }
             """,
-            // (2,2): error CS1041: Identifier expected; 'case' is a keyword
-            // {
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(2, 2),
-            // (3,17): error CS1041: Identifier expected; 'case' is a keyword
+            // (3,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
             //     case 0 => 1,
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 17));
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(3, 5),
+            // (4,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 1 => 2,
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(4, 5));
         N(SyntaxKind.SwitchExpression);
         {
             N(SyntaxKind.IdentifierName);
@@ -84,15 +84,15 @@ public class SwitchExpressionParsingTests : ParsingTests
                 case 1 => 2;
             }
             """,
-            // (2,2): error CS1041: Identifier expected; 'case' is a keyword
-            // {
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(2, 2),
+            // (3,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 0 => 1;
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(3, 5),
             // (3,16): error CS1003: Syntax error, ',' expected
             //     case 0 => 1;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 16),
-            // (3,17): error CS1041: Identifier expected; 'case' is a keyword
-            //     case 0 => 1;
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 17),
+            // (4,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 1 => 2;
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(4, 5),
             // (4,16): error CS1003: Syntax error, ',' expected
             //     case 1 => 2;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(4, 16));
@@ -151,15 +151,15 @@ public class SwitchExpressionParsingTests : ParsingTests
                 case 1: 2,
             }
             """,
-            // (2,2): error CS1041: Identifier expected; 'case' is a keyword
-            // {
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(2, 2),
+            // (3,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 0: 1,
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(3, 5),
             // (3,11): error CS1003: Syntax error, '=>' expected
             //     case 0: 1,
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 11),
-            // (3,15): error CS1041: Identifier expected; 'case' is a keyword
-            //     case 0: 1,
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 15),
+            // (4,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 1: 2,
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(4, 5),
             // (4,11): error CS1003: Syntax error, '=>' expected
             //     case 1: 2,
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 11));
@@ -218,18 +218,18 @@ public class SwitchExpressionParsingTests : ParsingTests
                 case 1: 2;
             }
             """,
-            // (2,2): error CS1041: Identifier expected; 'case' is a keyword
-            // {
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(2, 2),
+            // (3,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 0: 1;
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(3, 5),
             // (3,11): error CS1003: Syntax error, '=>' expected
             //     case 0: 1;
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 11),
             // (3,14): error CS1003: Syntax error, ',' expected
             //     case 0: 1;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 14),
-            // (3,15): error CS1041: Identifier expected; 'case' is a keyword
-            //     case 0: 1;
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 15),
+            // (4,5): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //     case 1: 2;
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(4, 5),
             // (4,11): error CS1003: Syntax error, '=>' expected
             //     case 1: 2;
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 11),
@@ -299,9 +299,9 @@ public class SwitchExpressionParsingTests : ParsingTests
                 };
             }
             """,
-            // (3,6): error CS1041: Identifier expected; 'case' is a keyword
-            //     {
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 6),
+            // (4,9): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //         case 0:
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(4, 9),
             // (4,15): error CS1003: Syntax error, '=>' expected
             //         case 0:
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 15),

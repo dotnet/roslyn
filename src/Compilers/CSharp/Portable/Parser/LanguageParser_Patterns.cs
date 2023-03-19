@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // will fail during binding).  So if the user has `default:` we will recover fine as we handle the
                 // errant colon below.
                 var errantCase = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
-                    ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
+                    ? AddError(this.EatToken(), ErrorCode.ERR_BadCaseInSwitchArm)
                     : null;
 
                 var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
