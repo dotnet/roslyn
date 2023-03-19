@@ -59,6 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     Return symbols
                 ElseIf _context.IsNamespaceDeclarationNameContext Then
                     Return GetSymbolsForNamespaceDeclarationNameContext(Of NamespaceBlockSyntax)()
+                ElseIf _context.IsEnumBaseListContext Then
+                    Return GetSymbolsForEnumBaseListContext()
                 End If
 
                 Return ImmutableArray(Of ISymbol).Empty

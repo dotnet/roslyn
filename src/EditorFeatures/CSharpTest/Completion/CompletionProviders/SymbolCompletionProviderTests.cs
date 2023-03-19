@@ -12024,11 +12024,71 @@ public static class Extension
         }
 
         [Fact]
-        public async Task NoSymbolCompletionsInEnumBaseList()
+        public async Task EnumBaseList1()
         {
             var source = "enum E : $$";
 
-            await VerifyNoItemsExistAsync(source);
+            await VerifyItemExistsAsync(source, "System");
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, "Byte");
+            await VerifyItemIsAbsentAsync(source, "SByte");
+            await VerifyItemIsAbsentAsync(source, "Int16");
+            await VerifyItemIsAbsentAsync(source, "UInt16");
+            await VerifyItemIsAbsentAsync(source, "Int32");
+            await VerifyItemIsAbsentAsync(source, "UInt32");
+            await VerifyItemIsAbsentAsync(source, "Int64");
+            await VerifyItemIsAbsentAsync(source, "UInt64");
+        }
+
+        [Fact]
+        public async Task EnumBaseList2()
+        {
+            var source = """
+                enum E : $$
+
+                class System
+                {
+                }
+                """;
+
+            // class `System` shadows the namespace in regular source
+            await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, "Byte");
+            await VerifyItemIsAbsentAsync(source, "SByte");
+            await VerifyItemIsAbsentAsync(source, "Int16");
+            await VerifyItemIsAbsentAsync(source, "UInt16");
+            await VerifyItemIsAbsentAsync(source, "Int32");
+            await VerifyItemIsAbsentAsync(source, "UInt32");
+            await VerifyItemIsAbsentAsync(source, "Int64");
+            await VerifyItemIsAbsentAsync(source, "UInt64");
+        }
+
+        [Fact]
+        public async Task EnumBaseList3()
+        {
+            var source = """
+                using System;
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "Byte");
+            await VerifyItemExistsAsync(source, "SByte");
+            await VerifyItemExistsAsync(source, "Int16");
+            await VerifyItemExistsAsync(source, "UInt16");
+            await VerifyItemExistsAsync(source, "Int32");
+            await VerifyItemExistsAsync(source, "UInt32");
+            await VerifyItemExistsAsync(source, "Int64");
+            await VerifyItemExistsAsync(source, "UInt64");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]

@@ -111,6 +111,10 @@ internal partial class CSharpRecommendationService
             {
                 return GetSymbolsForNamespaceDeclarationNameContext<BaseNamespaceDeclarationSyntax>();
             }
+            else if (_context.IsEnumBaseListContext)
+            {
+                return GetSymbolsForEnumBaseListContext();
+            }
 
             return ImmutableArray<ISymbol>.Empty;
         }

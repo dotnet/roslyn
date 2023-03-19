@@ -8290,7 +8290,7 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        <Fact>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
             ShowTargetTypedCompletionFilter = True
             Dim markup =
@@ -8303,6 +8303,68 @@ End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList1() As Task
+            Dim markup = "Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "System")
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, "Byte")
+            Await VerifyItemIsAbsentAsync(markup, "SByte")
+            Await VerifyItemIsAbsentAsync(markup, "Int16")
+            Await VerifyItemIsAbsentAsync(markup, "UInt16")
+            Await VerifyItemIsAbsentAsync(markup, "Int32")
+            Await VerifyItemIsAbsentAsync(markup, "UInt32")
+            Await VerifyItemIsAbsentAsync(markup, "Int64")
+            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList2() As Task
+            Dim markup =
+"Enum MyEnum As $$
+
+Class System
+End Class"
+
+            ' class `System` shadows the namespace in regular source
+            Await VerifyItemIsAbsentAsync(markup, "System", sourceCodeKind:=SourceCodeKind.Regular)
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, "Byte")
+            Await VerifyItemIsAbsentAsync(markup, "SByte")
+            Await VerifyItemIsAbsentAsync(markup, "Int16")
+            Await VerifyItemIsAbsentAsync(markup, "UInt16")
+            Await VerifyItemIsAbsentAsync(markup, "Int32")
+            Await VerifyItemIsAbsentAsync(markup, "UInt32")
+            Await VerifyItemIsAbsentAsync(markup, "Int64")
+            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList3() As Task
+            Dim markup =
+"Imports System;
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "System")
+            Await VerifyItemExistsAsync(markup, "Byte")
+            Await VerifyItemExistsAsync(markup, "SByte")
+            Await VerifyItemExistsAsync(markup, "Int16")
+            Await VerifyItemExistsAsync(markup, "UInt16")
+            Await VerifyItemExistsAsync(markup, "Int32")
+            Await VerifyItemExistsAsync(markup, "UInt32")
+            Await VerifyItemExistsAsync(markup, "Int64")
+            Await VerifyItemExistsAsync(markup, "UInt64")
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
         End Function
     End Class
 End Namespace

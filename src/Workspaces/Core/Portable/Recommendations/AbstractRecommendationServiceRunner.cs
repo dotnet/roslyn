@@ -282,6 +282,42 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             return symbols;
         }
 
+        protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseListContext()
+        {
+            var semanticModel = _context.SemanticModel;
+            var systemNamespace = (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
+                _context.Position,
+                container: semanticModel.Compilation.GlobalNamespace,
+                name: "System").FirstOrDefault(s => s is INamespaceSymbol);
+
+            if (systemNamespace is null)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);
+
+            builder.Add(systemNamespace);
+
+            builder.AddIfNotNull(GetSpecialTypeSymbol("Byte", SpecialType.System_Byte));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("SByte", SpecialType.System_SByte));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("Int16", SpecialType.System_Int16));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt16", SpecialType.System_UInt16));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("Int32", SpecialType.System_Int32));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt32", SpecialType.System_UInt32));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("Int64", SpecialType.System_Int64));
+            builder.AddIfNotNull(GetSpecialTypeSymbol("UInt64", SpecialType.System_UInt64));
+
+            return builder.ToImmutableAndFree();
+
+            ISymbol? GetSpecialTypeSymbol(string name, SpecialType specialType)
+            {
+                return _context.SemanticModel.LookupNamespacesAndTypes(
+                    _context.Position,
+                    name: name).SingleOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
+            }
+        }
+
         protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
         {
             //
