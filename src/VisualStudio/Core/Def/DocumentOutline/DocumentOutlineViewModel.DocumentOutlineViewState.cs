@@ -30,10 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public readonly string SearchText;
 
             /// <summary>
-            /// The view items we created from <see cref="DocumentSymbolData"/>.  Note: these values are a bit odd in that
-            /// they represent mutable UI state.  Need to review to ensure this is safe.  Docs on
-            /// DocumentSymbolDataViewModel indicate that it likely should be as the only mutable state is
-            /// IsExpanded/IsSelected, both of which are threadsafe.
+            /// The view items we created from <see cref="DocumentSymbolData"/>.  Note: these values are a bit odd in
+            /// that they represent mutable UI state.  Docs on DocumentSymbolDataViewModel indicate that it likely
+            /// should be as the only mutable state is IsExpanded/IsSelected, both of which are threadsafe.
             /// </summary>
             public readonly ImmutableArray<DocumentSymbolDataViewModel> ViewModelItems;
 
