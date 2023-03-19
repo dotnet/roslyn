@@ -2985,19 +2985,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
             // Options:
             //  enum E : |
             //  enum E : i|
 
             return
-                token.IsKind(SyntaxKind.ColonToken) &&
-                token.Parent.IsKind(SyntaxKind.BaseList) &&
-                token.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
+                targetToken.IsKind(SyntaxKind.ColonToken) &&
+                targetToken.Parent.IsKind(SyntaxKind.BaseList) &&
+                targetToken.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
         }
 
         public static bool IsEnumTypeMemberAccessContext(this SyntaxTree syntaxTree, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
