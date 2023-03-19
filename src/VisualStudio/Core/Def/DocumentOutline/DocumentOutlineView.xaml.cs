@@ -116,7 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 try
                 {
                     var textView = _viewTracker.GetActiveView();
-                    Assumes.NotNull(textView);
                     textView.TryMoveCaretToAndEnsureVisible(
                         symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
                 }
