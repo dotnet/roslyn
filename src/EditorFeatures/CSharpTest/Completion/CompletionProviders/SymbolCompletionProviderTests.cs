@@ -12091,6 +12091,33 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
+        [Fact]
+        public async Task EnumBaseList4()
+        {
+            var source = """
+                namespace MyNamespace
+                {
+                }
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "E");
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "MyNamespace");
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, "Byte");
+            await VerifyItemIsAbsentAsync(source, "SByte");
+            await VerifyItemIsAbsentAsync(source, "Int16");
+            await VerifyItemIsAbsentAsync(source, "UInt16");
+            await VerifyItemIsAbsentAsync(source, "Int32");
+            await VerifyItemIsAbsentAsync(source, "UInt32");
+            await VerifyItemIsAbsentAsync(source, "Int64");
+            await VerifyItemIsAbsentAsync(source, "UInt64");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
         public async Task InRangeExpression()
         {

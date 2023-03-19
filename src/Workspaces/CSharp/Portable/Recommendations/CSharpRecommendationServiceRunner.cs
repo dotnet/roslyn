@@ -229,6 +229,22 @@ internal partial class CSharpRecommendationService
             if (aliasSymbol == null)
                 return default;
 
+            // If we are in case like `enum E : global::$$` we need to show only `System` namespace
+            if (alias.GetAncestor<BaseListSyntax>().Parent is EnumDeclarationSyntax)
+            {
+                if (aliasSymbol.Target is not INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
+                {
+                    return default;
+                }
+
+                var systemNamespace = _context.SemanticModel.LookupNamespacesAndTypes(
+                    alias.SpanStart,
+                    aliasSymbol.Target,
+                    "System").FirstOrDefault(s => s is INamespaceSymbol);
+
+                return systemNamespace is null ? default : new(ImmutableArray.Create(systemNamespace));
+            }
+
             return new RecommendedSymbols(_context.SemanticModel.LookupNamespacesAndTypes(
                 alias.SpanStart,
                 aliasSymbol.Target));
