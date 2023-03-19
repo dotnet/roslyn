@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -42,11 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged, IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly VsCodeWindowViewTracker _codeWindowViewTracker;
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly ITaggerEventSource _taggerEventSource;
-        private readonly ITextView _textView;
         private readonly ITextBuffer _textBuffer;
-        private readonly IThreadingContext _threadingContext;
 
         /// <summary>
         /// Queue that computes the new model and updates the UI state.
@@ -72,16 +73,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private bool _isNavigating_doNotAccessDirectly;
 
+        private bool _isDisposed;
+
         public DocumentOutlineViewModel(
-            ITextView textView,
             IThreadingContext threadingContext,
+            VsCodeWindowViewTracker codeWindowViewTracker,
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener)
         {
-            _languageServiceBroker = languageServiceBroker;
-            _textView = textView;
-            _textBuffer = textView.TextBuffer;
             _threadingContext = threadingContext;
+            _codeWindowViewTracker = codeWindowViewTracker;
+            _languageServiceBroker = languageServiceBroker;
+            _textBuffer = codeWindowViewTracker.GetActiveView().TextBuffer;
 
             // initialize us to an empty state.
             _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(_textBuffer.CurrentSnapshot);
@@ -113,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public void Dispose()
         {
+            _isDisposed = true;
             _taggerEventSource.Changed -= OnEventSourceChanged;
             _taggerEventSource.Disconnect();
         }
@@ -255,6 +259,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Now, go back to the UI and grab the prior view state we set, and the current UI values we want to update the data with.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_isDisposed)
+                return;
 
             var searchText = this.SearchText;
             var sortOption = this.SortOption;
@@ -297,6 +303,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 intervalTree);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_isDisposed)
+                return;
 
             this.LastPresentedViewState = newViewState;
             this.DocumentSymbolViewModelItems = newViewModelItems;
@@ -404,13 +412,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private async ValueTask UpdateSelectionAsync(CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_isDisposed)
+                return;
 
             if (this.IsNavigating)
                 return;
 
             // Map the caret back to the snapshot used to create the last set of items.
             var modelTree = this.LastPresentedViewState.ViewModelItemsTree;
-            var caretPosition = _textView.Caret.Position.BufferPosition.TranslateTo(this.LastPresentedViewState.TextSnapshot, PointTrackingMode.Positive);
+            var textView = _codeWindowViewTracker.GetActiveView();
+            var caretPosition = textView.Caret.Position.BufferPosition.TranslateTo(this.LastPresentedViewState.TextSnapshot, PointTrackingMode.Positive);
 
             this.IsNavigating = true;
             try

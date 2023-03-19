@@ -267,10 +267,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
                 var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
-                var textView = viewTracker.GetActiveView();
                 _documentOutlineView = new DocumentOutlineView(
                     threadingContext, viewTracker,
-                    new DocumentOutlineViewModel(textView, threadingContext, languageServiceBroker, asyncListener));
+                    new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost
                 {
