@@ -244,14 +244,7 @@ internal partial class CSharpRecommendationService
 
             // If we are in case like `enum E : global::$$` we need to show only `System` namespace
             if (alias.GetAncestor<BaseListSyntax>().Parent is EnumDeclarationSyntax)
-            {
-                if (aliasSymbol.Target is not INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
-                {
-                    return default;
-                }
-
-                return new(GetSymbolsForEnumBaseList(globalNamespace));
-            }
+                return new(GetSymbolsForEnumBaseList(aliasSymbol.Target));
 
             return new RecommendedSymbols(_context.SemanticModel.LookupNamespacesAndTypes(
                 alias.SpanStart,
