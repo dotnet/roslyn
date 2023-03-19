@@ -557,14 +557,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValueOpt == null)
                 {
-                    if (convertedExpression is BoundConversion conversion && conversion.ConversionKind is ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined)
+                    if(inputType.Kind is not SymbolKind.ErrorType)
                     {
-                        Debug.Assert(conversion.Operand is not null);
                         diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, inputType);
                     }
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+
                     }
                     hasErrors = true;
                 }
