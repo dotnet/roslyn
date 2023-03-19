@@ -36,7 +36,7 @@ End Function</ClassDeclaration>, "#Region")
 #End |</File>, "#Region")
         End Sub
 
-        <Fact, WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6389")>
         Public Sub NotAfterHashRegionTest()
             VerifyRecommendationsMissing(<File>
                                          Class C

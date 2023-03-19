@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,6 +151,13 @@ namespace Microsoft.CodeAnalysis.Debugging
                 return new Portable(MetadataReaderProvider.FromPortablePdbStream(stream));
             }
 
+            return CreateNative(stream);
+        }
+
+        // Do not inline to avoid loading Microsoft.DiaSymReader until it's actually needed.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static DebugInformationReaderProvider CreateNative(Stream stream)
+        {
             // We can use DummySymReaderMetadataProvider since we do not need to decode signatures, 
             // which is the only operation SymReader needs the provider for.
             return new Native(stream, SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(

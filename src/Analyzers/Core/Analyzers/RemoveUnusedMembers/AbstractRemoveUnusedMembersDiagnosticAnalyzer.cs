@@ -587,15 +587,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 foreach (var attribute in symbol.GetAttributes())
                 {
                     if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                        attribute.ConstructorArguments.Length == 1 &&
-                        attribute.ConstructorArguments[0] is var arg &&
-                        arg.Kind == TypedConstantKind.Primitive &&
-                        arg.Type.SpecialType == SpecialType.System_String)
+                        attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
                     {
-                        if (arg.Value is string value)
-                        {
-                            builder.Add(value);
-                        }
+                        builder.Add(value);
                     }
                 }
             }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly), Shared]
     internal class CSharpImplementExplicitlyCodeRefactoringProvider :
-        AbstractChangeImplementionCodeRefactoringProvider
+        AbstractChangeImplementationCodeRefactoringProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

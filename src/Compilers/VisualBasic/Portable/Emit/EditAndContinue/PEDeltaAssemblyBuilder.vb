@@ -251,6 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
         End Function
 
+        Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return _previousDefinitions.GetMethodBodyInstrumentations(method)
+        End Function
+
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
             Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
         End Function

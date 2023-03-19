@@ -312,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
                 new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+            Contract.ThrowIfNull(solution);
 
             return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));
         }
