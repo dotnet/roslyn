@@ -841,55 +841,80 @@ public class SwitchExpressionParsingTests : ParsingTests
     [Fact]
     public void TestNormalDefaultInSwitchExpression1()
     {
-        // Legal syntactically.  Only a binding error.
-        UsingExpression("""
-            x switch
+        // 'default' legal syntactically.  Only a binding error.
+        var code = """
+            var v = 0 switch
             {
                 0 => 1,
                 default => 2,
-            }
-            """);
-        N(SyntaxKind.SwitchExpression);
+            };
+            """;
+        CreateCompilation(code).VerifyDiagnostics(
+            // (4,5): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+            //     default => 2,
+            Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(4, 5));
+
+        UsingStatement(code);
+        N(SyntaxKind.LocalDeclarationStatement);
         {
-            N(SyntaxKind.IdentifierName);
+            N(SyntaxKind.VariableDeclaration);
             {
-                N(SyntaxKind.IdentifierToken, "x");
-            }
-            N(SyntaxKind.SwitchKeyword);
-            N(SyntaxKind.OpenBraceToken);
-            N(SyntaxKind.SwitchExpressionArm);
-            {
-                N(SyntaxKind.ConstantPattern);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                    N(SyntaxKind.EqualsValueClause);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "0");
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
-                {
-                    N(SyntaxKind.NumericLiteralToken, "1");
-                }
             }
-            N(SyntaxKind.CommaToken);
-            N(SyntaxKind.SwitchExpressionArm);
-            {
-                N(SyntaxKind.ConstantPattern);
-                {
-                    N(SyntaxKind.DefaultLiteralExpression);
-                    {
-                        N(SyntaxKind.DefaultKeyword);
-                    }
-                }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
-                {
-                    N(SyntaxKind.NumericLiteralToken, "2");
-                }
-            }
-            N(SyntaxKind.CommaToken);
-            N(SyntaxKind.CloseBraceToken);
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
@@ -897,61 +922,92 @@ public class SwitchExpressionParsingTests : ParsingTests
     [Fact]
     public void TestNormalDefaultInSwitchExpression1_Semicolons()
     {
-        // Legal syntactically.  Only a binding error.
-        UsingExpression("""
-            x switch
+        // ;default' legal syntactically.  Only a binding error.
+        var code = """
+            var v = 0 switch
             {
                 0 => 1;
                 default => 2;
-            }
-            """,
+            };
+            """;
+        CreateCompilation(code).VerifyDiagnostics(
+            // (3,11): error CS1003: Syntax error, ',' expected
+            //     0 => 1;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 11),
+            // (4,5): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+            //     default => 2;
+            Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(4, 5),
+            // (4,17): error CS1003: Syntax error, ',' expected
+            //     default => 2;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(4, 17));
+
+        UsingStatement(code,
             // (3,11): error CS1003: Syntax error, ',' expected
             //     0 => 1;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 11),
             // (4,17): error CS1003: Syntax error, ',' expected
             //     default => 2;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(4, 17));
-        N(SyntaxKind.SwitchExpression);
+        N(SyntaxKind.LocalDeclarationStatement);
         {
-            N(SyntaxKind.IdentifierName);
+            N(SyntaxKind.VariableDeclaration);
             {
-                N(SyntaxKind.IdentifierToken, "x");
-            }
-            N(SyntaxKind.SwitchKeyword);
-            N(SyntaxKind.OpenBraceToken);
-            N(SyntaxKind.SwitchExpressionArm);
-            {
-                N(SyntaxKind.ConstantPattern);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                    N(SyntaxKind.EqualsValueClause);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "0");
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
-                {
-                    N(SyntaxKind.NumericLiteralToken, "1");
-                }
             }
-            M(SyntaxKind.CommaToken);
-            N(SyntaxKind.SwitchExpressionArm);
-            {
-                N(SyntaxKind.ConstantPattern);
-                {
-                    N(SyntaxKind.DefaultLiteralExpression);
-                    {
-                        N(SyntaxKind.DefaultKeyword);
-                    }
-                }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
-                {
-                    N(SyntaxKind.NumericLiteralToken, "2");
-                }
-            }
-            M(SyntaxKind.CommaToken);
-            N(SyntaxKind.CloseBraceToken);
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
