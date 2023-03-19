@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public new RoslynDocumentSymbol[]? Children
         {
-            get => (RoslynDocumentSymbol[])base.Children;
+            get => (RoslynDocumentSymbol[]?)base.Children;
             set => base.Children = value;
         }
     }
