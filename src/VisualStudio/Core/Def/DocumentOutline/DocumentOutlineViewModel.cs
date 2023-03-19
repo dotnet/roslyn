@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private async ValueTask ComputeViewStateAsync(CancellationToken cancellationToken)
         {
-            // We do not want this work running on a background thread
+            // Do any expensive semantic/computation work in the background.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
