@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             using (var _ = collectionView.DeferRefresh())
             {
                 // Update top-level sorting options for our tree view
-                collectionView.SortDescriptions.UpdateSortDescription(sortOption);
+                UpdateSortDescription(collectionView.SortDescriptions, sortOption);
 
                 // Set the sort option property to begin live-sorting
                 _viewModel.SortOption = sortOption;
@@ -99,6 +100,39 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Queue a refresh now that everything is set.
             collectionView.Refresh();
+        }
+
+        private static ImmutableArray<SortDescription> NameSortDescriptions { get; } =
+            ImmutableArray.Create(new SortDescription(
+                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
+                ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } =
+            ImmutableArray.Create(new SortDescription(
+                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start.Position)}",
+                ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(
+            new SortDescription(
+                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.SymbolKind)}",
+                ListSortDirection.Ascending),
+            new SortDescription(
+                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
+                ListSortDirection.Ascending));
+
+        public static void UpdateSortDescription(SortDescriptionCollection sortDescriptions, SortOption sortOption)
+        {
+            sortDescriptions.Clear();
+            var newSortDescriptions = sortOption switch
+            {
+                SortOption.Name => NameSortDescriptions,
+                SortOption.Location => LocationSortDescriptions,
+                SortOption.Type => TypeSortDescriptions,
+                _ => throw new InvalidOperationException(),
+            };
+
+            foreach (var newSortDescription in newSortDescriptions)
+            {
+                sortDescriptions.Add(newSortDescription);
+            }
         }
 
         /// <summary>
