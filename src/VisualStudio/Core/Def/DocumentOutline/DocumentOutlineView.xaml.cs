@@ -142,10 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            // This is a user-initiated navigation
             if (!_viewModel.IsNavigating && e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel })
             {
-                // let the view model know that we are initiating navigation.
+                // This is a user-initiated navigation, and we need to prevent reentrancy.  Specifically: when a user
+                // does click on an item, we do navigate, and that does move the caret. This part happens synchronously.
+                // So we do want to block navigation in that case.
                 _viewModel.IsNavigating = true;
                 try
                 {
