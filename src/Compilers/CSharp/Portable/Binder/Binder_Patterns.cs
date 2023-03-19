@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValueOpt == null)
                 {
-                    if(inputType.Kind is not SymbolKind.ErrorType)
+                    if (inputType.Kind is not SymbolKind.ErrorType)
                     {
                         diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, inputType);
                     }
