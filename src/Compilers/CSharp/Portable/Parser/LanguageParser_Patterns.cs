@@ -565,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // `default(...)` and `default` will also be consumed as a legal syntactic patterns (though the latter
                 // will fail during binding).  So if the user has `default:` we will recover fine as we handle the
                 // errant colon below.
-                var errantCaseOrDefault = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
+                var errantCase = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
                     ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
                     : null;
 
                 var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
-                if (errantCaseOrDefault != null)
-                    pattern = AddLeadingSkippedSyntax(pattern, errantCaseOrDefault);
+                if (errantCase != null)
+                    pattern = AddLeadingSkippedSyntax(pattern, errantCase);
 
                 // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
