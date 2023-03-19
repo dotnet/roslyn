@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -27,20 +26,6 @@ using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
-    internal interface IInlineHintKeyProcessor
-    {
-        /// <summary>
-        /// The current state of the keyprocessor.  i.e. whether or not the key binding is currently being held down or
-        /// not.  Can be read on any thread.
-        /// </summary>
-        bool State { get; }
-
-        /// <summary>
-        /// Called when the state of the keyprocessor changes.  Only fired on UI thread.
-        /// </summary>
-        event Action StateChanged;
-    }
-
     /// <summary>
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
@@ -48,28 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineHintDataTag))]
     [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-    internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
+    internal partial class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
-        private sealed class InlineHintKeyProcessorEventSource : AbstractTaggerEventSource
-        {
-            private readonly IInlineHintKeyProcessor? _inlineHintKeyProcessor;
-
-            public InlineHintKeyProcessorEventSource(IInlineHintKeyProcessor? inlineHintKeyProcessor)
-                => _inlineHintKeyProcessor = inlineHintKeyProcessor;
-
-            public override void Connect()
-            {
-                if (_inlineHintKeyProcessor != null)
-                    _inlineHintKeyProcessor.StateChanged += this.RaiseChanged;
-            }
-
-            public override void Disconnect()
-            {
-                if (_inlineHintKeyProcessor != null)
-                    _inlineHintKeyProcessor.StateChanged -= this.RaiseChanged;
-            }
-        }
-
         private readonly IAsynchronousOperationListener _listener;
         private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor;
 

@@ -4,13 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
