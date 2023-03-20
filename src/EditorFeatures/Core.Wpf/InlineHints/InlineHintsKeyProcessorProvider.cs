@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-
         public event Action? StateChanged;
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
