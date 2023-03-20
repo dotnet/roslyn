@@ -52,8 +52,8 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         {
             var logger = loggerFactory.CreateLogger<Program>();
             var timeout = TimeSpan.FromMinutes(1);
-            logger.LogInformation($"Server started with process ID {Environment.ProcessId}");
-            logger.LogInformation($"Waiting {timeout:g} for a debugger to attach");
+            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
             {
