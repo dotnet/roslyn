@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(TestMetadata.Net451.mscorlib)
+                .AddReferences(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore, TestMetadata.Net451.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code));
         }
 
@@ -4482,82 +4482,6 @@ public class C : IDisposable
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
-        public void TestGenerateRecordClass1()
-        {
-            var comp = Compile(
-@"public record class R;");
-
-            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
-
-            VerifySyntax<RecordDeclarationSyntax>(
-                Generator.Declaration(symbolR),
-                """
-                public record R : global::System.Object, global::System.IEquatable<global::R>;
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
-        public void TestGenerateRecordClass2()
-        {
-            var comp = Compile(
-@"public record class R(int i) { public int I => i; }");
-
-            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
-
-            VerifySyntax<RecordDeclarationSyntax>(
-                Generator.Declaration(symbolR),
-                """
-                public record R : global::System.Object, global::System.IEquatable<global::R>
-                {
-                    public R(global::System.Int32 i)
-                    {
-                    }
-
-                    public global::System.Int32 i { get; set; }
-                    public global::System.Int32 I { get; }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
-        public void TestGenerateRecordStruct1()
-        {
-            var comp = Compile(
-@"public record struct R;");
-
-            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
-
-            VerifySyntax<RecordDeclarationSyntax>(
-                Generator.Declaration(symbolR),
-                """
-                public record struct R : global::System.IEquatable<global::R>;
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
-        public void TestGenerateRecordStruct2()
-        {
-            var comp = Compile(
-@"public readonly record struct R(int i) { public int I => i; }");
-
-            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
-
-            VerifySyntax<RecordDeclarationSyntax>(
-                Generator.Declaration(symbolR),
-                """
-                public readonly record struct R : global::System.IEquatable<global::R>
-                {
-                    public R(global::System.Int32 i)
-                    {
-                    }
-
-                    public global::System.Int32 i { get; set; }
-                    public global::System.Int32 I { get; }
-                }
-                """);
-        }
-
         #endregion
 
         #region DeclarationModifiers
@@ -4688,6 +4612,44 @@ class C
 public readonly struct [|S|]
 {
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67341")]
+        public void TestUnboundGenerics()
+        {
+            var compilation = Compile("""
+                using System;
+
+                [AttributeUsage(AttributeTargets.All)]
+                public class TypeAttribute : Attribute
+                {
+                    public TypeAttribute(params Type[] types)
+                    {
+                    }
+                }
+
+                [TypeAttribute(typeof((int, string)), typeof((int x, string y)), typeof(ValueTuple<,>), typeof(ValueTuple<int, string>))]
+                public class C
+                {
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("C").Single();
+            var attribute = symbol.GetAttributes().Single();
+
+            VerifySyntax<AttributeListSyntax>(
+                Generator.Attribute(attribute),
+                """
+                [global::TypeAttribute(new[] { typeof((global::System.Int32, global::System.String)), typeof((global::System.Int32 x, global::System.String y)), typeof(global::System.ValueTuple<, >), typeof((global::System.Int32, global::System.String)) })]
+                """);
+
+            var type = (ITypeSymbol)attribute.ConstructorArguments[0].Values[2].Value;
+
+            VerifySyntax<TypeSyntax>(
+                Generator.TypeExpression(type),
+                """
+                global::System.ValueTuple<, >
+                """);
         }
 
         private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
