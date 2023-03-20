@@ -13,11 +13,13 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
@@ -26,9 +28,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
     {
         /// <summary>
-        /// Cache from the set of references a project has to a boolean specifying if that project knows about the
-        /// System.ComponentModel.DesignerCategoryAttribute attribute.  Keyed by the metadata-references for a project
-        /// so that we don't have to recompute it in the common case where a project's references are not changing.
+        /// Cache from a references a project has, to a boolean specifying if reference knows about the
+        /// System.ComponentModel.DesignerCategoryAttribute attribute.
         /// </summary>
         private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<bool>> s_metadataReferenceToDesignerAttributeInfo = new();
 
@@ -54,23 +55,46 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         private static async ValueTask<bool> HasDesignerCategoryTypeAsync(Project project, CancellationToken cancellationToken)
         {
+            var solutionServices = project.Solution.Services;
+            var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
             foreach (var reference in project.MetadataReferences)
             {
                 if (reference is PortableExecutableReference peReference)
                 {
-                    var asyncLazy = s_metadataReferenceToDesignerAttributeInfo.GetValue(
-                        peReference, peReference => HasDesignerCategoryTypeAsync(peReference));
-                    if (await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false))
+                    if (await HasDesignerCategoryTypeAsync(
+                            solutionServices, solutionKey, peReference, cancellationToken).ConfigureAwait(false))
+                    {
                         return true;
+                    }
                 }
             }
 
             return false;
-        }
 
-        private static AsyncLazy<bool> HasDesignerCategoryTypeAsync(PortableExecutableReference peReference)
-        {
-            var info = SymbolTreeInfo.GetInfoForMetadataReferenceAsync()
+            static async Task<bool> HasDesignerCategoryTypeAsync(
+               SolutionServices solutionServices,
+               SolutionKey solutionKey,
+               PortableExecutableReference peReference,
+               CancellationToken cancellationToken)
+            {
+                var asyncLazy = s_metadataReferenceToDesignerAttributeInfo.GetValue(
+                    peReference, peReference => AsyncLazy.Create(cancellationToken =>
+                        ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken), cacheResult: true));
+                return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static async Task<bool> ComputeHasDesignerCategoryTypeAsync(
+                SolutionServices solutionServices,
+                SolutionKey solutionKey,
+                PortableExecutableReference peReference,
+                CancellationToken cancellationToken)
+            {
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    solutionServices, solutionKey, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
+                return info.ContainsSymbolWithName(nameof(System)) &&
+                    info.ContainsSymbolWithName(nameof(System.ComponentModel)) &&
+                    info.ContainsSymbolWithName(nameof(System.ComponentModel.DesignerCategoryAttribute));
+            }
         }
 
         public async ValueTask ProcessSolutionAsync(
