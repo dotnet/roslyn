@@ -731,10 +731,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     // Make sure 'unsafe' is even allowed in this language version, reporting an error
-                                    // otherwise.  If it is available, ensure that the user passed the '/unsafe' flag to
-                                    // to the compiler.
-                                    if (MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation()))
-                                        declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                                    // otherwise.  Also, ensure that the user passed the '/unsafe' flag to to the
+                                    // compiler.
+                                    MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
                                 }
 
                                 flags |= BinderFlags.UnsafeRegion;
