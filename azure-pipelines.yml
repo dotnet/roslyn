@@ -401,8 +401,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
