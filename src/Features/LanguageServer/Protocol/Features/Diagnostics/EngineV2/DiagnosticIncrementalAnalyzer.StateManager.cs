@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, PredefinedBuildTools.Live));
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance));
                 }
 
                 foreach (var analyzers in analyzerCollection)
@@ -280,10 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        var buildToolName = analyzer.IsBuiltInAnalyzer() ?
-                            PredefinedBuildTools.Live : analyzer.GetAnalyzerAssemblyName();
-
-                        builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
+                        builder.Add(analyzer, new StateSet(language, analyzer));
                     }
                 }
 

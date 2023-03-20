@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -23,18 +24,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly string ErrorSourceName;
 
             private readonly PersistentNames _persistentNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
+            public StateSet(string language, DiagnosticAnalyzer analyzer)
             {
                 Language = language;
                 Analyzer = analyzer;
-                ErrorSourceName = errorSourceName;
 
                 _persistentNames = PersistentNames.Create(Analyzer);
 
@@ -222,14 +221,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private sealed class PersistentNames
             {
-                private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
-
                 private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
                     = new(concurrencyLevel: 2, capacity: 10);
 
                 private PersistentNames(string assemblyQualifiedName)
                 {
-                    StateName = UserDiagnosticsPrefixTableName + "_" + assemblyQualifiedName;
+                    StateName = assemblyQualifiedName;
                     SyntaxStateName = StateName + ".Syntax";
                     SemanticStateName = StateName + ".Semantic";
                     NonLocalStateName = StateName + ".NonLocal";
@@ -237,8 +234,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 /// <summary>
                 /// Get the unique state name for the given analyzer.
-                /// Note that this name is used by the underlying persistence stream of the corresponding <see cref="ProjectState"/> to Read/Write diagnostic data into the stream.
-                /// If any two distinct analyzer have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
                 /// </summary>
                 public string StateName { get; }
                 public string SyntaxStateName { get; }
