@@ -12,6 +12,12 @@
       "commands": [
         "pwsh"
       ]
+    },
+    "basic.compilerlog": {
+      "version": "0.2.5",
+      "commands": [
+        "complog"
+      ]
     }
   }
 }
