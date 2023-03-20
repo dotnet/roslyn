@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public abstract Task InsertSnippetInReadonlyStruct();
+
         // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
         // so it is tested separately for all of them
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

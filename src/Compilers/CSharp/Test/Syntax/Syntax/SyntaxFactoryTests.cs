@@ -585,6 +585,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithoutMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default, default);
+            Assert.NotNull(record);
+            Assert.Equal("record R;", record.NormalizeWhitespace().ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default,
+                SyntaxFactory.SingletonList(SyntaxFactory.ParseMemberDeclaration("private int i;")));
+            Assert.NotNull(record);
+            Assert.Equal("record R\r\n{\r\n    private int i;\r\n}", record.NormalizeWhitespace().ToFullString());
+        }
+
         [Fact]
         public void TestParseNameWithOptions()
         {

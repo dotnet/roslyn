@@ -192,6 +192,11 @@
         <target state="translated">Le CallerArgumentExpressionAttribute peut seulement être appliqué aux paramètres avec des valeurs par défaut</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Impossible d'utiliser une collection de type dynamique dans un foreach asynchrone</target>

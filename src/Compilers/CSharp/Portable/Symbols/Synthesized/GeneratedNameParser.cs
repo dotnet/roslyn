@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -170,6 +171,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             propertyName = null;
+            return false;
+        }
+
+        internal static bool TryParsePrimaryConstructorParameterFieldName(string fieldName, [NotNullWhen(true)] out string? parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+
+            if (fieldName.StartsWith("<", StringComparison.Ordinal) &&
+                fieldName.EndsWith(">P", StringComparison.Ordinal))
+            {
+                parameterName = fieldName.Substring(1, fieldName.Length - 3);
+                return true;
+            }
+
+            parameterName = null;
             return false;
         }
 
