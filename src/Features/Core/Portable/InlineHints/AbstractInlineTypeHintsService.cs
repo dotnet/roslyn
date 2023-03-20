@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, bool displayAllOverride, CancellationToken cancellationToken)
+            Document document,
+            TextSpan textSpan,
+            InlineTypeHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
             var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)

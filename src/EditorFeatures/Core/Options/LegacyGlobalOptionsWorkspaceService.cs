@@ -53,13 +53,6 @@ namespace Microsoft.CodeAnalysis.Options
         public int RazorTabSize
             => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
 
-        /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
-        public bool InlineHintsOptionsDisplayAllOverride
-        {
-            get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-            set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
-        }
-
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);
 
