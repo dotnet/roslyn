@@ -78,6 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
         }
+        internal override sealed bool IsInterceptable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         internal override CSharpCompilation DeclaringCompilation
         {

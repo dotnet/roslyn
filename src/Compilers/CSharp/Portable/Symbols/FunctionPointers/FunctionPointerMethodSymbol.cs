@@ -831,6 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal sealed override bool IsInterceptable => false;
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable();

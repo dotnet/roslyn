@@ -186,6 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE(ic): sealed?
+        internal override bool IsInterceptable
+        {
+            get
+            {
+                return UnderlyingMethod.IsInterceptable;
+            }
+        }
+
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
             return UnderlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);

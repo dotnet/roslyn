@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
             private const int IsUnscopedRefBit = 0x1 << 29;
             private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
+            private const int IsInterceptableBit = 0x1 << 31;
+            private const int IsInterceptablePopulatedBit = 0x1 << 32;
 
             private int _bits;
 
@@ -146,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
+            public bool IsInterceptable => (_bits & IsInterceptableBit) != 0;
+            public bool IsInterceptablePopulated => (_bits & IsInterceptablePopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -265,6 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 int bitsToSet = IsUnscopedRefPopulatedBit;
                 if (value) bitsToSet |= IsUnscopedRefBit;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool InitializeInterceptable(bool value)
+            {
+                int bitsToSet = IsInterceptablePopulatedBit;
+                if (value) bitsToSet |= IsInterceptableBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -1646,6 +1658,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return _packedFlags.IsUnscopedRef;
+            }
+        }
+        internal sealed override bool IsInterceptable
+        {
+            get
+            {
+                if (!_packedFlags.IsInterceptablePopulated)
+                {
+                    var moduleSymbol = _containingType.ContainingPEModule;
+                    bool interceptable = moduleSymbol.Module.HasInterceptableAttribute(_handle);
+                    _packedFlags.InitializeInterceptable(interceptable);
+                }
+
+                return _packedFlags.IsInterceptable;
             }
         }
 

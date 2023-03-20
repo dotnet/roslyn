@@ -591,6 +591,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptableAttribute))
+            {
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasInterceptableAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1238,6 +1242,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
+
+        internal sealed override bool IsInterceptable => GetDecodedWellKnownAttributeData()?.HasInterceptableAttribute == true;
 
         internal override bool RequiresSecurityObject
         {
