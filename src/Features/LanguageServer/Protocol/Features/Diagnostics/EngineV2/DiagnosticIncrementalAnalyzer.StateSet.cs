@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
 
-            private readonly PersistentNames _persistentNames;
-
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
@@ -35,16 +33,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Language = language;
                 Analyzer = analyzer;
 
-                _persistentNames = PersistentNames.Create(Analyzer);
-
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public string StateName => _persistentNames.StateName;
-            public string SyntaxStateName => _persistentNames.SyntaxStateName;
-            public string SemanticStateName => _persistentNames.SemanticStateName;
-            public string NonLocalStateName => _persistentNames.NonLocalStateName;
+            public (Type, string) StateName => (Analyzer.GetType(), nameof(StateName));
+            public (Type, string) SyntaxStateName => (Analyzer.GetType(), nameof(SyntaxStateName));
+            public (Type, string) SemanticStateName => (Analyzer.GetType(), nameof(SemanticStateName));
+            public (Type, string) NonLocalStateName => (Analyzer.GetType(), nameof(NonLocalStateName));
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
@@ -217,31 +213,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
                 //       of something.
                 InMemoryStorage.DropCache(Analyzer);
-            }
-
-            private sealed class PersistentNames
-            {
-                private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
-                    = new(concurrencyLevel: 2, capacity: 10);
-
-                private PersistentNames(string assemblyQualifiedName)
-                {
-                    StateName = assemblyQualifiedName;
-                    SyntaxStateName = StateName + ".Syntax";
-                    SemanticStateName = StateName + ".Semantic";
-                    NonLocalStateName = StateName + ".NonLocal";
-                }
-
-                /// <summary>
-                /// Get the unique state name for the given analyzer.
-                /// </summary>
-                public string StateName { get; }
-                public string SyntaxStateName { get; }
-                public string SemanticStateName { get; }
-                public string NonLocalStateName { get; }
-
-                public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
-                    => s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
             }
         }
     }

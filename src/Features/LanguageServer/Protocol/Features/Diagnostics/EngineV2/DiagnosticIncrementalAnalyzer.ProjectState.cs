@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -347,7 +348,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private ValueTask AddToInMemoryStorageAsync(VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private ValueTask AddToInMemoryStorageAsync(
+                VersionStamp serializerVersion, Project project, TextDocument? document, object key, (Type, string) stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -408,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsFromInMemoryStorageAsync(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, CancellationToken _)
+                VersionStamp serializerVersion, Project project, TextDocument? document, object key, (Type, string) stateKey, CancellationToken _)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -433,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RemoveInMemoryCacheEntry(id, _owner.NonLocalStateName);
             }
 
-            private void RemoveInMemoryCacheEntry(object key, string stateKey)
+            private void RemoveInMemoryCacheEntry(object key, (Type, string) stateKey)
             {
                 // remove in memory cache if entry exist
                 InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));

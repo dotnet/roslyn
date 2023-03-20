@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -13,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private static class InMemoryStorage
         {
             // the reason using nested map rather than having tuple as key is so that I dont have a gigantic map
-            private static readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(object key, string stateKey), CacheEntry>> s_map =
+            private static readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(object key, (Type, string) stateKey), CacheEntry>> s_map =
                 new(concurrencyLevel: 2, capacity: 10);
 
-            public static bool TryGetValue(DiagnosticAnalyzer analyzer, (object key, string stateKey) key, out CacheEntry entry)
+            public static bool TryGetValue(DiagnosticAnalyzer analyzer, (object key, (Type, string) stateKey) key, out CacheEntry entry)
             {
                 AssertKey(key);
 
@@ -30,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public static void Cache(DiagnosticAnalyzer analyzer, (object key, string stateKey) key, CacheEntry entry)
+            public static void Cache(DiagnosticAnalyzer analyzer, (object key, (Type, string) stateKey) key, CacheEntry entry)
             {
                 AssertKey(key);
 
                 // add new cache entry
-                var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(object key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
+                var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(object key, (Type, string) stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
                 analyzerMap[key] = entry;
             }
 
-            public static void Remove(DiagnosticAnalyzer analyzer, (object key, string stateKey) key)
+            public static void Remove(DiagnosticAnalyzer analyzer, (object key, (Type, string) stateKey) key)
             {
                 AssertKey(key);
                 // remove the entry
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             // make sure key is either documentId or projectId
-            private static void AssertKey((object key, string stateKey) key)
+            private static void AssertKey((object key, (Type, string) stateKey) key)
                 => Contract.ThrowIfFalse(key.key is DocumentId or ProjectId);
         }
 

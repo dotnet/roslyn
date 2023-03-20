@@ -291,12 +291,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private static void VerifyUniqueStateNames(IEnumerable<StateSet> stateSets)
             {
                 // Ensure diagnostic state name is indeed unique.
-                var set = new HashSet<ValueTuple<string, string>>();
+                var set = new HashSet<(string, (Type, string))>();
 
                 foreach (var stateSet in stateSets)
-                {
                     Contract.ThrowIfFalse(set.Add((stateSet.Language, stateSet.StateName)));
-                }
             }
 
             [Conditional("DEBUG")]
