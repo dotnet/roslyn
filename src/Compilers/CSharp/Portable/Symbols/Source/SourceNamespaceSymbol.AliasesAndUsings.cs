@@ -724,14 +724,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var flags = BinderFlags.SuppressConstraintChecks;
                             if (usingDirective.UnsafeKeyword != default)
                             {
+                                var unsafeKeywordLocation = usingDirective.UnsafeKeyword.GetLocation();
                                 if (usingDirective.StaticKeyword == default)
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                                    diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, unsafeKeywordLocation);
                                 }
                                 else
                                 {
-                                    MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
-                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                                    MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, unsafeKeywordLocation);
+                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
                                 }
 
                                 flags |= BinderFlags.UnsafeRegion;
