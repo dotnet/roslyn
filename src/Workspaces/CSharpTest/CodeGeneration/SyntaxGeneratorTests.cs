@@ -4482,6 +4482,80 @@ public class C : IDisposable
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordClass1()
+        {
+            var comp = Compile(
+@"public record class R;");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record R : global::System.Object, global::System.IEquatable<global::R>;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordClass2()
+        {
+            var comp = Compile(
+@"public record class R(int i) { public int I => i; }");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record R : global::System.Object, global::System.IEquatable<global::R>
+                {
+                    public R(global::System.Int32 i)
+                    {
+                    }
+                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 I { get; }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordStruct1()
+        {
+            var comp = Compile(
+@"public record struct R;");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record struct R : global::System.IEquatable<global::R>;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordStruct2()
+        {
+            var comp = Compile(
+@"public readonly record struct R(int i) { public int I => i; }");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public readonly record struct R : global::System.IEquatable<global::R>
+                {
+                    public R(global::System.Int32 i)
+                    {
+                    }
+                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 I { get; }
+                }
+                """);
+        }
+
         #endregion
 
         #region DeclarationModifiers
