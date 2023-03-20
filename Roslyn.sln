@@ -505,7 +505,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Comp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6131713D-DFB4-49B5-8010-50071FED3E85}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package.Arm64", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Package.Arm64.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Arm64.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Arm64.Package.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateRulesMissingDocumentation", "src\Tools\GenerateRulesMissingDocumentation\GenerateRulesMissingDocumentation.csproj", "{039CB167-3A6F-4B90-B6E8-14178D11D687}"
 EndProject
@@ -528,6 +528,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj", "{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.UnitTests", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj", "{9A90AA02-4275-40ED-B1F1-731AF17E675C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Framework.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj", "{521ADC3E-CC15-414B-9356-D87C5BCF3A24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1295,6 +1297,10 @@ Global
 		{9A90AA02-4275-40ED-B1F1-731AF17E675C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A90AA02-4275-40ED-B1F1-731AF17E675C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A90AA02-4275-40ED-B1F1-731AF17E675C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{521ADC3E-CC15-414B-9356-D87C5BCF3A24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{521ADC3E-CC15-414B-9356-D87C5BCF3A24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{521ADC3E-CC15-414B-9356-D87C5BCF3A24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{521ADC3E-CC15-414B-9356-D87C5BCF3A24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1536,6 +1542,7 @@ Global
 		{828FD0DB-9927-42AC-B6C2-D1514965D6C3} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{2A3C94F7-5B5E-4CDC-B645-672815E61DEB} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{9A90AA02-4275-40ED-B1F1-731AF17E675C} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{521ADC3E-CC15-414B-9356-D87C5BCF3A24} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

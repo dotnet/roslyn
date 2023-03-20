@@ -52,18 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -102,6 +90,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 _sharedState.Apply();
                 await base.RunImplAsync(cancellationToken);
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (CSharpParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
             }
 
 #if !CODE_STYLE

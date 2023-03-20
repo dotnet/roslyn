@@ -48,7 +48,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-
+    
     - task: BatchScript@1
       displayName: Rehydrate Unit Tests Environment
       inputs:

@@ -20,7 +20,7 @@ internal class VisualStudioLspWorkspaceRegistrationService : LspWorkspaceRegistr
 
     public override string GetHostWorkspaceKind() => WorkspaceKind.Host;
 
-    public override void Register(Workspace workspace)
+    public override void Register(Workspace? workspace)
     {
         // The lsp misc files workspace has the MiscellaneousFiles workspace kind,
         // but we don't actually want to mark it as a registered workspace in VS since we

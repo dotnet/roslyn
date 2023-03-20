@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // calculate regular diagnostic analyzers diagnostics
                     var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
-                        forcedAnalysis, logPerformanceInfo: true, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
+                        forcedAnalysis, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
 

@@ -26,6 +26,7 @@
       "Microsoft.Net.Compilers": "arcade",
       "Microsoft.Net.Compilers.Toolset": "arcade",
       "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
+      "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
       "Microsoft.NETCore.Compilers": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
