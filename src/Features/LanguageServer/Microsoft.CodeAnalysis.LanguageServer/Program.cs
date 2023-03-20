@@ -53,8 +53,8 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         {
             var logger = loggerFactory.CreateLogger<Program>();
             var timeout = TimeSpan.FromMinutes(1);
-            logger.LogInformation($"Server started with process ID {Environment.ProcessId}");
-            logger.LogInformation($"Waiting {timeout:g} for a debugger to attach");
+            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
             {
@@ -147,13 +147,13 @@ static Parser CreateCommandLineParser()
         Description = "The name of the pipe used to connect to a remote process (if one exists).",
         IsRequired = false,
     };
-    var logLevelOption = new Option<LogLevel>("--logLevel", description: "The minimum log verbosity.", parseArgument: result => result.Tokens.Single().Value switch
+
+    var logLevelOption = new Option<LogLevel>("--logLevel", description: "The minimum log verbosity.", parseArgument: result =>
     {
-        "off" => LogLevel.None,
-        "minimal" => LogLevel.Information,
-        "messages" => LogLevel.Debug,
-        "verbose" => LogLevel.Trace,
-        _ => throw new InvalidOperationException($"Unexpected logLevel argument {result}"),
+        var value = result.Tokens.Single().Value;
+        return !Enum.TryParse<LogLevel>(value, out var logLevel)
+            ? throw new InvalidOperationException($"Unexpected logLevel argument {result}")
+            : logLevel;
     })
     {
         IsRequired = true,
