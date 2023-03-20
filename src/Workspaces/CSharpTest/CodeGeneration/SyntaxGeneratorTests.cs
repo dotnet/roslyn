@@ -4513,6 +4513,7 @@ public class C : IDisposable
                     public R(global::System.Int32 i)
                     {
                     }
+
                     public global::System.Int32 i { get; set; }
                     public global::System.Int32 I { get; }
                 }
@@ -4550,6 +4551,7 @@ public class C : IDisposable
                     public R(global::System.Int32 i)
                     {
                     }
+
                     public global::System.Int32 i { get; set; }
                     public global::System.Int32 I { get; }
                 }
