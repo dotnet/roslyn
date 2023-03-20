@@ -15,6 +15,549 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenIfOperator
         Inherits BasicTestBase
 
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_Compare()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports System.Console
+        Module C
+            Sub Main()
+                WriteLine(Comp(1, 2))
+                WriteLine(Comp(3, 3))
+                WriteLine(Comp(5, 4))
+            End Sub
+
+            Function Comp(x As Integer, y As Integer) As Integer
+                Dim tmp1 As Integer = If(x > y, 1, 0)
+                Dim tmp2 As Integer = If(x < y, 1, 0)
+                Return tmp1 - tmp2
+            End Function
+        End Module
+    ]]></file>
+</compilation>
+            Dim expectedOutput = <![CDATA[
+-1
+0
+1
+]]>
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.Comp", <![CDATA[
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (Integer V_0, //Comp
+                Integer V_1, //tmp1
+                Integer V_2) //tmp2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  bgt.s      IL_0008
+  IL_0005:  ldc.i4.0
+  IL_0006:  br.s       IL_0009
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldarg.1
+  IL_000c:  blt.s      IL_0011
+  IL_000e:  ldc.i4.0
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ldc.i4.1
+  IL_0012:  stloc.2
+  IL_0013:  ldloc.1
+  IL_0014:  ldloc.2
+  IL_0015:  sub.ovf
+  IL_0016:  stloc.0
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}
+]]>)
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.Comp", <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (Integer V_0) //tmp2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  bgt.s      IL_0007
+  IL_0004:  ldc.i4.0
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  blt.s      IL_000f
+  IL_000c:  ldc.i4.0
+  IL_000d:  br.s       IL_0010
+  IL_000f:  ldc.i4.1
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  sub.ovf
+  IL_0013:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_Operations()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports Microsoft.VisualBasic
+        Imports System.Console
+        Module C
+            Sub Main()
+                M(1, 0, Nothing, True)
+            End Sub
+
+            Sub M(x As Integer, y As Integer, a As Object, b As Boolean)
+                Write(If(x = y, 1, 0))
+                Write(If(x = y, 0, 1))
+                Write(If(x < y, 1, 0))
+                Write(If(x < y, 0, 1))
+                Write(If(x > y, 1, 0))
+                Write(If(x > y, 0, 1))
+                Write(If(a Is a, 0, 1))
+                Write(If(a IsNot a, 0, 1))
+                Write(If(b, 0, 1))
+                Write(If(Not b, 0, 1))
+                Write(If(x <= y, True, False))
+                Write(If(x <= y, False, True))
+                Write(If(x <> y, CByte(1), CByte(0)))
+                Write(If(x <> y, CSByte(1), CSByte(0)))
+                Write(If(x <> y, 1S, 0S))
+                Write(If(x <> y, 1US, 0US))
+                Write(If(x <> y, 1UI, 0UI))
+                Write(If(x <> y, 1L, 0L))
+                Write(If(x <> y, 1UL, 0UL))
+                Write(If(x < y, ChrW(0), ChrW(1)))
+                Write(If(x < y, ChrW(1), vbNullChar))
+                Write(If(True, 1, 0))
+                Write(If(False, 0, 1))
+                Const B2 As Boolean = True
+                Write(If(B2, 1, 0))
+            End Sub
+        End Module
+    ]]></file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="0101100101FalseTrue1111111" & ChrW(1) & ChrW(0) & "111")
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.M", <![CDATA[
+{
+  // Code size      302 (0x12e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0007
+  IL_0004:  ldc.i4.0
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ldc.i4.1
+  IL_0008:  call       "Sub System.Console.Write(Integer)"
+  IL_000d:  ldarg.0
+  IL_000e:  ldarg.1
+  IL_000f:  beq.s      IL_0014
+  IL_0011:  ldc.i4.1
+  IL_0012:  br.s       IL_0015
+  IL_0014:  ldc.i4.0
+  IL_0015:  call       "Sub System.Console.Write(Integer)"
+  IL_001a:  ldarg.0
+  IL_001b:  ldarg.1
+  IL_001c:  blt.s      IL_0021
+  IL_001e:  ldc.i4.0
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.1
+  IL_0022:  call       "Sub System.Console.Write(Integer)"
+  IL_0027:  ldarg.0
+  IL_0028:  ldarg.1
+  IL_0029:  blt.s      IL_002e
+  IL_002b:  ldc.i4.1
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.0
+  IL_002f:  call       "Sub System.Console.Write(Integer)"
+  IL_0034:  ldarg.0
+  IL_0035:  ldarg.1
+  IL_0036:  bgt.s      IL_003b
+  IL_0038:  ldc.i4.0
+  IL_0039:  br.s       IL_003c
+  IL_003b:  ldc.i4.1
+  IL_003c:  call       "Sub System.Console.Write(Integer)"
+  IL_0041:  ldarg.0
+  IL_0042:  ldarg.1
+  IL_0043:  bgt.s      IL_0048
+  IL_0045:  ldc.i4.1
+  IL_0046:  br.s       IL_0049
+  IL_0048:  ldc.i4.0
+  IL_0049:  call       "Sub System.Console.Write(Integer)"
+  IL_004e:  ldarg.2
+  IL_004f:  ldarg.2
+  IL_0050:  beq.s      IL_0055
+  IL_0052:  ldc.i4.1
+  IL_0053:  br.s       IL_0056
+  IL_0055:  ldc.i4.0
+  IL_0056:  call       "Sub System.Console.Write(Integer)"
+  IL_005b:  ldarg.2
+  IL_005c:  ldarg.2
+  IL_005d:  bne.un.s   IL_0062
+  IL_005f:  ldc.i4.1
+  IL_0060:  br.s       IL_0063
+  IL_0062:  ldc.i4.0
+  IL_0063:  call       "Sub System.Console.Write(Integer)"
+  IL_0068:  ldarg.3
+  IL_0069:  brtrue.s   IL_006e
+  IL_006b:  ldc.i4.1
+  IL_006c:  br.s       IL_006f
+  IL_006e:  ldc.i4.0
+  IL_006f:  call       "Sub System.Console.Write(Integer)"
+  IL_0074:  ldarg.3
+  IL_0075:  brfalse.s  IL_007a
+  IL_0077:  ldc.i4.1
+  IL_0078:  br.s       IL_007b
+  IL_007a:  ldc.i4.0
+  IL_007b:  call       "Sub System.Console.Write(Integer)"
+  IL_0080:  ldarg.0
+  IL_0081:  ldarg.1
+  IL_0082:  ble.s      IL_0087
+  IL_0084:  ldc.i4.0
+  IL_0085:  br.s       IL_0088
+  IL_0087:  ldc.i4.1
+  IL_0088:  call       "Sub System.Console.Write(Boolean)"
+  IL_008d:  ldarg.0
+  IL_008e:  ldarg.1
+  IL_008f:  ble.s      IL_0094
+  IL_0091:  ldc.i4.1
+  IL_0092:  br.s       IL_0095
+  IL_0094:  ldc.i4.0
+  IL_0095:  call       "Sub System.Console.Write(Boolean)"
+  IL_009a:  ldarg.0
+  IL_009b:  ldarg.1
+  IL_009c:  bne.un.s   IL_00a1
+  IL_009e:  ldc.i4.0
+  IL_009f:  br.s       IL_00a2
+  IL_00a1:  ldc.i4.1
+  IL_00a2:  call       "Sub System.Console.Write(Integer)"
+  IL_00a7:  ldarg.0
+  IL_00a8:  ldarg.1
+  IL_00a9:  bne.un.s   IL_00ae
+  IL_00ab:  ldc.i4.0
+  IL_00ac:  br.s       IL_00af
+  IL_00ae:  ldc.i4.1
+  IL_00af:  call       "Sub System.Console.Write(Integer)"
+  IL_00b4:  ldarg.0
+  IL_00b5:  ldarg.1
+  IL_00b6:  bne.un.s   IL_00bb
+  IL_00b8:  ldc.i4.0
+  IL_00b9:  br.s       IL_00bc
+  IL_00bb:  ldc.i4.1
+  IL_00bc:  call       "Sub System.Console.Write(Integer)"
+  IL_00c1:  ldarg.0
+  IL_00c2:  ldarg.1
+  IL_00c3:  bne.un.s   IL_00c8
+  IL_00c5:  ldc.i4.0
+  IL_00c6:  br.s       IL_00c9
+  IL_00c8:  ldc.i4.1
+  IL_00c9:  call       "Sub System.Console.Write(Integer)"
+  IL_00ce:  ldarg.0
+  IL_00cf:  ldarg.1
+  IL_00d0:  bne.un.s   IL_00d5
+  IL_00d2:  ldc.i4.0
+  IL_00d3:  br.s       IL_00d6
+  IL_00d5:  ldc.i4.1
+  IL_00d6:  call       "Sub System.Console.Write(UInteger)"
+  IL_00db:  ldarg.0
+  IL_00dc:  ldarg.1
+  IL_00dd:  bne.un.s   IL_00e3
+  IL_00df:  ldc.i4.0
+  IL_00e0:  conv.i8
+  IL_00e1:  br.s       IL_00e5
+  IL_00e3:  ldc.i4.1
+  IL_00e4:  conv.i8
+  IL_00e5:  call       "Sub System.Console.Write(Long)"
+  IL_00ea:  ldarg.0
+  IL_00eb:  ldarg.1
+  IL_00ec:  bne.un.s   IL_00f2
+  IL_00ee:  ldc.i4.0
+  IL_00ef:  conv.i8
+  IL_00f0:  br.s       IL_00f4
+  IL_00f2:  ldc.i4.1
+  IL_00f3:  conv.i8
+  IL_00f4:  call       "Sub System.Console.Write(ULong)"
+  IL_00f9:  ldarg.0
+  IL_00fa:  ldarg.1
+  IL_00fb:  blt.s      IL_0100
+  IL_00fd:  ldc.i4.1
+  IL_00fe:  br.s       IL_0101
+  IL_0100:  ldc.i4.0
+  IL_0101:  call       "Sub System.Console.Write(Char)"
+  IL_0106:  ldarg.0
+  IL_0107:  ldarg.1
+  IL_0108:  blt.s      IL_0111
+  IL_010a:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
+  IL_010f:  br.s       IL_0116
+  IL_0111:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
+  IL_0116:  call       "Sub System.Console.Write(String)"
+  IL_011b:  ldc.i4.1
+  IL_011c:  call       "Sub System.Console.Write(Integer)"
+  IL_0121:  ldc.i4.1
+  IL_0122:  call       "Sub System.Console.Write(Integer)"
+  IL_0127:  ldc.i4.1
+  IL_0128:  call       "Sub System.Console.Write(Integer)"
+  IL_012d:  ret
+}
+]]>.Value)
+        End Sub
+
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_Negations()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports System.Console
+        Module C
+            Sub Main()
+                M(1, 0, True)
+            End Sub
+
+            Sub M(x As Integer, y As Integer, b As Boolean)
+                Write(If(Not (x < y), 0, 1))
+                Write(If(Not Not (x < y), 0, 1))
+                Write(If(Not Not Not (x < y), 0, 1))
+                Write(If(Not (x = y), 0, 1))
+                Write(If(Not b, 0, 1))
+                Write(If(Not Not b, 0, 1))
+                Write(If(Not Not Not b, 0, 1))
+                Write(If(Not False, 0, 1))
+                Write(If(Not Not False, 0, 1))
+                Write(If(Not Not Not False, 0, 1))
+            End Sub
+        End Module
+    ]]></file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="0100101010")
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.M", <![CDATA[
+{
+  // Code size      107 (0x6b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  bge.s      IL_0007
+  IL_0004:  ldc.i4.1
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       "Sub System.Console.Write(Integer)"
+  IL_000d:  ldarg.0
+  IL_000e:  ldarg.1
+  IL_000f:  blt.s      IL_0014
+  IL_0011:  ldc.i4.1
+  IL_0012:  br.s       IL_0015
+  IL_0014:  ldc.i4.0
+  IL_0015:  call       "Sub System.Console.Write(Integer)"
+  IL_001a:  ldarg.0
+  IL_001b:  ldarg.1
+  IL_001c:  bge.s      IL_0021
+  IL_001e:  ldc.i4.1
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.0
+  IL_0022:  call       "Sub System.Console.Write(Integer)"
+  IL_0027:  ldarg.0
+  IL_0028:  ldarg.1
+  IL_0029:  bne.un.s   IL_002e
+  IL_002b:  ldc.i4.1
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.0
+  IL_002f:  call       "Sub System.Console.Write(Integer)"
+  IL_0034:  ldarg.2
+  IL_0035:  brfalse.s  IL_003a
+  IL_0037:  ldc.i4.1
+  IL_0038:  br.s       IL_003b
+  IL_003a:  ldc.i4.0
+  IL_003b:  call       "Sub System.Console.Write(Integer)"
+  IL_0040:  ldarg.2
+  IL_0041:  brtrue.s   IL_0046
+  IL_0043:  ldc.i4.1
+  IL_0044:  br.s       IL_0047
+  IL_0046:  ldc.i4.0
+  IL_0047:  call       "Sub System.Console.Write(Integer)"
+  IL_004c:  ldarg.2
+  IL_004d:  brfalse.s  IL_0052
+  IL_004f:  ldc.i4.1
+  IL_0050:  br.s       IL_0053
+  IL_0052:  ldc.i4.0
+  IL_0053:  call       "Sub System.Console.Write(Integer)"
+  IL_0058:  ldc.i4.0
+  IL_0059:  call       "Sub System.Console.Write(Integer)"
+  IL_005e:  ldc.i4.1
+  IL_005f:  call       "Sub System.Console.Write(Integer)"
+  IL_0064:  ldc.i4.0
+  IL_0065:  call       "Sub System.Console.Write(Integer)"
+  IL_006a:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_NonBinaryArms()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports Microsoft.VisualBasic
+        Imports System.Console
+        Module C
+            Sub Main()
+                M(1, 0)
+            End Sub
+
+            Sub M(x As Integer, y As Integer)
+                Write(If(x = y, 1, 1))
+                Write(If(x <> y, 0, 0))
+                Write(If(x <= y, 0, 2))
+                Write(If(x >= y, 2, 1))
+                Write(If(x < y, 0, -1))
+                Write(If(x < y, 0R, 1R))
+                Write(If(x < y, 0F, 1F))
+                Write(If(x < y, 0D, 1D))
+                Write(If(x < y, vbNullChar, "a"c))
+            End Sub
+        End Module
+    ]]></file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="1022-1111a")
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.M", <![CDATA[
+{
+  // Code size      158 (0x9e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0007
+  IL_0004:  ldc.i4.1
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ldc.i4.1
+  IL_0008:  call       "Sub System.Console.Write(Integer)"
+  IL_000d:  ldarg.0
+  IL_000e:  ldarg.1
+  IL_000f:  bne.un.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_0015
+  IL_0014:  ldc.i4.0
+  IL_0015:  call       "Sub System.Console.Write(Integer)"
+  IL_001a:  ldarg.0
+  IL_001b:  ldarg.1
+  IL_001c:  ble.s      IL_0021
+  IL_001e:  ldc.i4.2
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.0
+  IL_0022:  call       "Sub System.Console.Write(Integer)"
+  IL_0027:  ldarg.0
+  IL_0028:  ldarg.1
+  IL_0029:  bge.s      IL_002e
+  IL_002b:  ldc.i4.1
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.2
+  IL_002f:  call       "Sub System.Console.Write(Integer)"
+  IL_0034:  ldarg.0
+  IL_0035:  ldarg.1
+  IL_0036:  blt.s      IL_003b
+  IL_0038:  ldc.i4.m1
+  IL_0039:  br.s       IL_003c
+  IL_003b:  ldc.i4.0
+  IL_003c:  call       "Sub System.Console.Write(Integer)"
+  IL_0041:  ldarg.0
+  IL_0042:  ldarg.1
+  IL_0043:  blt.s      IL_0050
+  IL_0045:  ldc.r8     1
+  IL_004e:  br.s       IL_0059
+  IL_0050:  ldc.r8     0
+  IL_0059:  call       "Sub System.Console.Write(Double)"
+  IL_005e:  ldarg.0
+  IL_005f:  ldarg.1
+  IL_0060:  blt.s      IL_0069
+  IL_0062:  ldc.r4     1
+  IL_0067:  br.s       IL_006e
+  IL_0069:  ldc.r4     0
+  IL_006e:  call       "Sub System.Console.Write(Single)"
+  IL_0073:  ldarg.0
+  IL_0074:  ldarg.1
+  IL_0075:  blt.s      IL_007e
+  IL_0077:  ldsfld     "Decimal.One As Decimal"
+  IL_007c:  br.s       IL_0083
+  IL_007e:  ldsfld     "Decimal.Zero As Decimal"
+  IL_0083:  call       "Sub System.Console.Write(Decimal)"
+  IL_0088:  ldarg.0
+  IL_0089:  ldarg.1
+  IL_008a:  blt.s      IL_0093
+  IL_008c:  ldstr      "a"
+  IL_0091:  br.s       IL_0098
+  IL_0093:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
+  IL_0098:  call       "Sub System.Console.Write(String)"
+  IL_009d:  ret
+}
+]]>.Value)
+        End Sub
+
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_NonBinaryCondition()
+            Dim comp = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports System.Console
+        Public Class D
+            Public Shared Sub Main()
+                Write(M1())
+                Write(M2())
+            End Sub
+
+            Shared Function M1() As Integer
+                Return If(C.M(), 1, 0)
+            End Function
+            
+            Shared Function M2() As Integer
+                Return If(C.M(), 0, 1)
+            End Function
+        End Class
+    ]]></file>
+</compilation>,
+            <![CDATA[
+        // public static class C { public static bool M() => -1; }
+        .class public auto ansi abstract sealed beforefieldinit C
+            extends System.Object
+        {
+            .method public hidebysig static bool M () cil managed
+            {
+                .maxstack 8
+                ldc.i4.m1
+                ret
+            }
+        }
+]]>.Value, TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="10")
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("D.M1", <![CDATA[
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "Function C.M() As Boolean"
+  IL_0005:  brtrue.s   IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  ret
+  IL_0009:  ldc.i4.1
+  IL_000a:  ret
+}
+]]>)
+            verifier.VerifyIL("D.M2", <![CDATA[
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "Function C.M() As Boolean"
+  IL_0005:  brtrue.s   IL_0009
+  IL_0007:  ldc.i4.1
+  IL_0008:  ret
+  IL_0009:  ldc.i4.0
+  IL_000a:  ret
+}
+]]>)
+        End Sub
+
         ' Conditional operator as parameter
         <Fact>
         Public Sub ConditionalOperatorAsParameter()
