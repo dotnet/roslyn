@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
-        
+
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
             Document document,
             TextSpan textSpan,
