@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// System.ComponentModel.DesignerCategoryAttribute attribute.  Keyed by the metadata-references for a project
         /// so that we don't have to recompute it in the common case where a project's references are not changing.
         /// </summary>
-        private static readonly ConditionalWeakTable<IReadOnlyList<MetadataReference>, AsyncLazy<bool>> s_metadataReferencesToDesignerAttributeInfo = new();
+        private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<bool>> s_metadataReferenceToDesignerAttributeInfo = new();
 
         private readonly IAsynchronousOperationListener _listener;
 
@@ -51,15 +52,26 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
         }
 
-        private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
-            => s_metadataReferencesToDesignerAttributeInfo.GetValue(
-                   project.MetadataReferences,
-                   _ => AsyncLazy.Create(
-                       async cancellationToken =>
-                       {
-                           var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                           return compilation.DesignerCategoryAttributeType() != null;
-                       }, cacheResult: true));
+        private static async ValueTask<bool> HasDesignerCategoryTypeAsync(Project project, CancellationToken cancellationToken)
+        {
+            foreach (var reference in project.MetadataReferences)
+            {
+                if (reference is PortableExecutableReference peReference)
+                {
+                    var asyncLazy = s_metadataReferenceToDesignerAttributeInfo.GetValue(
+                        peReference, peReference => HasDesignerCategoryTypeAsync(peReference));
+                    if (await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static AsyncLazy<bool> HasDesignerCategoryTypeAsync(PortableExecutableReference peReference)
+        {
+            var info = SymbolTreeInfo.GetInfoForMetadataReferenceAsync()
+        }
 
         public async ValueTask ProcessSolutionAsync(
             Solution solution,
@@ -127,18 +139,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
             }
 
-            // Note: it's fine to pass a frozen project into this helper.  The purpose of it is to see if we know about
-            // the System.ComponentModel.DesignerCategoryAttribute in that project.  And that question depends only on
-            // metadata-references.  We don't need/want things like skeletons/source-generators involved when answering
-            // that question.
-            var lazyHasDesignerCategoryType = GetLazyHasDesignerCategoryType(project);
-
             await ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
 
             // If we scanned just a specific document in the project, now scan the rest of the files.
             if (specificDocument != null)
-                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ScanForDesignerCategoryUsageAsync(
@@ -146,14 +152,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
             AsyncLazy<VersionStamp> lazyProjectVersion,
-            AsyncLazy<bool> lazyHasDesignerCategoryType,
             CancellationToken cancellationToken)
         {
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
             var changedData = await ComputeChangedDataAsync(
-                project, specificDocument, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
@@ -170,7 +175,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Project project,
             Document? specificDocument,
             AsyncLazy<VersionStamp> lazyProjectVersion,
-            AsyncLazy<bool> lazyHasDesignerCategoryType,
             CancellationToken cancellationToken)
         {
             // NOTE: While we could potentially process the documents in a project in parallel, we intentionally do not.
@@ -178,6 +182,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // very often going to be running, and it will be potentially competing against explicitly invoked actions
             // by the user.  Processing only one doc at a time, means we're not saturating the TPL with this work at the
             // expense of other features.
+
+            bool? hasDesignerCategoryType = null;
 
             using var _ = ArrayBuilder<(DesignerAttributeData data, VersionStamp version)>.GetInstance(out var results);
             foreach (var document in project.Documents)
@@ -200,14 +206,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     continue;
                 }
 
-                var data = await ComputeDesignerAttributeDataAsync(document).ConfigureAwait(false);
+                hasDesignerCategoryType ??= await HasDesignerCategoryTypeAsync(project, cancellationToken).ConfigureAwait(false);
+                var data = await ComputeDesignerAttributeDataAsync(document, hasDesignerCategoryType.Value).ConfigureAwait(false);
                 if (data.Category != existingInfo.category)
                     results.Add((data, projectVersion));
             }
 
             return results.ToImmutable();
 
-            async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(Document document)
+            async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(
+                Document document, bool hasDesignerCategoryType)
             {
                 Contract.ThrowIfNull(document.FilePath);
 
@@ -215,7 +223,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await ComputeDesignerAttributeCategoryAsync(
-                    lazyHasDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                    hasDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
                 return new DesignerAttributeData
                 {
@@ -227,11 +235,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         }
 
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-            AsyncLazy<bool> lazyHasDesignerCategoryType, Document document, CancellationToken cancellationToken)
+            bool hasDesignerCategoryType, Document document, CancellationToken cancellationToken)
         {
-            // If we have computed the hasDesignerCategoryType value for a prior document, and it turned out to be
-            // false, then we can skip any further steps (like parsing the file).
-            if (lazyHasDesignerCategoryType.TryGetValue(out var hasDesignerCategoryType) && !hasDesignerCategoryType)
+            // simple case.  If there's no DesignerCategory type in this compilation, then there's definitely no
+            // designable types.
+            if (!hasDesignerCategoryType)
                 return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -241,12 +249,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // in the file.
             var firstClass = FindFirstNonNestedClass(syntaxFacts.GetMembersOfCompilationUnit(root));
             if (firstClass == null)
-                return null;
-
-            // simple case.  If there's no DesignerCategory type in this compilation, then there's
-            // definitely no designable types.
-            hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (!hasDesignerCategoryType)
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
