@@ -78,25 +78,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.Comp", <![CDATA[
 {
-  // Code size       20 (0x14)
+  // Code size       12 (0xc)
   .maxstack  3
   .locals init (Integer V_0) //tmp2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  bgt.s      IL_0007
-  IL_0004:  ldc.i4.0
-  IL_0005:  br.s       IL_0008
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldarg.0
-  IL_0009:  ldarg.1
-  IL_000a:  blt.s      IL_000f
-  IL_000c:  ldc.i4.0
-  IL_000d:  br.s       IL_0010
-  IL_000f:  ldc.i4.1
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  sub.ovf
-  IL_0013:  ret
+  IL_0002:  cgt
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  clt
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  sub.ovf
+  IL_000b:  ret
 }
 ]]>)
         End Sub
@@ -146,164 +140,135 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.M", <![CDATA[
 {
-  // Code size      302 (0x12e)
+  // Code size      266 (0x10a)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  beq.s      IL_0007
-  IL_0004:  ldc.i4.0
-  IL_0005:  br.s       IL_0008
-  IL_0007:  ldc.i4.1
-  IL_0008:  call       "Sub System.Console.Write(Integer)"
-  IL_000d:  ldarg.0
-  IL_000e:  ldarg.1
-  IL_000f:  beq.s      IL_0014
-  IL_0011:  ldc.i4.1
-  IL_0012:  br.s       IL_0015
-  IL_0014:  ldc.i4.0
-  IL_0015:  call       "Sub System.Console.Write(Integer)"
-  IL_001a:  ldarg.0
-  IL_001b:  ldarg.1
-  IL_001c:  blt.s      IL_0021
-  IL_001e:  ldc.i4.0
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.1
-  IL_0022:  call       "Sub System.Console.Write(Integer)"
-  IL_0027:  ldarg.0
-  IL_0028:  ldarg.1
-  IL_0029:  blt.s      IL_002e
-  IL_002b:  ldc.i4.1
-  IL_002c:  br.s       IL_002f
-  IL_002e:  ldc.i4.0
-  IL_002f:  call       "Sub System.Console.Write(Integer)"
-  IL_0034:  ldarg.0
-  IL_0035:  ldarg.1
-  IL_0036:  bgt.s      IL_003b
-  IL_0038:  ldc.i4.0
-  IL_0039:  br.s       IL_003c
-  IL_003b:  ldc.i4.1
-  IL_003c:  call       "Sub System.Console.Write(Integer)"
-  IL_0041:  ldarg.0
-  IL_0042:  ldarg.1
-  IL_0043:  bgt.s      IL_0048
-  IL_0045:  ldc.i4.1
-  IL_0046:  br.s       IL_0049
-  IL_0048:  ldc.i4.0
-  IL_0049:  call       "Sub System.Console.Write(Integer)"
-  IL_004e:  ldarg.2
-  IL_004f:  ldarg.2
-  IL_0050:  beq.s      IL_0055
-  IL_0052:  ldc.i4.1
-  IL_0053:  br.s       IL_0056
+  IL_0002:  ceq
+  IL_0004:  call       "Sub System.Console.Write(Integer)"
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ceq
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  call       "Sub System.Console.Write(Integer)"
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  clt
+  IL_0019:  call       "Sub System.Console.Write(Integer)"
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  clt
+  IL_0022:  ldc.i4.0
+  IL_0023:  ceq
+  IL_0025:  call       "Sub System.Console.Write(Integer)"
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  cgt
+  IL_002e:  call       "Sub System.Console.Write(Integer)"
+  IL_0033:  ldarg.0
+  IL_0034:  ldarg.1
+  IL_0035:  cgt
+  IL_0037:  ldc.i4.0
+  IL_0038:  ceq
+  IL_003a:  call       "Sub System.Console.Write(Integer)"
+  IL_003f:  ldarg.2
+  IL_0040:  ldarg.2
+  IL_0041:  ceq
+  IL_0043:  ldc.i4.0
+  IL_0044:  ceq
+  IL_0046:  call       "Sub System.Console.Write(Integer)"
+  IL_004b:  ldarg.2
+  IL_004c:  ldarg.2
+  IL_004d:  ceq
+  IL_004f:  call       "Sub System.Console.Write(Integer)"
+  IL_0054:  ldarg.3
   IL_0055:  ldc.i4.0
-  IL_0056:  call       "Sub System.Console.Write(Integer)"
-  IL_005b:  ldarg.2
-  IL_005c:  ldarg.2
-  IL_005d:  bne.un.s   IL_0062
-  IL_005f:  ldc.i4.1
-  IL_0060:  br.s       IL_0063
-  IL_0062:  ldc.i4.0
-  IL_0063:  call       "Sub System.Console.Write(Integer)"
-  IL_0068:  ldarg.3
-  IL_0069:  brtrue.s   IL_006e
-  IL_006b:  ldc.i4.1
-  IL_006c:  br.s       IL_006f
-  IL_006e:  ldc.i4.0
-  IL_006f:  call       "Sub System.Console.Write(Integer)"
-  IL_0074:  ldarg.3
-  IL_0075:  brfalse.s  IL_007a
-  IL_0077:  ldc.i4.1
-  IL_0078:  br.s       IL_007b
-  IL_007a:  ldc.i4.0
-  IL_007b:  call       "Sub System.Console.Write(Integer)"
-  IL_0080:  ldarg.0
-  IL_0081:  ldarg.1
-  IL_0082:  ble.s      IL_0087
-  IL_0084:  ldc.i4.0
-  IL_0085:  br.s       IL_0088
-  IL_0087:  ldc.i4.1
-  IL_0088:  call       "Sub System.Console.Write(Boolean)"
-  IL_008d:  ldarg.0
-  IL_008e:  ldarg.1
-  IL_008f:  ble.s      IL_0094
-  IL_0091:  ldc.i4.1
-  IL_0092:  br.s       IL_0095
-  IL_0094:  ldc.i4.0
-  IL_0095:  call       "Sub System.Console.Write(Boolean)"
-  IL_009a:  ldarg.0
-  IL_009b:  ldarg.1
-  IL_009c:  bne.un.s   IL_00a1
-  IL_009e:  ldc.i4.0
-  IL_009f:  br.s       IL_00a2
-  IL_00a1:  ldc.i4.1
-  IL_00a2:  call       "Sub System.Console.Write(Integer)"
-  IL_00a7:  ldarg.0
-  IL_00a8:  ldarg.1
-  IL_00a9:  bne.un.s   IL_00ae
-  IL_00ab:  ldc.i4.0
-  IL_00ac:  br.s       IL_00af
-  IL_00ae:  ldc.i4.1
-  IL_00af:  call       "Sub System.Console.Write(Integer)"
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldarg.1
-  IL_00b6:  bne.un.s   IL_00bb
-  IL_00b8:  ldc.i4.0
-  IL_00b9:  br.s       IL_00bc
-  IL_00bb:  ldc.i4.1
-  IL_00bc:  call       "Sub System.Console.Write(Integer)"
-  IL_00c1:  ldarg.0
-  IL_00c2:  ldarg.1
-  IL_00c3:  bne.un.s   IL_00c8
-  IL_00c5:  ldc.i4.0
-  IL_00c6:  br.s       IL_00c9
-  IL_00c8:  ldc.i4.1
-  IL_00c9:  call       "Sub System.Console.Write(Integer)"
-  IL_00ce:  ldarg.0
-  IL_00cf:  ldarg.1
-  IL_00d0:  bne.un.s   IL_00d5
-  IL_00d2:  ldc.i4.0
-  IL_00d3:  br.s       IL_00d6
-  IL_00d5:  ldc.i4.1
-  IL_00d6:  call       "Sub System.Console.Write(UInteger)"
-  IL_00db:  ldarg.0
-  IL_00dc:  ldarg.1
-  IL_00dd:  bne.un.s   IL_00e3
-  IL_00df:  ldc.i4.0
-  IL_00e0:  conv.i8
-  IL_00e1:  br.s       IL_00e5
-  IL_00e3:  ldc.i4.1
-  IL_00e4:  conv.i8
-  IL_00e5:  call       "Sub System.Console.Write(Long)"
-  IL_00ea:  ldarg.0
-  IL_00eb:  ldarg.1
-  IL_00ec:  bne.un.s   IL_00f2
-  IL_00ee:  ldc.i4.0
-  IL_00ef:  conv.i8
-  IL_00f0:  br.s       IL_00f4
-  IL_00f2:  ldc.i4.1
-  IL_00f3:  conv.i8
-  IL_00f4:  call       "Sub System.Console.Write(ULong)"
-  IL_00f9:  ldarg.0
-  IL_00fa:  ldarg.1
-  IL_00fb:  blt.s      IL_0100
+  IL_0056:  ceq
+  IL_0058:  call       "Sub System.Console.Write(Integer)"
+  IL_005d:  ldarg.3
+  IL_005e:  ldc.i4.0
+  IL_005f:  cgt.un
+  IL_0061:  call       "Sub System.Console.Write(Integer)"
+  IL_0066:  ldarg.0
+  IL_0067:  ldarg.1
+  IL_0068:  cgt
+  IL_006a:  ldc.i4.0
+  IL_006b:  ceq
+  IL_006d:  call       "Sub System.Console.Write(Boolean)"
+  IL_0072:  ldarg.0
+  IL_0073:  ldarg.1
+  IL_0074:  cgt
+  IL_0076:  call       "Sub System.Console.Write(Boolean)"
+  IL_007b:  ldarg.0
+  IL_007c:  ldarg.1
+  IL_007d:  ceq
+  IL_007f:  ldc.i4.0
+  IL_0080:  ceq
+  IL_0082:  conv.u1
+  IL_0083:  call       "Sub System.Console.Write(Integer)"
+  IL_0088:  ldarg.0
+  IL_0089:  ldarg.1
+  IL_008a:  ceq
+  IL_008c:  ldc.i4.0
+  IL_008d:  ceq
+  IL_008f:  conv.i1
+  IL_0090:  call       "Sub System.Console.Write(Integer)"
+  IL_0095:  ldarg.0
+  IL_0096:  ldarg.1
+  IL_0097:  ceq
+  IL_0099:  ldc.i4.0
+  IL_009a:  ceq
+  IL_009c:  conv.i2
+  IL_009d:  call       "Sub System.Console.Write(Integer)"
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldarg.1
+  IL_00a4:  ceq
+  IL_00a6:  ldc.i4.0
+  IL_00a7:  ceq
+  IL_00a9:  conv.u2
+  IL_00aa:  call       "Sub System.Console.Write(Integer)"
+  IL_00af:  ldarg.0
+  IL_00b0:  ldarg.1
+  IL_00b1:  ceq
+  IL_00b3:  ldc.i4.0
+  IL_00b4:  ceq
+  IL_00b6:  call       "Sub System.Console.Write(UInteger)"
+  IL_00bb:  ldarg.0
+  IL_00bc:  ldarg.1
+  IL_00bd:  ceq
+  IL_00bf:  ldc.i4.0
+  IL_00c0:  ceq
+  IL_00c2:  conv.i8
+  IL_00c3:  call       "Sub System.Console.Write(Long)"
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldarg.1
+  IL_00ca:  ceq
+  IL_00cc:  ldc.i4.0
+  IL_00cd:  ceq
+  IL_00cf:  conv.i8
+  IL_00d0:  call       "Sub System.Console.Write(ULong)"
+  IL_00d5:  ldarg.0
+  IL_00d6:  ldarg.1
+  IL_00d7:  clt
+  IL_00d9:  ldc.i4.0
+  IL_00da:  ceq
+  IL_00dc:  conv.u2
+  IL_00dd:  call       "Sub System.Console.Write(Char)"
+  IL_00e2:  ldarg.0
+  IL_00e3:  ldarg.1
+  IL_00e4:  blt.s      IL_00ed
+  IL_00e6:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
+  IL_00eb:  br.s       IL_00f2
+  IL_00ed:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
+  IL_00f2:  call       "Sub System.Console.Write(String)"
+  IL_00f7:  ldc.i4.1
+  IL_00f8:  call       "Sub System.Console.Write(Integer)"
   IL_00fd:  ldc.i4.1
-  IL_00fe:  br.s       IL_0101
-  IL_0100:  ldc.i4.0
-  IL_0101:  call       "Sub System.Console.Write(Char)"
-  IL_0106:  ldarg.0
-  IL_0107:  ldarg.1
-  IL_0108:  blt.s      IL_0111
-  IL_010a:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
-  IL_010f:  br.s       IL_0116
-  IL_0111:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
-  IL_0116:  call       "Sub System.Console.Write(String)"
-  IL_011b:  ldc.i4.1
-  IL_011c:  call       "Sub System.Console.Write(Integer)"
-  IL_0121:  ldc.i4.1
-  IL_0122:  call       "Sub System.Console.Write(Integer)"
-  IL_0127:  ldc.i4.1
-  IL_0128:  call       "Sub System.Console.Write(Integer)"
-  IL_012d:  ret
+  IL_00fe:  call       "Sub System.Console.Write(Integer)"
+  IL_0103:  ldc.i4.1
+  IL_0104:  call       "Sub System.Console.Write(Integer)"
+  IL_0109:  ret
 }
 ]]>.Value)
         End Sub
@@ -337,61 +302,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.M", <![CDATA[
 {
-  // Code size      107 (0x6b)
+  // Code size       85 (0x55)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  bge.s      IL_0007
-  IL_0004:  ldc.i4.1
-  IL_0005:  br.s       IL_0008
-  IL_0007:  ldc.i4.0
-  IL_0008:  call       "Sub System.Console.Write(Integer)"
-  IL_000d:  ldarg.0
-  IL_000e:  ldarg.1
-  IL_000f:  blt.s      IL_0014
-  IL_0011:  ldc.i4.1
-  IL_0012:  br.s       IL_0015
-  IL_0014:  ldc.i4.0
-  IL_0015:  call       "Sub System.Console.Write(Integer)"
-  IL_001a:  ldarg.0
-  IL_001b:  ldarg.1
-  IL_001c:  bge.s      IL_0021
-  IL_001e:  ldc.i4.1
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.0
+  IL_0002:  clt
+  IL_0004:  call       "Sub System.Console.Write(Integer)"
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  clt
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  call       "Sub System.Console.Write(Integer)"
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  clt
+  IL_0019:  call       "Sub System.Console.Write(Integer)"
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  ceq
   IL_0022:  call       "Sub System.Console.Write(Integer)"
-  IL_0027:  ldarg.0
-  IL_0028:  ldarg.1
-  IL_0029:  bne.un.s   IL_002e
-  IL_002b:  ldc.i4.1
-  IL_002c:  br.s       IL_002f
-  IL_002e:  ldc.i4.0
-  IL_002f:  call       "Sub System.Console.Write(Integer)"
-  IL_0034:  ldarg.2
-  IL_0035:  brfalse.s  IL_003a
-  IL_0037:  ldc.i4.1
-  IL_0038:  br.s       IL_003b
+  IL_0027:  ldarg.2
+  IL_0028:  ldc.i4.0
+  IL_0029:  cgt.un
+  IL_002b:  call       "Sub System.Console.Write(Integer)"
+  IL_0030:  ldarg.2
+  IL_0031:  ldc.i4.0
+  IL_0032:  ceq
+  IL_0034:  call       "Sub System.Console.Write(Integer)"
+  IL_0039:  ldarg.2
   IL_003a:  ldc.i4.0
-  IL_003b:  call       "Sub System.Console.Write(Integer)"
-  IL_0040:  ldarg.2
-  IL_0041:  brtrue.s   IL_0046
-  IL_0043:  ldc.i4.1
-  IL_0044:  br.s       IL_0047
-  IL_0046:  ldc.i4.0
-  IL_0047:  call       "Sub System.Console.Write(Integer)"
-  IL_004c:  ldarg.2
-  IL_004d:  brfalse.s  IL_0052
-  IL_004f:  ldc.i4.1
-  IL_0050:  br.s       IL_0053
-  IL_0052:  ldc.i4.0
-  IL_0053:  call       "Sub System.Console.Write(Integer)"
-  IL_0058:  ldc.i4.0
-  IL_0059:  call       "Sub System.Console.Write(Integer)"
-  IL_005e:  ldc.i4.1
-  IL_005f:  call       "Sub System.Console.Write(Integer)"
-  IL_0064:  ldc.i4.0
-  IL_0065:  call       "Sub System.Console.Write(Integer)"
-  IL_006a:  ret
+  IL_003b:  cgt.un
+  IL_003d:  call       "Sub System.Console.Write(Integer)"
+  IL_0042:  ldc.i4.0
+  IL_0043:  call       "Sub System.Console.Write(Integer)"
+  IL_0048:  ldc.i4.1
+  IL_0049:  call       "Sub System.Console.Write(Integer)"
+  IL_004e:  ldc.i4.0
+  IL_004f:  call       "Sub System.Console.Write(Integer)"
+  IL_0054:  ret
 }
 ]]>)
         End Sub
@@ -534,26 +483,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("D.M1", <![CDATA[
 {
-  // Code size       11 (0xb)
-  .maxstack  1
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  call       "Function C.M() As Boolean"
-  IL_0005:  brtrue.s   IL_0009
-  IL_0007:  ldc.i4.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  cgt.un
   IL_0008:  ret
-  IL_0009:  ldc.i4.1
-  IL_000a:  ret
 }
 ]]>)
             verifier.VerifyIL("D.M2", <![CDATA[
 {
-  // Code size       11 (0xb)
-  .maxstack  1
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  call       "Function C.M() As Boolean"
-  IL_0005:  brtrue.s   IL_0009
-  IL_0007:  ldc.i4.1
+  IL_0005:  ldc.i4.0
+  IL_0006:  ceq
   IL_0008:  ret
-  IL_0009:  ldc.i4.0
-  IL_000a:  ret
 }
 ]]>)
         End Sub
