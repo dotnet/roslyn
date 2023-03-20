@@ -17,7 +17,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
+    <!-- 
+      Bumping MSBuildStructuredLoggerVersion would move us to newer version of MSBuild Pacakge,
+      which no longer support netcoreapp3.1. Therefore we only change the version referenced here
+      to get our CI to work without requiring product change.
+     -->
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.787" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
   </ItemGroup>
   <ItemGroup>
