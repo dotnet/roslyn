@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
         /// System.ComponentModel.DesignerCategoryAttribute attribute.
         /// </summary>
-        private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<bool>> s_metadataReferenceToDesignerAttributeInfo = new();
+        private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<bool>> s_metadataIdToDesignerAttributeInfo = new();
 
         private readonly IAsynchronousOperationListener _listener;
 
@@ -76,8 +77,18 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                PortableExecutableReference peReference,
                CancellationToken cancellationToken)
             {
-                var asyncLazy = s_metadataReferenceToDesignerAttributeInfo.GetValue(
-                    peReference, peReference => AsyncLazy.Create(cancellationToken =>
+                MetadataId metadataId;
+                try
+                {
+                    metadataId = peReference.GetMetadataId();
+                }
+                catch (Exception ex) when (ex is BadImageFormatException or IOException)
+                {
+                    return false;
+                }
+
+                var asyncLazy = s_metadataIdToDesignerAttributeInfo.GetValue(
+                    metadataId, _ => AsyncLazy.Create(cancellationToken =>
                         ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken), cacheResult: true));
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
