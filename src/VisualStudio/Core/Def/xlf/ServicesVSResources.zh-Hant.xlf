@@ -432,6 +432,11 @@
         <target state="translated">從來源產生器中，啟用已開啟檔案中的所有功能 (實驗性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">啟用診斷的檔案記錄 (在 '%Temp%\Roslyn' 資料夾中記錄)</target>

@@ -1366,13 +1366,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Protected Overrides Function ClassDeclaration(
-            name As String,
-            typeParameters As IEnumerable(Of SyntaxNode),
-            accessibility As Accessibility,
-            modifiers As DeclarationModifiers,
-            baseType As SyntaxNode,
-            interfaceTypes As IEnumerable(Of SyntaxNode),
-            members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+                isRecord As Boolean,
+                name As String,
+                typeParameters As IEnumerable(Of SyntaxNode),
+                accessibility As Accessibility,
+                modifiers As DeclarationModifiers,
+                baseType As SyntaxNode,
+                interfaceTypes As IEnumerable(Of SyntaxNode),
+                members As IEnumerable(Of SyntaxNode)) As SyntaxNode
 
             Dim itypes = If(interfaceTypes IsNot Nothing, interfaceTypes.Cast(Of TypeSyntax), Nothing)
             If itypes IsNot Nothing AndAlso itypes.Count = 0 Then
@@ -1403,12 +1404,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Protected Overrides Function StructDeclaration(
-            name As String,
-            typeParameters As IEnumerable(Of SyntaxNode),
-            accessibility As Accessibility,
-            modifiers As DeclarationModifiers,
-            interfaceTypes As IEnumerable(Of SyntaxNode),
-            members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+                isRecord As Boolean,
+                name As String,
+                typeParameters As IEnumerable(Of SyntaxNode),
+                accessibility As Accessibility,
+                modifiers As DeclarationModifiers,
+                interfaceTypes As IEnumerable(Of SyntaxNode),
+                members As IEnumerable(Of SyntaxNode)) As SyntaxNode
 
             Dim itypes = If(interfaceTypes IsNot Nothing, interfaceTypes.Cast(Of TypeSyntax), Nothing)
             If itypes IsNot Nothing AndAlso itypes.Count = 0 Then

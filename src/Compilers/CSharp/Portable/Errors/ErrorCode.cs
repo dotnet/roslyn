@@ -2187,6 +2187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadUnsafeInUsingDirective = 9131,
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
         ERR_BadStaticAfterUnsafe = 9133,
+
+        ERR_BadCaseInSwitchArm = 9134,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
