@@ -989,16 +989,16 @@ End Module
   IL_0048:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_004d:  dup
   IL_004e:  isinst     "Decimal"
-  IL_0053:  brtrue.s   IL_0058
-  IL_0055:  ldc.i4.0
-  IL_0056:  br.s       IL_0059
-  IL_0058:  ldc.i4.1
+  IL_0053:  ldnull
+  IL_0054:  cgt.un
+  IL_0056:  ldc.i4.0
+  IL_0057:  cgt.un
   IL_0059:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_005e:  isinst     "Decimal"
-  IL_0063:  brfalse.s  IL_0068
-  IL_0065:  ldc.i4.0
-  IL_0066:  br.s       IL_0069
-  IL_0068:  ldc.i4.1
+  IL_0063:  ldnull
+  IL_0064:  ceq
+  IL_0066:  ldc.i4.0
+  IL_0067:  cgt.un
   IL_0069:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_006e:  ret
 }
