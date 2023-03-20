@@ -9884,7 +9884,10 @@ using unsafe X = int*;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int*;").WithLocation(2, 1),
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = int*;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
         }
 
         [Fact]
@@ -9900,7 +9903,10 @@ using unsafe X = int;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int;").WithLocation(2, 1),
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
         }
 
         [Fact]
@@ -9948,7 +9954,10 @@ using unsafe X = System.String;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = System.String;").WithLocation(2, 1),
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = System.String;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = System.String;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
         }
 
         [Fact]
@@ -10728,7 +10737,10 @@ class C
             comp.VerifyDiagnostics(
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
@@ -10787,6 +10799,9 @@ class C
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = int*[];
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int*[];
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
                 // (6,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     X M(X x) => throw null; // 1, 2
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 5),
@@ -10909,6 +10924,9 @@ unsafe class C
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
                 // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(4, 14));
