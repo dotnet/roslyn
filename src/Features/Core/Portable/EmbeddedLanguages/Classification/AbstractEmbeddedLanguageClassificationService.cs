@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             AddEmbeddedLanguageClassifications(document.Project, semanticModel, textSpan, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             if (project is null)
                 return;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
             private readonly ClassificationOptions _options;
-            private readonly ArrayBuilder<ClassifiedSpan> _result;
+            private readonly ImmutableSegmentedList<ClassifiedSpan>.Builder _result;
             private readonly CancellationToken _cancellationToken;
 
             public Worker(
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ClassificationOptions options,
-                ArrayBuilder<ClassifiedSpan> result,
+                ImmutableSegmentedList<ClassifiedSpan>.Builder result,
                 CancellationToken cancellationToken)
             {
                 _owner = service;

@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
@@ -55,16 +54,16 @@ namespace Microsoft.CodeAnalysis.Classification
         [DataMember(Order = 1)]
         public List<int>? ClassificationTriples;
 
-        internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
+        internal static SerializableClassifiedSpans Dehydrate(ImmutableSegmentedList<ClassifiedSpan> classifiedSpans)
         {
             using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
             return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
-        private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
+        private static SerializableClassifiedSpans Dehydrate(ImmutableSegmentedList<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
             var classificationTypes = new List<string>();
-            var classificationTriples = new List<int>(capacity: classifiedSpans.Length * 3);
+            var classificationTriples = new List<int>(capacity: classifiedSpans.Count * 3);
 
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Classification
             };
         }
 
-        internal void Rehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        internal void Rehydrate(ImmutableSegmentedList<ClassifiedSpan>.Builder classifiedSpans)
         {
             Contract.ThrowIfNull(ClassificationTypes);
             Contract.ThrowIfNull(ClassificationTriples);

@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     internal readonly struct EmbeddedLanguageClassificationContext
     {
-        private readonly ArrayBuilder<ClassifiedSpan> _result;
+        private readonly ImmutableSegmentedList<ClassifiedSpan>.Builder _result;
 
         public Project Project { get; }
 
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SyntaxToken syntaxToken,
             ClassificationOptions options,
             IVirtualCharService virtualCharService,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             CancellationToken cancellationToken)
         {
             Project = project;

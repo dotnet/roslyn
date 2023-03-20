@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -66,7 +67,7 @@ class Program
 ";
         }
 
-        protected Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions parseOptions)
+        private protected Task<ImmutableSegmentedList<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions parseOptions)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
             {
@@ -75,7 +76,7 @@ class Program
             }
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        private protected static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var tree = await document.GetSyntaxTreeAsync();
 
@@ -83,7 +84,7 @@ class Program
             var classifiers = service.GetDefaultSyntaxClassifiers();
             var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
 
-            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var results = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
             await service.AddSemanticClassificationsAsync(
                 document,
@@ -94,7 +95,7 @@ class Program
                 results,
                 CancellationToken.None);
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutable();
         }
     }
 }

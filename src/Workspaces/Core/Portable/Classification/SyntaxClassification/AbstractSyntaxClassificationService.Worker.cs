@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,18 +20,18 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly ArrayBuilder<ClassifiedSpan> _list;
+            private readonly ImmutableSegmentedList<ClassifiedSpan>.Builder _list;
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly SegmentedHashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
             private readonly ClassificationOptions _options;
 
             private Worker(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                ImmutableSegmentedList<ClassifiedSpan>.Builder list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
@@ -46,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 _options = options;
 
                 // get one from pool
-                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
+                _set = new SegmentedHashSet<ClassifiedSpan>();
                 _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
             internal static void Classify(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                ImmutableSegmentedList<ClassifiedSpan>.Builder list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 finally
                 {
                     // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
+                    worker._set.Clear();
                     SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
                 }
             }

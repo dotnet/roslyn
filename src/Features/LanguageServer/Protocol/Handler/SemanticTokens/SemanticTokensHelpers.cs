@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
-        private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
+        private static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetClassifiedSpansForDocumentAsync(
             Document document,
             TextSpan textSpan,
             ClassificationOptions options,
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            var classifiedSpans = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
             // Case 1 - Generated Razor documents:
             //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
@@ -139,14 +140,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
-            return classifiedSpans.ToArray();
+            return classifiedSpans.ToImmutable();
         }
 
-        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ImmutableSegmentedList<ClassifiedSpan> classifiedSpans)
         {
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
 
-            for (var spanIndex = 0; spanIndex < classifiedSpans.Length; spanIndex++)
+            for (var spanIndex = 0; spanIndex < classifiedSpans.Count; spanIndex++)
             {
                 var span = classifiedSpans[spanIndex];
                 text.GetLinesAndOffsets(span.TextSpan, out var startLine, out var startOffset, out var endLine, out var endOffSet);
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             static void ConvertToSingleLineSpan(
                 SourceText text,
-                ClassifiedSpan[] originalClassifiedSpans,
+                ImmutableSegmentedList<ClassifiedSpan> originalClassifiedSpans,
                 ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
                 ref int spanIndex,
                 string classificationType,
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     //     var x = @"one ""
                     //               two";
                     // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                    while (spanIndex + 1 < originalClassifiedSpans.Length &&
+                    while (spanIndex + 1 < originalClassifiedSpans.Count &&
                         textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
                     {
                         updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);

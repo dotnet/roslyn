@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             result.AddRange(list);
         }
 
-        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             using var _ = s_listPool.GetPooledObject(out var list);
             await _service.AddSemanticClassificationsAsync(document, textSpan, list, cancellationToken).ConfigureAwait(false);
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return new();
         }
 
-        public Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }

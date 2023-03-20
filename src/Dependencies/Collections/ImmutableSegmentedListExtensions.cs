@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 
 #pragma warning disable RS0001 // Use 'SpecializedCollections.EmptyEnumerable()'
@@ -112,6 +113,91 @@ namespace System.Linq
             else
             {
                 return Enumerable.Select(immutableList, selector);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new immutable segmented list based on filtered elements by the predicate. The list must not be null.
+        /// </summary>
+        /// <param name="list">The list to process</param>
+        /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
+        public static ImmutableSegmentedList<T> WhereAsSegmented<T>(this ImmutableSegmentedList<T> list, Func<T, bool> predicate)
+            => WhereAsSegmentedImpl<T, object?>(list, predicate, predicateWithArg: null, arg: null);
+
+        /// <summary>
+        /// Creates a new immutable segmented list based on filtered elements by the predicate. The list must not be null.
+        /// </summary>
+        /// <param name="list">The list to process</param>
+        /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
+        public static ImmutableSegmentedList<T> WhereAsSegmented<T, TArg>(this ImmutableSegmentedList<T> list, Func<T, TArg, bool> predicate, TArg arg)
+            => WhereAsSegmentedImpl(list, predicateWithoutArg: null, predicate, arg);
+
+        private static ImmutableSegmentedList<T> WhereAsSegmentedImpl<T, TArg>(ImmutableSegmentedList<T> list, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
+        {
+            Debug.Assert(!list.IsDefault);
+            Debug.Assert(predicateWithArg != null ^ predicateWithoutArg != null);
+
+            ImmutableSegmentedList<T>.Builder? builder = null;
+            bool none = true;
+            bool all = true;
+
+            int n = list.Count;
+            for (int i = 0; i < n; i++)
+            {
+                var a = list[i];
+
+                if ((predicateWithoutArg != null) ? predicateWithoutArg(a) : predicateWithArg!(a, arg))
+                {
+                    none = false;
+                    if (all)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(i > 0);
+                    if (builder == null)
+                    {
+                        builder = ImmutableSegmentedList.CreateBuilder<T>();
+                    }
+
+                    builder.Add(a);
+                }
+                else
+                {
+                    if (none)
+                    {
+                        all = false;
+                        continue;
+                    }
+
+                    Debug.Assert(i > 0);
+                    if (all)
+                    {
+                        Debug.Assert(builder == null);
+                        all = false;
+                        builder = ImmutableSegmentedList.CreateBuilder<T>();
+                        for (int j = 0; j < i; j++)
+                        {
+                            builder.Add(list[j]);
+                        }
+                    }
+                }
+            }
+
+            if (builder != null)
+            {
+                Debug.Assert(!all);
+                Debug.Assert(!none);
+                return builder.ToImmutable();
+            }
+            else if (all)
+            {
+                return list;
+            }
+            else
+            {
+                Debug.Assert(none);
+                return ImmutableSegmentedList<T>.Empty;
             }
         }
     }

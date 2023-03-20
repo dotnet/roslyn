@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             CancellationToken cancellationToken)
         {
             try
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {

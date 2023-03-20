@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // classifications.  For tagging, normally the editor handles this.  But as
             // we're producing the list of Inlines ourselves, we have to handles this here.
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntaxSpans);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
+            var semanticSpans = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
 
@@ -78,9 +79,19 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
+        private static void RemoveAdditiveSpans(ImmutableSegmentedList<ClassifiedSpan>.Builder spans)
+        {
+            for (var i = spans.Count - 1; i >= 0; i--)
+            {
+                var span = spans[i];
+                if (ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType))
+                    spans.RemoveAt(i);
+            }
+        }
+
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
             ArrayBuilder<ClassifiedSpan> syntaxSpans,
-            ArrayBuilder<ClassifiedSpan> semanticSpans,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder semanticSpans,
             TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
@@ -121,12 +132,46 @@ namespace Microsoft.CodeAnalysis.Classification
         private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
             => syntaxSpans.Sort(s_spanComparison);
 
+        private static void Order(ImmutableSegmentedList<ClassifiedSpan>.Builder syntaxSpans)
+            => syntaxSpans.Sort(s_spanComparison);
+
         /// <summary>
         /// Ensures that all spans in <paramref name="spans"/> do not go beyond the spans in <paramref
         /// name="widenedSpan"/>. Any spans that are entirely outside of <paramref name="widenedSpan"/> are replaced
         /// with <see langword="default"/>.
         /// </summary>
         private static void AdjustSpans(ArrayBuilder<ClassifiedSpan> spans, TextSpan widenedSpan)
+        {
+            for (var i = 0; i < spans.Count; i++)
+            {
+                var span = spans[i];
+
+                // Make sure the span actually intersects 'widenedSpan'.  If it 
+                // does not, just put in an empty length span.  It will get ignored later
+                // when we walk through this list.
+                var intersection = span.TextSpan.Intersection(widenedSpan);
+
+                if (i > 0 && intersection != null)
+                {
+                    // The additiveType's may appear before or after their modifier due to sorting.
+                    var previousSpan = spans[i - 1];
+                    var isAdditiveClassification = previousSpan.TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
+
+                    // Additive classifications are intended to overlap so do not ignore it.
+                    if (!isAdditiveClassification && previousSpan.TextSpan.End > intersection.Value.Start)
+                    {
+                        // This span isn't strictly after the previous span.  Ignore it.
+                        intersection = null;
+                    }
+                }
+
+                var newSpan = new ClassifiedSpan(span.ClassificationType, intersection.GetValueOrDefault());
+                spans[i] = newSpan;
+            }
+        }
+
+        private static void AdjustSpans(ImmutableSegmentedList<ClassifiedSpan>.Builder spans, TextSpan widenedSpan)
         {
             for (var i = 0; i < spans.Count; i++)
             {
@@ -189,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         private static void MergeParts(
             ArrayBuilder<ClassifiedSpan> syntaxParts,
-            ArrayBuilder<ClassifiedSpan> semanticParts,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder semanticParts,
             ArrayBuilder<ClassifiedSpan> finalParts)
         {
             // Create an interval tree so we can easily determine which semantic parts intersect with the 

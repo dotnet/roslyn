@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Classification
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         public Task AddSemanticClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             return AddClassificationsAsync(document, textSpan, options, ClassificationType.Semantic, result, cancellationToken);
         }
 
         public Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, ImmutableSegmentedList<ClassifiedSpan>.Builder result, CancellationToken cancellationToken)
         {
             return AddClassificationsAsync(document, textSpan, options, ClassificationType.EmbeddedLanguage, result, cancellationToken);
         }
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationOptions options,
             ClassificationType type,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationType type,
             RemoteHostClient client,
             bool isFullyLoaded,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             CancellationToken cancellationToken)
         {
             // Only try to get cached classifications if we're not fully loaded yet.
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationType type,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder result,
             CancellationToken cancellationToken)
         {
             if (type == ClassificationType.Semantic)

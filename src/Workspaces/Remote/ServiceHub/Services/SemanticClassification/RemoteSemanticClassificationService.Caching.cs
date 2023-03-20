@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// This can be read and updated from different threads.  To keep things safe, we use this object itself
         /// as the lock that is taken to serialize access.
         /// </summary>
-        private readonly LinkedList<(DocumentId id, ClassificationType type, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
+        private readonly LinkedList<(DocumentId id, ClassificationType type, Checksum checksum, ImmutableSegmentedList<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
         /// <summary>
         /// Queue where we place documents we want to compute and cache full semantic classifications for.  Note: the
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
             return classifiedSpans.IsDefault
                 ? null
-                : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => c.TextSpan.IntersectsWith(textSpan)));
+                : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsSegmented(static (c, textSpan) => c.TextSpan.IntersectsWith(textSpan), textSpan));
         }
 
         private static async ValueTask CacheClassificationsAsync(
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (matches)
                 return;
 
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            var classifiedSpans = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
             // Compute classifications for the full span.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await storage.WriteStreamAsync(documentKey, persistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void WriteTo(ArrayBuilder<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
+        private static void WriteTo(ImmutableSegmentedList<ClassifiedSpan>.Builder classifiedSpans, ObjectWriter writer)
         {
             writer.WriteInt32(ClassificationFormat);
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<ImmutableArray<ClassifiedSpan>> TryGetOrReadCachedSemanticClassificationsAsync(
+        private async Task<ImmutableSegmentedList<ClassifiedSpan>> TryGetOrReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return classifiedSpans;
         }
 
-        private bool TryGetFromInMemoryCache(DocumentKey documentKey, Checksum checksum, out ImmutableArray<ClassifiedSpan> classifiedSpans)
+        private bool TryGetFromInMemoryCache(DocumentKey documentKey, Checksum checksum, out ImmutableSegmentedList<ClassifiedSpan> classifiedSpans)
         {
             lock (_cachedData)
             {
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
-            ImmutableArray<ClassifiedSpan> classifiedSpans)
+            ImmutableSegmentedList<ClassifiedSpan> classifiedSpans)
         {
             lock (_cachedData)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<ImmutableArray<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
+        private async Task<ImmutableSegmentedList<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return Read(reader);
         }
 
-        private static ImmutableArray<ClassifiedSpan> Read(ObjectReader reader)
+        private static ImmutableSegmentedList<ClassifiedSpan> Read(ObjectReader reader)
         {
             try
             {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     classificationTypes.Add(reader.ReadString());
 
                 var classifiedSpanCount = reader.ReadInt32();
-                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var classifiedSpans);
+                var classifiedSpans = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
                 for (var i = 0; i < classifiedSpanCount; i++)
                 {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutableAndClear();
+                return classifiedSpans.ToImmutable();
             }
             catch
             {

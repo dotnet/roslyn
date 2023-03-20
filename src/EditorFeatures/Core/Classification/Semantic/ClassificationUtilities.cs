@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+                    var classifiedSpans = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
                     await AddClassificationsAsync(
                         classificationService, options, document, snapshotSpan, classifiedSpans, type, cancellationToken).ConfigureAwait(false);
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             Document document,
             SnapshotSpan snapshotSpan,
-            ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            ImmutableSegmentedList<ClassifiedSpan>.Builder classifiedSpans,
             ClassificationType type,
             CancellationToken cancellationToken)
         {
