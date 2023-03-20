@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis
                     if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || shouldSaveTransformedCode))
                     {
                         var treeMap = new List<(SyntaxTree OldTree, SyntaxTree NewTree)>(transformersResult.TransformedTrees.Length);
-                        var pathMap = new List<(string OldPath, string NewPath)>(transformersResult.TransformedTrees.Length);
+                        var pathMap = new List<TransformedFileMapping>(transformersResult.TransformedTrees.Length);
 
                         if (shouldDebugTransformedCode && !shouldSaveTransformedCode)
                         {
@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis
 
                                     text.Write(writer, cancellationToken);
                                     touchedFilesLogger?.AddWritten(fullPath);
-                                    pathMap.Add((tree.FilePath, fullPath));
+                                    pathMap.Add(new(tree.FilePath, fullPath));
                                 }
                             }
                             else
@@ -1699,14 +1699,14 @@ namespace Microsoft.CodeAnalysis
 
                         if (shouldSaveTransformedCode && pathMap.Any())
                         {
-                            var path = Path.Combine(transformedOutputPath, "filemap.json");
+                            var path = Path.Combine(transformedOutputPath, TransformedFileMapping.FileName);
                             var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                             if (fileStream is not null)
                             {
                                 using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
                                 using var writer = new StreamWriter(fileStream);
 
-                                new JsonSerializer().Serialize(writer, pathMap.Select(tuple => new { tuple.OldPath, tuple.NewPath }));
+                                new JsonSerializer().Serialize(writer, pathMap);
                             }
                         }
 
