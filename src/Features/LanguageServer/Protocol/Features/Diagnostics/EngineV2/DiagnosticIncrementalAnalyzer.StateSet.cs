@@ -37,10 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public (Type, string) SyntaxStateName => (Analyzer.GetType(), nameof(SyntaxStateName));
-            public (Type, string) SemanticStateName => (Analyzer.GetType(), nameof(SemanticStateName));
-            public (Type, string) NonLocalStateName => (Analyzer.GetType(), nameof(NonLocalStateName));
-
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
             {
