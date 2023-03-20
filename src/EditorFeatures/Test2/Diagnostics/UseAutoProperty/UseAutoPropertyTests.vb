@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
             End If
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/67350")>
+        <Fact>
         Public Async Function TestMultiFile_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -60,7 +60,7 @@ partial class C
                 })
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/67350")>
+        <Fact>
         Public Async Function TestMultiFile_VisualBasic() As Task
             Dim input =
                 <Workspace>
