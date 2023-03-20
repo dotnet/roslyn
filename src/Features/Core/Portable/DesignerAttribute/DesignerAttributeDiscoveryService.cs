@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
     {
         /// <summary>
-        /// Cache from a references a project has, to a boolean specifying if reference knows about the
+        /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
         /// System.ComponentModel.DesignerCategoryAttribute attribute.
         /// </summary>
         private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<bool>> s_metadataReferenceToDesignerAttributeInfo = new();
@@ -90,9 +90,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             {
                 var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solutionServices, solutionKey, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
-                return info.ContainsSymbolWithName(nameof(System)) &&
+                var result =
+                    info.ContainsSymbolWithName(nameof(System)) &&
                     info.ContainsSymbolWithName(nameof(System.ComponentModel)) &&
                     info.ContainsSymbolWithName(nameof(System.ComponentModel.DesignerCategoryAttribute));
+                return result;
             }
         }
 
