@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private const string SyntaxStateName = nameof(SyntaxStateName);
-        private const string SemanticStateName = nameof(SemanticStateName);
-        private const string NonLocalStateName = nameof(NonLocalStateName);
-
         /// <summary>
         /// State for diagnostics that belong to a project at given time.
         /// </summary>
         private sealed class ProjectState
         {
+            private const string SyntaxStateName = nameof(SyntaxStateName);
+            private const string SemanticStateName = nameof(SemanticStateName);
+            private const string NonLocalStateName = nameof(NonLocalStateName);
+
             // project id of this state
             private readonly StateSet _owner;
 
