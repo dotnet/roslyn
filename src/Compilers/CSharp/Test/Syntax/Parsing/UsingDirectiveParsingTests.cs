@@ -4459,49 +4459,6 @@ using X = __makeref;
     }
 
     [Fact]
-    public void UsingStaticUnsafe_CSharp11_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text, options: TestOptions.Regular11);
-        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14),
-            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
     public void UsingStaticUnsafe_SafeType_CSharp11_NoUnsafeFlag()
     {
         var text = @"using static unsafe System.Console;";
