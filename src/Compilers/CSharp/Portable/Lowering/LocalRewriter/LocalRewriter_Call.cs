@@ -137,6 +137,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+            var method = node.Method;
+            
+            var interceptableLocation = node.InterceptableLocation;
+            var interceptor = this._compilation.GetInterceptor(interceptableLocation);
+            if (interceptor != null)
+            {
+                Debug.Assert(interceptableLocation != null);
+                if (!method.IsInterceptable)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                }
+
+                // if (!MemberSignatureComparer.PartialMethodsComparer.Equals(method, interceptor))
+                // {
+                //     this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                //     // PROTOTYPE(ic): permit intercepting an instance method with an extension method, etc.
+                // }
+                method = interceptor;
+            }
+
             // Rewrite the receiver
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             var argRefKindsOpt = node.ArgumentRefKindsOpt;
@@ -146,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref rewrittenReceiver,
                 captureReceiverMode: ReceiverCaptureMode.Default,
                 node.Arguments,
-                node.Method,
+                method,
                 node.ArgsToParamsOpt,
                 argRefKindsOpt,
                 storesOpt: null,
@@ -155,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenCall = MakeArgumentsAndCall(
                 syntax: node.Syntax,
                 rewrittenReceiver: rewrittenReceiver,
-                method: node.Method,
+                method: method,
                 arguments: rewrittenArguments,
                 argumentRefKindsOpt: argRefKindsOpt,
                 expanded: node.Expanded,

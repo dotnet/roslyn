@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -236,6 +237,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Method;
+            }
+        }
+
+        public Location? InterceptableLocation
+        {
+            get
+            {
+                if (this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                if (syntax.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    return memberAccess.Name.Location;
+                }
+                else
+                {
+                    return syntax.Expression.Location;
+                }
             }
         }
     }

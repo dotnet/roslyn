@@ -2247,6 +2247,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
+        private ConcurrentSet<(InterceptsLocationAttributeData, MethodSymbol)>? _interceptions;
+
+        internal void AddInterception(InterceptsLocationAttributeData location, MethodSymbol interceptor)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+            LazyInitializer.EnsureInitialized(ref _interceptions).Add((location, interceptor));
+            // PROTOTYPE(ic): when all this is done, build a map and give duplicate/misplaced diagnostics which we can use in lowering.
+        }
+
+        internal MethodSymbol? GetInterceptor(Location? callLocation)
+        {
+            if (_interceptions is null || callLocation is null)
+            {
+                return null;
+            }
+
+            foreach (var (interceptsLocation, interceptor) in _interceptions)
+            {
+                var callLineColumn = callLocation.GetLineSpan().Span.Start;
+                if (interceptsLocation.FilePath == callLocation.SourceTree!.FilePath
+                    && interceptsLocation.Line == callLineColumn.Line
+                    && interceptsLocation.Character == callLineColumn.Character)
+                {
+                    return interceptor;
+                }
+            }
+
+            return null;
+        }
+
+        internal void BuildInterceptorsMap()
+        {
+            // PROTOTYPE(ic): build a map where we can quickly lookup with a location and get a symbol.
+            // At this time, should report any duplicate interceptor diagnostics.
+            // NB: the attribute which appears lexically first wins a tie. Subsequent attributes referring to same location result in errors.
+        }
+
         #endregion
 
         #region Binding
@@ -3236,6 +3273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
+
+                BuildInterceptorsMap();
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
                 // behavior as when calling GetDiagnostics()

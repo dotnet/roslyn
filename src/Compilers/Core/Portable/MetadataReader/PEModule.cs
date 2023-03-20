@@ -1029,6 +1029,7 @@ namespace Microsoft.CodeAnalysis
         {
             return FindTargetAttribute(token, AttributeDescription.InterceptableAttribute).HasValue;
         }
+
         internal bool HasAccessedThroughPropertyAttribute(EntityHandle token, out string propertyName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.AccessedThroughPropertyAttribute, out propertyName);

@@ -595,6 +595,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasInterceptableAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptsLocationAttribute))
+            {
+                DecodeInterceptsLocationAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -931,6 +935,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
             }
+        }
+
+        private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            // PROTOTYPE(ic): more diagnostics
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeLocation = arguments.AttributeSyntaxOpt.Location;
+
+            var attributeArguments = arguments.Attribute.CommonConstructorArguments;
+            if (attributeArguments is not [
+                    { Kind: not TypedConstantKind.Array, Value: string filePath },
+                    { Kind: not TypedConstantKind.Array, Value: int lineNumber },
+                    { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
+            {
+                // PROTOTYPE(ic): diagnostic
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, attributeLocation);
+                return;
+            }
+
+            if (!DeclaringCompilation.SyntaxTrees.Any(static (tree, filePath) => tree.FilePath == filePath, filePath))
+            {
+                // PROTOTYPE(ic): diagnostic: no matching file
+                // TODO: if we normalize paths, it should probably be here.
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, attributeLocation);
+            }
+
+            DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumber, characterNumber, attributeLocation), this);
         }
 
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
