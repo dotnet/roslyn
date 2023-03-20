@@ -287,27 +287,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToImmutable();
             }
 
-            [Conditional("DEBUG")]
-            private static void VerifyUniqueStateNames(IEnumerable<StateSet> stateSets)
-            {
-                // Ensure diagnostic state name is indeed unique.
-                var set = new HashSet<(string, (Type, string))>();
-
-                foreach (var stateSet in stateSets)
-                    Contract.ThrowIfFalse(set.Add((stateSet.Language, stateSet.StateName)));
-            }
-
-            [Conditional("DEBUG")]
-            private void VerifyProjectDiagnosticStates(IEnumerable<StateSet> stateSets)
-            {
-                // We do not de-duplicate analyzer instances across host and project analyzers.
-                var projectAnalyzers = stateSets.Select(state => state.Analyzer).ToImmutableHashSet();
-
-                var hostStates = GetAllHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
-
-                VerifyUniqueStateNames(hostStates.Concat(stateSets));
-            }
-
             private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
             {
                 public HostAnalyzerStateSetKey(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
