@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -22,7 +23,7 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? solutionPath, string? brokeredServicePipeName, LogLevel minimumLogLevel, CancellationToken cancellationToken)
+static async Task RunAsync(bool launchDebugger, string? solutionPath, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -91,6 +92,10 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         var bridgeProvider = exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
 
         bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, cancellationToken);
+
+        // starred completions can only be initialized if brokered service pipe and relevant path are both present
+        var serviceBroker = container.GetFullAccessServiceBroker();
+        StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBroker);
     }
 
     // Create the project system first, since right now the language server will assume there's at least one Workspace
@@ -153,6 +158,11 @@ static Parser CreateCommandLineParser()
     {
         IsRequired = true,
     };
+    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
+    {
+        Description = "The location of the starred completion component (if one exists).",
+        IsRequired = false,
+    };
 
     var rootCommand = new RootCommand()
     {
@@ -160,6 +170,7 @@ static Parser CreateCommandLineParser()
         solutionPathOption,
         brokeredServicePipeNameOption,
         logLevelOption,
+        starredCompletionsPathOption,
     };
     rootCommand.SetHandler(context =>
     {
@@ -168,8 +179,9 @@ static Parser CreateCommandLineParser()
         var solutionPath = context.ParseResult.GetValueForOption(solutionPathOption);
         var brokeredServicePipeName = context.ParseResult.GetValueForOption(brokeredServicePipeNameOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
+        var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
 
-        return RunAsync(launchDebugger, solutionPath, brokeredServicePipeName, logLevel, cancellationToken);
+        return RunAsync(launchDebugger, solutionPath, brokeredServicePipeName, logLevel, starredCompletionsPath, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();

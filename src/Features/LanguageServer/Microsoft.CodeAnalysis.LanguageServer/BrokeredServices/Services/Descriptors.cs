@@ -16,6 +16,7 @@ internal class Descriptors
     // If adding services here, make sure to update RemoteServicesToRegister.
 
     public static readonly ServiceRpcDescriptor RemoteHelloWorldService = CreateDescriptor(new("helloServiceHubDotNetHost", new Version("0.1")));
+    public static readonly ServiceRpcDescriptor RemoteModelService = CreateDescriptor(new("vs-intellicode-base-models", new Version("0.1")));
 
     // Descriptors for local services.
 
@@ -31,6 +32,7 @@ internal class Descriptors
     public static ImmutableDictionary<ServiceMoniker, ServiceRegistration> RemoteServicesToRegister = new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { Descriptors.RemoteHelloWorldService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { Descriptors.RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(

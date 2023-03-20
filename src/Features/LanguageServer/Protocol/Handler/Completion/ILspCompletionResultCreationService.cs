@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             if (itemDefaultsSupported && completionChangeSpan == defaultSpan)
             {
                 // The span is the same as the default, we just need to store the new text as
-                // the insert text so the client can create the text edit from it and the default range.
-                lspItem.InsertText = newText;
+                // the text edit text so the client can create the text edit from it and the default range.
+                lspItem.TextEditText = newText;
             }
             else
             {
