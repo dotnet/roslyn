@@ -867,7 +867,7 @@ struct A { }";
     public void AliasUsingDirectivePredefinedType_CSharp11()
     {
         var text = @"using x = int;";
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = int;
@@ -4057,7 +4057,7 @@ using X = __makeref;
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
 
-        UsingTree(text,
+        UsingTree(text, options: TestOptions.Regular11,
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
@@ -4104,7 +4104,7 @@ using X = __makeref;
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
 
-        UsingTree(text,
+        UsingTree(text, options: TestOptions.Regular11,
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
@@ -4248,7 +4248,7 @@ using X = __makeref;
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
 
-        UsingTree(text,
+        UsingTree(text, options: TestOptions.Regular11,
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
@@ -4306,7 +4306,7 @@ using X = __makeref;
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
 
-        UsingTree(text,
+        UsingTree(text, options: TestOptions.Regular11,
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
@@ -4463,7 +4463,7 @@ using X = __makeref;
     {
         var text = @"using static unsafe System.Console;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
@@ -4506,7 +4506,7 @@ using X = __makeref;
     {
         var text = @"using static unsafe System.Console;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
@@ -4549,7 +4549,7 @@ using X = __makeref;
     {
         var text = @"using static unsafe System.Console;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
@@ -4666,7 +4666,7 @@ using X = __makeref;
     {
         var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
@@ -4750,7 +4750,7 @@ using X = __makeref;
     {
         var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
@@ -4991,7 +4991,7 @@ using X = __makeref;
         // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
         var text = @"using static System.Collections.Generic.List<int*[]>;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static System.Collections.Generic.List<int*[]>;
@@ -5069,7 +5069,7 @@ using X = __makeref;
         // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
         var text = @"using static System.Collections.Generic.List<int*[]>;";
 
-        UsingTree(text);
+        UsingTree(text, options: TestOptions.Regular11);
         CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static System.Collections.Generic.List<int*[]>;
