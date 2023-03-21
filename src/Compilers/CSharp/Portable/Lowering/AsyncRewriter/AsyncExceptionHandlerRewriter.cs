@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly AwaitInFinallyAnalysis _analysis;
 
-        private AwaitCatchFrame _parentAwaitCatchFrame, _currentAwaitCatchFrame;
+        private AwaitCatchFrame _parentAwaitCatchFrame;
+        private AwaitCatchFrame _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
         private AsyncExceptionHandlerRewriter(
@@ -1007,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Dictionary<LocalSymbol, LocalSymbol> _hoistedLocals;
             private readonly List<LocalSymbol> _orderedHoistedLocals;
 
-            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax, AwaitCatchFrame parentOpt = null)
+            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax, AwaitCatchFrame parentOpt)
             {
                 this.pendingCaughtException = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Object)), SynthesizedLocalKind.TryAwaitPendingCaughtException, tryStatementSyntax);
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
