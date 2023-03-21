@@ -67,8 +67,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
                 if (syntaxKinds.ImplicitObjectCreationExpression != null)
                     matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+                var matchKindsArray = matchKinds.ToImmutableAndClear();
 
-                context.RegisterSyntaxNodeAction(AnalyzeNode, matchKinds.ToImmutableAndClear());
+                context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(AnalyzeNode, matchKindsArray));
             });
         }
 
