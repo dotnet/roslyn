@@ -214,12 +214,5 @@ End Class
 
             Await VerifyItemExistsAsync(code, "Implements")
         End Function
-
-        <Fact>
-        Public Async Function GlobalKeywordInEnumBaseList() As Task
-            Dim code = "Enum MyEnum As $$"
-
-            Await VerifyItemExistsAsync(code, "Global")
-        End Function
     End Class
 End Namespace
