@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
+internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
@@ -69,7 +69,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
-    public LspWorkspaceManager(
+    protected LspWorkspaceManager(
         ILspLogger logger,
         LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -93,7 +93,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StartTracking(Uri uri, SourceText documentText)
+    public virtual void StartTracking(Uri uri, SourceText documentText)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -110,7 +110,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StopTracking(Uri uri)
+    public virtual void StopTracking(Uri uri)
     {
         // First, stop tracking this URI and source text as it is no longer owned by LSP.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
@@ -130,7 +130,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
+    public virtual void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
     {
         // Store the updated LSP view of the source text.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didChange received for {uri} which is not open.");
@@ -371,5 +371,33 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             return _manager._lspWorkspaceRegistrationService.GetAllRegistrations().Contains(workspace);
         }
+    }
+}
+
+internal sealed class NonMutatingLspWorkspaceManager : LspWorkspaceManager
+{
+    public NonMutatingLspWorkspaceManager(
+        ILspLogger logger,
+        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        RequestTelemetryLogger requestTelemetryLogger)
+        : base(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, requestTelemetryLogger)
+    {
+    }
+}
+
+/// <summary>
+/// Implementation of the <see cref="LspWorkspaceManager"/> that also pushes all text changes along such that they
+/// change the data of the underlying workspace.
+/// </summary>
+internal sealed class MutatingLspWorkspaceManager : LspWorkspaceManager
+{
+    public MutatingLspWorkspaceManager(
+        ILspLogger logger,
+        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        RequestTelemetryLogger requestTelemetryLogger)
+        : base(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, requestTelemetryLogger)
+    {
     }
 }
