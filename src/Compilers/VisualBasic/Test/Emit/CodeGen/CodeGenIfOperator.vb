@@ -43,14 +43,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 ]]>
             Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("C.Comp", <![CDATA[
+            verifier.VerifyMethodBody("C.Comp", <![CDATA[
 {
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (Integer V_0, //Comp
                 Integer V_1, //tmp1
                 Integer V_2) //tmp2
+  // sequence point: Function Comp(x As Integer, y As Integer) As Integer
   IL_0000:  nop
+  // sequence point: tmp1 As Integer = If(x > y, 1, 0)
   IL_0001:  ldarg.0
   IL_0002:  ldarg.1
   IL_0003:  bgt.s      IL_0008
@@ -58,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0006:  br.s       IL_0009
   IL_0008:  ldc.i4.1
   IL_0009:  stloc.1
+  // sequence point: tmp2 As Integer = If(x < y, 1, 0)
   IL_000a:  ldarg.0
   IL_000b:  ldarg.1
   IL_000c:  blt.s      IL_0011
@@ -65,34 +68,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_000f:  br.s       IL_0012
   IL_0011:  ldc.i4.1
   IL_0012:  stloc.2
+  // sequence point: Return tmp1 - tmp2
   IL_0013:  ldloc.1
   IL_0014:  ldloc.2
   IL_0015:  sub.ovf
   IL_0016:  stloc.0
   IL_0017:  br.s       IL_0019
+  // sequence point: End Function
   IL_0019:  ldloc.0
   IL_001a:  ret
 }
-]]>)
+]]>.Value)
             verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("C.Comp", <![CDATA[
+            verifier.VerifyMethodBody("C.Comp", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  3
   .locals init (Integer V_0) //tmp2
+  // sequence point: tmp1 As Integer = If(x > y, 1, 0)
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  cgt
+  // sequence point: tmp2 As Integer = If(x < y, 1, 0)
   IL_0004:  ldarg.0
   IL_0005:  ldarg.1
   IL_0006:  clt
   IL_0008:  stloc.0
+  // sequence point: Return tmp1 - tmp2
   IL_0009:  ldloc.0
   IL_000a:  sub.ovf
+  // sequence point: End Function
   IL_000b:  ret
 }
-]]>)
+]]>.Value)
         End Sub
 
         <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
@@ -138,68 +147,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="0101100101FalseTrue1111111" & ChrW(1) & ChrW(0) & "111")
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("C.M", <![CDATA[
+            verifier.VerifyMethodBody("C.M", <![CDATA[
 {
   // Code size      266 (0x10a)
   .maxstack  2
+  // sequence point: Write(If(x = y, 1, 0))
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ceq
   IL_0004:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x = y, 0, 1))
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
   IL_000b:  ceq
   IL_000d:  ldc.i4.0
   IL_000e:  ceq
   IL_0010:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x < y, 1, 0))
   IL_0015:  ldarg.0
   IL_0016:  ldarg.1
   IL_0017:  clt
   IL_0019:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x < y, 0, 1))
   IL_001e:  ldarg.0
   IL_001f:  ldarg.1
   IL_0020:  clt
   IL_0022:  ldc.i4.0
   IL_0023:  ceq
   IL_0025:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x > y, 1, 0))
   IL_002a:  ldarg.0
   IL_002b:  ldarg.1
   IL_002c:  cgt
   IL_002e:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x > y, 0, 1))
   IL_0033:  ldarg.0
   IL_0034:  ldarg.1
   IL_0035:  cgt
   IL_0037:  ldc.i4.0
   IL_0038:  ceq
   IL_003a:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(a Is a, 0, 1))
   IL_003f:  ldarg.2
   IL_0040:  ldarg.2
   IL_0041:  ceq
   IL_0043:  ldc.i4.0
   IL_0044:  ceq
   IL_0046:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(a IsNot a, 0, 1))
   IL_004b:  ldarg.2
   IL_004c:  ldarg.2
   IL_004d:  ceq
   IL_004f:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(b, 0, 1))
   IL_0054:  ldarg.3
   IL_0055:  ldc.i4.0
   IL_0056:  ceq
   IL_0058:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not b, 0, 1))
   IL_005d:  ldarg.3
   IL_005e:  ldc.i4.0
   IL_005f:  cgt.un
   IL_0061:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <= y, True, False))
   IL_0066:  ldarg.0
   IL_0067:  ldarg.1
   IL_0068:  cgt
   IL_006a:  ldc.i4.0
   IL_006b:  ceq
   IL_006d:  call       "Sub System.Console.Write(Boolean)"
+  // sequence point: Write(If(x <= y, False, True))
   IL_0072:  ldarg.0
   IL_0073:  ldarg.1
   IL_0074:  cgt
   IL_0076:  call       "Sub System.Console.Write(Boolean)"
+  // sequence point: Write(If(x <> y, CByte(1), CByte(0)))
   IL_007b:  ldarg.0
   IL_007c:  ldarg.1
   IL_007d:  ceq
@@ -207,6 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0080:  ceq
   IL_0082:  conv.u1
   IL_0083:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <> y, CSByte(1), CSByte(0)))
   IL_0088:  ldarg.0
   IL_0089:  ldarg.1
   IL_008a:  ceq
@@ -214,6 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_008d:  ceq
   IL_008f:  conv.i1
   IL_0090:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <> y, 1S, 0S))
   IL_0095:  ldarg.0
   IL_0096:  ldarg.1
   IL_0097:  ceq
@@ -221,6 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_009a:  ceq
   IL_009c:  conv.i2
   IL_009d:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <> y, 1US, 0US))
   IL_00a2:  ldarg.0
   IL_00a3:  ldarg.1
   IL_00a4:  ceq
@@ -228,12 +253,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_00a7:  ceq
   IL_00a9:  conv.u2
   IL_00aa:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <> y, 1UI, 0UI))
   IL_00af:  ldarg.0
   IL_00b0:  ldarg.1
   IL_00b1:  ceq
   IL_00b3:  ldc.i4.0
   IL_00b4:  ceq
   IL_00b6:  call       "Sub System.Console.Write(UInteger)"
+  // sequence point: Write(If(x <> y, 1L, 0L))
   IL_00bb:  ldarg.0
   IL_00bc:  ldarg.1
   IL_00bd:  ceq
@@ -241,6 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_00c0:  ceq
   IL_00c2:  conv.i8
   IL_00c3:  call       "Sub System.Console.Write(Long)"
+  // sequence point: Write(If(x <> y, 1UL, 0UL))
   IL_00c8:  ldarg.0
   IL_00c9:  ldarg.1
   IL_00ca:  ceq
@@ -248,6 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_00cd:  ceq
   IL_00cf:  conv.i8
   IL_00d0:  call       "Sub System.Console.Write(ULong)"
+  // sequence point: Write(If(x < y, ChrW(0), ChrW(1)))
   IL_00d5:  ldarg.0
   IL_00d6:  ldarg.1
   IL_00d7:  clt
@@ -255,6 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_00da:  ceq
   IL_00dc:  conv.u2
   IL_00dd:  call       "Sub System.Console.Write(Char)"
+  // sequence point: Write(If(x < y, ChrW(1), vbNullChar))
   IL_00e2:  ldarg.0
   IL_00e3:  ldarg.1
   IL_00e4:  blt.s      IL_00ed
@@ -262,12 +292,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_00eb:  br.s       IL_00f2
   IL_00ed:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
   IL_00f2:  call       "Sub System.Console.Write(String)"
+  // sequence point: Write(If(True, 1, 0))
   IL_00f7:  ldc.i4.1
   IL_00f8:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(False, 0, 1))
   IL_00fd:  ldc.i4.1
   IL_00fe:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(B2, 1, 0))
   IL_0103:  ldc.i4.1
   IL_0104:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: End Sub
   IL_0109:  ret
 }
 ]]>.Value)
@@ -300,49 +334,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="0100101010")
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("C.M", <![CDATA[
+            verifier.VerifyMethodBody("C.M", <![CDATA[
 {
   // Code size       85 (0x55)
   .maxstack  2
+  // sequence point: Write(If(Not (x < y), 0, 1))
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  clt
   IL_0004:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not (x < y), 0, 1))
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
   IL_000b:  clt
   IL_000d:  ldc.i4.0
   IL_000e:  ceq
   IL_0010:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not Not (x < y), 0, 1))
   IL_0015:  ldarg.0
   IL_0016:  ldarg.1
   IL_0017:  clt
   IL_0019:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not (x = y), 0, 1))
   IL_001e:  ldarg.0
   IL_001f:  ldarg.1
   IL_0020:  ceq
   IL_0022:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not b, 0, 1))
   IL_0027:  ldarg.2
   IL_0028:  ldc.i4.0
   IL_0029:  cgt.un
   IL_002b:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not b, 0, 1))
   IL_0030:  ldarg.2
   IL_0031:  ldc.i4.0
   IL_0032:  ceq
   IL_0034:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not Not b, 0, 1))
   IL_0039:  ldarg.2
   IL_003a:  ldc.i4.0
   IL_003b:  cgt.un
   IL_003d:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not False, 0, 1))
   IL_0042:  ldc.i4.0
   IL_0043:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not False, 0, 1))
   IL_0048:  ldc.i4.1
   IL_0049:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(Not Not Not False, 0, 1))
   IL_004e:  ldc.i4.0
   IL_004f:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: End Sub
   IL_0054:  ret
 }
-]]>)
+]]>.Value)
         End Sub
 
         <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
@@ -372,10 +417,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="1022-1111a")
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("C.M", <![CDATA[
+            verifier.VerifyMethodBody("C.M", <![CDATA[
 {
   // Code size      158 (0x9e)
   .maxstack  2
+  // sequence point: Write(If(x = y, 1, 1))
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  beq.s      IL_0007
@@ -383,6 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0005:  br.s       IL_0008
   IL_0007:  ldc.i4.1
   IL_0008:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <> y, 0, 0))
   IL_000d:  ldarg.0
   IL_000e:  ldarg.1
   IL_000f:  bne.un.s   IL_0014
@@ -390,6 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0012:  br.s       IL_0015
   IL_0014:  ldc.i4.0
   IL_0015:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x <= y, 0, 2))
   IL_001a:  ldarg.0
   IL_001b:  ldarg.1
   IL_001c:  ble.s      IL_0021
@@ -397,6 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_001f:  br.s       IL_0022
   IL_0021:  ldc.i4.0
   IL_0022:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x >= y, 2, 1))
   IL_0027:  ldarg.0
   IL_0028:  ldarg.1
   IL_0029:  bge.s      IL_002e
@@ -404,6 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_002c:  br.s       IL_002f
   IL_002e:  ldc.i4.2
   IL_002f:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x < y, 0, -1))
   IL_0034:  ldarg.0
   IL_0035:  ldarg.1
   IL_0036:  blt.s      IL_003b
@@ -411,6 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0039:  br.s       IL_003c
   IL_003b:  ldc.i4.0
   IL_003c:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(x < y, 0R, 1R))
   IL_0041:  ldarg.0
   IL_0042:  ldarg.1
   IL_0043:  blt.s      IL_0050
@@ -418,6 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_004e:  br.s       IL_0059
   IL_0050:  ldc.r8     0
   IL_0059:  call       "Sub System.Console.Write(Double)"
+  // sequence point: Write(If(x < y, 0F, 1F))
   IL_005e:  ldarg.0
   IL_005f:  ldarg.1
   IL_0060:  blt.s      IL_0069
@@ -425,6 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0067:  br.s       IL_006e
   IL_0069:  ldc.r4     0
   IL_006e:  call       "Sub System.Console.Write(Single)"
+  // sequence point: Write(If(x < y, 0D, 1D))
   IL_0073:  ldarg.0
   IL_0074:  ldarg.1
   IL_0075:  blt.s      IL_007e
@@ -432,6 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_007c:  br.s       IL_0083
   IL_007e:  ldsfld     "Decimal.Zero As Decimal"
   IL_0083:  call       "Sub System.Console.Write(Decimal)"
+  // sequence point: Write(If(x < y, vbNullChar, "a"c))
   IL_0088:  ldarg.0
   IL_0089:  ldarg.1
   IL_008a:  blt.s      IL_0093
@@ -439,6 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0091:  br.s       IL_0098
   IL_0093:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
   IL_0098:  call       "Sub System.Console.Write(String)"
+  // sequence point: End Sub
   IL_009d:  ret
 }
 ]]>.Value)
@@ -481,26 +536,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 ]]>.Value, TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(comp, expectedOutput:="10")
             verifier.VerifyDiagnostics()
-            verifier.VerifyIL("D.M1", <![CDATA[
+            verifier.VerifyMethodBody("D.M1", <![CDATA[
 {
   // Code size        9 (0x9)
   .maxstack  2
+  // sequence point: Return If(C.M(), 1, 0)
   IL_0000:  call       "Function C.M() As Boolean"
   IL_0005:  ldc.i4.0
   IL_0006:  cgt.un
+  // sequence point: End Function
   IL_0008:  ret
 }
-]]>)
-            verifier.VerifyIL("D.M2", <![CDATA[
+]]>.Value)
+            verifier.VerifyMethodBody("D.M2", <![CDATA[
 {
   // Code size        9 (0x9)
   .maxstack  2
+  // sequence point: Return If(C.M(), 0, 1)
   IL_0000:  call       "Function C.M() As Boolean"
   IL_0005:  ldc.i4.0
   IL_0006:  ceq
+  // sequence point: End Function
   IL_0008:  ret
 }
-]]>)
+]]>.Value)
         End Sub
 
         ' Conditional operator as parameter
