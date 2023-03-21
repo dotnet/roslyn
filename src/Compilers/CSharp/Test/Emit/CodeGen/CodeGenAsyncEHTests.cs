@@ -2111,15 +2111,29 @@ class Driver
             var source = """
                 using System;
                 using System.Threading.Tasks;
+                using static System.Console;
 
                 class C
                 {
-                    bool F(Exception ex) => throw null!;
+                    static async Task Main()
+                    {
+                        await new C().M1();
+                    }
+
+                    int _counter;
+
+                    bool F(Exception ex)
+                    {
+                        _counter++;
+                        WriteLine($"F: {_counter} {ex.Message}");
+                        return _counter == 2;
+                    }
 
                     async Task M1()
                     {
                         try
                         {
+                            throw new Exception("M1");
                         }
                         catch (Exception ex) when (F(ex))
                         {
@@ -2129,6 +2143,7 @@ class Driver
                         {
                             try
                             {
+                                throw new Exception("M1-catch2");
                             }
                             catch 
                             {
@@ -2137,10 +2152,21 @@ class Driver
                         }
                     }
 
-                    Task M2(Exception ex) => throw null!;
+                    async Task M2(Exception ex)
+                    {
+                        WriteLine($"M2: {ex.Message}");
+                        await Task.Yield();
+                    }
                 }
                 """;
-            CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics();
+            var expectedOutput = """
+                F: 1 M1
+                F: 2 M1
+                M2: M1
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
     }
 }
