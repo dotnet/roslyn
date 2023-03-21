@@ -37,10 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     append("catch (");
                                     append(catchBlock.ExceptionTypeOpt?.Name);
-                                    append(") ");
-                                    if (catchBlock.ExceptionFilterOpt != null)
+                                    append(")");
+                                    if (catchBlock.ExceptionFilterOpt is { } exceptionFilter)
                                     {
-                                        append("... exception filter omitted ...");
+                                        if (catchBlock.ExceptionFilterPrologueOpt is { } exceptionFilterPrologue)
+                                        {
+                                            appendLine("");
+                                            appendLine("{");
+                                            appendSource(exceptionFilterPrologue);
+                                            appendLine("}");
+                                        }
+                                        else
+                                        {
+                                            append(" ");
+                                        }
+                                        append("when (");
+                                        appendSource(exceptionFilter);
+                                        append(")");
                                     }
                                     appendLine("");
 
