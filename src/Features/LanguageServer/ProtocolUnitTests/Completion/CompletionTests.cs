@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     {
         private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = CreateCoreCompletionCapabilities();
 
-        private static LSP.VSInternalClientCapabilities CreateCoreCompletionCapabilities ()
+        private static LSP.VSInternalClientCapabilities CreateCoreCompletionCapabilities()
             => new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
