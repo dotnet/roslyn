@@ -321,7 +321,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
                 specialTypeSymbol ??= _context.SemanticModel.Compilation.GetSpecialType(specialType);
 
-                var aliases = _context.SemanticModel.LookupSymbols(_context.Position, container).Where(s => s is IAliasSymbol alias && alias.Target.Equals(specialTypeSymbol));
+                var aliases = _context.SemanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => specialTypeSymbol.Equals(a.Target));
                 builder.AddRange(aliases);
             }
         }
