@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -12,10 +10,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     public class ProtocolConversionsTests
     {
-        [Fact]
-        public void CompletionItemKind_DontUseMethodAndFunction()
+        [Theory, CombinatorialData]
+        public void CompletionItemKind_DoNotUseMethodAndFunction(bool vsKinds)
         {
-            var map = ProtocolConversions.RoslynTagToCompletionItemKind;
+            var map = vsKinds? ProtocolConversions.RoslynTagToVSCompletionItemKind : ProtocolConversions.RoslynTagToDefaultCompletionItemKind;
 
             var containsMethod = map.Values.Any(c => c == CompletionItemKind.Method);
             var containsFunction = map.Values.Any(c => c == CompletionItemKind.Function);
