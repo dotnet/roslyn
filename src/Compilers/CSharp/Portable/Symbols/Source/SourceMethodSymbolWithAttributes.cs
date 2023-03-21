@@ -948,6 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     { Kind: not TypedConstantKind.Array, Value: int lineNumber },
                     { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
             {
+                // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
                 throw ExceptionUtilities.Unreachable();
             }
 

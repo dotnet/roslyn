@@ -537,7 +537,7 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable call, but rather to token 'c'.
+                // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method, but rather to token 'c'.
                 //     [InterceptsLocation("Program.cs", 14, 8)]
                 Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 8)").WithArguments("c").WithLocation(21, 6)
             );
@@ -567,15 +567,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 8)]
+                [InterceptsLocation("Program.cs", 14, 10)]
                 public static I1 Interceptor1(this I1 i1, int param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable call, but rather to token 'c'.
-                //     [InterceptsLocation("Program.cs", 14, 8)]
-                Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 8)").WithArguments("c").WithLocation(21, 6)
+                // Program.cs(15,11): error CS27007: Cannot intercept method 'Program.InterceptableMethod(I1, string)' with interceptor 'D.Interceptor1(I1, int)' because the signatures do not match.
+                //         c.InterceptableMethod("call site");
+                Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("Program.InterceptableMethod(I1, string)", "D.Interceptor1(I1, int)").WithLocation(15, 11)
             );
     }
 }
