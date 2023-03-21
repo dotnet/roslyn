@@ -53,16 +53,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             var taggedText = await inlineHintToResolve.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
             request.ToolTip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
-
-            TextEdit[]? textEdits = null;
-            if (inlineHintToResolve.ReplacementTextChange.HasValue)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textEdit = ProtocolConversions.TextChangeToTextEdit(inlineHintToResolve.ReplacementTextChange.Value, text);
-                textEdits = new TextEdit[] { textEdit };
-            }
-
-            request.TextEdits = textEdits;
             return request;
         }
 

@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
                 Dim typeHints = Await tagService.GetInlineHintsAsync(
                     document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
-                    
+
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
 

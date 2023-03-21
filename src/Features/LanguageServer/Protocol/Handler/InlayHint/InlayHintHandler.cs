@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
             var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
             var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
-
             var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride: false, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(hints.Length, out var inlayHints);
@@ -70,19 +69,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
                 // TextChange is calculated at the same time as the InlineHint,
                 // so it should not need to be resolved.
-                /*TextEdit[]? textEdits = null;
+                TextEdit[]? textEdits = null;
                 if (hint.ReplacementTextChange.HasValue)
                 {
                     var textEdit = ProtocolConversions.TextChangeToTextEdit(hint.ReplacementTextChange.Value, text);
                     textEdits = new TextEdit[] { textEdit };
-                }*/
+                }
 
                 var inlayHint = new LSP.InlayHint
                 {
                     Position = ProtocolConversions.LinePositionToPosition(linePosition),
                     Label = label,
                     Kind = kind,
-                    TextEdits = null,
+                    TextEdits = textEdits,
                     ToolTip = null,
                     PaddingLeft = leftPadding,
                     PaddingRight = rightPadding,
