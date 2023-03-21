@@ -209,10 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         {
                             var preferredKind = completionItemKinds[1];
                             if (supportedClientKinds.Contains(preferredKind))
-                            {
                                 kind = preferredKind;
-                                break;
-                            }
                         }
 
                         return kind;
