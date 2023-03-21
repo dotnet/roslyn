@@ -12023,26 +12023,21 @@ public static class Extension
             await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
         }
 
-        [Fact]
-        public async Task EnumBaseList1()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList1(string underlyingType)
         {
             var source = "enum E : $$";
 
             await VerifyItemExistsAsync(source, "System");
 
             // Not accessible in the given context
-            await VerifyItemIsAbsentAsync(source, "Byte");
-            await VerifyItemIsAbsentAsync(source, "SByte");
-            await VerifyItemIsAbsentAsync(source, "Int16");
-            await VerifyItemIsAbsentAsync(source, "UInt16");
-            await VerifyItemIsAbsentAsync(source, "Int32");
-            await VerifyItemIsAbsentAsync(source, "UInt32");
-            await VerifyItemIsAbsentAsync(source, "Int64");
-            await VerifyItemIsAbsentAsync(source, "UInt64");
+            await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Fact]
-        public async Task EnumBaseList2()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList2(string underlyingType)
         {
             var source = """
                 enum E : $$
@@ -12056,18 +12051,12 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
 
             // Not accessible in the given context
-            await VerifyItemIsAbsentAsync(source, "Byte");
-            await VerifyItemIsAbsentAsync(source, "SByte");
-            await VerifyItemIsAbsentAsync(source, "Int16");
-            await VerifyItemIsAbsentAsync(source, "UInt16");
-            await VerifyItemIsAbsentAsync(source, "Int32");
-            await VerifyItemIsAbsentAsync(source, "UInt32");
-            await VerifyItemIsAbsentAsync(source, "Int64");
-            await VerifyItemIsAbsentAsync(source, "UInt64");
+            await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Fact]
-        public async Task EnumBaseList3()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList3(string underlyingType)
         {
             var source = """
                 using System;
@@ -12076,14 +12065,7 @@ public static class Extension
                 """;
 
             await VerifyItemExistsAsync(source, "System");
-            await VerifyItemExistsAsync(source, "Byte");
-            await VerifyItemExistsAsync(source, "SByte");
-            await VerifyItemExistsAsync(source, "Int16");
-            await VerifyItemExistsAsync(source, "UInt16");
-            await VerifyItemExistsAsync(source, "Int32");
-            await VerifyItemExistsAsync(source, "UInt32");
-            await VerifyItemExistsAsync(source, "Int64");
-            await VerifyItemExistsAsync(source, "UInt64");
+            await VerifyItemExistsAsync(source, underlyingType);
 
             // Verify that other things from `System` namespace are not present
             await VerifyItemIsAbsentAsync(source, "Console");
@@ -12091,8 +12073,9 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
-        [Fact]
-        public async Task EnumBaseList4()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList4(string underlyingType)
         {
             var source = """
                 namespace MyNamespace
@@ -12108,31 +12091,18 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "MyNamespace");
 
             // Not accessible in the given context
-            await VerifyItemIsAbsentAsync(source, "Byte");
-            await VerifyItemIsAbsentAsync(source, "SByte");
-            await VerifyItemIsAbsentAsync(source, "Int16");
-            await VerifyItemIsAbsentAsync(source, "UInt16");
-            await VerifyItemIsAbsentAsync(source, "Int32");
-            await VerifyItemIsAbsentAsync(source, "UInt32");
-            await VerifyItemIsAbsentAsync(source, "Int64");
-            await VerifyItemIsAbsentAsync(source, "UInt64");
+            await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Fact]
-        public async Task EnumBaseList5()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList5(string underlyingType)
         {
             var source = "enum E : System.$$";
 
             await VerifyItemIsAbsentAsync(source, "System");
 
-            await VerifyItemExistsAsync(source, "Byte");
-            await VerifyItemExistsAsync(source, "SByte");
-            await VerifyItemExistsAsync(source, "Int16");
-            await VerifyItemExistsAsync(source, "UInt16");
-            await VerifyItemExistsAsync(source, "Int32");
-            await VerifyItemExistsAsync(source, "UInt32");
-            await VerifyItemExistsAsync(source, "Int64");
-            await VerifyItemExistsAsync(source, "UInt64");
+            await VerifyItemExistsAsync(source, underlyingType);
 
             // Verify that other things from `System` namespace are not present
             await VerifyItemIsAbsentAsync(source, "Console");
@@ -12140,21 +12110,15 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
-        [Fact]
-        public async Task EnumBaseList6()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList6(string underlyingType)
         {
             var source = "enum E : global::System.$$";
 
             await VerifyItemIsAbsentAsync(source, "System");
 
-            await VerifyItemExistsAsync(source, "Byte");
-            await VerifyItemExistsAsync(source, "SByte");
-            await VerifyItemExistsAsync(source, "Int16");
-            await VerifyItemExistsAsync(source, "UInt16");
-            await VerifyItemExistsAsync(source, "Int32");
-            await VerifyItemExistsAsync(source, "UInt32");
-            await VerifyItemExistsAsync(source, "Int64");
-            await VerifyItemExistsAsync(source, "UInt64");
+            await VerifyItemExistsAsync(source, underlyingType);
 
             // Verify that other things from `System` namespace are not present
             await VerifyItemIsAbsentAsync(source, "Console");
@@ -12217,8 +12181,9 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "MySystem");
         }
 
-        [Fact]
-        public async Task EnumBaseList11()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList11(string underlyingType)
         {
             var source = """
                 using MySystem = System;
@@ -12229,14 +12194,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "System");
             await VerifyItemIsAbsentAsync(source, "MySystem");
 
-            await VerifyItemExistsAsync(source, "Byte");
-            await VerifyItemExistsAsync(source, "SByte");
-            await VerifyItemExistsAsync(source, "Int16");
-            await VerifyItemExistsAsync(source, "UInt16");
-            await VerifyItemExistsAsync(source, "Int32");
-            await VerifyItemExistsAsync(source, "UInt32");
-            await VerifyItemExistsAsync(source, "Int64");
-            await VerifyItemExistsAsync(source, "UInt64");
+            await VerifyItemExistsAsync(source, underlyingType);
 
             // Verify that other things from `System` namespace are not present
             await VerifyItemIsAbsentAsync(source, "Console");
@@ -12256,109 +12214,58 @@ public static class Extension
             await VerifyNoItemsExistAsync(source);
         }
 
-        [Fact]
-        public async Task EnumBaseList13()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList13(string underlyingType)
         {
-            var source = """
-                using MyByte = System.Byte;
-                using MySByte = System.SByte;
-                using MyInt16 = System.Int16;
-                using MyUInt16 = System.UInt16;
-                using MyInt32 = System.Int32;
-                using MyUInt32 = System.UInt32;
-                using MyInt64 = System.Int64;
-                using MyUInt64 = System.UInt64;
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
 
                 enum E : $$
                 """;
 
-            await VerifyItemExistsAsync(source, "MyByte");
-            await VerifyItemExistsAsync(source, "MySByte");
-            await VerifyItemExistsAsync(source, "MyInt16");
-            await VerifyItemExistsAsync(source, "MyUInt16");
-            await VerifyItemExistsAsync(source, "MyInt32");
-            await VerifyItemExistsAsync(source, "MyUInt32");
-            await VerifyItemExistsAsync(source, "MyInt64");
-            await VerifyItemExistsAsync(source, "MyUInt64");
+            await VerifyItemExistsAsync(source, $"My{underlyingType}");
         }
 
-        [Fact]
-        public async Task EnumBaseList14()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList14(string underlyingType)
         {
-            var source = """
-                using MyByte = System.Byte;
-                using MySByte = System.SByte;
-                using MyInt16 = System.Int16;
-                using MyUInt16 = System.UInt16;
-                using MyInt32 = System.Int32;
-                using MyUInt32 = System.UInt32;
-                using MyInt64 = System.Int64;
-                using MyUInt64 = System.UInt64;
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
 
                 enum E : global::$$
                 """;
 
-            await VerifyItemIsAbsentAsync(source, "MyByte");
-            await VerifyItemIsAbsentAsync(source, "MySByte");
-            await VerifyItemIsAbsentAsync(source, "MyInt16");
-            await VerifyItemIsAbsentAsync(source, "MyUInt16");
-            await VerifyItemIsAbsentAsync(source, "MyInt32");
-            await VerifyItemIsAbsentAsync(source, "MyUInt32");
-            await VerifyItemIsAbsentAsync(source, "MyInt64");
-            await VerifyItemIsAbsentAsync(source, "MyUInt64");
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
         }
 
-        [Fact]
-        public async Task EnumBaseList15()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList15(string underlyingType)
         {
-            var source = """
-                using MyByte = System.Byte;
-                using MySByte = System.SByte;
-                using MyInt16 = System.Int16;
-                using MyUInt16 = System.UInt16;
-                using MyInt32 = System.Int32;
-                using MyUInt32 = System.UInt32;
-                using MyInt64 = System.Int64;
-                using MyUInt64 = System.UInt64;
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
 
                 enum E : System.$$
                 """;
 
-            await VerifyItemIsAbsentAsync(source, "MyByte");
-            await VerifyItemIsAbsentAsync(source, "MySByte");
-            await VerifyItemIsAbsentAsync(source, "MyInt16");
-            await VerifyItemIsAbsentAsync(source, "MyUInt16");
-            await VerifyItemIsAbsentAsync(source, "MyInt32");
-            await VerifyItemIsAbsentAsync(source, "MyUInt32");
-            await VerifyItemIsAbsentAsync(source, "MyInt64");
-            await VerifyItemIsAbsentAsync(source, "MyUInt64");
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+
         }
 
-        [Fact]
-        public async Task EnumBaseList16()
+        [Theory]
+        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList16(string underlyingType)
         {
-            var source = """
+            var source = $"""
                 using MySystem = System;
-                using MyByte = System.Byte;
-                using MySByte = System.SByte;
-                using MyInt16 = System.Int16;
-                using MyUInt16 = System.UInt16;
-                using MyInt32 = System.Int32;
-                using MyUInt32 = System.UInt32;
-                using MyInt64 = System.Int64;
-                using MyUInt64 = System.UInt64;
+                using My{underlyingType} = System.{underlyingType};
 
                 enum E : MySystem.$$
                 """;
 
-            await VerifyItemIsAbsentAsync(source, "MyByte");
-            await VerifyItemIsAbsentAsync(source, "MySByte");
-            await VerifyItemIsAbsentAsync(source, "MyInt16");
-            await VerifyItemIsAbsentAsync(source, "MyUInt16");
-            await VerifyItemIsAbsentAsync(source, "MyInt32");
-            await VerifyItemIsAbsentAsync(source, "MyUInt32");
-            await VerifyItemIsAbsentAsync(source, "MyInt64");
-            await VerifyItemIsAbsentAsync(source, "MyUInt64");
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
@@ -12414,6 +12321,19 @@ public static class Extension
     </Project>
 </Workspace>
 """;
+        }
+
+        public static IEnumerable<object[]> ValidEnumUnderlyingTypeNames()
+        {
+            yield return new object[] { "Byte" };
+            yield return new object[] { "SByte" };
+            yield return new object[] { "SByte" };
+            yield return new object[] { "Int16" };
+            yield return new object[] { "UInt16" };
+            yield return new object[] { "Int32" };
+            yield return new object[] { "UInt32" };
+            yield return new object[] { "Int64" };
+            yield return new object[] { "UInt64" };
         }
     }
 }
