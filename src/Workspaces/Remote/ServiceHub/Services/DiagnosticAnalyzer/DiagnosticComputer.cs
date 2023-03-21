@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
         private static CompilationWithAnalyzersCacheEntry? s_compilationWithAnalyzersCache = null;
+        private static readonly List<Task> s_executingHighPriorityComputeTasks = new();
+        private static readonly List<CancellationTokenSource> s_cancellationSourcesForExecutingNormalPriorityComputeTasks = new();
         private static readonly object s_gate = new();
 
         /// <summary>
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
-        public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+        public static async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
@@ -86,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             HostWorkspaceServices hostWorkspaceServices,
+            bool highPriority,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
@@ -111,9 +114,162 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            var diagnosticsComputer = new DiagnosticComputer(document, project,
-                solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
-            return diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+            // We perform prioritized execution of diagnostic computation requests based on the
+            // 'highPriority' boolean parameter.
+            //   - High priority requests forces suspension of all the executing normal priority requests,
+            //     which are re-attempted once the high priority request completes.
+            //   - Normal priority requests wait for all the executing high priority requests to complete
+            //     before starting the compute.
+            //   - Suspended normal priority requests are re-attempted in the below loop.
+            bool suspended;
+
+            do
+            {
+                suspended = false;
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
+                using var cancellationTokenSource = new CancellationTokenSource();
+                using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+
+                // Fetch the cancellation token here to avoid capturing linkedCts in the computeTask lambda as the task may run after linkedCts has been disposed due to cancellation.
+                var linkedCancellationToken = linkedCancellationTokenSource.Token;
+
+                var computeTask = Task.Run(async () =>
+                {
+                    var diagnosticsComputer = new DiagnosticComputer(document, project,
+                        solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+                    return await diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, linkedCancellationToken).ConfigureAwait(false);
+                }, linkedCancellationToken);
+
+                await WaitOrSuspendExecutingTasksAsync(highPriority, cancellationToken).ConfigureAwait(false);
+
+                StartTrackingPreCompute(computeTask, cancellationTokenSource, highPriority);
+
+                try
+                {
+                    return await computeTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!cancellationTokenSource.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+
+                    // Normal priority task that was suspended by a high priority task.
+                    Debug.Assert(!highPriority);
+                    suspended = true;
+                }
+                finally
+                {
+                    StopTrackingPostCompute(computeTask, cancellationTokenSource, highPriority);
+                }
+            } while (suspended);
+
+            throw ExceptionUtilities.Unreachable();
+
+            static async Task WaitOrSuspendExecutingTasksAsync(bool highPriority, CancellationToken cancellationToken)
+            {
+                // High priority task forces suspension of all the executing normal priority tasks.
+                // Normal priority task waits for all the executing high priority tasks to complete.
+                if (highPriority)
+                {
+                    SuspendNormalPriorityExecutingTasks(cancellationToken);
+                }
+                else
+                {
+                    await WaitForHighPriorityExecutingTasksAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                return;
+
+                static void SuspendNormalPriorityExecutingTasks(CancellationToken cancellationToken)
+                {
+                    ImmutableArray<CancellationTokenSource> cancellationTokenSourcesToCancel;
+                    lock (s_gate)
+                    {
+                        cancellationTokenSourcesToCancel = s_cancellationSourcesForExecutingNormalPriorityComputeTasks.ToImmutableArrayOrEmpty();
+                    }
+
+                    foreach (var cancellationTokenSource in cancellationTokenSourcesToCancel)
+                    {
+                        try
+                        {
+                            cancellationTokenSource.Cancel();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // CancellationTokenSource might get disposed if the normal priority
+                            // task completes while we were executing this foreach loop.
+                            // Gracefully handle this case and ignore this exception.
+                        }
+                    }
+                }
+
+                static async Task WaitForHighPriorityExecutingTasksAsync(CancellationToken cancellationToken)
+                {
+                    while (true)
+                    {
+                        ImmutableArray<Task> highPriorityTasksToAwait;
+                        lock (s_gate)
+                        {
+                            highPriorityTasksToAwait = s_executingHighPriorityComputeTasks.ToImmutableArrayOrEmpty();
+                        }
+
+                        if (highPriorityTasksToAwait.IsEmpty)
+                        {
+                            return;
+                        }
+
+                        foreach (var task in highPriorityTasksToAwait)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            try
+                            {
+                                await task.ConfigureAwait(false);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                // Gracefully ignore cancellations for high priority tasks.
+                            }
+                        }
+                    }
+                }
+            }
+
+            static void StartTrackingPreCompute(Task computeTask, CancellationTokenSource tokenSource, bool highPriority)
+            {
+                lock (s_gate)
+                {
+                    if (highPriority)
+                    {
+                        s_executingHighPriorityComputeTasks.Add(computeTask);
+                    }
+                    else
+                    {
+                        s_cancellationSourcesForExecutingNormalPriorityComputeTasks.Add(tokenSource);
+                    }
+                }
+            }
+
+            static void StopTrackingPostCompute(Task computeTask, CancellationTokenSource tokenSource, bool highPriority)
+            {
+                lock (s_gate)
+                {
+                    if (highPriority)
+                    {
+                        s_executingHighPriorityComputeTasks.Remove(computeTask);
+                    }
+                    else
+                    {
+                        s_cancellationSourcesForExecutingNormalPriorityComputeTasks.Remove(tokenSource);
+                    }
+                }
+            }
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(

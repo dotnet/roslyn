@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
-            private readonly bool _logPerformanceInfo;
+            private readonly bool _isBlockingRequestForSubSpanInDocument;
             private readonly DiagnosticKind _diagnosticKind;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
@@ -107,16 +107,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // updating the error list simultaneously.
                 var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsLspPullDiagnostics();
 
-                // We log performance info when we are computing diagnostics for a span
+                // Flag indicating if we are computing diagnostics for a sub-span in the document
                 // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span,
                 // so we also check that the range length is lesser then the document text length.
-                var logPerformanceInfo = range.HasValue && blockForData && range.Value.Length < text.Length;
+                var isBlockingRequestForSubSpanInDocument = range.HasValue && blockForData && range.Value.Length < text.Length;
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics, logPerformanceInfo, diagnosticKinds);
+                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics, isBlockingRequestForSubSpanInDocument, diagnosticKinds);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CodeActionRequestPriority priority,
                 bool cacheFullDocumentDiagnostics,
-                bool logPerformanceInfo,
+                bool isBlockingRequestForSubSpanInDocument,
                 DiagnosticKind diagnosticKind)
             {
                 _owner = owner;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
                 _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
-                _logPerformanceInfo = logPerformanceInfo;
+                _isBlockingRequestForSubSpanInDocument = isBlockingRequestForSubSpanInDocument;
                 _diagnosticKind = diagnosticKind;
             }
 
@@ -324,7 +324,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _logPerformanceInfo);
+
+                // We log performance info and mark the request as high priority when we have a blocking request for a sub-span
+                // in document, i.e. for lightbulb code path for Ctr + Dot invocation.
+                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner,
+                    highPriority: _isBlockingRequestForSubSpanInDocument, logPerformanceInfo: _isBlockingRequestForSubSpanInDocument);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, and the provided analyzers
