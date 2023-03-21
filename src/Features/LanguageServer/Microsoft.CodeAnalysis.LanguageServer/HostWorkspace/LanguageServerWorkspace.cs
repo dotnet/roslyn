@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal class LanguageServerWorkspace : Workspace
 {
-    public LanguageServerWorkspace(HostServices host) : base(host, WorkspaceKind.Host)
+    public LanguageServerWorkspace(
+        HostServices host)
+        : base(host, WorkspaceKind.Host)
     {
     }
 

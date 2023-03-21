@@ -47,18 +47,12 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         _workspaceRegistrationService = registrationService;
 
         _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-
-        _workspaceManager.LspTextOpened += OnLspTextEvent;
-        _workspaceManager.LspTextChanged += OnLspTextEvent;
-        _workspaceManager.LspTextClosed += OnLspTextEvent;
+        _workspaceManager.LspTextChanged += OnLspTextChanged;
     }
 
     public void Dispose()
     {
-        _workspaceManager.LspTextClosed -= OnLspTextEvent;
-        _workspaceManager.LspTextChanged -= OnLspTextEvent;
-        _workspaceManager.LspTextOpened -= OnLspTextEvent;
-
+        _workspaceManager.LspTextChanged -= OnLspTextChanged;
         _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
 
@@ -155,7 +149,7 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         UpdateLspChanged();
     }
 
-    private void OnLspTextEvent(object? sender, EventArgs e)
+    private void OnLspTextChanged(object? sender, EventArgs e)
     {
         UpdateLspChanged();
     }
