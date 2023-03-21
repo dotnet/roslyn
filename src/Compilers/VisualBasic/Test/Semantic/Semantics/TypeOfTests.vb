@@ -958,7 +958,7 @@ End Module
             CompileAndVerify(source).VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      111 (0x6f)
+  // Code size      105 (0x69)
   .maxstack  3
   IL_0000:  ldstr      ""
   IL_0005:  dup
@@ -991,16 +991,12 @@ End Module
   IL_004e:  isinst     "Decimal"
   IL_0053:  ldnull
   IL_0054:  cgt.un
-  IL_0056:  ldc.i4.0
-  IL_0057:  cgt.un
-  IL_0059:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_005e:  isinst     "Decimal"
-  IL_0063:  ldnull
-  IL_0064:  ceq
-  IL_0066:  ldc.i4.0
-  IL_0067:  cgt.un
-  IL_0069:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_006e:  ret
+  IL_0056:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_005b:  isinst     "Decimal"
+  IL_0060:  ldnull
+  IL_0061:  ceq
+  IL_0063:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0068:  ret
 }
 ]]>).VerifyIL("Program.M",
             <![CDATA[

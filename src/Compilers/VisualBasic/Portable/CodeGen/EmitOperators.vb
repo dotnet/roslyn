@@ -658,6 +658,19 @@ BinaryOperatorKindEqual:
                     EmitBinaryCondOperator(binOp, sense)
                     Return True
                 End If
+            ElseIf condition.Kind = BoundKind.TypeOf Then
+                Dim typeOfExpression = DirectCast(condition, BoundTypeOf)
+
+                EmitTypeOfExpression(typeOfExpression, used:=True, optimize:=True)
+
+                If typeOfExpression.IsTypeOfIsNotExpression Then
+                    sense = Not sense
+                End If
+
+                ' Convert to 1 or 0.
+                _builder.EmitOpCode(ILOpCode.Ldnull)
+                _builder.EmitOpCode(If(sense, ILOpCode.Cgt_un, ILOpCode.Ceq))
+                Return True
             Else
                 EmitExpression(condition, used:=True)
 

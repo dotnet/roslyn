@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             verifier.VerifyDiagnostics()
             verifier.VerifyMethodBody("C.M", <![CDATA[
 {
-  // Code size      300 (0x12c)
+  // Code size      294 (0x126)
   .maxstack  2
   // sequence point: Write(If(x = y, 1, 0))
   IL_0000:  ldarg.0
@@ -205,122 +205,118 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0054:  ldarg.2
   IL_0055:  isinst     "Decimal"
   IL_005a:  ldnull
-  IL_005b:  cgt.un
-  IL_005d:  ldc.i4.0
-  IL_005e:  ceq
-  IL_0060:  call       "Sub System.Console.Write(Integer)"
+  IL_005b:  ceq
+  IL_005d:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(TypeOf a IsNot Decimal, 0, 1))
-  IL_0065:  ldarg.2
-  IL_0066:  isinst     "Decimal"
-  IL_006b:  ldnull
-  IL_006c:  ceq
-  IL_006e:  ldc.i4.0
-  IL_006f:  ceq
-  IL_0071:  call       "Sub System.Console.Write(Integer)"
+  IL_0062:  ldarg.2
+  IL_0063:  isinst     "Decimal"
+  IL_0068:  ldnull
+  IL_0069:  cgt.un
+  IL_006b:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(b, 0, 1))
-  IL_0076:  ldarg.3
-  IL_0077:  ldc.i4.0
-  IL_0078:  ceq
-  IL_007a:  call       "Sub System.Console.Write(Integer)"
+  IL_0070:  ldarg.3
+  IL_0071:  ldc.i4.0
+  IL_0072:  ceq
+  IL_0074:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(Not b, 0, 1))
-  IL_007f:  ldarg.3
-  IL_0080:  ldc.i4.0
-  IL_0081:  cgt.un
-  IL_0083:  call       "Sub System.Console.Write(Integer)"
+  IL_0079:  ldarg.3
+  IL_007a:  ldc.i4.0
+  IL_007b:  cgt.un
+  IL_007d:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(x <= y, True, False))
-  IL_0088:  ldarg.0
-  IL_0089:  ldarg.1
-  IL_008a:  cgt
-  IL_008c:  ldc.i4.0
-  IL_008d:  ceq
-  IL_008f:  call       "Sub System.Console.Write(Boolean)"
+  IL_0082:  ldarg.0
+  IL_0083:  ldarg.1
+  IL_0084:  cgt
+  IL_0086:  ldc.i4.0
+  IL_0087:  ceq
+  IL_0089:  call       "Sub System.Console.Write(Boolean)"
   // sequence point: Write(If(x <= y, False, True))
-  IL_0094:  ldarg.0
-  IL_0095:  ldarg.1
-  IL_0096:  cgt
-  IL_0098:  call       "Sub System.Console.Write(Boolean)"
+  IL_008e:  ldarg.0
+  IL_008f:  ldarg.1
+  IL_0090:  cgt
+  IL_0092:  call       "Sub System.Console.Write(Boolean)"
   // sequence point: Write(If(x <> y, CByte(1), CByte(0)))
-  IL_009d:  ldarg.0
-  IL_009e:  ldarg.1
-  IL_009f:  ceq
-  IL_00a1:  ldc.i4.0
-  IL_00a2:  ceq
-  IL_00a4:  conv.u1
-  IL_00a5:  call       "Sub System.Console.Write(Integer)"
+  IL_0097:  ldarg.0
+  IL_0098:  ldarg.1
+  IL_0099:  ceq
+  IL_009b:  ldc.i4.0
+  IL_009c:  ceq
+  IL_009e:  conv.u1
+  IL_009f:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(x <> y, CSByte(1), CSByte(0)))
-  IL_00aa:  ldarg.0
-  IL_00ab:  ldarg.1
-  IL_00ac:  ceq
-  IL_00ae:  ldc.i4.0
-  IL_00af:  ceq
-  IL_00b1:  conv.i1
-  IL_00b2:  call       "Sub System.Console.Write(Integer)"
+  IL_00a4:  ldarg.0
+  IL_00a5:  ldarg.1
+  IL_00a6:  ceq
+  IL_00a8:  ldc.i4.0
+  IL_00a9:  ceq
+  IL_00ab:  conv.i1
+  IL_00ac:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(x <> y, 1S, 0S))
-  IL_00b7:  ldarg.0
-  IL_00b8:  ldarg.1
-  IL_00b9:  ceq
-  IL_00bb:  ldc.i4.0
-  IL_00bc:  ceq
-  IL_00be:  conv.i2
-  IL_00bf:  call       "Sub System.Console.Write(Integer)"
+  IL_00b1:  ldarg.0
+  IL_00b2:  ldarg.1
+  IL_00b3:  ceq
+  IL_00b5:  ldc.i4.0
+  IL_00b6:  ceq
+  IL_00b8:  conv.i2
+  IL_00b9:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(x <> y, 1US, 0US))
-  IL_00c4:  ldarg.0
-  IL_00c5:  ldarg.1
-  IL_00c6:  ceq
-  IL_00c8:  ldc.i4.0
-  IL_00c9:  ceq
-  IL_00cb:  conv.u2
-  IL_00cc:  call       "Sub System.Console.Write(Integer)"
+  IL_00be:  ldarg.0
+  IL_00bf:  ldarg.1
+  IL_00c0:  ceq
+  IL_00c2:  ldc.i4.0
+  IL_00c3:  ceq
+  IL_00c5:  conv.u2
+  IL_00c6:  call       "Sub System.Console.Write(Integer)"
   // sequence point: Write(If(x <> y, 1UI, 0UI))
-  IL_00d1:  ldarg.0
-  IL_00d2:  ldarg.1
-  IL_00d3:  ceq
-  IL_00d5:  ldc.i4.0
-  IL_00d6:  ceq
-  IL_00d8:  call       "Sub System.Console.Write(UInteger)"
+  IL_00cb:  ldarg.0
+  IL_00cc:  ldarg.1
+  IL_00cd:  ceq
+  IL_00cf:  ldc.i4.0
+  IL_00d0:  ceq
+  IL_00d2:  call       "Sub System.Console.Write(UInteger)"
   // sequence point: Write(If(x <> y, 1L, 0L))
-  IL_00dd:  ldarg.0
-  IL_00de:  ldarg.1
-  IL_00df:  ceq
-  IL_00e1:  ldc.i4.0
-  IL_00e2:  ceq
-  IL_00e4:  conv.i8
-  IL_00e5:  call       "Sub System.Console.Write(Long)"
+  IL_00d7:  ldarg.0
+  IL_00d8:  ldarg.1
+  IL_00d9:  ceq
+  IL_00db:  ldc.i4.0
+  IL_00dc:  ceq
+  IL_00de:  conv.i8
+  IL_00df:  call       "Sub System.Console.Write(Long)"
   // sequence point: Write(If(x <> y, 1UL, 0UL))
-  IL_00ea:  ldarg.0
-  IL_00eb:  ldarg.1
-  IL_00ec:  ceq
-  IL_00ee:  ldc.i4.0
-  IL_00ef:  ceq
-  IL_00f1:  conv.i8
-  IL_00f2:  call       "Sub System.Console.Write(ULong)"
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldarg.1
+  IL_00e6:  ceq
+  IL_00e8:  ldc.i4.0
+  IL_00e9:  ceq
+  IL_00eb:  conv.i8
+  IL_00ec:  call       "Sub System.Console.Write(ULong)"
   // sequence point: Write(If(x < y, ChrW(0), ChrW(1)))
-  IL_00f7:  ldarg.0
-  IL_00f8:  ldarg.1
-  IL_00f9:  clt
-  IL_00fb:  ldc.i4.0
-  IL_00fc:  ceq
-  IL_00fe:  conv.u2
-  IL_00ff:  call       "Sub System.Console.Write(Char)"
+  IL_00f1:  ldarg.0
+  IL_00f2:  ldarg.1
+  IL_00f3:  clt
+  IL_00f5:  ldc.i4.0
+  IL_00f6:  ceq
+  IL_00f8:  conv.u2
+  IL_00f9:  call       "Sub System.Console.Write(Char)"
   // sequence point: Write(If(x < y, ChrW(1), vbNullChar))
-  IL_0104:  ldarg.0
-  IL_0105:  ldarg.1
-  IL_0106:  blt.s      IL_010f
-  IL_0108:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
-  IL_010d:  br.s       IL_0114
-  IL_010f:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
-  IL_0114:  call       "Sub System.Console.Write(String)"
+  IL_00fe:  ldarg.0
+  IL_00ff:  ldarg.1
+  IL_0100:  blt.s      IL_0109
+  IL_0102:  ldstr      "]]>.Value & ChrW(0) & <![CDATA["
+  IL_0107:  br.s       IL_010e
+  IL_0109:  ldstr      "]]>.Value & ChrW(1) & <![CDATA["
+  IL_010e:  call       "Sub System.Console.Write(String)"
   // sequence point: Write(If(True, 1, 0))
+  IL_0113:  ldc.i4.1
+  IL_0114:  call       "Sub System.Console.Write(Integer)"
+  // sequence point: Write(If(False, 0, 1))
   IL_0119:  ldc.i4.1
   IL_011a:  call       "Sub System.Console.Write(Integer)"
-  // sequence point: Write(If(False, 0, 1))
+  // sequence point: Write(If(B2, 1, 0))
   IL_011f:  ldc.i4.1
   IL_0120:  call       "Sub System.Console.Write(Integer)"
-  // sequence point: Write(If(B2, 1, 0))
-  IL_0125:  ldc.i4.1
-  IL_0126:  call       "Sub System.Console.Write(Integer)"
   // sequence point: End Sub
-  IL_012b:  ret
+  IL_0125:  ret
 }
 ]]>.Value)
         End Sub

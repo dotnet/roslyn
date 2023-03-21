@@ -530,9 +530,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitExpression(condition, used: true);
 
-                // Convert to 1 or 0 (although `condition` is of type `bool`, it can contain any integer).
-                _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
-                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                if (condition.Kind == BoundKind.IsOperator)
+                {
+                    EmitIsSense(sense);
+                }
+                else
+                {
+                    // Convert to 1 or 0 (although `condition` is of type `bool`, it can contain any integer).
+                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                    _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                }
                 return true;
             }
 
