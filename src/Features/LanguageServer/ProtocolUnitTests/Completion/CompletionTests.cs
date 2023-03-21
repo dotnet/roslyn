@@ -23,20 +23,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
     public class CompletionTests : AbstractLanguageServerProtocolTests
     {
-        private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = new LSP.VSInternalClientCapabilities
-        {
-            SupportsVisualStudioExtensions = true,
-            TextDocument = new LSP.TextDocumentClientCapabilities
+        private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = CreateCoreCompletionCapabilities();
+
+        private static LSP.VSInternalClientCapabilities CreateCoreCompletionCapabilities ()
+            => new LSP.VSInternalClientCapabilities
             {
-                Completion = new LSP.VSInternalCompletionSetting
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    CompletionListSetting = new LSP.CompletionListSetting
+                    Completion = new LSP.VSInternalCompletionSetting
                     {
-                        ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                        },
+                        CompletionItemKind = new(),
                     }
                 }
-            }
-        };
+            };
 
         public CompletionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -165,6 +169,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
+            Assert.NotNull(results.ItemDefaults.EditRange);
+        }
+
+        [Fact]
+        public async Task TestGetExtensionMethodCoreLsp()
+        {
+            var markup =
+@"class A
+{
+    void M(A a)
+    {
+        a.{|caret:|}
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this A a) { }
+}
+";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: new string[] { "ExtensionMethod", "Public" },
+                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
+            Assert.NotNull(results.ItemDefaults.EditRange);
+        }
+
+        [Fact]
+        public async Task TestGetExtensionMethodCoreVSLsp()
+        {
+            var markup =
+@"class A
+{
+    void M(A a)
+    {
+        a.{|caret:|}
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this A a) { }
+}
+";
+
+            // If the client supports more completion kinds, then we can give a more precise answer.
+            var capabilities = CreateCoreCompletionCapabilities();
+            capabilities.TextDocument.Completion.CompletionItemKind.ValueSet = new[] { LSP.CompletionItemKind.ExtensionMethod };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, capabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: new string[] { "ExtensionMethod", "Public" },
+                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
             Assert.NotNull(results.ItemDefaults.EditRange);
         }
 
