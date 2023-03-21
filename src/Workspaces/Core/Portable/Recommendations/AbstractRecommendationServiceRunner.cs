@@ -287,29 +287,43 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             var semanticModel = _context.SemanticModel;
             var systemNamespace = container is not (null or INamespaceSymbol { IsGlobalNamespace: true }) ? null : (INamespaceSymbol?)semanticModel.LookupNamespacesAndTypes(
                 _context.Position,
-                container: container,
+                container: semanticModel.Compilation.GlobalNamespace,
                 name: nameof(System)).FirstOrDefault(s => s is INamespaceSymbol);
 
             var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);
 
-            builder.AddIfNotNull(systemNamespace);
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Byte), SpecialType.System_Byte));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(SByte), SpecialType.System_SByte));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int16), SpecialType.System_Int16));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt16), SpecialType.System_UInt16));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int32), SpecialType.System_Int32));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt32), SpecialType.System_UInt32));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(Int64), SpecialType.System_Int64));
-            builder.AddIfNotNull(GetSpecialTypeSymbol(nameof(UInt64), SpecialType.System_UInt64));
+            if (systemNamespace is not null)
+            {
+                builder.Add(systemNamespace);
+
+                var aliases = semanticModel.LookupSymbols(_context.Position, container).Where(s => s is IAliasSymbol alias && alias.Target.Equals(systemNamespace));
+                builder.AddRange(aliases);
+            }
+
+            AddSpecialTypeSymbolAndItsAliases(nameof(Byte), SpecialType.System_Byte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(SByte), SpecialType.System_SByte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int16), SpecialType.System_Int16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt16), SpecialType.System_UInt16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int32), SpecialType.System_Int32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt32), SpecialType.System_UInt32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int64), SpecialType.System_Int64);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt64), SpecialType.System_UInt64);
 
             return builder.ToImmutableAndFree();
 
-            ISymbol? GetSpecialTypeSymbol(string name, SpecialType specialType)
+            void AddSpecialTypeSymbolAndItsAliases(string name, SpecialType specialType)
             {
-                return _context.SemanticModel.LookupNamespacesAndTypes(
+                var specialTypeSymbol = _context.SemanticModel.LookupNamespacesAndTypes(
                     _context.Position,
                     container: container,
                     name: name).SingleOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
+
+                builder.AddIfNotNull(specialTypeSymbol);
+
+                specialTypeSymbol ??= _context.SemanticModel.Compilation.GetSpecialType(specialType);
+
+                var aliases = semanticModel.LookupSymbols(_context.Position, container).Where(s => s is IAliasSymbol alias && alias.Target.Equals(specialTypeSymbol));
+                builder.AddRange(aliases);
             }
         }
 

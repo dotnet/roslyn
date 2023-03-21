@@ -12143,13 +12143,35 @@ public static class Extension
         [Fact]
         public async Task EnumBaseList6()
         {
+            var source = "enum E : global::System.$$";
+
+            await VerifyItemIsAbsentAsync(source, "System");
+
+            await VerifyItemExistsAsync(source, "Byte");
+            await VerifyItemExistsAsync(source, "SByte");
+            await VerifyItemExistsAsync(source, "Int16");
+            await VerifyItemExistsAsync(source, "UInt16");
+            await VerifyItemExistsAsync(source, "Int32");
+            await VerifyItemExistsAsync(source, "UInt32");
+            await VerifyItemExistsAsync(source, "Int64");
+            await VerifyItemExistsAsync(source, "UInt64");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Fact]
+        public async Task EnumBaseList7()
+        {
             var source = "enum E : System.Collections.Generic.$$";
 
             await VerifyNoItemsExistAsync(source);
         }
 
         [Fact]
-        public async Task EnumBaseList7()
+        public async Task EnumBaseList8()
         {
             var source = """
                 namespace MyNamespace
@@ -12169,6 +12191,174 @@ public static class Extension
                 """;
 
             await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact]
+        public async Task EnumBaseList9()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, "MySystem");
+        }
+
+        [Fact]
+        public async Task EnumBaseList10()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "MySystem");
+        }
+
+        [Fact]
+        public async Task EnumBaseList11()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : MySystem.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "MySystem");
+
+            await VerifyItemExistsAsync(source, "Byte");
+            await VerifyItemExistsAsync(source, "SByte");
+            await VerifyItemExistsAsync(source, "Int16");
+            await VerifyItemExistsAsync(source, "UInt16");
+            await VerifyItemExistsAsync(source, "Int32");
+            await VerifyItemExistsAsync(source, "UInt32");
+            await VerifyItemExistsAsync(source, "Int64");
+            await VerifyItemExistsAsync(source, "UInt64");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Fact]
+        public async Task EnumBaseList12()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : global::MySystem.$$
+                """;
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact]
+        public async Task EnumBaseList13()
+        {
+            var source = """
+                using MyByte = System.Byte;
+                using MySByte = System.SByte;
+                using MyInt16 = System.Int16;
+                using MyUInt16 = System.UInt16;
+                using MyInt32 = System.Int32;
+                using MyUInt32 = System.UInt32;
+                using MyInt64 = System.Int64;
+                using MyUInt64 = System.UInt64;
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, "MyByte");
+            await VerifyItemExistsAsync(source, "MySByte");
+            await VerifyItemExistsAsync(source, "MyInt16");
+            await VerifyItemExistsAsync(source, "MyUInt16");
+            await VerifyItemExistsAsync(source, "MyInt32");
+            await VerifyItemExistsAsync(source, "MyUInt32");
+            await VerifyItemExistsAsync(source, "MyInt64");
+            await VerifyItemExistsAsync(source, "MyUInt64");
+        }
+
+        [Fact]
+        public async Task EnumBaseList14()
+        {
+            var source = """
+                using MyByte = System.Byte;
+                using MySByte = System.SByte;
+                using MyInt16 = System.Int16;
+                using MyUInt16 = System.UInt16;
+                using MyInt32 = System.Int32;
+                using MyUInt32 = System.UInt32;
+                using MyInt64 = System.Int64;
+                using MyUInt64 = System.UInt64;
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "MyByte");
+            await VerifyItemIsAbsentAsync(source, "MySByte");
+            await VerifyItemIsAbsentAsync(source, "MyInt16");
+            await VerifyItemIsAbsentAsync(source, "MyUInt16");
+            await VerifyItemIsAbsentAsync(source, "MyInt32");
+            await VerifyItemIsAbsentAsync(source, "MyUInt32");
+            await VerifyItemIsAbsentAsync(source, "MyInt64");
+            await VerifyItemIsAbsentAsync(source, "MyUInt64");
+        }
+
+        [Fact]
+        public async Task EnumBaseList15()
+        {
+            var source = """
+                using MyByte = System.Byte;
+                using MySByte = System.SByte;
+                using MyInt16 = System.Int16;
+                using MyUInt16 = System.UInt16;
+                using MyInt32 = System.Int32;
+                using MyUInt32 = System.UInt32;
+                using MyInt64 = System.Int64;
+                using MyUInt64 = System.UInt64;
+
+                enum E : System.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "MyByte");
+            await VerifyItemIsAbsentAsync(source, "MySByte");
+            await VerifyItemIsAbsentAsync(source, "MyInt16");
+            await VerifyItemIsAbsentAsync(source, "MyUInt16");
+            await VerifyItemIsAbsentAsync(source, "MyInt32");
+            await VerifyItemIsAbsentAsync(source, "MyUInt32");
+            await VerifyItemIsAbsentAsync(source, "MyInt64");
+            await VerifyItemIsAbsentAsync(source, "MyUInt64");
+        }
+
+        [Fact]
+        public async Task EnumBaseList16()
+        {
+            var source = """
+                using MySystem = System;
+                using MyByte = System.Byte;
+                using MySByte = System.SByte;
+                using MyInt16 = System.Int16;
+                using MyUInt16 = System.UInt16;
+                using MyInt32 = System.Int32;
+                using MyUInt32 = System.UInt32;
+                using MyInt64 = System.Int64;
+                using MyUInt64 = System.UInt64;
+
+                enum E : MySystem.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "MyByte");
+            await VerifyItemIsAbsentAsync(source, "MySByte");
+            await VerifyItemIsAbsentAsync(source, "MyInt16");
+            await VerifyItemIsAbsentAsync(source, "MyUInt16");
+            await VerifyItemIsAbsentAsync(source, "MyInt32");
+            await VerifyItemIsAbsentAsync(source, "MyUInt32");
+            await VerifyItemIsAbsentAsync(source, "MyInt64");
+            await VerifyItemIsAbsentAsync(source, "MyUInt64");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
