@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.M", """
                 {
-                  // Code size      291 (0x123)
+                  // Code size      288 (0x120)
                   .maxstack  2
                   // sequence point: Write(x == y ? 1 : 0);
                   IL_0000:  ldarg.0
@@ -190,134 +190,132 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                   IL_003f:  ldarg.2
                   IL_0040:  isinst     "string"
                   IL_0045:  ldnull
-                  IL_0046:  cgt.un
-                  IL_0048:  ldc.i4.0
-                  IL_0049:  ceq
-                  IL_004b:  call       "void System.Console.Write(int)"
+                  IL_0046:  ceq
+                  IL_0048:  call       "void System.Console.Write(int)"
                   // sequence point: Write(a is not string ? 0 : 1);
-                  IL_0050:  ldarg.2
-                  IL_0051:  isinst     "string"
-                  IL_0056:  ldnull
-                  IL_0057:  cgt.un
-                  IL_0059:  call       "void System.Console.Write(int)"
+                  IL_004d:  ldarg.2
+                  IL_004e:  isinst     "string"
+                  IL_0053:  ldnull
+                  IL_0054:  cgt.un
+                  IL_0056:  call       "void System.Console.Write(int)"
                   // sequence point: Write(b ? 0 : 1);
-                  IL_005e:  ldarg.3
-                  IL_005f:  ldc.i4.0
-                  IL_0060:  ceq
-                  IL_0062:  call       "void System.Console.Write(int)"
+                  IL_005b:  ldarg.3
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ceq
+                  IL_005f:  call       "void System.Console.Write(int)"
                   // sequence point: Write(!b ? 0 : 1);
-                  IL_0067:  ldarg.3
-                  IL_0068:  ldc.i4.0
-                  IL_0069:  cgt.un
-                  IL_006b:  call       "void System.Console.Write(int)"
+                  IL_0064:  ldarg.3
+                  IL_0065:  ldc.i4.0
+                  IL_0066:  cgt.un
+                  IL_0068:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x <= y ? true : false);
-                  IL_0070:  ldarg.0
-                  IL_0071:  ldarg.1
-                  IL_0072:  cgt
-                  IL_0074:  ldc.i4.0
-                  IL_0075:  ceq
-                  IL_0077:  call       "void System.Console.Write(bool)"
+                  IL_006d:  ldarg.0
+                  IL_006e:  ldarg.1
+                  IL_006f:  cgt
+                  IL_0071:  ldc.i4.0
+                  IL_0072:  ceq
+                  IL_0074:  call       "void System.Console.Write(bool)"
                   // sequence point: Write(x <= y ? false : true);
-                  IL_007c:  ldarg.0
-                  IL_007d:  ldarg.1
-                  IL_007e:  cgt
-                  IL_0080:  call       "void System.Console.Write(bool)"
+                  IL_0079:  ldarg.0
+                  IL_007a:  ldarg.1
+                  IL_007b:  cgt
+                  IL_007d:  call       "void System.Console.Write(bool)"
                   // sequence point: Write(x != y ? (byte)1 : (byte)0);
-                  IL_0085:  ldarg.0
-                  IL_0086:  ldarg.1
+                  IL_0082:  ldarg.0
+                  IL_0083:  ldarg.1
+                  IL_0084:  ceq
+                  IL_0086:  ldc.i4.0
                   IL_0087:  ceq
-                  IL_0089:  ldc.i4.0
-                  IL_008a:  ceq
-                  IL_008c:  conv.u1
-                  IL_008d:  call       "void System.Console.Write(int)"
+                  IL_0089:  conv.u1
+                  IL_008a:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x != y ? 1 : (sbyte)0);
-                  IL_0092:  ldarg.0
-                  IL_0093:  ldarg.1
+                  IL_008f:  ldarg.0
+                  IL_0090:  ldarg.1
+                  IL_0091:  ceq
+                  IL_0093:  ldc.i4.0
                   IL_0094:  ceq
-                  IL_0096:  ldc.i4.0
-                  IL_0097:  ceq
-                  IL_0099:  call       "void System.Console.Write(int)"
+                  IL_0096:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x != y ? (short)1 : (short)0);
-                  IL_009e:  ldarg.0
-                  IL_009f:  ldarg.1
+                  IL_009b:  ldarg.0
+                  IL_009c:  ldarg.1
+                  IL_009d:  ceq
+                  IL_009f:  ldc.i4.0
                   IL_00a0:  ceq
-                  IL_00a2:  ldc.i4.0
-                  IL_00a3:  ceq
-                  IL_00a5:  conv.i2
-                  IL_00a6:  call       "void System.Console.Write(int)"
+                  IL_00a2:  conv.i2
+                  IL_00a3:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x != y ? (ushort)1 : 0);
-                  IL_00ab:  ldarg.0
-                  IL_00ac:  ldarg.1
+                  IL_00a8:  ldarg.0
+                  IL_00a9:  ldarg.1
+                  IL_00aa:  ceq
+                  IL_00ac:  ldc.i4.0
                   IL_00ad:  ceq
-                  IL_00af:  ldc.i4.0
-                  IL_00b0:  ceq
-                  IL_00b2:  call       "void System.Console.Write(int)"
+                  IL_00af:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x != y ? 1U : 0);
-                  IL_00b7:  ldarg.0
-                  IL_00b8:  ldarg.1
+                  IL_00b4:  ldarg.0
+                  IL_00b5:  ldarg.1
+                  IL_00b6:  ceq
+                  IL_00b8:  ldc.i4.0
                   IL_00b9:  ceq
-                  IL_00bb:  ldc.i4.0
-                  IL_00bc:  ceq
-                  IL_00be:  call       "void System.Console.Write(uint)"
+                  IL_00bb:  call       "void System.Console.Write(uint)"
                   // sequence point: Write(x != y ? 1L : 0);
-                  IL_00c3:  ldarg.0
-                  IL_00c4:  ldarg.1
+                  IL_00c0:  ldarg.0
+                  IL_00c1:  ldarg.1
+                  IL_00c2:  ceq
+                  IL_00c4:  ldc.i4.0
                   IL_00c5:  ceq
-                  IL_00c7:  ldc.i4.0
-                  IL_00c8:  ceq
-                  IL_00ca:  conv.i8
-                  IL_00cb:  call       "void System.Console.Write(long)"
+                  IL_00c7:  conv.i8
+                  IL_00c8:  call       "void System.Console.Write(long)"
                   // sequence point: Write(x != y ? 1UL : 0);
-                  IL_00d0:  ldarg.0
-                  IL_00d1:  ldarg.1
+                  IL_00cd:  ldarg.0
+                  IL_00ce:  ldarg.1
+                  IL_00cf:  ceq
+                  IL_00d1:  ldc.i4.0
                   IL_00d2:  ceq
-                  IL_00d4:  ldc.i4.0
-                  IL_00d5:  ceq
-                  IL_00d7:  conv.i8
-                  IL_00d8:  call       "void System.Console.Write(ulong)"
+                  IL_00d4:  conv.i8
+                  IL_00d5:  call       "void System.Console.Write(ulong)"
                   // sequence point: Write(x != y ? (nint)1 : 0);
-                  IL_00dd:  ldarg.0
-                  IL_00de:  ldarg.1
+                  IL_00da:  ldarg.0
+                  IL_00db:  ldarg.1
+                  IL_00dc:  ceq
+                  IL_00de:  ldc.i4.0
                   IL_00df:  ceq
-                  IL_00e1:  ldc.i4.0
-                  IL_00e2:  ceq
-                  IL_00e4:  conv.i
-                  IL_00e5:  conv.i8
-                  IL_00e6:  call       "void System.Console.Write(long)"
+                  IL_00e1:  conv.i
+                  IL_00e2:  conv.i8
+                  IL_00e3:  call       "void System.Console.Write(long)"
                   // sequence point: Write(x != y ? 1 : (nuint)0);
-                  IL_00eb:  ldarg.0
-                  IL_00ec:  ldarg.1
+                  IL_00e8:  ldarg.0
+                  IL_00e9:  ldarg.1
+                  IL_00ea:  ceq
+                  IL_00ec:  ldc.i4.0
                   IL_00ed:  ceq
-                  IL_00ef:  ldc.i4.0
-                  IL_00f0:  ceq
-                  IL_00f2:  conv.i
-                  IL_00f3:  conv.u8
-                  IL_00f4:  call       "void System.Console.Write(ulong)"
+                  IL_00ef:  conv.i
+                  IL_00f0:  conv.u8
+                  IL_00f1:  call       "void System.Console.Write(ulong)"
                   // sequence point: Write(x < y ? (char)0 : (char)1);
-                  IL_00f9:  ldarg.0
-                  IL_00fa:  ldarg.1
-                  IL_00fb:  clt
-                  IL_00fd:  ldc.i4.0
-                  IL_00fe:  ceq
-                  IL_0100:  conv.u2
-                  IL_0101:  call       "void System.Console.Write(char)"
+                  IL_00f6:  ldarg.0
+                  IL_00f7:  ldarg.1
+                  IL_00f8:  clt
+                  IL_00fa:  ldc.i4.0
+                  IL_00fb:  ceq
+                  IL_00fd:  conv.u2
+                  IL_00fe:  call       "void System.Console.Write(char)"
                   // sequence point: Write(x < y ? '\x1' : '\x0');
-                  IL_0106:  ldarg.0
-                  IL_0107:  ldarg.1
-                  IL_0108:  clt
-                  IL_010a:  conv.u2
-                  IL_010b:  call       "void System.Console.Write(char)"
+                  IL_0103:  ldarg.0
+                  IL_0104:  ldarg.1
+                  IL_0105:  clt
+                  IL_0107:  conv.u2
+                  IL_0108:  call       "void System.Console.Write(char)"
                   // sequence point: Write(true ? 1 : 0);
-                  IL_0110:  ldc.i4.1
-                  IL_0111:  call       "void System.Console.Write(int)"
+                  IL_010d:  ldc.i4.1
+                  IL_010e:  call       "void System.Console.Write(int)"
                   // sequence point: Write(false ? 0 : 1);
-                  IL_0116:  ldc.i4.1
-                  IL_0117:  call       "void System.Console.Write(int)"
+                  IL_0113:  ldc.i4.1
+                  IL_0114:  call       "void System.Console.Write(int)"
                   // sequence point: Write(B ? 1 : 0);
-                  IL_011c:  ldc.i4.1
-                  IL_011d:  call       "void System.Console.Write(int)"
+                  IL_0119:  ldc.i4.1
+                  IL_011a:  call       "void System.Console.Write(int)"
                   // sequence point: }
-                  IL_0122:  ret
+                  IL_011f:  ret
                 }
                 """);
         }

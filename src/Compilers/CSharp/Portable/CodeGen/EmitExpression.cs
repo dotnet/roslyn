@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.IsOperator:
-                    EmitIsExpression((BoundIsOperator)expression, used);
+                    EmitIsExpression((BoundIsOperator)expression, used, optimize: false);
                     break;
 
                 case BoundKind.AsOperator:
@@ -3158,7 +3158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIsExpression(BoundIsOperator isOp, bool used)
+        private void EmitIsExpression(BoundIsOperator isOp, bool used, bool optimize)
         {
             var operand = isOp.Operand;
             EmitExpression(operand, used);
@@ -3172,8 +3172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 _builder.EmitOpCode(ILOpCode.Isinst);
                 EmitSymbolToken(isOp.TargetType.Type, isOp.Syntax);
-                _builder.EmitOpCode(ILOpCode.Ldnull);
-                _builder.EmitOpCode(ILOpCode.Cgt_un);
+
+                if (!optimize)
+                {
+                    _builder.EmitOpCode(ILOpCode.Ldnull);
+                    _builder.EmitOpCode(ILOpCode.Cgt_un);
+                }
             }
         }
 
