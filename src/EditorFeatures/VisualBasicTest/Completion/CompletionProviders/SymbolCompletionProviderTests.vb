@@ -8305,25 +8305,18 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList1() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList1(underlyingType As String) As Task
             Dim markup = "Enum MyEnum As $$"
 
             Await VerifyItemExistsAsync(markup, "System")
 
             ' Not accessible in the given context
-            Await VerifyItemIsAbsentAsync(markup, "Byte")
-            Await VerifyItemIsAbsentAsync(markup, "SByte")
-            Await VerifyItemIsAbsentAsync(markup, "Int16")
-            Await VerifyItemIsAbsentAsync(markup, "UInt16")
-            Await VerifyItemIsAbsentAsync(markup, "Int32")
-            Await VerifyItemIsAbsentAsync(markup, "UInt32")
-            Await VerifyItemIsAbsentAsync(markup, "Int64")
-            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList2() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList2(underlyingType As String) As Task
             Dim markup =
 "Enum MyEnum As $$
 
@@ -8334,18 +8327,11 @@ End Class"
             Await VerifyItemIsAbsentAsync(markup, "System", sourceCodeKind:=SourceCodeKind.Regular)
 
             ' Not accessible in the given context
-            Await VerifyItemIsAbsentAsync(markup, "Byte")
-            Await VerifyItemIsAbsentAsync(markup, "SByte")
-            Await VerifyItemIsAbsentAsync(markup, "Int16")
-            Await VerifyItemIsAbsentAsync(markup, "UInt16")
-            Await VerifyItemIsAbsentAsync(markup, "Int32")
-            Await VerifyItemIsAbsentAsync(markup, "UInt32")
-            Await VerifyItemIsAbsentAsync(markup, "Int64")
-            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList3() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList3(underlyingType As String) As Task
             Dim markup =
 "Imports System;
 
@@ -8353,14 +8339,7 @@ Enum MyEnum As $$"
 
             Await VerifyItemExistsAsync(markup, "System")
 
-            Await VerifyItemExistsAsync(markup, "Byte")
-            Await VerifyItemExistsAsync(markup, "SByte")
-            Await VerifyItemExistsAsync(markup, "Int16")
-            Await VerifyItemExistsAsync(markup, "UInt16")
-            Await VerifyItemExistsAsync(markup, "Int32")
-            Await VerifyItemExistsAsync(markup, "UInt32")
-            Await VerifyItemExistsAsync(markup, "Int64")
-            Await VerifyItemExistsAsync(markup, "UInt64")
+            Await VerifyItemExistsAsync(markup, underlyingType)
 
             ' Verify that other things from `System` namespace are not present
             Await VerifyItemIsAbsentAsync(markup, "Console")
@@ -8368,8 +8347,8 @@ Enum MyEnum As $$"
             Await VerifyItemIsAbsentAsync(markup, "DateTime")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList4() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList4(underlyingType As String) As Task
             Dim markup =
 "Namespace MyNamespace
 End Namespace
@@ -8382,30 +8361,16 @@ Enum MyEnum As Global.$$"
             Await VerifyItemIsAbsentAsync(markup, "MyNamespace")
 
             ' Not accessible in the given context
-            Await VerifyItemIsAbsentAsync(markup, "Byte")
-            Await VerifyItemIsAbsentAsync(markup, "SByte")
-            Await VerifyItemIsAbsentAsync(markup, "Int16")
-            Await VerifyItemIsAbsentAsync(markup, "UInt16")
-            Await VerifyItemIsAbsentAsync(markup, "Int32")
-            Await VerifyItemIsAbsentAsync(markup, "UInt32")
-            Await VerifyItemIsAbsentAsync(markup, "Int64")
-            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList5() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList5(underlyingType As String) As Task
             Dim markup = "Enum MyEnum As System.$$"
 
             Await VerifyItemIsAbsentAsync(markup, "System")
 
-            Await VerifyItemExistsAsync(markup, "Byte")
-            Await VerifyItemExistsAsync(markup, "SByte")
-            Await VerifyItemExistsAsync(markup, "Int16")
-            Await VerifyItemExistsAsync(markup, "UInt16")
-            Await VerifyItemExistsAsync(markup, "Int32")
-            Await VerifyItemExistsAsync(markup, "UInt32")
-            Await VerifyItemExistsAsync(markup, "Int64")
-            Await VerifyItemExistsAsync(markup, "UInt64")
+            Await VerifyItemExistsAsync(markup, underlyingType)
 
             ' Verify that other things from `System` namespace are not present
             Await VerifyItemIsAbsentAsync(markup, "Console")
@@ -8413,20 +8378,13 @@ Enum MyEnum As Global.$$"
             Await VerifyItemIsAbsentAsync(markup, "DateTime")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList6() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList6(underlyingType As String) As Task
             Dim markup = "Enum MyEnum As Global.System.$$"
 
             Await VerifyItemIsAbsentAsync(markup, "System")
 
-            Await VerifyItemExistsAsync(markup, "Byte")
-            Await VerifyItemExistsAsync(markup, "SByte")
-            Await VerifyItemExistsAsync(markup, "Int16")
-            Await VerifyItemExistsAsync(markup, "UInt16")
-            Await VerifyItemExistsAsync(markup, "Int32")
-            Await VerifyItemExistsAsync(markup, "UInt32")
-            Await VerifyItemExistsAsync(markup, "Int64")
-            Await VerifyItemExistsAsync(markup, "UInt64")
+            Await VerifyItemExistsAsync(markup, underlyingType)
 
             ' Verify that other things from `System` namespace are not present
             Await VerifyItemIsAbsentAsync(markup, "Console")
@@ -8490,8 +8448,8 @@ Enum MyEnum As Global.$$"
             Await VerifyItemIsAbsentAsync(markup, "MySystem")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList11() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList11(underlyingType As String) As Task
             Dim markup =
 "Imports MySystem = System
 
@@ -8500,14 +8458,7 @@ Enum MyEnum As MySystem.$$"
             Await VerifyItemIsAbsentAsync(markup, "System")
             Await VerifyItemIsAbsentAsync(markup, "MySystem")
 
-            Await VerifyItemExistsAsync(markup, "Byte")
-            Await VerifyItemExistsAsync(markup, "SByte")
-            Await VerifyItemExistsAsync(markup, "Int16")
-            Await VerifyItemExistsAsync(markup, "UInt16")
-            Await VerifyItemExistsAsync(markup, "Int32")
-            Await VerifyItemExistsAsync(markup, "UInt32")
-            Await VerifyItemExistsAsync(markup, "Int64")
-            Await VerifyItemExistsAsync(markup, "UInt64")
+            Await VerifyItemExistsAsync(markup, underlyingType)
 
             ' Verify that other things from `System` namespace are not present
             Await VerifyItemIsAbsentAsync(markup, "Console")
@@ -8525,101 +8476,56 @@ Enum MyEnum As Global.MySystem.$$"
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList13() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList13(underlyingType As String) As Task
             Dim markup =
-"Imports MyByte = System.Byte
-Imports MySByte = System.SByte
-Imports MyInt16 = System.Int16
-Imports MyUInt16 = System.UInt16
-Imports MyInt32 = System.Int32
-Imports MyUInt32 = System.UInt32
-Imports MyInt64 = System.Int64
-Imports MyUInt64 = System.UInt64
+$"Imports My{underlyingType} = System.{underlyingType}
 
 Enum MyEnum As $$"
 
-            Await VerifyItemExistsAsync(markup, "MyByte")
-            Await VerifyItemExistsAsync(markup, "MySByte")
-            Await VerifyItemExistsAsync(markup, "MyInt16")
-            Await VerifyItemExistsAsync(markup, "MyUInt16")
-            Await VerifyItemExistsAsync(markup, "MyInt32")
-            Await VerifyItemExistsAsync(markup, "MyUInt32")
-            Await VerifyItemExistsAsync(markup, "MyInt64")
-            Await VerifyItemExistsAsync(markup, "MyUInt64")
+            Await VerifyItemExistsAsync(markup, $"My{underlyingType}")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList14() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList14(underlyingType As String) As Task
             Dim markup =
-"Imports MyByte = System.Byte
-Imports MySByte = System.SByte
-Imports MyInt16 = System.Int16
-Imports MyUInt16 = System.UInt16
-Imports MyInt32 = System.Int32
-Imports MyUInt32 = System.UInt32
-Imports MyInt64 = System.Int64
-Imports MyUInt64 = System.UInt64
+$"Imports My{underlyingType} = System.{underlyingType}
 
 Enum MyEnum As Global.$$"
 
-            Await VerifyItemIsAbsentAsync(markup, "MyByte")
-            Await VerifyItemIsAbsentAsync(markup, "MySByte")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList15() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList15(underlyingType As String) As Task
             Dim markup =
-"Imports MyByte = System.Byte
-Imports MySByte = System.SByte
-Imports MyInt16 = System.Int16
-Imports MyUInt16 = System.UInt16
-Imports MyInt32 = System.Int32
-Imports MyUInt32 = System.UInt32
-Imports MyInt64 = System.Int64
-Imports MyUInt64 = System.UInt64
+$"Imports My{underlyingType} = System.{underlyingType}
 
 Enum MyEnum As System.$$"
 
-            Await VerifyItemIsAbsentAsync(markup, "MyByte")
-            Await VerifyItemIsAbsentAsync(markup, "MySByte")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
         End Function
 
-        <Fact>
-        Public Async Function TestEnumBaseList16() As Task
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList16(underlyingType As String) As Task
             Dim markup =
-"Imports MySystem = System
-Imports MyByte = System.Byte
-Imports MySByte = System.SByte
-Imports MyInt16 = System.Int16
-Imports MyUInt16 = System.UInt16
-Imports MyInt32 = System.Int32
-Imports MyUInt32 = System.UInt32
-Imports MyInt64 = System.Int64
-Imports MyUInt64 = System.UInt64
+$"Imports MySystem = System
+Imports My{underlyingType} = System.{underlyingType}
 
 Enum MyEnum As MySystem.$$"
 
-            Await VerifyItemIsAbsentAsync(markup, "MyByte")
-            Await VerifyItemIsAbsentAsync(markup, "MySByte")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
-            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
-            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
+        End Function
+
+        Public Shared Iterator Function ValidEnumUnderlyingTypeNames() As IEnumerable(Of Object())
+            Yield {"Byte"}
+            Yield {"SByte"}
+            Yield {"Int16"}
+            Yield {"UInt16"}
+            Yield {"Int32"}
+            Yield {"UInt32"}
+            Yield {"Int64"}
+            Yield {"UInt64"}
         End Function
     End Class
 End Namespace

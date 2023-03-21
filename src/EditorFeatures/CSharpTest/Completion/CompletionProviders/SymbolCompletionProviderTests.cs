@@ -12316,7 +12316,6 @@ public static class Extension
         {
             yield return new object[] { "Byte" };
             yield return new object[] { "SByte" };
-            yield return new object[] { "SByte" };
             yield return new object[] { "Int16" };
             yield return new object[] { "UInt16" };
             yield return new object[] { "Int32" };
