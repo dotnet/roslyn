@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// suitable for enum's base list. This flag allows to fast-skip other entries
         /// without need to enumerate their items
         /// </summary>
-        private bool HasItemsSuitableForEnumBaseList { get; }
+        private bool HasEnumBaseTypes { get; }
 
         private TypeImportCompletionCacheEntry(
             SymbolKey assemblySymbolKey,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string language,
             ImmutableArray<TypeImportCompletionItemInfo> items,
             int publicItemCount,
-            bool hasItemsSuitableForEnumBaseList)
+            bool hasEnumBaseTypes)
         {
             AssemblySymbolKey = assemblySymbolKey;
             Checksum = checksum;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             ItemInfos = items;
             PublicItemCount = publicItemCount;
-            HasItemsSuitableForEnumBaseList = hasItemsSuitableForEnumBaseList;
+            HasEnumBaseTypes = hasEnumBaseTypes;
         }
 
         public ImmutableArray<CompletionItem> GetItemsForContext(
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (AssemblySymbolKey.Resolve(originCompilation).Symbol is not IAssemblySymbol assemblySymbol)
                 return ImmutableArray<CompletionItem>.Empty;
 
-            if (isEnumBaseListContext && !HasItemsSuitableForEnumBaseList)
+            if (isEnumBaseListContext && !HasEnumBaseTypes)
                 return ImmutableArray<CompletionItem>.Empty;
 
             var isSameLanguage = Language == language;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // Skip item if not suitable for enum base list
-                if (isEnumBaseListContext && !info.IsSuitableForEnumBaseList)
+                if (isEnumBaseListContext && !info.IsEnumBaseType)
                 {
                     continue;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly EditorBrowsableInfo _editorBrowsableInfo;
 
             private int _publicItemCount;
-            private bool _hasItemsSuitableForEnumBaseList;
+            private bool _hasEnumBaseTypes;
 
             private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     _language,
                     _itemsBuilder.ToImmutable(),
                     _publicItemCount,
-                    _hasItemsSuitableForEnumBaseList);
+                    _hasEnumBaseTypes);
             }
 
             public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
             {
-                // We want to cache items with EditoBrowsableState == Advanced regardless of current "hide adv members" option value
+                // We want to cache items with EditorBrowsableState == Advanced regardless of current "hide adv members" option value
                 var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
                     hideAdvancedMembers: false,
                     _editorBrowsableInfo.Compilation,
@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
                 var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
-                var isSuitableForEnumBaseList = symbol.SpecialType is >= SpecialType.System_SByte and <= SpecialType.System_UInt64;
-                _hasItemsSuitableForEnumBaseList |= isSuitableForEnumBaseList;
+                var isEnumBaseType = symbol.SpecialType is >= SpecialType.System_SByte and <= SpecialType.System_UInt64;
+                _hasEnumBaseTypes |= isEnumBaseType;
 
                 var item = ImportCompletionItem.Create(
                     symbol.Name,
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (isPublic)
                     _publicItemCount++;
 
-                _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced, isSuitableForEnumBaseList));
+                _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced, isEnumBaseType));
             }
 
             public void Dispose()
@@ -228,13 +228,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             private readonly ItemPropertyKind _properties;
 
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced, bool isSuitableForEnumBaseList)
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced, bool isEnumBaseType)
             {
                 Item = item;
                 _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
                             | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
                             | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
-                            | (isSuitableForEnumBaseList ? ItemPropertyKind.IsSuitableForEnumBaseList : 0)
+                            | (isEnumBaseType ? ItemPropertyKind.IsEnumBaseType : 0)
                             | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
             }
 
@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public bool IsAttribute
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
-            public bool IsSuitableForEnumBaseList
-                => (_properties & ItemPropertyKind.IsSuitableForEnumBaseList) != 0;
+            public bool IsEnumBaseType
+                => (_properties & ItemPropertyKind.IsEnumBaseType) != 0;
 
             public bool IsEditorBrowsableStateAdvanced
                 => (_properties & ItemPropertyKind.IsEditorBrowsableStateAdvanced) != 0;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 IsPublic = 1,
                 IsGeneric = 2,
                 IsAttribute = 4,
-                IsSuitableForEnumBaseList = 8,
+                IsEnumBaseType = 8,
                 IsEditorBrowsableStateAdvanced = 16
             }
         }
