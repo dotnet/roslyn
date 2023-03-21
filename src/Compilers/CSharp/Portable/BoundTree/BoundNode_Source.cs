@@ -317,6 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             appendSource(unary.Operand);
                             break;
                         }
+                    case BoundConversion conversion:
+                        {
+                            append($" {conversion.Conversion} ");
+                            appendSource(conversion.Operand);
+                            break;
+                        }
                     case BoundStatementList list:
                         {
                             foreach (var statement in list.Statements)
