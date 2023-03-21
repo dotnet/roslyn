@@ -1050,7 +1050,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(escapeTo is CallingMethodScope or ReturnOnlyScope);
             if (_useUpdatedEscapeRules)
             {
                 if (GetParameterValEscape(parameter) > escapeTo)

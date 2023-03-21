@@ -7060,5 +7060,32 @@ public struct Vec4
             var comp = CreateCompilationWithSpan(source);
             comp.VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ParameterEscape()
+        {
+            var source = """
+                using System;
+                ref struct R
+                {
+                    public R(Span<int> s) { }
+                    public void F(ReadOnlySpan<int> s) { }
+                }
+                class Program
+                {
+                    static void M(ReadOnlySpan<int> s)
+                    {
+                        R r = new R(stackalloc int[2]);
+                        while (true)
+                        {
+                            r.F(s);
+                            r.F(s.Slice(0, 1));
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
     }
 }
