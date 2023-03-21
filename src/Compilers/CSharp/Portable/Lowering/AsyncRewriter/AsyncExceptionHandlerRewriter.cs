@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -461,7 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentAwaitCatchFrame = origAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = this.VisitList(node.CatchBlocks);
+            var rewrittenCatches = node.CatchBlocks.SelectAsArray(catchBlock =>
+                (BoundCatchBlock)this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame));
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
@@ -505,6 +507,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private BoundNode VisitCatchBlock(BoundCatchBlock node, AwaitCatchFrame parentAwaitCatchFrame)
+        {
             if (!_analysis.CatchContainsAwait(node))
             {
                 var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
@@ -521,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Syntax.IsKind(SyntaxKind.CatchClause));
                 var tryStatementSyntax = (TryStatementSyntax)node.Syntax.Parent;
 
-                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax, _parentAwaitCatchFrame);
+                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax, parentAwaitCatchFrame);
             }
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
