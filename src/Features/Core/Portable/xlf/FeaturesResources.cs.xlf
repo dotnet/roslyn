@@ -52,7 +52,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
-        <target state="translated">Přidat název členu</target>
+        <target state="new">Add member name</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
@@ -67,7 +67,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">Přidat parametr do {0} (a přepsání/implementace)</target>
+        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -547,7 +547,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="translated">Přidat do {0}</target>
+        <target state="new">Add to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2492,7 +2492,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">Podpisy souvisejících metod nalezené v metadatech se nebudou aktualizovat.</target>
+        <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
@@ -2502,7 +2502,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="translated">Odebrat modifikátor async</target>
+        <target state="new">Remove 'async' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4470,7 +4470,7 @@ Pokud se specifikátor formátu K použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="translated">Nastavit metodu jako synchronní</target>
+        <target state="new">Make method synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="from_0">
@@ -4637,12 +4637,12 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="Remove_tag">
         <source>Remove tag</source>
-        <target state="translated">Odebrat značku</target>
+        <target state="new">Remove tag</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
-        <target state="translated">Přidat chybějící uzly parametrů</target>
+        <target state="new">Add missing param nodes</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">
@@ -4702,22 +4702,22 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
-        <target state="translated">Vzít {0}</target>
+        <target state="new">Take '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_both">
         <source>Take both</source>
-        <target state="translated">Vzít obojí</target>
+        <target state="new">Take both</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_bottom">
         <source>Take bottom</source>
-        <target state="translated">Vzít dolní</target>
+        <target state="new">Take bottom</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_top">
         <source>Take top</source>
-        <target state="translated">Vzít horní</target>
+        <target state="new">Take top</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">
@@ -4762,7 +4762,7 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="Add_parameter_to_0">
         <source>Add parameter to '{0}'</source>
-        <target state="translated">Přidat parametr do {0}</target>
+        <target state="new">Add parameter to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">
