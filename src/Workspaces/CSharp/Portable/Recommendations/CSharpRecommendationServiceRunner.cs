@@ -113,7 +113,7 @@ internal partial class CSharpRecommendationService
             }
             else if (_context.IsEnumBaseListContext)
             {
-                return GetSymbolsForEnumBaseList();
+                return GetSymbolsForEnumBaseList(container: null);
             }
 
             return ImmutableArray<ISymbol>.Empty;
