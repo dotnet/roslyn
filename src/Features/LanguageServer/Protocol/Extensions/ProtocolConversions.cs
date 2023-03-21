@@ -38,9 +38,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
-        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
-        // which can confuse users
-        public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
+        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
+        // way which can confuse users
+
+        /// <summary>
+        /// Mapping from tags to lsp completion item kinds.  This mapping allows values including extensions to the
+        /// kinds defined by VS (but not in the core LSP spec).
+        /// </summary>
+        public static readonly ImmutableDictionary<string, LSP.CompletionItemKind> RoslynTagToVSCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
         {
             { WellKnownTags.Public, LSP.CompletionItemKind.Keyword },
             { WellKnownTags.Protected, LSP.CompletionItemKind.Keyword },
@@ -79,7 +84,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.StatusInformation, LSP.CompletionItemKind.Text },
             { WellKnownTags.AddReference, LSP.CompletionItemKind.Text },
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
-        };
+        }.ToImmutableDictionary();
+
+        /// <summary>
+        /// Same as <see cref="RoslynTagToVSCompletionItemKind"/> except that the values are only from the safe set of
+        /// kinds defined directly by the core LSP protocol.
+        /// </summary>
+        public static readonly ImmutableDictionary<string, LSP.CompletionItemKind> RoslynTagToDefaultCompletionItemKind = RoslynTagToVSCompletionItemKind
+            .SetItem(WellKnownTags.Delegate, LSP.CompletionItemKind.Class)
+            .SetItem(WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method)
+            .SetItem(WellKnownTags.Namespace, LSP.CompletionItemKind.Module);
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726

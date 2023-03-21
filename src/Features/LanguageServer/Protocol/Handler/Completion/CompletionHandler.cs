@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspItem.SortText = item.SortText;
                 lspItem.FilterText = item.FilterText;
 
-                lspItem.Kind = GetCompletionKind(item.Tags);
+                lspItem.Kind = GetCompletionKind(item.Tags, lspVSClientCapability);
                 lspItem.Preselect = ShouldItemBePreselected(item);
 
                 lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
@@ -190,11 +190,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return lspItem;
             }
 
-            static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
+            static LSP.CompletionItemKind GetCompletionKind(
+                ImmutableArray<string> tags, bool lspVSClientCapability)
             {
+                var dictionary = lspVSClientCapability
+                    ? ProtocolConversions.RoslynTagToVSCompletionItemKind
+                    : ProtocolConversions.RoslynTagToDefaultCompletionItemKind;
+
                 foreach (var tag in tags)
                 {
-                    if (ProtocolConversions.RoslynTagToCompletionItemKind.TryGetValue(tag, out var completionItemKind))
+                    if (dictionary.TryGetValue(tag, out var completionItemKind))
                         return completionItemKind;
                 }
 
