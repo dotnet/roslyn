@@ -84,7 +84,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
+    public EventHandler<EventArgs>? LspTextOpened;
     public EventHandler<EventArgs>? LspTextChanged;
+    public EventHandler<EventArgs>? LspTextClosed;
 
     #region Implementation of IDocumentChangeTracker
 
@@ -102,7 +104,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
 
-        LspTextChanged?.Invoke(this, EventArgs.Empty);
+        LspTextOpened?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -139,7 +141,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
 
-        LspTextChanged?.Invoke(this, EventArgs.Empty);
+        LspTextClosed?.Invoke(this, EventArgs.Empty);
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
