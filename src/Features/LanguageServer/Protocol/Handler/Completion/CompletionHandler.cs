@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // If better kinds are preferred, return them if the client supports them.
                         for (var i = 1; i < completionItemKinds.Length; i++)
                         {
-                            var preferredKind = completionItemKinds[1];
+                            var preferredKind = completionItemKinds[i];
                             if (supportedClientKinds.Contains(preferredKind))
                                 kind = preferredKind;
                         }
