@@ -290,7 +290,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 container: semanticModel.Compilation.GlobalNamespace,
                 name: nameof(System)).FirstOrDefault(s => s is INamespaceSymbol);
 
-            var builder = ArrayBuilder<ISymbol>.GetInstance(capacity: 9);
+            using var builder = ArrayBuilder<ISymbol>.GetInstance();
 
             if (systemNamespace is not null)
             {
