@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"), composition: composition);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -87,7 +87,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -179,7 +179,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -220,7 +220,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -262,7 +262,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -304,7 +304,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -344,7 +344,7 @@ namespace M
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -385,7 +385,7 @@ End Namespace
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -615,7 +615,7 @@ enum E
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1464142, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
         public async Task DependentTypeFinderSkipsNoCompilationLanguages(TestHost host)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
@@ -657,7 +657,7 @@ enum E
             Assert.Empty(results);
         }
 
-        [Theory, CombinatorialData, WorkItem(1555496, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1555496")]
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1555496")]
         public async Task TestDerivedTypesWithIntermediaryType1(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -721,7 +721,7 @@ namespace N_Main
             }
         }
 
-        [Theory, CombinatorialData, WorkItem(1598801, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
         public async Task ImplementedInterface_CSharp1(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -764,7 +764,7 @@ namespace M
             Assert.Equal(interfaceSymbol, interfaceMember.ContainingType);
         }
 
-        [Theory, CombinatorialData, WorkItem(1598801, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
         public async Task ImplementedInterface_CSharp2(TestHost host)
         {
             using var workspace = CreateWorkspace(host);

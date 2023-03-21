@@ -99,8 +99,8 @@ end class
         End Function
 
         <Fact>
-        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
-        <WorkItem(25408, "https://github.com/dotnet/roslyn/issues/25408")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20855")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25408")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>
@@ -148,7 +148,7 @@ partial class C
                 End Function)
         End Function
 
-        <Fact, WorkItem(66320, "https://github.com/dotnet/roslyn/issues/66320")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66320")>
         Public Async Function TestChangeReferencesInMultipleFiles_CSharp() As Task
             Dim input =
                 <Workspace>

@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordSignature = 1 << 26,
+            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
         private bool IsTerminator()
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
+                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceSignature():
                         return true;
                 }
             }
@@ -794,13 +794,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var usingToken = this.EatToken(SyntaxKind.UsingKeyword);
             var staticToken = this.TryEatToken(SyntaxKind.StaticKeyword);
+            var unsafeToken = this.TryEatToken(SyntaxKind.UnsafeKeyword);
+
+            // if the user wrote `using unsafe static` skip the `static` and tell them it needs to be `using static unsafe`.
+            if (staticToken is null && unsafeToken != null && this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+            {
+                // create a missing 'static' token so that later binding does recognize what the user wanted.
+                staticToken = SyntaxFactory.MissingToken(SyntaxKind.StaticKeyword);
+                unsafeToken = AddTrailingSkippedSyntax(unsafeToken, AddError(this.EatToken(), ErrorCode.ERR_BadStaticAfterUnsafe));
+            }
 
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
-            NameSyntax name;
+            TypeSyntax type;
             SyntaxToken semicolon;
 
-            if (IsPossibleNamespaceMemberDeclaration())
+            var isAliasToFunctionPointer = alias != null && this.CurrentToken.Kind == SyntaxKind.DelegateKeyword;
+            if (!isAliasToFunctionPointer && IsPossibleNamespaceMemberDeclaration())
             {
                 //We're worried about the case where someone already has a correct program
                 //and they've gone back to add a using directive, but have not finished the
@@ -818,23 +828,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //NB: there's no way this could be true for a set of tokens that form a valid 
                 //using directive, so there's no danger in checking the error case first.
 
-                name = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
+                type = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
             else
             {
-                name = this.ParseQualifiedName();
-                if (name.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
-                {
-                    //if we can see a semicolon ahead, then the current token was
-                    //probably supposed to be an identifier
-                    name = AddTrailingSkippedSyntax(name, this.EatToken());
-                }
+                // In the case where we don't have an alias, only parse out a name for this using-directive.  This is
+                // worse for error recovery, but it means all code that consumes a using-directive can keep on assuming
+                // it has a name when there is no alias.  Only code that specifically has to process aliases then has to
+                // deal with getting arbitrary types back.
+                type = alias == null ? this.ParseQualifiedName() : this.ParseType();
+
+                // If we can see a semicolon ahead, then the current token was probably supposed to be an identifier
+                if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
+                    type = AddTrailingSkippedSyntax(type, this.EatToken());
 
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, name, semicolon);
+            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, unsafeToken, alias, type, semicolon);
         }
 
         private bool IsPossibleGlobalAttributeDeclaration()
@@ -1448,16 +1460,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var outerSaveTerm = _termState;
-
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
-            {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
-            }
-            else
+            if (!tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 keyword = ConvertToKeyword(this.EatToken());
             }
+
+            var outerSaveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
@@ -1465,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
@@ -1488,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1619,15 +1628,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1636,15 +1643,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1653,15 +1658,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1808,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
@@ -1876,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -3120,8 +3123,10 @@ parse_member_name:;
         private bool IsEndOfMethodSignature()
             => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
-        private bool IsEndOfRecordSignature()
-            => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        private bool IsEndOfRecordOrClassOrStructOrInterfaceSignature()
+        {
+            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        }
 
         private bool IsEndOfNameInExplicitInterface()
             => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken;
@@ -4307,7 +4312,16 @@ parse_member_name:;
             }
 
             var type = this.ParseType(mode: ParseTypeMode.Parameter);
-            var identifier = this.ParseIdentifierToken();
+            SyntaxToken identifier;
+
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
+            {
+                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+            }
+            else
+            {
+                identifier = this.ParseIdentifierToken();
+            }
 
             // When the user type "int goo[]", give them a useful error
             if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
@@ -5226,22 +5240,38 @@ parse_member_name:;
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            SyntaxToken semicolon;
+            SyntaxToken openBrace;
+            SyntaxToken closeBrace;
 
-            if (!openBrace.IsMissing)
+            if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
-                // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
-                // that, successfully consuming them as separators, while telling the user it needs to be a comma
-                // instead.
-                members = this.ParseCommaSeparatedSyntaxList(
-                    ref openBrace,
-                    SyntaxKind.CloseBraceToken,
-                    static @this => @this.IsPossibleEnumMemberDeclaration(),
-                    static @this => @this.ParseEnumMemberDeclaration(),
-                    skipBadEnumMemberListTokens,
-                    allowTrailingSeparator: true,
-                    requireOneElement: false,
-                    allowSemicolonAsSeparator: true);
+                semicolon = EatToken(SyntaxKind.SemicolonToken);
+                openBrace = null;
+                closeBrace = null;
+            }
+            else
+            {
+                openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+                if (!openBrace.IsMissing)
+                {
+                    // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
+                    // that, successfully consuming them as separators, while telling the user it needs to be a comma
+                    // instead.
+                    members = this.ParseCommaSeparatedSyntaxList(
+                        ref openBrace,
+                        SyntaxKind.CloseBraceToken,
+                        static @this => @this.IsPossibleEnumMemberDeclaration(),
+                        static @this => @this.ParseEnumMemberDeclaration(),
+                        skipBadEnumMemberListTokens,
+                        allowTrailingSeparator: true,
+                        requireOneElement: false,
+                        allowSemicolonAsSeparator: true);
+                }
+
+                closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                semicolon = TryEatToken(SyntaxKind.SemicolonToken);
             }
 
             return _syntaxFactory.EnumDeclaration(
@@ -5252,8 +5282,8 @@ parse_member_name:;
                 baseList,
                 openBrace,
                 members,
-                this.EatToken(SyntaxKind.CloseBraceToken),
-                TryEatToken(SyntaxKind.SemicolonToken));
+                closeBrace,
+                semicolon);
 
             static PostSkipAction skipBadEnumMemberListTokens(
                 LanguageParser @this, ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
@@ -5581,9 +5611,8 @@ parse_member_name:;
 
             // Scan for a type argument list. If we think it's a type argument list
             // then assume it is unless we see specific tokens following it.
-            SyntaxToken lastTokenOfList = null;
             ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
-                ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
+                out var greaterThanToken, out bool isDefinitelyTypeArgumentList);
 
             if (possibleTypeArgumentFlags == ScanTypeFlags.NotType)
             {
@@ -5599,7 +5628,7 @@ parse_member_name:;
             // was not a type argument list, we must have scanned the entire thing up through
             // the closing greater-than token. In that case we will disambiguate based on the
             // token that follows it.
-            Debug.Assert(lastTokenOfList.Kind == SyntaxKind.GreaterThanToken);
+            Debug.Assert(greaterThanToken.Kind == SyntaxKind.GreaterThanToken);
 
             switch (this.CurrentToken.Kind)
             {
@@ -5679,131 +5708,145 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanPossibleTypeArgumentList(
-            ref SyntaxToken lastTokenOfList, out bool isDefinitelyTypeArgumentList)
+            out SyntaxToken greaterThanToken,
+            out bool isDefinitelyTypeArgumentList)
         {
             isDefinitelyTypeArgumentList = false;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
 
-            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
+            // If we have `X<>`, or `X<,>` or `X<,,,,,,>` then none of these are legal expression or types. However,
+            // it seems likelier that they are invalid open-types in an expression context, versus expressions
+            // missing values (note that we only support this when the open name does have the final `>` token).
+            if (IsOpenName())
             {
-                ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+                isDefinitelyTypeArgumentList = true;
 
-                do
+                var start = this.EatToken();
+                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    this.EatToken();
+                greaterThanToken = this.EatToken();
+                Debug.Assert(start.Kind == SyntaxKind.LessThanToken);
+                Debug.Assert(greaterThanToken.Kind == SyntaxKind.GreaterThanToken);
+
+                return ScanTypeFlags.GenericTypeOrMethod;
+            }
+
+            ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+
+            do
+            {
+                this.EatToken();
+
+                // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 {
-                    lastTokenOfList = this.EatToken();
-
-                    // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
-                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-                    {
-                        lastTokenOfList = null;
-                        return ScanTypeFlags.NotType;
-                    }
-
-                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        lastTokenOfList = EatToken();
-                        return result;
-                    }
-
-                    switch (this.ScanType(out lastTokenOfList))
-                    {
-                        case ScanTypeFlags.NotType:
-                            lastTokenOfList = null;
-                            return ScanTypeFlags.NotType;
-
-                        case ScanTypeFlags.MustBeType:
-                            // We're currently scanning a possible type-argument list.  But we're
-                            // not sure if this is actually a type argument list, or is maybe some
-                            // complex relational expression with <'s and >'s.  One thing we can
-                            // tell though is that if we have a predefined type (like 'int' or 'string')
-                            // before a comma or > then this is definitely a type argument list. i.e.
-                            // if you have:
-                            // 
-                            //      var v = ImmutableDictionary<int,
-                            //
-                            // then there's no legal interpretation of this as an expression (since a
-                            // standalone predefined type is not a valid simple term.  Contrast that
-                            // with :
-                            //
-                            //  var v = ImmutableDictionary<Int32,
-                            //
-                            // Here this might actually be a relational expression and the comma is meant
-                            // to separate out the variable declarator 'v' from the next variable.
-                            //
-                            // Note: we check if we got 'MustBeType' which triggers for predefined types,
-                            // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
-                            // of things that must be types (int*, void**, etc.).
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
-
-                        // case ScanTypeFlags.TupleType:
-                        // It would be nice if we saw a tuple to state that we definitely had a 
-                        // type argument list.  However, there are cases where this would not be
-                        // true.  For example:
-                        //
-                        // public class C
-                        // {
-                        //     public static void Main()
-                        //     {
-                        //         XX X = default;
-                        //         int a = 1, b = 2;
-                        //         bool z = X < (a, b), w = false;
-                        //     }
-                        // }
-                        //
-                        // struct XX
-                        // {
-                        //     public static bool operator <(XX x, (int a, int b) arg) => true;
-                        //     public static bool operator >(XX x, (int a, int b) arg) => false;
-                        // }
-
-                        case ScanTypeFlags.NullableType:
-                            // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
-                            if (isDefinitelyTypeArgumentList)
-                            {
-                                result = ScanTypeFlags.GenericTypeOrMethod;
-                            }
-
-                            // Note: we intentionally fall out without setting 'result'. 
-                            // Seeing a nullable type (not followed by a , or > ) is not enough 
-                            // information for us to determine what this is yet.  i.e. the user may have:
-                            //
-                            //      X < Y ? Z : W
-                            //
-                            // We'd see a nullable type here, but this is definitely not a type arg list.
-
-                            break;
-
-                        case ScanTypeFlags.GenericTypeOrExpression:
-                            // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
-                            // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
-                            // be some sort of expression where we're comparing, and then shifting values.
-                            if (!isDefinitelyTypeArgumentList)
-                            {
-                                isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
-                                result = ScanTypeFlags.GenericTypeOrMethod;
-                            }
-                            break;
-
-                        case ScanTypeFlags.GenericTypeOrMethod:
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
-                    }
-                }
-                while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
-
-                if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
-                {
-                    lastTokenOfList = null;
+                    greaterThanToken = null;
                     return ScanTypeFlags.NotType;
                 }
 
-                lastTokenOfList = this.EatToken();
-                return result;
+                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
+                {
+                    greaterThanToken = EatToken();
+                    return result;
+                }
+
+                switch (this.ScanType(out _))
+                {
+                    case ScanTypeFlags.NotType:
+                        greaterThanToken = null;
+                        return ScanTypeFlags.NotType;
+
+                    case ScanTypeFlags.MustBeType:
+                        // We're currently scanning a possible type-argument list.  But we're
+                        // not sure if this is actually a type argument list, or is maybe some
+                        // complex relational expression with <'s and >'s.  One thing we can
+                        // tell though is that if we have a predefined type (like 'int' or 'string')
+                        // before a comma or > then this is definitely a type argument list. i.e.
+                        // if you have:
+                        // 
+                        //      var v = ImmutableDictionary<int,
+                        //
+                        // then there's no legal interpretation of this as an expression (since a
+                        // standalone predefined type is not a valid simple term.  Contrast that
+                        // with :
+                        //
+                        //  var v = ImmutableDictionary<Int32,
+                        //
+                        // Here this might actually be a relational expression and the comma is meant
+                        // to separate out the variable declarator 'v' from the next variable.
+                        //
+                        // Note: we check if we got 'MustBeType' which triggers for predefined types,
+                        // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
+                        // of things that must be types (int*, void**, etc.).
+                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        result = ScanTypeFlags.GenericTypeOrMethod;
+                        break;
+
+                    // case ScanTypeFlags.TupleType:
+                    // It would be nice if we saw a tuple to state that we definitely had a 
+                    // type argument list.  However, there are cases where this would not be
+                    // true.  For example:
+                    //
+                    // public class C
+                    // {
+                    //     public static void Main()
+                    //     {
+                    //         XX X = default;
+                    //         int a = 1, b = 2;
+                    //         bool z = X < (a, b), w = false;
+                    //     }
+                    // }
+                    //
+                    // struct XX
+                    // {
+                    //     public static bool operator <(XX x, (int a, int b) arg) => true;
+                    //     public static bool operator >(XX x, (int a, int b) arg) => false;
+                    // }
+
+                    case ScanTypeFlags.NullableType:
+                        // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
+                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        if (isDefinitelyTypeArgumentList)
+                        {
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                        }
+
+                        // Note: we intentionally fall out without setting 'result'. 
+                        // Seeing a nullable type (not followed by a , or > ) is not enough 
+                        // information for us to determine what this is yet.  i.e. the user may have:
+                        //
+                        //      X < Y ? Z : W
+                        //
+                        // We'd see a nullable type here, but this is definitely not a type arg list.
+
+                        break;
+
+                    case ScanTypeFlags.GenericTypeOrExpression:
+                        // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
+                        // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
+                        // be some sort of expression where we're comparing, and then shifting values.
+                        if (!isDefinitelyTypeArgumentList)
+                        {
+                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                        }
+                        break;
+
+                    case ScanTypeFlags.GenericTypeOrMethod:
+                        result = ScanTypeFlags.GenericTypeOrMethod;
+                        break;
+                }
+            }
+            while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
+
+            if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
+            {
+                greaterThanToken = null;
+                return ScanTypeFlags.NotType;
             }
 
-            return ScanTypeFlags.NonGenericTypeOrExpression;
+            greaterThanToken = this.EatToken();
+            return result;
         }
 
         private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
@@ -5820,10 +5863,11 @@ parse_member_name:;
         private void ParseTypeArgumentList(out SyntaxToken open, SeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
+            var isOpenName = this.IsOpenName();
             open = this.EatToken(SyntaxKind.LessThanToken);
             open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics);
 
-            if (this.IsOpenName())
+            if (isOpenName)
             {
                 // NOTE: trivia will be attached to comma, not omitted type argument
                 var omittedTypeArgumentInstance = _syntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken));
@@ -5946,19 +5990,12 @@ parse_member_name:;
 
         private bool IsOpenName()
         {
-            bool isOpen = true;
-            int n = 0;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
+            var n = 1;
             while (this.PeekToken(n).Kind == SyntaxKind.CommaToken)
-            {
                 n++;
-            }
 
-            if (this.PeekToken(n).Kind != SyntaxKind.GreaterThanToken)
-            {
-                isOpen = false;
-            }
-
-            return isOpen;
+            return this.PeekToken(n).Kind == SyntaxKind.GreaterThanToken;
         }
 
         private void ParseMemberName(
@@ -6424,7 +6461,7 @@ parse_member_name:;
             lastTokenOfType = this.EatToken();
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
+                return this.ScanPossibleTypeArgumentList(out lastTokenOfType, out _);
             }
             else
             {

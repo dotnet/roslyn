@@ -110,7 +110,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // We log performance info when we are computing diagnostics for a span
                 // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
-                var logPerformanceInfo = range.HasValue && blockForData;
+                // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span,
+                // so we also check that the range length is lesser then the document text length.
+                var logPerformanceInfo = range.HasValue && blockForData && range.Value.Length < text.Length;
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental

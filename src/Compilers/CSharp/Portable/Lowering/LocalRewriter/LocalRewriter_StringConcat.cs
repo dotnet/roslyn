@@ -496,6 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isFieldOfMarshalByRef(BoundExpression expr, CSharpCompilation compilation)
             {
+                Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
+
                 if (expr is BoundFieldAccess fieldAccess)
                 {
                     return DiagnosticsPass.IsNonAgileFieldAccess(fieldAccess, compilation);

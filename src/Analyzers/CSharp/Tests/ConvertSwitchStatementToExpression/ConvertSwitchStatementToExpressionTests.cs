@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestOnMultiCaseSection_CSharp9()
         {
             var testCode = """
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(37873, "https://github.com/dotnet/roslyn/issues/37873")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37873")]
         public async Task TestTrivia_02()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(52258, "https://github.com/dotnet/roslyn/issues/52258")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52258")]
         public async Task TestTrivia_03()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36086")]
         public async Task TestSeverity()
         {
             var source =
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(36995, "https://github.com/dotnet/roslyn/issues/36995")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36995")]
         public async Task TestAddParenthesesAroundBinaryExpression()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(37947, "https://github.com/dotnet/roslyn/issues/37947")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37947")]
         public async Task TestMultiLabelWithDefault()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(37949, "https://github.com/dotnet/roslyn/issues/37949")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37949")]
         public async Task TestMissingOnUseInNextStatement()
         {
             var code = """
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(36876, "https://github.com/dotnet/roslyn/issues/36876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36876")]
         public async Task TestDeclarationInOuterScope()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37872")]
         public async Task TestMissingFixOnDirectives()
         {
             var code = """
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37872")]
         public async Task TestMissingFixAllOnDirectives()
         {
             var code = """
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37950")]
         public async Task TestShouldNotCastNullOnNullableValueType_ReturnStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37950")]
         public async Task TestShouldNotCastNullOnNullableValueType_Assignment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces()
         {
             var input =
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces2()
         {
             var input =
@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces3()
         {
             var input =
@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_ClassInheritance()
         {
             var input =
@@ -1561,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_ClassInheritance2()
         {
             var input =
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestImplicitDeclaration_ClassInheritance()
         {
             var input =
@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestImplicitDeclaration_ClassInheritance2()
         {
             var input =
@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_AllCasesDefaultLiteral()
         {
             var input =
@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefReturns()
         {
             var code = """
@@ -2045,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefAssignment()
         {
             var code = """
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefConditionalAssignment()
         {
             var code = """
@@ -2093,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestWithRefInsideConditionalAssignment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44449")]
         public async Task TopLevelStatement_FollowedWithThrow()
         {
             // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48006")]
         public async Task TestOnMultiCaseSection_String_CSharp9()
         {
             var testCode = """
@@ -2253,7 +2253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49788")]
         public async Task TestParenthesizedExpression1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2283,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49788")]
         public async Task TestParenthesizedExpression2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2313,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Assignment1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2354,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Assignment2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2399,7 +2399,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Return1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2436,7 +2436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Return2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2476,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 """);
         }
 
-        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61278")]
         public async Task TestLeadingTrivia1()
         {
             await new VerifyCS.Test
@@ -2532,7 +2532,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61278")]
         public async Task TestLeadingTrivia2()
         {
             await new VerifyCS.Test

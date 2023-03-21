@@ -144,7 +144,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545259")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545259")>
         Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia2() As Task
             Dim code =
 <File>
@@ -174,7 +174,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(540330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540330")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540330")>
         Public Async Function TestSingleDeclaratorDontMoveNextStatement() As Task
             Dim code =
 <File>
@@ -300,7 +300,7 @@ Console.WriteLine(2)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545704")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545704")>
         Public Async Function TestThreeDeclarators4() As Task
             Dim code =
 <MethodBody>
@@ -460,7 +460,7 @@ Console.WriteLine(i + 1 * k)
         End Function
 
         <Fact(Skip:="551797")>
-        <WorkItem(551797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
         Public Async Function TestInlineIntoExpression3() As Task
             Dim code =
 <MethodBody>
@@ -528,7 +528,7 @@ Console.WriteLine(("a" &amp; "b").Length)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(540374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
         Public Async Function TestInlineIntoMemberAccess3() As Task
             Dim code =
 <MethodBody>
@@ -544,8 +544,8 @@ Console.Write(New String(" "c, 10).Length)
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(541965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
-        <WorkItem(551797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
         <WpfFact(Skip:="551797")>
         Public Async Function TestInlineIntoMemberAccess4() As Task
             Dim code =
@@ -618,7 +618,7 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542060")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542060")>
         Public Async Function TestInlineIntoMemberAccess7() As Task
             Dim code =
 <MethodBody>
@@ -634,7 +634,7 @@ Console.WriteLine((From x In "ABC" Select x).First())
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(546726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546726")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546726")>
         Public Async Function TestInlineIntoMemberAccess8() As Task
             Dim code =
 <MethodBody>
@@ -800,8 +800,8 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(544981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544981")>
-        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544981")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast6() As Task
             Dim code =
 <File>
@@ -829,7 +829,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(544982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544982")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544982")>
         Public Async Function TestInlineWithCast7() As Task
             Dim code =
 <File>
@@ -859,8 +859,8 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545130")>
-        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545130")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast8() As Task
             Dim code =
 <File>
@@ -886,7 +886,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545162")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545162")>
         Public Async Function TestInlineWithCast9() As Task
             Dim code =
 <File>
@@ -912,7 +912,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545177")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545177")>
         Public Async Function TestInlineWithCast10() As Task
             Dim code =
 <File>
@@ -938,8 +938,8 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545600")>
-        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545600")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast11() As Task
             Dim code =
 <File>
@@ -977,7 +977,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")>
         Public Async Function TestInlineWithCast12() As Task
             Dim code =
 <File>
@@ -1005,7 +1005,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast13() As Task
             Dim code =
 <File>
@@ -1037,7 +1037,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(546700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546700")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546700")>
         Public Async Function TestInlineIntoExpressionHole1() As Task
             Dim code =
 <MethodBody>
@@ -1162,7 +1162,7 @@ Console.WriteLine((1 + 1) * 2)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545544")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545544")>
         Public Async Function TestDontRemoveLineBreakAfterComment() As Task
             Dim code =
 <MethodBody>
@@ -1248,7 +1248,7 @@ Dim y As Action = Sub()
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(543215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543215")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543215")>
         Public Async Function TestDontInsertUnnecessaryCast4() As Task
             Dim code =
 <ClassDeclaration>
@@ -1274,7 +1274,7 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(543280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543280")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543280")>
         Public Async Function TestDontInsertUnnecessaryCast5() As Task
             Dim code =
 <File>
@@ -1304,7 +1304,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(544973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544973")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544973")>
         Public Async Function TestDontInsertUnnecessaryCast6() As Task
             Dim code =
 <File>
@@ -1336,7 +1336,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545975")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545975")>
         Public Async Function TestDontInsertUnnecessaryCast7() As Task
             Dim code =
 <File>
@@ -1362,7 +1362,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545846")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545846")>
         Public Async Function TestDontInsertUnnecessaryCast8() As Task
             Dim markup =
 <File>
@@ -1390,7 +1390,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545624"), WorkItem(799045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545624"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
         Public Async Function TestDontInsertUnnecessaryCast9() As Task
             Dim markup =
 <File>
@@ -1421,7 +1421,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(530068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530068")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530068")>
         Public Async Function TestDontInsertUnnecessaryCast10() As Task
             Dim markup =
 <File>
@@ -1581,7 +1581,7 @@ Call New Exception().Message.ToString
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
         Public Async Function TestInsertCallIfNecessary9() As Task
             Dim code =
 <MethodBody>
@@ -1597,7 +1597,7 @@ Call If(True, 1, 2).ToString
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
         Public Async Function TestInsertCallIfNecessary10() As Task
             Dim code =
 <MethodBody>
@@ -1613,7 +1613,7 @@ Call If(Nothing, "").ToString
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         Public Async Function TestParenthesizeIfNecessary1() As Task
             Dim code =
 <MethodBody>
@@ -1629,7 +1629,7 @@ Dim a = (From y In "" Select y), b
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         Public Async Function TestParenthesizeIfNecessary2() As Task
             Dim code =
 <MethodBody>
@@ -1645,7 +1645,7 @@ Dim a = Nothing, b = From y In "" Select y
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         Public Async Function TestParenthesizeIfNecessary3() As Task
             Dim code =
 <MethodBody>
@@ -1660,7 +1660,7 @@ Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char)))
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         Public Async Function TestParenthesizeIfNecessary4() As Task
             Dim code =
 <MethodBody>
@@ -1676,7 +1676,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         Public Async Function TestParenthesizeIfNecessary5() As Task
             Dim code =
 <MethodBody>
@@ -1692,7 +1692,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         Public Async Function TestParenthesizeIfNecessary6() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1719,7 +1719,7 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
         Public Async Function TestParenthesizeIfNecessary7() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1745,7 +1745,7 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         Public Async Function TestParenthesizeIfNecessary8() As Task
             Dim code =
 <MethodBody>
@@ -1761,7 +1761,7 @@ Dim a = (From y In "" Select y Order By y), b
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
         Public Async Function TestParenthesizeIfNecessary9() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1787,7 +1787,7 @@ End Sub
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
         Public Async Function TestParenthesizeIfNecessary10() As Task
             Dim code =
 <MethodBody>
@@ -1803,7 +1803,7 @@ Dim y = (New Collections.ArrayList())(0)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542842")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542842")>
         Public Async Function TestParenthesizeIfNecessary11() As Task
             Dim code =
 <MethodBody>
@@ -1819,7 +1819,7 @@ Dim a As Action = (Sub() If True Then Dim x), b = a
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         Public Async Function TestParenthesizeIfNecessary12() As Task
             Dim code =
 <MethodBody>
@@ -1835,7 +1835,7 @@ Dim a = (From y In "" Select y Order By y Ascending), b
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
         Public Async Function TestParenthesizeIfNecessary13() As Task
             Dim code =
 <MethodBody>
@@ -1851,7 +1851,7 @@ Dim y = (New Collections.ArrayList)(0)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542931")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542931")>
         Public Async Function TestParenthesizeIfNecessary14() As Task
             Dim code =
 <MethodBody>
@@ -1867,7 +1867,7 @@ Dim p = From y In "", z In (From x In "") Distinct
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542989")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542989")>
         Public Async Function TestParenthesizeIfNecessary15() As Task
             Dim code =
 <MethodBody>
@@ -1883,7 +1883,7 @@ Dim y = (From x In "" Group By x Into Count)(0)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542990")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542990")>
         Public Async Function TestParenthesizeIfNecessary16() As Task
             Dim code =
 <MethodBody>
@@ -1899,7 +1899,7 @@ Dim y As String = (Function() Console.ReadLine)()
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         Public Async Function TestParenthesizeIfNecessary17() As Task
             Dim code =
 <MethodBody>
@@ -1915,7 +1915,7 @@ Dim q = From x In "" Select z = (Sub() Return) Distinct
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         Public Async Function TestParenthesizeIfNecessary18() As Task
             Dim code =
 <MethodBody>
@@ -1951,7 +1951,7 @@ Dim q = From x In "" Select z = (Sub() Return) _ ' Test
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         Public Async Function TestParenthesizeIfNecessary19() As Task
             Dim code =
 <MethodBody>
@@ -1967,7 +1967,7 @@ Dim q = From x In "" Select z = Sub() Return
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529694")>
         Public Async Function TestParenthesizeIfNecessary20() As Task
             Dim code =
 <MethodBody>
@@ -1991,7 +1991,7 @@ End With
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545571")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545571")>
         Public Async Function TestParenthesizeIfNecessary21() As Task
             Dim code =
 <MethodBody>
@@ -2007,7 +2007,7 @@ Call (Sub() Exit Sub).Invoke()
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545849")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545849")>
         Public Async Function TestParenthesizeIfNecessary22() As Task
             Dim code =
 <MethodBody>
@@ -2025,7 +2025,7 @@ Console.WriteLine(y.Rank)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(531578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531578")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531578")>
         Public Async Function TestParenthesizeIfNecessary23() As Task
             Dim code =
 <File>
@@ -2063,7 +2063,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(531582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531582")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531582")>
         Public Async Function TestParenthesizeIfNecessary24() As Task
             Dim code =
 <MethodBody>
@@ -2083,9 +2083,9 @@ End Select
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(549182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549182")>
-        <WorkItem(549191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549191")>
-        <WorkItem(545730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545730")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549182")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549191")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545730")>
         Public Async Function TestUnparenthesizeIfNecessary1() As Task
             Dim code =
 <File>
@@ -2117,7 +2117,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         Public Async Function TestAddExplicitArgumentListIfNecessary1() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2149,7 +2149,7 @@ End Function
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         Public Async Function TestAddExplicitArgumentListIfNecessary2() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2181,7 +2181,7 @@ End Function
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         Public Async Function TestAddExplicitArgumentListIfNecessary3() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2215,7 +2215,7 @@ End Property
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545174")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545174")>
         Public Async Function TestAddExplicitArgumentListIfNecessary4() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2240,7 +2240,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529542")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529542")>
         Public Async Function TestAddExplicitArgumentListIfNecessary5() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2458,7 +2458,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529627")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529627")>
         Public Async Function TestConflict_ByRefLiteral() As Task
             Dim code =
 <File>
@@ -2493,7 +2493,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")>
         Public Async Function TestConflict_UsedBeforeDeclaration() As Task
 
             Dim code =
@@ -2519,8 +2519,8 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
-        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement1() As Task
             Dim code =
 <File>
@@ -2548,8 +2548,8 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
-        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement2() As Task
             Dim code =
 <File>
@@ -2577,7 +2577,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement3() As Task
             Dim code =
 <File>
@@ -2605,7 +2605,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545539")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545539")>
         Public Async Function TestDontOverparenthesizeXmlAttributeAccessExpression() As Task
             Dim code =
 <File>
@@ -2633,7 +2633,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(546069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")>
         Public Async Function TestBrokenVariableDeclarator() As Task
             Dim code =
 <File>
@@ -2648,7 +2648,7 @@ End Module
             Await TestMissingAsync(code)
         End Function
 
-        <Fact, WorkItem(546658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546658")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546658")>
         Public Async Function TestDontInlineInUnterminatedBlock() As Task
             Dim markup =
 <File>
@@ -2677,7 +2677,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(547152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547152")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547152")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim code =
 <File>
@@ -2710,7 +2710,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim code =
 <File>
@@ -2744,7 +2744,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim code =
 <File>
@@ -2778,7 +2778,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(547153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547153")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547153")>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim code =
 <File>
@@ -2812,7 +2812,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(531584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531584")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531584")>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim code =
 <File>
@@ -2884,7 +2884,7 @@ End Module
             Await TestAsync(code, expected, parseOptions:=New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic16))
         End Function
 
-        <Fact, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         Public Async Function TestEscapeKeywordsIfNeeded6() As Task
             Dim code =
 <File>
@@ -2934,7 +2934,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(580495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580495")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580495")>
         Public Async Function TestParenthesizeLambdaIfNeeded01() As Task
             Dim code =
 <File>
@@ -2960,7 +2960,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
         Public Async Function TestParenthesizeLambdaIfNeeded02() As Task
             Dim code =
 <File>
@@ -2986,7 +2986,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
         Public Async Function TestParenthesizeLambdaIfNeeded03() As Task
             Dim code =
 <File>
@@ -3010,7 +3010,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         Public Async Function TestParenthesizeLambdaIfNeeded04() As Task
             Dim code =
 <File>
@@ -3035,7 +3035,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(608208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608208")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608208")>
         Public Async Function TestParenthesizeLambdaIfNeeded05() As Task
             Dim code =
 <File>
@@ -3060,7 +3060,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         Public Async Function TestParenthesizeLambdaIfNeeded06() As Task
             Dim code =
 <File>
@@ -3085,7 +3085,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         Public Async Function TestParenthesizeLambdaIfNeeded06_1() As Task
             Dim code =
 <File>
@@ -3110,7 +3110,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(608995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608995")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608995")>
         Public Async Function TestParenthesizeLambdaIfNeeded07() As Task
             Dim code =
 <File>
@@ -3136,7 +3136,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(588344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588344")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588344")>
         Public Async Function TestParenthesizeXmlLiteralExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3162,7 +3162,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(608204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608204")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608204")>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect() As Task
             Dim code =
 <File>
@@ -3190,7 +3190,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(635364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635364")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635364")>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635364() As Task
             Dim code =
 <File>
@@ -3224,7 +3224,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(635373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635373")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635373")>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635373() As Task
             Dim code =
 <File>
@@ -3262,7 +3262,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(608202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608202")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608202")>
         Public Async Function TestParenthesizeQueryExpressionIfEndingWithDistinct() As Task
             Dim code =
 <File>
@@ -3298,7 +3298,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(530129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530129")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530129")>
         Public Async Function TestConvertsDelegateInvocationToLabel() As Task
             Dim code =
 <File>
@@ -3329,7 +3329,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529796")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529796")>
         Public Async Function TestConvertExtensionMethodInvocationToPlainStaticMethodInvocationIfNecessaryToKeepCorrectOverloadResolution() As Task
             Dim code =
 <File>
@@ -3391,7 +3391,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(601907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601907")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601907")>
         Public Async Function TestEscapeContextualKeywordAfterQueryEndingWithXmlDocumentEvenWithMultipleEmptyLines() As Task
             Dim code =
 <File>
@@ -3435,7 +3435,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(530903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530903")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530903")>
         Public Async Function TestInlineTempShouldParenthesizeExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3462,7 +3462,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(530945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530945")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530945")>
         Public Async Function TestInlineTempShouldParenthesizeLambdaExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3493,7 +3493,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(530926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530926")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530926")>
         Public Async Function TestInlineTempShouldNotAddUnnecessaryCallKeyword() As Task
             Dim code =
 <File>
@@ -3517,7 +3517,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         Public Async Function TestInlineTempChangesSymbolInfoForInlinedExpression() As Task
             Dim code =
 <File>
@@ -3550,7 +3550,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         Public Async Function TestInlineTempWithUserDefinedOperator() As Task
             Dim code =
 <File>
@@ -3600,7 +3600,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         Public Async Function TestInlineTempWithUserDefinedOperator2() As Task
             Dim code =
 <File>
@@ -3650,7 +3650,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(529840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")>
         Public Async Function TestBugfix_529840_DetectSemanticChangesAtInlineSite() As Task
             Dim code =
 <File>
@@ -3699,7 +3699,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
         Public Async Function TestBugfix_718152_DontRemoveParenthesisForAwaitExpression() As Task
             Dim code =
 <File>
@@ -3733,7 +3733,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
         Public Async Function TestBugfix_718152_RemoveParenthesisForAwaitExpression() As Task
             Dim code =
 <File>
@@ -3827,7 +3827,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1025")>
         Public Async Function TestConditionalAccessWithConversion() As Task
             Dim code =
 <File>
@@ -3875,7 +3875,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
         Public Async Function TestConditionalAccessWithExtensionMethodInvocation() As Task
             Dim code =
 <File><![CDATA[
@@ -3927,7 +3927,7 @@ End Class]]>
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
         Public Async Function TestConditionalAccessWithExtensionMethodInvocation_2() As Task
             Dim code =
 <File><![CDATA[
@@ -4011,7 +4011,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2671")>
         Public Async Function TestReplaceReferencesInWithBlocks() As Task
             Dim code =
 <MethodBody>
@@ -4031,7 +4031,7 @@ End With
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestDontParenthesizeInterpolatedStringWithNoInterpolation() As Task
             Dim code =
 <MethodBody>
@@ -4047,7 +4047,7 @@ Dim s2 = AscW($"hello")
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestDontParenthesizeInterpolatedStringWithInterpolation() As Task
             Dim code =
 <MethodBody>
@@ -4065,7 +4065,7 @@ Dim s2 = AscW($"hello {x}")
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestInlineFormattableStringIntoCallSiteRequiringFormattableString() As Task
             Dim code = "
 Imports System
@@ -4097,7 +4097,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4624")>
         Public Async Function TestInlineFormattableStringIntoCallSiteWithFormattableStringOverload() As Task
             Dim code = "
 Imports System
@@ -4135,7 +4135,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8119")>
         Public Async Function ShouldWorkEvenWhenReferencesVaryByCase() As Task
             Dim code = "
 Imports System.Collections.Generic
@@ -4356,7 +4356,7 @@ End Class
         End Function
 
         <Fact(Skip:="InvalidCastException")>
-        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16697")>
         Public Async Function TupleElementNameIsNotReplaced() As Task
             ' The name of the named element has bad symbol info and gets replaced with (1 + 2)
             Dim code = "

@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(923324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923324"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923324"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1091877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091877"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091877"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDuplicateFileAnalyzers2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <Fact, WorkItem(923324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923324"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923324"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateImageAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(937956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937956"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937956"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDiagnosticAnalyzerExceptionHandledGracefullyAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true" Features="IOperation">
@@ -504,8 +504,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <WpfFact, WorkItem(937915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937915"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937915"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/759")>
         Public Async Function TestDiagnosticAnalyzerExceptionHandledGracefully2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <Fact, WorkItem(1167439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1167439"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1167439"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <WpfFact, WorkItem(937939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestOperationAnalyzersAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true" Features="IOperation">
@@ -646,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <WpfFact, WorkItem(937939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestStatelessCodeBlockEndedAnalyzerAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -681,7 +681,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <WpfFact, WorkItem(937939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestSameCodeBlockStartedAndEndedAnalyzerAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <WpfFact, WorkItem(1005568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005568"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005568"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestCodeBlockAnalyzerForLambdaAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -794,7 +794,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(937952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937952"), WorkItem(944832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/944832"), WorkItem(1112907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112907"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937952"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/944832"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112907"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestCompilationEndedAnalyzerAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -855,7 +855,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <Fact, WorkItem(1083854, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083854"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083854"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestStatefulCompilationAnalyzer() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -880,7 +880,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestStatefulCompilationAnalyzer_2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -952,7 +952,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(9462, "https://github.com/dotnet/roslyn/issues/9462"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/9462"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestMultiplePartialDefinitionsInAFileAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -986,7 +986,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(1042914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestPartialTypeInGeneratedCodeAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1025,14 +1025,14 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(1042914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDiagnosticsReportedOnAllPartialDefinitionsAsync() As Task
             ' Test partial type diagnostic reported on all source files.
             Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
             Await TestDiagnosticsReportedOnAllPartialDefinitionsCoreAsync(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
         End Function
 
-        <WpfFact, WorkItem(3748, "https://github.com/dotnet/roslyn/issues/3748"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3748"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDiagnosticsReportedOnAllPartialDefinitions2Async() As Task
             ' Test partial type diagnostic reported on all source files with multiple analyzers.
 
@@ -1092,7 +1092,7 @@ class AnonymousFunctions
             End Using
         End Function
 
-        <WpfFact, WorkItem(1067286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")>
         Private Async Function TestCodeBlockAnalyzersForExpressionBodyAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1136,7 +1136,7 @@ public class B
             End Using
         End Function
 
-        <WpfFact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/592")>
         Private Async Function TestSyntaxNodeAnalyzersForExpressionBodyAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1180,7 +1180,7 @@ public class B
             End Using
         End Function
 
-        <WpfFact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/592")>
         Private Async Function TestMethodSymbolAnalyzersForExpressionBodyAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1228,7 +1228,7 @@ public class B
             End Using
         End Function
 
-        <WpfFact, WorkItem(1109105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109105")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109105")>
         Public Async Function TestMethodSymbolAnalyzer_MustOverrideMethodAsync() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -1298,7 +1298,7 @@ End Class
             End Sub
         End Class
 
-        <WpfFact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/565")>
         Public Async Function TestFieldDeclarationAnalyzerAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1346,7 +1346,7 @@ public class B
             End Using
         End Function
 
-        <WpfFact, WorkItem(27703, "https://github.com/dotnet/roslyn/issues/27703")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27703")>
         Public Async Function TestDiagnosticsForSpanWorksWithEmptySpanAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1416,7 +1416,7 @@ public class B
             End Sub
         End Class
 
-        <WpfFact, WorkItem(530, "https://github.com/dotnet/roslyn/issues/530")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/530")>
         Public Async Function TestCompilationAnalyzerWithAnalyzerOptionsAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1924,7 +1924,7 @@ public class B
             End Sub
         End Class
 
-        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")>
         Public Async Function TestCodeBlockActionAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1953,7 +1953,7 @@ End Class
             Await TestCodeBlockActionCoreAsync(test)
         End Function
 
-        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")>
         Public Async Function TestCodeBlockAction_OnlyStatelessAction() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -2018,7 +2018,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2614")>
         Public Async Function TestGenericNameAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -2071,7 +2071,7 @@ namespace ConsoleApplication1
             End Using
         End Function
 
-        <WpfFact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2980")>
         Public Async Function TestAnalyzerWithNoActionsAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -2099,7 +2099,7 @@ namespace ConsoleApplication1
             Await TestGenericNameCoreAsync(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
         End Function
 
-        <WpfFact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4055")>
         Public Async Function TestAnalyzerWithNoSupportedDiagnosticsAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -2138,7 +2138,7 @@ class MyClass
             End Using
         End Function
 
-        <WpfFact, WorkItem(4068, "https://github.com/dotnet/roslyn/issues/4068")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4068")>
         Public Async Function TestAnalyzerWithCompilationActionReportingHiddenDiagnosticsAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -2191,7 +2191,7 @@ class MyClass
             End Using
         End Function
 
-        <WpfFact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/56843")>
         Friend Async Function TestCompilerAnalyzerForSpanBasedQuery() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

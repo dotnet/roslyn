@@ -207,6 +207,7 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
+          - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
           - src/Tools/Source/CompilerGeneratorTools/*
 
@@ -281,7 +282,7 @@ stages:
           jobName: Correctness_Determinism
           configuration: Debug
 
-  - job: Correctness_Bootstrap_Build
+  - job: Correctness_Bootstrap_Build_Default
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
@@ -293,29 +294,25 @@ stages:
         parameters:
           configuration: Release
     steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
-        displayName: Build - Validate correctness
-
-      - template: eng/pipelines/publish-logs.yml
+      - template: eng/pipelines/build-bootstrap.yml
         parameters:
-          jobName: Correctness_Bootstrap_Build
+          bootstrapToolset: AnyCpu
+
+  - job: Correctness_Bootstrap_Build_Framework
+    dependsOn: Determine_Changes
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
           configuration: Release
-
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifact Packages
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-          ArtifactName: 'Bootstrap Packages - PreRelease'
-          publishLocation: Container
-
-      - task: PublishBuildArtifacts@1
-        displayName: Publish VSIX Packages
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-          ArtifactName: 'Bootstrap VSIX - PreRelease'
-          publishLocation: Container
+    steps:
+      - template: eng/pipelines/build-bootstrap.yml
+        parameters:
+          bootstrapToolset: Framework
 
   - job: Correctness_TodoCheck
     pool:

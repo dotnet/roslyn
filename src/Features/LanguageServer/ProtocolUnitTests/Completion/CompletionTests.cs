@@ -330,7 +330,7 @@ class A
             AssertJsonEquals(expected, results.Items.First());
         }
 
-        [Fact, WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59453")]
         public async Task TestGetDateAndTimeCompletionOnGuid()
         {
             var markup =
@@ -355,7 +355,7 @@ class A
             Assert.Null(results);
         }
 
-        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsAsync()
         {
             var markup =
@@ -392,7 +392,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexLiteralCompletionsAsync()
         {
             var markup =
@@ -429,7 +429,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsReplaceTextAsync()
         {
             var markup =
@@ -466,7 +466,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync()
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
@@ -514,7 +514,7 @@ class A
             Assert.Null(results.ItemDefaults);
         }
 
-        [Fact, WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46694")]
         public async Task TestCompletionListCacheAsync()
         {
             var markup =
@@ -1359,6 +1359,33 @@ class A
             results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);
             Assert.Empty(results.Items);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755138")]
+        public async Task TestOnlyHasSuggestionModeItemAsync()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    void M()
+    {
+        Task.Run(abcdefg{|caret:|}
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "g",
+                triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            var list = (LSP.VSInternalCompletionList)results;
+            Assert.Empty(list.Items);
+            Assert.True(list.SuggestionMode);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
