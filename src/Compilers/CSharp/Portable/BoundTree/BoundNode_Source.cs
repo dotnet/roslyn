@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     append("catch (");
                                     append(catchBlock.ExceptionTypeOpt?.Name);
+                                    append(" ");
+                                    appendSource(catchBlock.ExceptionSourceOpt);
                                     append(")");
                                     if (catchBlock.ExceptionFilterOpt is { } exceptionFilter)
                                     {
