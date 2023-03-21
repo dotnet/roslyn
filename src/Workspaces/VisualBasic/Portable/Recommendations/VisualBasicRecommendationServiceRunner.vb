@@ -172,6 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     Return ImmutableArray(Of ISymbol).Empty
                 End If
 
+                If TypeOf node.GetAncestor(Of AsClauseSyntax)().Parent Is EnumStatementSyntax Then
+                    Return GetSymbolsForEnumBaseList(leftHandSymbol)
+                End If
+
                 Dim symbols As ImmutableArray(Of ISymbol)
                 If couldBeMergedNamespace Then
                     symbols = leftHandSymbolInfo.CandidateSymbols.OfType(Of INamespaceSymbol)() _

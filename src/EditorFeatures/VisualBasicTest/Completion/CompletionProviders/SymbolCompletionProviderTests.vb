@@ -8352,6 +8352,7 @@ End Class"
 Enum MyEnum As $$"
 
             Await VerifyItemExistsAsync(markup, "System")
+
             Await VerifyItemExistsAsync(markup, "Byte")
             Await VerifyItemExistsAsync(markup, "SByte")
             Await VerifyItemExistsAsync(markup, "Int16")
@@ -8365,6 +8366,260 @@ Enum MyEnum As $$"
             Await VerifyItemIsAbsentAsync(markup, "Console")
             Await VerifyItemIsAbsentAsync(markup, "Action")
             Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList4() As Task
+            Dim markup =
+"Namespace MyNamespace
+End Namespace
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MyEnum")
+
+            Await VerifyItemExistsAsync(markup, "System")
+            Await VerifyItemIsAbsentAsync(markup, "MyNamespace")
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, "Byte")
+            Await VerifyItemIsAbsentAsync(markup, "SByte")
+            Await VerifyItemIsAbsentAsync(markup, "Int16")
+            Await VerifyItemIsAbsentAsync(markup, "UInt16")
+            Await VerifyItemIsAbsentAsync(markup, "Int32")
+            Await VerifyItemIsAbsentAsync(markup, "UInt32")
+            Await VerifyItemIsAbsentAsync(markup, "Int64")
+            Await VerifyItemIsAbsentAsync(markup, "UInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList5() As Task
+            Dim markup = "Enum MyEnum As System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+
+            Await VerifyItemExistsAsync(markup, "Byte")
+            Await VerifyItemExistsAsync(markup, "SByte")
+            Await VerifyItemExistsAsync(markup, "Int16")
+            Await VerifyItemExistsAsync(markup, "UInt16")
+            Await VerifyItemExistsAsync(markup, "Int32")
+            Await VerifyItemExistsAsync(markup, "UInt32")
+            Await VerifyItemExistsAsync(markup, "Int64")
+            Await VerifyItemExistsAsync(markup, "UInt64")
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList6() As Task
+            Dim markup = "Enum MyEnum As Global.System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+
+            Await VerifyItemExistsAsync(markup, "Byte")
+            Await VerifyItemExistsAsync(markup, "SByte")
+            Await VerifyItemExistsAsync(markup, "Int16")
+            Await VerifyItemExistsAsync(markup, "UInt16")
+            Await VerifyItemExistsAsync(markup, "Int32")
+            Await VerifyItemExistsAsync(markup, "UInt32")
+            Await VerifyItemExistsAsync(markup, "Int64")
+            Await VerifyItemExistsAsync(markup, "UInt64")
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList7() As Task
+            Dim markup = "Enum MyEnum As System.Collections.Generic.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList8() As Task
+            Dim markup =
+"Namespace MyNamespace
+    Namespace System
+    End Namespace
+    Public Structure Byte
+    End Structure
+    Public Structure SByte
+    End Structure
+    Public Structure Int16
+    End Structure
+    Public Structure UInt16
+    End Structure
+    Public Structure Int32
+    End Structure
+    Public Structure UInt32
+    End Structure
+    Public Structure Int64
+    End Structure
+    Public Structure UInt64
+    End Structure
+End Namespace
+
+Enum MyEnum As MyNamespace.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList9() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "MySystem")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList10() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MySystem")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList11() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As MySystem.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+            Await VerifyItemIsAbsentAsync(markup, "MySystem")
+
+            Await VerifyItemExistsAsync(markup, "Byte")
+            Await VerifyItemExistsAsync(markup, "SByte")
+            Await VerifyItemExistsAsync(markup, "Int16")
+            Await VerifyItemExistsAsync(markup, "UInt16")
+            Await VerifyItemExistsAsync(markup, "Int32")
+            Await VerifyItemExistsAsync(markup, "UInt32")
+            Await VerifyItemExistsAsync(markup, "Int64")
+            Await VerifyItemExistsAsync(markup, "UInt64")
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList12() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As Global.MySystem.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList13() As Task
+            Dim markup =
+"Imports MyByte = System.Byte
+Imports MySByte = System.SByte
+Imports MyInt16 = System.Int16
+Imports MyUInt16 = System.UInt16
+Imports MyInt32 = System.Int32
+Imports MyUInt32 = System.UInt32
+Imports MyInt64 = System.Int64
+Imports MyUInt64 = System.UInt64
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "MyByte")
+            Await VerifyItemExistsAsync(markup, "MySByte")
+            Await VerifyItemExistsAsync(markup, "MyInt16")
+            Await VerifyItemExistsAsync(markup, "MyUInt16")
+            Await VerifyItemExistsAsync(markup, "MyInt32")
+            Await VerifyItemExistsAsync(markup, "MyUInt32")
+            Await VerifyItemExistsAsync(markup, "MyInt64")
+            Await VerifyItemExistsAsync(markup, "MyUInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList14() As Task
+            Dim markup =
+"Imports MyByte = System.Byte
+Imports MySByte = System.SByte
+Imports MyInt16 = System.Int16
+Imports MyUInt16 = System.UInt16
+Imports MyInt32 = System.Int32
+Imports MyUInt32 = System.UInt32
+Imports MyInt64 = System.Int64
+Imports MyUInt64 = System.UInt64
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MyByte")
+            Await VerifyItemIsAbsentAsync(markup, "MySByte")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList15() As Task
+            Dim markup =
+"Imports MyByte = System.Byte
+Imports MySByte = System.SByte
+Imports MyInt16 = System.Int16
+Imports MyUInt16 = System.UInt16
+Imports MyInt32 = System.Int32
+Imports MyUInt32 = System.UInt32
+Imports MyInt64 = System.Int64
+Imports MyUInt64 = System.UInt64
+
+Enum MyEnum As System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MyByte")
+            Await VerifyItemIsAbsentAsync(markup, "MySByte")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList16() As Task
+            Dim markup =
+"Imports MySystem = System
+Imports MyByte = System.Byte
+Imports MySByte = System.SByte
+Imports MyInt16 = System.Int16
+Imports MyUInt16 = System.UInt16
+Imports MyInt32 = System.Int32
+Imports MyUInt32 = System.UInt32
+Imports MyInt64 = System.Int64
+Imports MyUInt64 = System.UInt64
+
+Enum MyEnum As MySystem.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MyByte")
+            Await VerifyItemIsAbsentAsync(markup, "MySByte")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt16")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt32")
+            Await VerifyItemIsAbsentAsync(markup, "MyInt64")
+            Await VerifyItemIsAbsentAsync(markup, "MyUInt64")
         End Function
     End Class
 End Namespace
