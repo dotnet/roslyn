@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ? requestPriority
                 : CodeActionRequestPriority.Normal;
 
-            // 'CodeActionRequestPriority.Low' is used for SymbolStart/End analyzers,
+            // 'CodeActionRequestPriority.Low' is used for SymbolStart/End and SemanticModel analyzers,
             // which are computationally more expensive.
             if (compilationWithAnalyzers != null && !analyzer.IsWorkspaceDiagnosticAnalyzer())
             {
                 var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                if (telemetryInfo?.SymbolStartActionsCount > 0)
+                if (telemetryInfo?.SymbolStartActionsCount > 0 || telemetryInfo?.SemanticModelActionsCount > 0)
                     analyzerPriority = CodeActionRequestPriority.Low;
             }
 
