@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.NotNull(results.ItemDefaults.EditRange);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1777096")]
         public async Task TestGetExtensionMethodCoreLsp()
         {
             var markup =
@@ -206,7 +206,7 @@ static class Extensions
             Assert.NotNull(results.ItemDefaults.EditRange);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1777096")]
         public async Task TestGetExtensionMethodCoreVSLsp()
         {
             var markup =
