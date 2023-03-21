@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -47,9 +48,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
 
-            protected override IEnumerable<ISourceGenerator> GetSourceGenerators()
+            protected override IEnumerable<Type> GetSourceGenerators()
             {
-                yield return new TSourceGenerator().AsSourceGenerator();
+                yield return typeof(TSourceGenerator);
             }
 
             protected override CompilationOptions CreateCompilationOptions()
@@ -66,11 +67,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                 return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
             }
 
-            protected override async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+            protected override async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
             {
                 var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile), "Resources", _testMethod);
 
-                var compilation = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
+                var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
                 var expectedNames = new HashSet<string>();
                 foreach (var tree in compilation.SyntaxTrees.Skip(project.DocumentIds.Count))
                 {
@@ -92,7 +93,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                     }
                 }
 
-                return compilation;
+                return (compilation, generatorDiagnostics);
             }
 
             public Test AddGeneratedSources([CallerMemberName] string? testMethod = null)
