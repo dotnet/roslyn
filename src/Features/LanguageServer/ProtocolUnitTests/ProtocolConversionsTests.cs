@@ -10,13 +10,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     public class ProtocolConversionsTests
     {
-        [Theory, CombinatorialData]
-        public void CompletionItemKind_DoNotUseMethodAndFunction(bool vsKinds)
+        [Fact]
+        public void CompletionItemKind_DoNotUseMethodAndFunction()
         {
-            var map = vsKinds? ProtocolConversions.RoslynTagToVSCompletionItemKind : ProtocolConversions.RoslynTagToDefaultCompletionItemKind;
-
-            var containsMethod = map.Values.Any(c => c == CompletionItemKind.Method);
-            var containsFunction = map.Values.Any(c => c == CompletionItemKind.Function);
+            var map = ProtocolConversions.RoslynTagToCompletionItemKinds;
+            var containsMethod = map.Values.Any(c => c.Contains(CompletionItemKind.Method));
+            var containsFunction = map.Values.Any(c => c.Contains(CompletionItemKind.Function));
 
             Assert.False(containsFunction && containsMethod, "Don't use Method and Function completion item kinds as it causes user confusion.");
         }

@@ -102,8 +102,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var lspVSClientCapability = clientCapabilities.HasVisualStudioLspCapability() == true;
-            var snippetsSupported = clientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-            var itemDefaultsSupported = clientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
+
+            var completionCapabilities = clientCapabilities.TextDocument?.Completion;
+            var supportedKinds = completionCapabilities?.CompletionItemKind?.ValueSet?.ToSet() ?? new HashSet<LSP.CompletionItemKind>();
+            var snippetsSupported = completionCapabilities?.CompletionItem?.SnippetSupport ?? false;
+            var itemDefaultsSupported = completionCapabilities?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
 
             // We use the first item in the completion list as our comparison point for span
             // and range for optimization when generating the TextEdits later on.
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspItem.SortText = item.SortText;
                 lspItem.FilterText = item.FilterText;
 
-                lspItem.Kind = GetCompletionKind(item.Tags, lspVSClientCapability);
+                lspItem.Kind = GetCompletionKind(item.Tags, supportedKinds);
                 lspItem.Preselect = ShouldItemBePreselected(item);
 
                 lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
@@ -191,16 +194,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             static LSP.CompletionItemKind GetCompletionKind(
-                ImmutableArray<string> tags, bool lspVSClientCapability)
+                ImmutableArray<string> tags,
+                ISet<LSP.CompletionItemKind> supportedClientKinds)
             {
-                var dictionary = lspVSClientCapability
-                    ? ProtocolConversions.RoslynTagToVSCompletionItemKind
-                    : ProtocolConversions.RoslynTagToDefaultCompletionItemKind;
-
                 foreach (var tag in tags)
                 {
-                    if (dictionary.TryGetValue(tag, out var completionItemKind))
-                        return completionItemKind;
+                    if (ProtocolConversions.RoslynTagToCompletionItemKinds.TryGetValue(tag, out var completionItemKinds))
+                    {
+                        // Always at least pick the core kind provided.
+                        var kind = completionItemKinds[0];
+
+                        // If better kinds are preferred, return them if the client supports them.
+                        for (var i = 1; i < completionItemKinds.Length; i++)
+                        {
+                            var preferredKind = completionItemKinds[1];
+                            if (supportedClientKinds.Contains(preferredKind))
+                            {
+                                kind = preferredKind;
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 return LSP.CompletionItemKind.Text;
