@@ -2168,5 +2168,84 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+        public void NestedCatch_DuplicateLocal_Level2()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                using static System.Console;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await new C().M1();
+                    }
+
+                    int _counter;
+
+                    bool F(Exception ex)
+                    {
+                        _counter++;
+                        WriteLine($"F: {_counter} {ex.Message}");
+                        return _counter % 2 == 0;
+                    }
+
+                    async Task M1()
+                    {
+                        try
+                        {
+                            throw new Exception("M1-try");
+                        }
+                        catch (Exception ex) when (F(ex))
+                        {
+                            await M2(ex);
+                        }
+                        catch (Exception ex) when (F(ex))
+                        {
+                            try
+                            {
+                                throw new Exception("M1-catch2");
+                            }
+                            catch (Exception ex2) when (F(ex2))
+                            {
+                                await M2(ex2);
+                            }
+                            catch (Exception ex2) when (F(ex2))
+                            {
+                                try
+                                {
+                                    throw new Exception("M1-catch2-catch1");
+                                }
+                                catch
+                                {
+                                    await M2(ex);
+                                    await M2(ex2);
+                                }
+                            }
+                        }
+                    }
+
+                    async Task M2(Exception ex)
+                    {
+                        await Task.Yield();
+                        WriteLine($"M2: {ex.Message}");
+                    }
+                }
+                """;
+            var expectedOutput = """
+                F: 1 M1-try
+                F: 2 M1-try
+                F: 3 M1-catch2
+                F: 4 M1-catch2
+                M2: M1-try
+                M2: M1-catch2
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
     }
 }
