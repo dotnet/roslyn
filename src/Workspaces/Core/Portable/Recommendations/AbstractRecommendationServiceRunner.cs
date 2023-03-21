@@ -313,10 +313,9 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             void AddSpecialTypeSymbolAndItsAliases(string name, SpecialType specialType)
             {
-                var specialTypeSymbol = _context.SemanticModel.LookupNamespacesAndTypes(
-                    _context.Position,
-                    container: container,
-                    name: name).SingleOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
+                var specialTypeSymbol = _context.SemanticModel
+                    .LookupNamespacesAndTypes(_context.Position, container, name)
+                    .SingleOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
 
                 builder.AddIfNotNull(specialTypeSymbol);
 
