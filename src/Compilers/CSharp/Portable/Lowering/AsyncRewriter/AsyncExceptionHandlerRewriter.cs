@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly AwaitInFinallyAnalysis _analysis;
 
-        private AwaitCatchFrame _parentAwaitCatchFrame;
         private AwaitCatchFrame _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
@@ -457,9 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenTry;
             }
 
-            var origParentAwaitCatchFrame = _parentAwaitCatchFrame;
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
-            _parentAwaitCatchFrame = origAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
             var rewrittenCatches = node.CatchBlocks.SelectAsArray(catchBlock =>
@@ -499,7 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.Label(handledLabel));
             }
 
-            _parentAwaitCatchFrame = origParentAwaitCatchFrame;
             _currentAwaitCatchFrame = origAwaitCatchFrame;
 
             return tryWithCatches;
