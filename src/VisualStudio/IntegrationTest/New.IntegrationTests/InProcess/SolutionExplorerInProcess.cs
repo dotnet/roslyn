@@ -432,19 +432,40 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        /// <summary>
+        /// Adds a new standalone file to the Miscellaneous Files workspace.
+        /// </summary>
+        /// <param name="fileName">The name of the file to add.</param>
+        public async Task AddStandaloneFileAsync(string fileName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var project = await GetProjectAsync(projectName, cancellationToken);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
 
-            VsShellUtilities.RenameDocument(
-                ServiceProvider.GlobalProvider,
-                Path.Combine(projectDirectory, oldFileName),
-                Path.Combine(projectDirectory, newFileName));
+            string itemTemplate;
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".cs":
+                    itemTemplate = @"General\C# Class";
+                    break;
+                case ".csx":
+                    itemTemplate = @"Script\Visual C# Script";
+                    break;
+                case ".vb":
+                    itemTemplate = @"General\Visual Basic Class";
+                    break;
+                case ".txt":
+                    itemTemplate = @"General\Text File";
+                    break;
+                default:
+                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
+            }
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            dte.ItemOperations.NewFile(itemTemplate, fileName);
         }
 
-        public async Task RenameFileViaDTEAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var projectItem = await GetProjectItemAsync(projectName, oldFileName, cancellationToken);

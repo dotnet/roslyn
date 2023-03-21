@@ -46,13 +46,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
+        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
-            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
-            if (encodeAsRawToken)
+            if (encoding != Cci.MetadataWriter.RawTokenEncoding.None)
             {
-                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+                token = Cci.MetadataWriter.GetRawToken(encoding, token);
             }
             this.GetCurrentWriter().WriteUInt32(token);
         }
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
-            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.GreatestMethodDefinitionRowId, 0);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitModuleVersionIdStringToken()
@@ -77,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
         {
-            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)

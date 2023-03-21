@@ -3,7 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
-internal record WorkspaceProjectCreationInfo(string Language, string DisplayName, string? FilePath, IReadOnlyDictionary<string, string> BuildSystemProperties);
+[DataContract]
+internal record WorkspaceProjectCreationInfo(
+    [property: DataMember(Order = 0)] string Language,
+    [property: DataMember(Order = 1)] string DisplayName,
+    [property: DataMember(Order = 2)] string? FilePath,
+    [property: DataMember(Order = 3)] IReadOnlyDictionary<string, string> BuildSystemProperties);

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public class VisualBasic : AbstractMetadataAsSourceTests
         {
-            [Theory, CombinatorialData, WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")]
+            [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")]
             public async Task TestGenerateTypeInModule(bool signaturesOnly)
             {
                 var metadataSource = @"
@@ -68,7 +68,7 @@ internal sealed class M
                 await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, WorkItem(60253, "https://github.com/dotnet/roslyn/issues/60253")]
+            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60253")]
             public async Task TestReferenceAssembly(bool signaturesOnly)
             {
                 var metadataSource = @"
@@ -93,7 +93,7 @@ End Module";
 
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
-            [Theory, WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
+            [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
             [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
             [InlineData(true)]
             public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly)
@@ -248,7 +248,7 @@ namespace System
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }
 
-            [Theory, CombinatorialData, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
+            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
             public async Task TestValueTuple(bool signaturesOnly)
             {
                 using var context = TestContext.Create(LanguageNames.VisualBasic);

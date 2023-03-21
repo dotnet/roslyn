@@ -46,35 +46,32 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
-    /// 
-    /// The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP text applied on top.
-    /// It is null when LSP reuses the workspace solution (the LSP text matches the contents of the workspace).
-    /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// <para/> The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP
+    /// text applied on top. It is null when LSP reuses the workspace solution (the LSP text matches the contents of the
+    /// workspace).
+    /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = new();
 
     /// <summary>
-    /// Stores the current source text for each URI that is being tracked by LSP.
-    /// Each time an LSP text sync notification comes in, this source text is updated to match.
-    /// Used as the backing implementation for the <see cref="IDocumentChangeTracker"/>.
-    /// 
-    /// Note that the text here is tracked regardless of whether or not we found a matching roslyn document
-    /// for the URI.
-    /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync
+    /// notification comes in, this source text is updated to match. Used as the backing implementation for the <see
+    /// cref="IDocumentChangeTracker"/>.
+    /// <para/> Note that the text here is tracked regardless of whether or not we found a matching roslyn document for
+    /// the URI.
+    /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
 
     private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
-    private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
+    private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
-        LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
+        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         RequestTelemetryLogger requestTelemetryLogger)
     {
@@ -86,6 +83,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
+
+    public EventHandler<EventArgs>? LspTextChanged;
 
     #region Implementation of IDocumentChangeTracker
 
@@ -102,6 +101,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -119,7 +120,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files workspace if it is still there.
-        _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+        _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -135,6 +138,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
@@ -171,6 +176,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     public async Task<(Workspace?, Solution?, Document?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         // Get the LSP view of all the workspace solutions.
+        var uri = textDocumentIdentifier.Uri;
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
@@ -187,6 +193,11 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.LogInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
+                // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
+                // if it happens to be in there as well.
+                if (workspace != _lspMiscellaneousFilesWorkspace)
+                    _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+
                 return (workspace, document.Project.Solution, document);
             }
         }
@@ -196,11 +207,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.LogError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-        var uri = textDocumentIdentifier.Uri;
-        // Add the document to our loose files workspace if its open.
-        if (_trackedDocuments.ContainsKey(uri))
+        // Add the document to our loose files workspace (if we have one) if it iss open.
+        if (_trackedDocuments.TryGetValue(uri, out var trackedText))
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
+            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedText, _logger);
             if (miscDocument is not null)
                 return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }
@@ -216,8 +226,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
         registeredWorkspaces = registeredWorkspaces
-            .Where(workspace => workspace is not LspMiscellaneousFilesWorkspace)
-            .Concat(registeredWorkspaces.Where(workspace => workspace is LspMiscellaneousFilesWorkspace)).ToImmutableArray();
+            .Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles)
+            .Concat(registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles))
+            .ToImmutableArray();
 
         using var _ = ArrayBuilder<(Workspace, Solution, bool)>.GetInstance(out var solutions);
         foreach (var workspace in registeredWorkspaces)
@@ -353,7 +364,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public LspMiscellaneousFilesWorkspace GetLspMiscellaneousFilesWorkspace()
+        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
             => _manager._lspMiscellaneousFilesWorkspace;
 
         public bool IsWorkspaceRegistered(Workspace workspace)
