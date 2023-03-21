@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
-        <target state="new">init-only property</target>
+        <target state="translated">propiedad de solo inicialización</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
