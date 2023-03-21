@@ -309,7 +309,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             AddSpecialTypeSymbolAndItsAliases(nameof(Int64), SpecialType.System_Int64);
             AddSpecialTypeSymbolAndItsAliases(nameof(UInt64), SpecialType.System_UInt64);
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableAndClear();
 
             void AddSpecialTypeSymbolAndItsAliases(string name, SpecialType specialType)
             {
