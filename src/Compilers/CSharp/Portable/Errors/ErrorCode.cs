@@ -2186,6 +2186,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
+
+        // PROTOTYPE compact error codes
+        ERR_BadExtensionUnderlyingType = 9205,
+        ERR_StaticBaseTypeOnInstanceExtension = 9206,
+        ERR_OnlyBaseExtensionAllowed = 9207,
+        ERR_PartialMultipleUnderlyingTypes = 9208,
+        ERR_BadVisUnderlyingType = 9209,
+        ERR_BadVisBaseExtension = 9210,
+        ERR_CycleInBaseExtensions = 9211,
+        ERR_FileTypeUnderlying = 9212,
+        ERR_StateInExtension = 9213,
+        ERR_ExtensionMissingUnderlyingType = 9214,
+        ERR_PartialDifferentExtensionModifiers = 9215,
+        ERR_UnderlyingTypesMismatch = 9216,
+        WRN_DuplicateExtensionWithNullabilityMismatchInBaseList = 9217,
+        ERR_DuplicateExtensionWithTupleNamesInBaseList = 9218,
+        ERR_DuplicateExtensionWithDifferencesInBaseList = 9219,
+        ERR_DuplicateExtensionInBaseList = 9220,
+        ERR_ExtensionMethodInExtension = 9221,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -2408,7 +2409,13 @@ Write();
     [Fact]
     public void SyntaxFactory_TypeDeclaration()
     {
-        Assert.Throws<InvalidOperationException>(() => SyntaxFactory.TypeDeclaration(SyntaxKind.ExtensionDeclaration, "E"));
+        var expected = """
+explicit extension X
+{
+}
+""";
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(expected,
+            SyntaxFactory.TypeDeclaration(SyntaxKind.ExtensionDeclaration, "X").NormalizeWhitespace().ToString());
     }
 
     [Fact]

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
+            Debug.Assert(!underlyingType.IsExtension);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
             Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);
@@ -181,6 +182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsRecord => false;
         internal sealed override bool IsRecordStruct => false;
+        internal sealed override bool IsExtension => false;
+
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
+        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw ExceptionUtilities.Unreachable();
+
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
@@ -210,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable();
         }
-#endif 
+#endif
 
         private ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -368,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable();
         }
-#endif 
+#endif
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol

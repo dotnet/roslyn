@@ -607,6 +607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SymbolDisplayPartKind.InterfaceName;
                 case TypeKind.Struct:
                     return SymbolDisplayPartKind.StructName;
+                case TypeKind.Extension:
+                    return SymbolDisplayPartKind.ExtensionName;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.TypeKind);
             }
@@ -745,6 +747,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Extension:
+                            // PROTOTYPE consider adding `implicit`/`explicit` too
+                            AddKeyword(SyntaxKind.ExtensionKeyword);
                             AddSpace();
                             break;
                     }

@@ -226,6 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case TypePattern:
                         return ((TypePatternSyntax)parent).Type == node;
+
+                    case ForType:
+                        return ((ForTypeSyntax)parent).UnderlyingType == node;
                 }
             }
 

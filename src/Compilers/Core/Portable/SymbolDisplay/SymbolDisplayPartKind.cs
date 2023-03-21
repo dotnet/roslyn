@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis
         RecordClassName = 31,
         /// <summary>The name of a record struct.</summary>
         RecordStructName = 32,
+        /// <summary>The name of a record.</summary>
+        ExtensionName = 33,
     }
 
     internal static class InternalSymbolDisplayPartKind

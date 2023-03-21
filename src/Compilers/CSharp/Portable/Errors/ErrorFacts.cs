@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -530,6 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                     return 1;
                 default:
                     return 0;
@@ -2307,11 +2309,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadRefInUsingAlias:
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_BadExtensionUnderlyingType:
+                case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
+                case ErrorCode.ERR_OnlyBaseExtensionAllowed:
+                case ErrorCode.ERR_PartialMultipleUnderlyingTypes:
+                case ErrorCode.ERR_BadVisUnderlyingType:
+                case ErrorCode.ERR_BadVisBaseExtension:
+                case ErrorCode.ERR_CycleInBaseExtensions:
+                case ErrorCode.ERR_FileTypeUnderlying:
+                case ErrorCode.ERR_StateInExtension:
+                case ErrorCode.ERR_ExtensionMissingUnderlyingType:
+                case ErrorCode.ERR_PartialDifferentExtensionModifiers:
+                case ErrorCode.ERR_UnderlyingTypesMismatch:
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionInBaseList:
+                case ErrorCode.ERR_ExtensionMethodInExtension:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
                     //       to ensure that we correctly classify all error codes as build-only or not.
-                    throw new NotImplementedException($"ErrorCode.{code}");
+                    throw new NotImplementedException($"ErrorCode.{code} is not handled by {nameof(IsBuildOnlyDiagnostic)}");
             }
         }
 

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(result?.IsErrorType() != true);
                 }
 
-                if (result is null)
+                if (result is null || result.IsExtension)
                 {
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())

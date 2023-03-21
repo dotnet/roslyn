@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
                 case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
                     return false;
                 default:
                     return true;
@@ -625,6 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
                 case TypeKind.Submission:
+                case TypeKind.Extension:
                     return !IsAsRestrictive((NamedTypeSymbol)type, sym, ref useSiteInfo);
 
                 default:
@@ -699,6 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
+                    case TypeKind.Extension:
                         {
                             var containingType = current.ContainingType;
                             if ((object)containingType != null)
@@ -763,6 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
+                    case TypeKind.Extension:
 
                         if (current.IsAnonymousType)
                         {

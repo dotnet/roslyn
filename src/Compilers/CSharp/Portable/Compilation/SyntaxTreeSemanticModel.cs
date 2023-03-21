@@ -1656,6 +1656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)declaration).Identifier.ValueText;
 
+                // PROTOTYPE
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.ClassDeclaration:

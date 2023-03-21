@@ -438,5 +438,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+
+#nullable enable
+        internal sealed override bool IsExtension => _underlyingType.IsExtension;
+
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+            => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtensionUnderlyingTypeNoUseSiteDiagnostics).Type;
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.BaseExtensionsNoUseSiteDiagnostics);
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
     }
 }

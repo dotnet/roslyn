@@ -45,12 +45,6 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     public override bool IsStatic => true;
 
-    internal override bool IsRecord => false;
-
-    internal override bool IsRecordStruct => false;
-
-    internal override bool HasPossibleWellKnownCloneMethod() => false;
-
     internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, BoundDelegateCreationExpression boundDelegateCreation)
     {
         var targetMethod = boundDelegateCreation.MethodOpt;

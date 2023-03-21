@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var kind = TypeKind;
-                return kind != TypeKind.Enum && kind != TypeKind.Struct && kind != TypeKind.Error;
+                return kind != TypeKind.Enum && kind != TypeKind.Struct && kind != TypeKind.Error && kind != TypeKind.Extension;
             }
         }
 
@@ -776,6 +776,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved);
 
         internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved);
+
+#nullable enable
+        internal abstract TypeSymbol? GetDeclaredExtensionUnderlyingType();
+
+        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions();
+#nullable disable
 
         public override int GetHashCode()
         {
@@ -1641,6 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
                 Name == ValueTupleTypeName &&
+                TypeKind != TypeKind.Extension &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;

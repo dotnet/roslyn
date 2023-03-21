@@ -220,7 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = locations[0];
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
-                if (!parameter0Type.Type.IsValidExtensionParameterType())
+
+                if (ContainingType.IsExtension)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodInExtension, location);
+                }
+                else if (!parameter0Type.Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
                     var parameterSyntax = syntax.ParameterList.Parameters[0];

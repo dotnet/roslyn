@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return SyntaxKind.RecordKeyword;
+                case SyntaxKind.ExtensionDeclaration:
+                    return SyntaxKind.ExtensionKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -130,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordDeclaration, attributes, modifiers, keyword, classOrStructKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordStructDeclaration:
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordStructDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.ExtensionDeclaration:
+                    return SyntaxFactory.ExtensionDeclaration(attributes, modifiers, SyntaxFactory.Token(SyntaxKind.ExplicitKeyword),
+                        keyword, identifier, typeParameterList, parameterList: null, forUnderlyingType: null, baseList, constraintClauses,
+                        openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

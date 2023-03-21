@@ -30423,5 +30423,22 @@ public record ClassWithManyConstructorParameters(int P0";
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.DesktopLatestExtended);
             CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void MemberNamedAfterType()
+        {
+            var src = """
+record R
+{
+    public void R() { }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS0542: 'R': member names cannot be the same as their enclosing type
+                //     public void R() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 17)
+                );
+        }
     }
 }

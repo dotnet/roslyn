@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return GetNextDeclaredBase((NamedTypeSymbol)type, basesBeingResolved, compilation, ref visited);
 
                 default:
+                    // PROTOTYPE revisit when doing changes for lookup
                     // Enums and delegates know their own base types
                     // intrinsically (and do not include interface lists)
                     // so there is no possibility of a cycle.
@@ -199,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static TypeSymbol GetNextDeclaredBase(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref PooledHashSet<NamedTypeSymbol> visited)
         {
+            Debug.Assert(!type.IsExtension);
+
             // We shouldn't have visited this type earlier.
             Debug.Assert(visited == null || !visited.Contains(type.OriginalDefinition));
 

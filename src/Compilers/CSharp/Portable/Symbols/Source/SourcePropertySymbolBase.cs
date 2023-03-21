@@ -898,6 +898,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode errorCode = isIndexer ? ErrorCode.ERR_IndexerInStaticClass : ErrorCode.ERR_InstanceMemberInStaticClass;
                 diagnostics.Add(errorCode, location, this);
             }
+            else if (ContainingType.IsExtension && !IsStatic && IsAutoPropertyWithGetAccessor)
+            {
+                diagnostics.Add(ErrorCode.ERR_StateInExtension, Location, this);
+            }
         }
 
         private void CheckAccessibilityMoreRestrictive(SourcePropertyAccessorSymbol accessor, BindingDiagnosticBag diagnostics)

@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
             }
 
+            if (corType.IsExtension)
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(corType.MetadataName, useCLSCompliantNameArityEncoding: true);
+                corType = new MissingMetadataTypeSymbol.TopLevel(corType.ContainingModule, ref emittedName, corType.SpecialType);
+            }
+
             if ((object)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
             {
                 Debug.Assert(ReferenceEquals(corType, _lazySpecialTypes[(int)typeId]) ||

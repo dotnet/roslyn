@@ -4091,6 +4091,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             BindingDiagnosticBag diagnostics)
         {
+            if (ContainingType.IsExtension)
+            {
+                // PROTOTYPE revisit when handling constructors
+                return null;
+            }
+
             // Either our base type is not object, or we have an initializer syntax, or both. We're going to
             // need to do overload resolution on the set of constructors of the base type, either on
             // the provided initializer syntax, or on an implicit ": base()" syntax.
@@ -4119,7 +4125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType = constructor.ContainingType;
 
             // Structs and enums do not have implicit constructor initializers.
-            if ((containingType.TypeKind == TypeKind.Enum || containingType.TypeKind == TypeKind.Struct) && initializerArgumentListOpt == null)
+            if ((containingType.TypeKind is TypeKind.Enum or TypeKind.Struct) && initializerArgumentListOpt == null)
             {
                 return null;
             }
