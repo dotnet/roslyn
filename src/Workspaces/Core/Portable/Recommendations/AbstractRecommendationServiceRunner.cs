@@ -296,7 +296,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             {
                 builder.Add(systemNamespace);
 
-                var aliases = semanticModel.LookupSymbols(_context.Position, container).Where(s => s is IAliasSymbol alias && alias.Target.Equals(systemNamespace));
+                var aliases = semanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => systemNamespace.Equals(a.Target));
                 builder.AddRange(aliases);
             }
 
