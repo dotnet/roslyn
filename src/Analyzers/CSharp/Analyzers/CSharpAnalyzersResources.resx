@@ -404,4 +404,12 @@
   <data name="Use_nameof" xml:space="preserve">
     <value>Use 'nameof'</value>
   </data>
+  <data name="Make_member_readonly" xml:space="preserve">
+    <value>Make member 'readonly'</value>
+    <comment>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Member can be made readonly" xml:space="preserve">
+    <value>Member can be made 'readonly'</value>
+    <comment>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

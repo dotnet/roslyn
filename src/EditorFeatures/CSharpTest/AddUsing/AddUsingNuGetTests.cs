@@ -311,7 +311,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        [Fact, WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/14516")]
         public async Task TestFailedInstallRollsBackFile()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);

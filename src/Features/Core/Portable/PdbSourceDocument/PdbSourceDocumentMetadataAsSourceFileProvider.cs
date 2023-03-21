@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // to the document passed in, which we just use the first document for.
             // TODO: Support results from multiple source files: https://github.com/dotnet/roslyn/issues/55834
             var firstDocumentFilePath = sourceFileInfos[0]!.FilePath;
-            var firstDocument = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(firstDocumentFilePath, StringComparison.OrdinalIgnoreCase) ?? false);
+            var firstDocument = navigateProject.Documents.First(d => d.FilePath?.Equals(firstDocumentFilePath, StringComparison.OrdinalIgnoreCase) ?? false);
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, firstDocument, cancellationToken).ConfigureAwait(false);
 
             // In the case of partial classes, finding the location in the generated source may return a location in a different document, so we

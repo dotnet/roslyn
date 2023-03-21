@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            var option = _globalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var option = _globalOptions.GetOption(InlineDiagnosticsOptionsStorage.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);

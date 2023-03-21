@@ -49,14 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -86,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 _sharedState.Apply();
                 await base.RunImplAsync(cancellationToken);
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
             }
 
 #if !CODE_STYLE

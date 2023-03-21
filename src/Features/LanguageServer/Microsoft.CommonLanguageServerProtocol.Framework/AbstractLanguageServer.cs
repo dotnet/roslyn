@@ -169,7 +169,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     /// <summary>
     /// Wrapper class to hold the method and properties from the <see cref="AbstractLanguageServer{RequestContextType}"/>
-    /// that the method info passed to streamjsonrpc is created from.
+    /// that the method info passed to StreamJsonRpc is created from.
     /// </summary>
     private class DelegatingEntryPoint
     {
@@ -184,7 +184,6 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
         public async Task NotificationEntryPointAsync<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
@@ -193,7 +192,6 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
@@ -202,19 +200,12 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
         public async Task<TResponse?> EntryPointAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
-            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
             var result = await queue.ExecuteAsync<TRequest, TResponse>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
 
             return result;
-        }
-
-        private void CheckServerState()
-        {
-            if (_target.IsInitialized)
-                throw new InvalidOperationException($"'initialize' has not been called.");
         }
     }
 

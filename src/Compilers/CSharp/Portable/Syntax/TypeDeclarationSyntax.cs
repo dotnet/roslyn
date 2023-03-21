@@ -29,6 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
             => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
+
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
+        {
+            get
+            {
+                if (Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration))
+                {
+                    return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
+                }
+
+                return null;
+            }
+        }
     }
 }
 
@@ -121,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordStructDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.ExtensionDeclaration:
                     return SyntaxFactory.ExtensionDeclaration(attributes, modifiers, SyntaxFactory.Token(SyntaxKind.ExplicitKeyword),
-                        keyword, identifier, typeParameterList, forUnderlyingType: null, baseList, constraintClauses,
+                        keyword, identifier, typeParameterList, parameterList: null, forUnderlyingType: null, baseList, constraintClauses,
                         openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);

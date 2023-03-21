@@ -1305,6 +1305,10 @@ symIsHidden:;
             {
                 return ImmutableArray<Symbol>.Empty;
             }
+            else if (nsOrType is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+            {
+                return sourceMemberContainerTypeSymbol.GetCandidateMembersForLookup(name);
+            }
             else
             {
                 return nsOrType.GetMembers(name);
@@ -1392,7 +1396,11 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
+            if ((options & LookupOptions.MustNotBeParameter) != 0 && unwrappedSymbol is ParameterSymbol)
+            {
+                return LookupResult.Empty();
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }

@@ -3688,7 +3688,7 @@ unsafe explicit extension R9 for C : C* { } // 6
 class C { }
 explicit extension D<T> for C { }
 unsafe explicit extension R1 for C : D<int*> { } // 1
-explicit extension R2 for C : D<int*> { } // 2
+explicit extension R2 for C : D<int*> { } // 2, 3
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
@@ -3696,8 +3696,11 @@ explicit extension R2 for C : D<int*> { } // 2
             // unsafe explicit extension R1 for C : D<int*> { } // 1
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "R1").WithArguments("int*").WithLocation(3, 27),
             // (4,20): error CS0306: The type 'int*' may not be used as a type argument
-            // explicit extension R2 for C : D<int*> { } // 2
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(4, 20)
+            // explicit extension R2 for C : D<int*> { } // 2, 3
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(4, 20),
+            // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // explicit extension R2 for C : D<int*> { } // 2, 3
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 33)
             );
     }
 

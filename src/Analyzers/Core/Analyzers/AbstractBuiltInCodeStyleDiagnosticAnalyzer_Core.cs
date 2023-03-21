@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             Debug.Assert(!supportedDiagnostics.Any(descriptor => descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary)) || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
         }
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public virtual CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(

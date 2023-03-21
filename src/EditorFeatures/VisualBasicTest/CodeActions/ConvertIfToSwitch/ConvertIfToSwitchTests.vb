@@ -394,7 +394,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21103")>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

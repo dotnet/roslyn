@@ -24,8 +24,11 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         }
     }
 
-    public virtual void Register(Workspace workspace)
+    public virtual void Register(Workspace? workspace)
     {
+        if (workspace is null)
+            return;
+
         Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
         {
             m["WorkspaceKind"] = workspace.Kind;
@@ -43,8 +46,11 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
-    public void Deregister(Workspace workspace)
+    public void Deregister(Workspace? workspace)
     {
+        if (workspace is null)
+            return;
+
         workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
         lock (_gate)
         {

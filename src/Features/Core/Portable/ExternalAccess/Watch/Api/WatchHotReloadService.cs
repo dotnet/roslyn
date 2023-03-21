@@ -43,14 +43,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public readonly ImmutableArray<byte> MetadataDelta;
             public readonly ImmutableArray<byte> PdbDelta;
             public readonly ImmutableArray<int> UpdatedTypes;
+            public readonly ImmutableArray<string> RequiredCapabilities;
 
-            public Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes)
+            internal Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes, ImmutableArray<string> requiredCapabilities)
             {
                 ModuleId = moduleId;
                 ILDelta = ilDelta;
                 MetadataDelta = metadataDelta;
                 PdbDelta = pdbDelta;
                 UpdatedTypes = updatedTypes;
+                RequiredCapabilities = requiredCapabilities;
             }
         }
 
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
+                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes, update.RequiredCapabilities.ToStringArray()));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 

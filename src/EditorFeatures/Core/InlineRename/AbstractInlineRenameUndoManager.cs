@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _trackedSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
             }
 
-            if (!_globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment))
+            if (!_globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment))
             {
                 // If the user is typing directly into the editor as the only way to change 
                 // the replacement text then we don't need to respond to text changes. The 

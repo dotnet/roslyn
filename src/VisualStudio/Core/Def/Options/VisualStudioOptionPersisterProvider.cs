@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly ILegacyGlobalOptionService _optionService;
+        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         // maps config name to a read fallback:
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
@@ -37,19 +37,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
             IThreadingContext threadingContext,
-            ILegacyGlobalOptionService optionService)
+            ILegacyGlobalOptionService legacyGlobalOptions)
         {
             _serviceProvider = serviceProvider;
-            _optionService = optionService;
+            _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
             => _lazyPersister ??=
                 new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(_optionService, _readFallbacks, await TryGetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(true)),
+                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await TryGetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(true)),
                     await LocalUserRegistryOptionPersister.CreateAsync(_serviceProvider).ConfigureAwait(false),
                     new FeatureFlagPersister(await TryGetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false)));
+
+        private void RefreshOption(OptionKey2 optionKey, object? newValue)
+        {
+            if (_legacyGlobalOptions.GlobalOptions.RefreshOption(optionKey, newValue))
+            {
+                // We may be updating the values of internally defined public options.
+                // Update solution snapshots of all workspaces to reflect the new values.
+                _legacyGlobalOptions.UpdateRegisteredWorkspaces();
+            }
+        }
 
         private async ValueTask<I?> TryGetServiceAsync<T, I>() where I : class
         {
