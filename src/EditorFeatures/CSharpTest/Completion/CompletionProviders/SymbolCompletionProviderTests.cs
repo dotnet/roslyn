@@ -12023,8 +12023,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList1(string underlyingType)
         {
             var source = "enum E : $$";
@@ -12035,8 +12034,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList2(string underlyingType)
         {
             var source = """
@@ -12054,8 +12052,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList3(string underlyingType)
         {
             var source = """
@@ -12073,8 +12070,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList4(string underlyingType)
         {
             var source = """
@@ -12094,8 +12090,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, underlyingType);
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList5(string underlyingType)
         {
             var source = "enum E : System.$$";
@@ -12110,8 +12105,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "DateTime");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList6(string underlyingType)
         {
             var source = "enum E : global::System.$$";
@@ -12181,8 +12175,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "MySystem");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList11(string underlyingType)
         {
             var source = """
@@ -12214,8 +12207,7 @@ public static class Extension
             await VerifyNoItemsExistAsync(source);
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList13(string underlyingType)
         {
             var source = $"""
@@ -12227,8 +12219,7 @@ public static class Extension
             await VerifyItemExistsAsync(source, $"My{underlyingType}");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList14(string underlyingType)
         {
             var source = $"""
@@ -12240,8 +12231,7 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList15(string underlyingType)
         {
             var source = $"""
@@ -12254,8 +12244,7 @@ public static class Extension
 
         }
 
-        [Theory]
-        [MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
         public async Task EnumBaseList16(string underlyingType)
         {
             var source = $"""
