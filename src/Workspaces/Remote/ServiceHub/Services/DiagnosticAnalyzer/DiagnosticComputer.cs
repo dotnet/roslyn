@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 // Fetch the cancellation token here to avoid capturing linkedCts in the computeTask lambda as the task may run after linkedCts has been disposed due to cancellation.
                 var linkedCancellationToken = linkedCancellationTokenSource.Token;
 
+                await WaitOrSuspendExecutingTasksAsync(highPriority, cancellationToken).ConfigureAwait(false);
+
                 var computeTask = Task.Run(async () =>
                 {
                     var diagnosticsComputer = new DiagnosticComputer(document, project,
                         solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
                     return await diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, linkedCancellationToken).ConfigureAwait(false);
                 }, linkedCancellationToken);
-
-                await WaitOrSuspendExecutingTasksAsync(highPriority, cancellationToken).ConfigureAwait(false);
 
                 StartTrackingPreCompute(computeTask, cancellationTokenSource, highPriority);
 
