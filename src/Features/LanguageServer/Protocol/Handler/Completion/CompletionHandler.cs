@@ -214,6 +214,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                                 break;
                             }
                         }
+
+                        return kind;
                     }
                 }
 
