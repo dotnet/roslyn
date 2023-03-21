@@ -1006,6 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // they will become switch sections when pending exception is dispatched.
             public readonly List<BoundBlock> handlers;
 
+            private readonly AwaitCatchFrame _parentOpt;
+
             // when catch local must be used from a filter
             // we need to "hoist" it up to ensure that both the filter 
             // and the catch access the same variable.
@@ -1021,12 +1023,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
 
                 this.handlers = new List<BoundBlock>();
-                _hoistedLocals = parentOpt != null
-                    ? new Dictionary<LocalSymbol, LocalSymbol>(parentOpt._hoistedLocals)
-                    : new Dictionary<LocalSymbol, LocalSymbol>();
-                _orderedHoistedLocals = parentOpt != null
-                    ? new List<LocalSymbol>(parentOpt._orderedHoistedLocals)
-                    : new List<LocalSymbol>();
+                this._parentOpt = parentOpt;
+                _hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
+                _orderedHoistedLocals = new List<LocalSymbol>();
             }
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
@@ -1057,7 +1056,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool TryGetHoistedLocal(LocalSymbol originalLocal, out LocalSymbol hoistedLocal)
             {
-                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal);
+                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal) ||
+                    (_parentOpt is { } parent && parent.TryGetHoistedLocal(originalLocal, out hoistedLocal));
             }
         }
     }
