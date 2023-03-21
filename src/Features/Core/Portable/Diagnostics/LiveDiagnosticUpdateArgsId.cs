@@ -26,11 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override string BuildTool => _buildTool ??= ComputeBuildTool();
 
         private string ComputeBuildTool()
-        {
-            return Analyzer.IsBuiltInAnalyzer() || Analyzer == FileContentLoadAnalyzer.Instance || Analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance
-                ? PredefinedBuildTools.Live
-                : Analyzer.GetAnalyzerAssemblyName();
-        }
+            => Analyzer.IsBuiltInAnalyzer() ? PredefinedBuildTools.Live : Analyzer.GetAnalyzerAssemblyName();
 
         public override bool Equals(object? obj)
         {
