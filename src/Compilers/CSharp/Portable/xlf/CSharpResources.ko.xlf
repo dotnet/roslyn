@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute는 기본값이 있는 매개 변수에만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
@@ -267,14 +272,19 @@
         <target state="new">Using alias cannot be a 'ref' type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
-        <source>Only a using alias can be 'unsafe'.</source>
-        <target state="new">Only a using alias can be 'unsafe'.</target>
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">

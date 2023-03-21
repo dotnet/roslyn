@@ -41,12 +41,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+            Document document,
+            TextSpan textSpan,
+            InlineParameterHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
-
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;

@@ -432,6 +432,11 @@
         <target state="translated">Activer toutes les fonctionnalités dans les fichiers ouverts à partir des générateurs de code source (expérimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Activer la journalisation des fichiers pour les Diagnostics (connexion au dossier « %Temp% \Roslyn »)</target>
