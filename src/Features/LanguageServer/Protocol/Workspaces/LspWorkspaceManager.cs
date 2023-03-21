@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
+internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
