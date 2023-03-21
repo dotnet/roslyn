@@ -116,59 +116,8 @@ public class InterceptorsTests : CSharpTestBase
         verifier.VerifyDiagnostics();
     }
 
-    [Fact]
-    public void InterceptableExtensionMethod_InterceptorExtensionMethod1()
-    {
-        // PROTOTYPE(ic): this test was more of a scratchpad, should probably delete
-        var source = """
-            using System.Runtime.CompilerServices;
-            using System;
-
-            interface I1 { }
-            class C : I1 { }
-
-            static class Program
-            {
-                [Interceptable]
-                public static I1 InterceptableMethod(this I1 i1, Delegate param) { Console.Write("interceptable " + param); return i1; }
-
-                public static void Main()
-                {
-                    var c = new C();
-                    c.InterceptableMethod(() => { });
-                }
-            }
-
-            static class D
-            {
-                [InterceptsLocation("Program.cs", 14, 10)]
-                public static I1 InterceptorProgram1410(this I1 i1, Delegate param) { Console.Write("interceptor " + param); return i1; }
-
-                
-                // [InterceptsLocation("Program.cs", 14, 10)] // prototype only exact location
-                // public static I1 InterceptorBind1(this I1 i1, Concrete c)
-                // { 
-                //     Log("starting thing");
-                //     i1.InterceptableMethod();
-                //     Log("ending thing");
-
-                //     coll.Select().Where().ToList(); // no-ops, pass things through. permit different return types?
-                // }
-            }
-            """;
-        // look for Castle.DynamicProxy, AOP frameworks that work at runtime
-        // IInterceptor
-        // Configuration binding for ASP.NET
-        // Regex.IsMatch("abc"), multiple calls with same string
-        // System.Text.Json has AOP limitations. Intercept call to [de]serialize
-        // Dependency injection. need internals for libraries being referenced.
-
-        // Bind<T> interceptable
-        // Bind<Concrete> interceptor
-
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
-        verifier.VerifyDiagnostics();
-    }
+    // PROTOTYPE(ic): test a case where the original method has type parameter constraints.
+    // PROTOTYPE(ic): for now we will just completely disallow type parameters in the interceptor.
 
     [Fact]
     public void InterceptableInstanceMethod_InterceptorExtensionMethod()

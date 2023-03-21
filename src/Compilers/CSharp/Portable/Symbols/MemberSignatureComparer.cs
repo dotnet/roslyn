@@ -129,6 +129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// This instance is used to determine if an interceptor can be applied to an interceptable method.
+        /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
+        /// </summary>
+        public static readonly MemberSignatureComparer InterceptorsComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: true,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
+
+        /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition,
         /// including differences ignored by the runtime.
         /// </summary>

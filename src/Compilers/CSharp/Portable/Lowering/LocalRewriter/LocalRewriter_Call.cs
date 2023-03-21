@@ -133,41 +133,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public (
+            MethodSymbol method,
+            BoundExpression? receiverOpt,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<int> argsToParamsOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            bool invokedAsExtensionMethod
+            ) InterceptCallAndAdjustArguments(BoundCall node)
+        {
+            var method = node.Method;
+            var receiverOpt = node.ReceiverOpt;
+            var arguments = node.Arguments;
+            var argsToParamsOpt = node.ArgsToParamsOpt;
+            var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            var invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+
+            var interceptableLocation = node.InterceptableLocation;
+            var interceptor = this._compilation.GetInterceptor(interceptableLocation);
+            if (interceptor is null)
+            {
+                // PROTOTYPE(ic): if an interceptor doesn't refer to anything, we want to report it.
+                // that means we need some way of flagging when an interceptor is used.
+                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+            }
+
+            Debug.Assert(interceptableLocation != null);
+            if (!method.IsInterceptable)
+            {
+                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+            }
+
+            if (interceptor.Arity != 0) // PROTOTYPE(ic): could check these constant rules at the original attribute usage site.
+            {
+                // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
+                // eventually, we could consider doing a type argument inference.
+                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+            }
+
+            var needToReduce = receiverOpt != null && interceptor.IsExtensionMethod;
+            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
+            {
+                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+            }
+
+            if (needToReduce)
+            {
+                Debug.Assert(!method.IsStatic);
+                arguments = arguments.Insert(0, receiverOpt!);
+                receiverOpt = null;
+
+                var thisParameter = method.ThisParameter;
+
+                if (!argsToParamsOpt.IsDefault)
+                {
+                    var argsToParamsBuilder = ImmutableArray.CreateBuilder<int>(argsToParamsOpt.Length + 1);
+                    argsToParamsBuilder.Add(0); // argument 0 always corresponds to parameter 0 (extension this)
+                    foreach (var paramOrdinal in argsToParamsOpt)
+                    {
+                        // the param that each argument *really* refers to is pushed forward by 1.
+                        // e.g. we're adapting:
+                        // void Type.Method(int param) { }
+                        // void Ext.Method(this Type type, int param) { }
+                        argsToParamsBuilder.Add(paramOrdinal + 1);
+                    }
+
+                    argsToParamsOpt = argsToParamsBuilder.MoveToImmutable();
+                }
+
+                if (!argumentRefKindsOpt.IsDefault)
+                {
+                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisParameter.RefKind);
+                }
+
+                invokedAsExtensionMethod = true;
+            }
+
+            method = interceptor;
+
+            return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             Debug.Assert(node != null);
 
-            var method = node.Method;
-            
-            var interceptableLocation = node.InterceptableLocation;
-            var interceptor = this._compilation.GetInterceptor(interceptableLocation);
-            if (interceptor != null)
-            {
-                Debug.Assert(interceptableLocation != null);
-                if (!method.IsInterceptable)
-                {
-                    this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
-                }
-
-                // if (!MemberSignatureComparer.PartialMethodsComparer.Equals(method, interceptor))
-                // {
-                //     this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
-                //     // PROTOTYPE(ic): permit intercepting an instance method with an extension method, etc.
-                // }
-                method = interceptor;
-            }
+            var (method, receiverOpt, arguments, argsToParamsOpt, argRefKindsOpt, invokedAsExtensionMethod) = InterceptCallAndAdjustArguments(node);
 
             // Rewrite the receiver
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            var argRefKindsOpt = node.ArgumentRefKindsOpt;
 
             ArrayBuilder<LocalSymbol>? temps = null;
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
                 captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
+                arguments,
                 method,
-                node.ArgsToParamsOpt,
+                argsToParamsOpt,
                 argRefKindsOpt,
                 storesOpt: null,
                 ref temps);
@@ -178,9 +244,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: method,
                 arguments: rewrittenArguments,
                 argumentRefKindsOpt: argRefKindsOpt,
-                expanded: node.Expanded,
-                invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
-                argsToParamsOpt: node.ArgsToParamsOpt,
+                expanded: node.Expanded, // PROTOTYPE(ic): params differences shouldn't matter--maybe even make it an error--but we need to test
+                invokedAsExtensionMethod: invokedAsExtensionMethod,
+                argsToParamsOpt: argsToParamsOpt,
                 resultKind: node.ResultKind,
                 type: node.Type,
                 temps,
