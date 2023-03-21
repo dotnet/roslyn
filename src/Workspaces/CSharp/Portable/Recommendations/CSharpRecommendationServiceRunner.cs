@@ -124,7 +124,7 @@ internal partial class CSharpRecommendationService
             // Ensure that we have the correct token in A.B| case
             var node = _context.TargetToken.GetRequiredParent();
 
-            if (node.GetAncestor<BaseListSyntax>().Parent is EnumDeclarationSyntax)
+            if (node.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
             {
                 // We are in enum's base list. Valid nodes here are:
                 // 1) QualifiedNameSyntax, e.g. `enum E : System.$$`
@@ -243,7 +243,7 @@ internal partial class CSharpRecommendationService
                 return default;
 
             // If we are in case like `enum E : global::$$` we need to show only `System` namespace
-            if (alias.GetAncestor<BaseListSyntax>().Parent is EnumDeclarationSyntax)
+            if (alias.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
                 return new(GetSymbolsForEnumBaseList(aliasSymbol.Target));
 
             return new RecommendedSymbols(_context.SemanticModel.LookupNamespacesAndTypes(
@@ -348,7 +348,7 @@ internal partial class CSharpRecommendationService
             if (_context.IsNameOfContext)
                 return new RecommendedSymbols(_context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol));
 
-            if (name.GetAncestor<BaseListSyntax>().Parent is EnumDeclarationSyntax)
+            if (name.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
                 return new(GetSymbolsForEnumBaseList(symbol));
 
             var symbols = _context.SemanticModel.LookupNamespacesAndTypes(
