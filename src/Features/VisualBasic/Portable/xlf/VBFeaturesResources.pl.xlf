@@ -1454,7 +1454,7 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
-        <target state="translated">Ustaw funkcję {0} jako funkcję asynchroniczną.</target>
+        <target state="new">Make {0} an Async Function.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
@@ -1739,12 +1739,12 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Make_Async_Function">
         <source>Make Async Function</source>
-        <target state="translated">Ustaw funkcję jako asynchroniczną</target>
+        <target state="new">Make Async Function</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
-        <target state="translated">Ustaw podprocedurę jako asynchroniczną</target>
+        <target state="new">Make Async Sub</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
