@@ -43,10 +43,10 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         IGlobalOptionService globalOptions)
         : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
-        _workspaceRegistrationService = registrationService;
-        _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-
         _workspaceManager = workspaceManager;
+        _workspaceRegistrationService = registrationService;
+
+        _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
 
         _workspaceManager.LspTextOpened += OnLspTextEvent;
         _workspaceManager.LspTextChanged += OnLspTextEvent;
