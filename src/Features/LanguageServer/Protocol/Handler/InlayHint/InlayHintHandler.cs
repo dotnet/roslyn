@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             return inlayHints.ToArray();
         }
 
+        /// <summary>
+        /// Goes through the tagged text of the hint and trims off leading and trailing spaces. 
+        /// If there is leading or trailing space, then we want to add padding to the left and right accordingly.
+        /// </summary>
         private static (string label, bool leftPadding, bool rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
         {
             using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
