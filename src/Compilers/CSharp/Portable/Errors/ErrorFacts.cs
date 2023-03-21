@@ -579,6 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                case ErrorCode.ERR_CallNotInterceptable:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2308,6 +2309,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptorPathNotInCompilation:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
+                case ErrorCode.ERR_InterceptorLineOutOfRange:
+                case ErrorCode.ERR_InterceptorCharacterOutOfRange:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -939,27 +940,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            // PROTOTYPE(ic): more diagnostics
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
-            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
-            var attributeLocation = arguments.AttributeSyntaxOpt.Location;
-
+            Debug.Assert(!arguments.Attribute.HasErrors);
             var attributeArguments = arguments.Attribute.CommonConstructorArguments;
             if (attributeArguments is not [
                     { Kind: not TypedConstantKind.Array, Value: string filePath },
                     { Kind: not TypedConstantKind.Array, Value: int lineNumber },
                     { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
             {
-                // PROTOTYPE(ic): diagnostic
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, attributeLocation);
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeLocation = arguments.AttributeSyntaxOpt.Location;
+            if (Arity != 0 || ContainingType.VisitType(static (type, _, _) => type.GetArity() != 0, arg: (object?)null) is not null)
+            {
+                // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
+                // eventually, we could consider doing a type argument inference, seeing if the interceptor's type constraints are met, etc...
+                // but let's not bother unless somebody actually needs it.
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, this);
                 return;
             }
 
-            if (!DeclaringCompilation.SyntaxTrees.Any(static (tree, filePath) => tree.FilePath == filePath, filePath))
+            var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+            var matchingTree = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, filePath);
+            if (matchingTree == null)
             {
-                // PROTOTYPE(ic): diagnostic: no matching file
-                // TODO: if we normalize paths, it should probably be here.
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, attributeLocation);
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
+                if (suffixMatch != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeLocation, filePath, suffixMatch.FilePath);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeLocation, filePath);
+                }
+
+                return;
+            }
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+            if (lineNumber >= referencedLineCount)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLines.Count, lineNumber);
+                return;
+            }
+
+            var line = referencedLines[lineNumber];
+            var lineLength = line.End - line.Start;
+            if (characterNumber >= lineLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, referencedLines.Count, characterNumber);
+                return;
+            }
+
+            // PROTOTYPE(ic): the call-site binding is going to need to look some of this stuff up again.
+            // are we sure this is the best place to do these kinds of checks?
+            var referencedPosition = line.Start + characterNumber;
+            var root = matchingTree.GetRoot();
+            var referencedToken = root.FindToken(referencedPosition);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
             }
 
             DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumber, characterNumber, attributeLocation), this);

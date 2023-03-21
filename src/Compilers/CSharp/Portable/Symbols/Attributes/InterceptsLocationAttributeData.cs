@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Information decoded from InterceptsLocationAttribute.
     /// </summary>
     // PROTOTYPE(ic): record ok?
-    internal sealed record InterceptsLocationAttributeData(string FilePath, int Line, int Character, Location attributeLocation);
+    internal sealed record InterceptsLocationAttributeData(string FilePath, int Line, int Character, Location AttributeLocation);
 }

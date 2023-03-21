@@ -106,16 +106,19 @@
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
+    <value>
+      text/microsoft-resx</value>
   </resheader>
   <resheader name="version">
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader,
+      System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter,
+      System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="IDS_NULL" xml:space="preserve">
     <value>&lt;null&gt;</value>
@@ -7501,5 +7504,32 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
+  </data>
+  <data name="ERR_CallNotInterceptable" xml:space="preserve">
+    <value>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
+  </data>
+  <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
+    <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilation" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithCandidate" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</value>
+  </data>
+  <data name="ERR_InterceptorLineOutOfRange" xml:space="preserve">
+    <value>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorCharacterOutOfRange" xml:space="preserve">
+    <value>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorPositionBadToken" xml:space="preserve">
+    <value>The provided line and character number does not refer to an interceptable call, but rather to token '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
+    <value>The provided character number must refer to the start of the token. Consider using character number '{0}' instead.</value>
+  </data>
+  <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>
   </data>
 </root>

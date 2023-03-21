@@ -2256,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(ic): when all this is done, build a map and give duplicate/misplaced diagnostics which we can use in lowering.
         }
 
-        internal MethodSymbol? GetInterceptor(Location? callLocation)
+        internal (InterceptsLocationAttributeData data, MethodSymbol interceptor)? GetInterceptor(Location? callLocation)
         {
             if (_interceptions is null || callLocation is null)
             {
@@ -2270,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && interceptsLocation.Line == callLineColumn.Line
                     && interceptsLocation.Character == callLineColumn.Character)
                 {
-                    return interceptor;
+                    return (interceptsLocation, interceptor);
                 }
             }
 

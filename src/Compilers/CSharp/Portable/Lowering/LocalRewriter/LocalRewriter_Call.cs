@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
 
             var interceptableLocation = node.InterceptableLocation;
-            var interceptor = this._compilation.GetInterceptor(interceptableLocation);
-            if (interceptor is null)
+            if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
             {
                 // PROTOTYPE(ic): if an interceptor doesn't refer to anything, we want to report it.
                 // that means we need some way of flagging when an interceptor is used.
@@ -161,11 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(interceptableLocation != null);
             if (!method.IsInterceptable)
             {
-                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                this._diagnostics.Add(ErrorCode.ERR_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
                 return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
             }
 
-            if (interceptor.Arity != 0) // PROTOTYPE(ic): could check these constant rules at the original attribute usage site.
+            if (interceptor.Arity != 0 || interceptor.ContainingType.VisitType(static (type, _, _) => type.GetArity() != 0, arg: (object?)null) is not null)
             {
                 // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
                 // eventually, we could consider doing a type argument inference.
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
-                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
                 return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
             }
 

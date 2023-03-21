@@ -2188,6 +2188,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
 
         ERR_BadCaseInSwitchArm = 9134,
+
+        // PROTOTYPE(ic): pack errors
+        ERR_CallNotInterceptable = 27000,
+        ERR_InterceptorCannotBeGeneric = 27001,
+        ERR_InterceptorPathNotInCompilation = 27002,
+        ERR_InterceptorPathNotInCompilationWithCandidate = 27003,
+        ERR_InterceptorPositionBadToken = 27004,
+        ERR_InterceptorLineOutOfRange = 27005,
+        ERR_InterceptorCharacterOutOfRange = 27006,
+        ERR_InterceptorSignatureMismatch = 27007,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
