@@ -63,7 +63,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// </summary>
     private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
 
-    private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
@@ -75,8 +74,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         RequestTelemetryLogger requestTelemetryLogger)
     {
-        _hostWorkspaceKind = lspWorkspaceRegistrationService.GetHostWorkspaceKind();
-
         _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
         _logger = logger;
         _requestTelemetryLogger = requestTelemetryLogger;
@@ -149,9 +146,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     #region LSP Solution Retrieval
 
     /// <summary>
-    /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>. This
-    /// is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace
-    /// diagnostics.
+    /// Returns the LSP solution associated with the workspace with workspace kind <see cref="WorkspaceKind.Host"/>.
+    /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or
+    /// workspace diagnostics.
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
@@ -160,15 +157,15 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
+        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == WorkspaceKind.Host);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
         return (hostWorkspace, hostWorkspaceSolution);
     }
 
     /// <summary>
-    /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>. This
-    /// is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace
+    /// Returns the LSP solution associated with the workspace with kind <see cref="WorkspaceKind.Host"/>. This is the
+    /// solution used for LSP requests that pertain to the entire workspace, for example code search or workspace
     /// diagnostics.
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.

@@ -1797,6 +1797,46 @@ namespace Foo
                     inlineDescription: "Foo");
         }
 
+        [Fact]
+        public async Task TestEnumBaseList1()
+        {
+            var source = """
+                enum E : $$
+                """;
+
+            await VerifyTypeImportItemExistsAsync(source, "Byte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "SByte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "Console", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Action", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "DateTime", inlineDescription: "System");
+
+            // Verify that things from other namespaces are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "IEnumerable", inlineDescription: "System.Collections");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Task", inlineDescription: "System.Threading.Tasks");
+            await VerifyTypeImportItemIsAbsentAsync(source, "AssemblyName", inlineDescription: "System.Reflection");
+        }
+
+        [Fact]
+        public async Task TestEnumBaseList2()
+        {
+            var source = """
+                using System;
+
+                enum E : $$
+                """;
+
+            // Everything valid is already in the scope
+            await VerifyNoItemsExistAsync(source);
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);
 

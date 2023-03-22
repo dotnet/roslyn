@@ -76,10 +76,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
                 if (syntaxKinds.ImplicitObjectCreationExpression != null)
                     matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+                var matchKindsArray = matchKinds.ToImmutableAndClear();
 
-                context.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                    matchKinds.ToImmutableAndClear());
+                context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                        matchKindsArray));
             }
         }
 

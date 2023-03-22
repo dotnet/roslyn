@@ -4,21 +4,18 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export(typeof(LspWorkspaceRegistrationService)), Shared]
-internal class VisualStudioLspWorkspaceRegistrationService : LspWorkspaceRegistrationService
+internal sealed class VisualStudioLspWorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioLspWorkspaceRegistrationService()
     {
     }
-
-    public override string GetHostWorkspaceKind() => WorkspaceKind.Host;
 
     public override void Register(Workspace? workspace)
     {
