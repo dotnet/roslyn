@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 // utf-16 virtual char might have either one or two in text span
                 if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
-                {
                     context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
-                }
             }
         }
     }
