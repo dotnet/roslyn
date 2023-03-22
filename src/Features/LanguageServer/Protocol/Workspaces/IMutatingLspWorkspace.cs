@@ -38,7 +38,7 @@ interface IMutatingLspWorkspace
     /// If <paramref name="documentId"/> is currently within this workspace, then close it.  Does nothing if the
     /// document is not present in the workspace (for example if something else removed it).
     /// </summary>
-    void CloseIfPresent(DocumentId documentId, string filePath);
+    void CloseIfPresent(DocumentId documentId, TextLoader textLoader);
 
     /// <summary>
     /// If <paramref name="documentId"/> is currently within this workspace, then open it.  Does nothing if the document

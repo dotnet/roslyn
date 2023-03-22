@@ -146,7 +146,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     if (workspace.IsDocumentOpen(document.Id))
                     {
                         // TODO(cyrusn): What is the right thing to do if FilePath is null?
-                        mutatingWorkspace.CloseIfPresent(document.Id, document.FilePath!);
+                        mutatingWorkspace.CloseIfPresent(
+                            document.Id,
+                            new WorkspaceFileTextLoader(workspace.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
                     }
                 }
             }
