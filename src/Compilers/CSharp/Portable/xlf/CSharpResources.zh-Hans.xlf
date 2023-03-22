@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute 只能应用于具有默认值的参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">无法在异步 foreach 中使用动态类型集合</target>
@@ -267,14 +272,19 @@
         <target state="new">Using alias cannot be a 'ref' type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
-        <source>Only a using alias can be 'unsafe'.</source>
-        <target state="new">Only a using alias can be 'unsafe'.</target>
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
