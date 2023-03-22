@@ -2641,6 +2641,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void InheritDefaultState(TypeSymbol targetType, int targetSlot)
         {
             Debug.Assert(targetSlot > 0);
+#if DEBUG
+            var actualType = _variables[targetSlot].Symbol.GetTypeOrReturnType().Type;
+            Debug.Assert(actualType is { });
+            Debug.Assert(actualType.ContainsErrorType() ||
+                targetType.ContainsErrorType() ||
+                isOfTypeOrBaseOrInterface(actualType, targetType));
+#endif
 
             // Reset the state of any members of the target.
             var members = ArrayBuilder<(VariableIdentifier, int)>.GetInstance();
@@ -2652,6 +2659,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InheritDefaultState(symbol.GetTypeOrReturnType().Type, slot);
             }
             members.Free();
+
+#if DEBUG
+            static bool isOfTypeOrBaseOrInterface(TypeSymbol actualType, TypeSymbol expectedType)
+            {
+                if (isType(actualType, expectedType))
+                {
+                    return true;
+                }
+                if (actualType is NamedTypeSymbol namedType)
+                {
+                    if (namedType.IsInterface)
+                    {
+                        return namedType.AllInterfacesNoUseSiteDiagnostics.Contains(expectedType);
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            var baseType = namedType.BaseTypeNoUseSiteDiagnostics;
+                            if (baseType is null)
+                            {
+                                return false;
+                            }
+                            if (isType(baseType, expectedType))
+                            {
+                                return true;
+                            }
+                            namedType = baseType;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            static bool isType(TypeSymbol a, TypeSymbol b)
+                => a.Equals(b, TypeCompareKind.AllIgnoreOptions);
+#endif
         }
 
         private NullableFlowState GetDefaultState(Symbol symbol)
@@ -5105,12 +5149,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
+
             if (node.IsNullableValueTypeAssignment)
             {
+                // If we assigning the underlying value type to a nullable value type variable,
+                // set the state of the .Value property of the variable.
+                Debug.Assert(TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
+                if (leftSlot > 0)
+                {
+                    SetState(ref this.State, leftSlot, NullableFlowState.NotNull);
+                    leftSlot = GetNullableOfTValueSlot(targetType.Type, leftSlot, out _);
+                }
                 targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
+
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
+            Debug.Assert(TypeSymbol.Equals(targetType.Type, rightResult.Type, TypeCompareKind.AllIgnoreOptions));
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
+
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
