@@ -344,8 +344,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 foreach (var documentId in currentSolution.GetDocumentIds(uri))
                 {
-                    // If not already open in this workspace, open it.
-                    mutatingWorkspace.OpenIfPresentAndClosed(documentId, sourceText.Container);
+                    // If not already open in this workspace, attempt to open it.
+
+                    // Note: as per the rules of IMutatingLspWorkspace, only we control the open/closed state of a
+                    // document.  So it's safe for us to read this value here, and then call into the workspace to
+                    // actually close the document.  Note: if an external source (like a project system) removes the
+                    // document, that's fine as CloseIfPresent will bail gracefully in that event.
+                    if (!workspace.IsDocumentOpen(documentId))
+                        mutatingWorkspace.OpenIfPresent(documentId, sourceText.Container);
 
                     // Then, update it to point at this text value.
 
