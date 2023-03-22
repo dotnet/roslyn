@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
                 solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
-                workspace.ChangeSolution(solution)
+                Await workspace.ChangeSolutionAsync(solution)
 
                 Dim project = solution.Projects.Single()
                 Dim document = project.Documents.Single()
@@ -924,7 +924,7 @@ class AnonymousFunctions
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
                 solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
-                workspace.ChangeSolution(solution)
+                Await workspace.ChangeSolutionAsync(solution)
 
                 Dim project = solution.Projects.Single()
                 Dim document = project.Documents.Single()
