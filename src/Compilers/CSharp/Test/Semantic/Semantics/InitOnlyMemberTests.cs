@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4763,8 +4764,9 @@ public class C
             }
         }
 
-        [Fact, WorkItem(67079, "https://github.com/dotnet/roslyn/issues/67079")]
-        public void DoNotPickTypeFromSourceWithFileModifier()
+        [Theory, WorkItem(67079, "https://github.com/dotnet/roslyn/issues/67079")]
+        [CombinatorialData]
+        public void DoNotPickTypeFromSourceWithFileModifier(bool useCompilationReference)
         {
             var corlib_cs = """
                 namespace System
@@ -4799,16 +4801,14 @@ public class C
                 }
                 """;
 
-            var corlibWithoutIsExternalInitRef = CreateEmptyCompilation(corlib_cs)
-                .EmitToImageReference();
-
-            var corlibWithIsExternalInitRef = CreateEmptyCompilation(corlib_cs + IsExternalInitTypeDefinition)
-                .EmitToImageReference();
+            var corlibWithoutIsExternalInitRef = AsReference(CreateEmptyCompilation(corlib_cs), useCompilationReference);
+            var corlibWithIsExternalInitRef = AsReference(CreateEmptyCompilation(corlib_cs + IsExternalInitTypeDefinition), useCompilationReference);
+            var emitOptions = EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0");
 
             {
                 // proper type in corlib and file type in source
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef });
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(emitOptions);
                 var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
                 Assert.False(modifier.Modifier.IsFileLocal);
             }
@@ -4816,7 +4816,7 @@ public class C
             {
                 // no type in corlib and file type in source
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef });
-                comp.VerifyEmitDiagnostics(
+                comp.VerifyEmitDiagnostics(emitOptions,
                     // (8,35): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                     //     public int Property { get; init; }
                     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(8, 35)
