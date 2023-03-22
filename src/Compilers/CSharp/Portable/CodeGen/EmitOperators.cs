@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else if (condition is BoundIsOperator isOp)
             {
-                EmitIsExpression(isOp, used: true, optimize: true);
+                EmitIsExpression(isOp, used: true, omitBooleanConversion: true);
 
                 // Convert to 1 or 0.
                 _builder.EmitOpCode(ILOpCode.Ldnull);
