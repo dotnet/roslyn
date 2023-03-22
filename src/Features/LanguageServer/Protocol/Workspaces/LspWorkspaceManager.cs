@@ -85,22 +85,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region Implementation of IDocumentChangeTracker
 
-    private void PushChangeThroughToWorkspace(Uri uri, Action<Workspace, Document> action)
-    {
-        var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
-        foreach (var workspace in registeredWorkspaces)
-        {
-            if (workspace is not IMutatingLspWorkspace)
-                continue;
-
-            var solution = workspace.CurrentSolution;
-            var documents = solution.GetDocuments(uri);
-
-            foreach (var document in documents)
-                action(workspace, document);
-        }
-    }
-
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
@@ -137,16 +121,34 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
-        PushChangeThroughToWorkspace(uri, (w, d) =>
+        CloseDocumentIfOpenInMutatingWorkspace(uri);
+
+        return;
+
+        // If this workspace thinks the document is opened, then transition it to the closed state here, reading the
+        // contents back in from disk.  If the workspace doesn't think it's open, then nothing to do.  We found out
+        // about the close prior to even notifying the workspace about it opening.  This can happen with workspaces that
+        // are populated from an external stream of events from a project system operating independently from lsp.
+        void CloseDocumentIfOpenInMutatingWorkspace(Uri uri)
         {
-            // If this workspace thinks the document is opened, then transition it to the closed state here, reading the
-            // contents back in from disk.  If the workspace doesn't think it's open, then nothing to do.  We found out
-            // about the close prior to even notifying the workspace about it opening.  This can happen with workspaces
-            // that are populated from an external stream of events from a project system operating independently from
-            // lsp.
-            if (w.IsDocumentOpen(d.Id))
-                w.OnDocumentClosed(d.Id, new WorkspaceFileTextLoader(w.Services.SolutionServices, d.FilePath!, defaultEncoding: null));
-        });
+            var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+            foreach (var workspace in registeredWorkspaces)
+            {
+                if (workspace is not IMutatingLspWorkspace)
+                    continue;
+
+                foreach (var document in workspace.CurrentSolution.GetDocuments(uri))
+                {
+                    if (workspace.IsDocumentOpen(document.Id))
+                    {
+                        // TODO(cyrusn): What if this document has a null filepath? What sort of loader should we give
+                        // it?  Should we instead remove the document from the workspace?
+                        workspace.OnDocumentClosed(document.Id,
+                            new WorkspaceFileTextLoader(workspace.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -164,11 +166,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
-
-        PushChangeThroughToWorkspace(uri, (w, d) =>
-        {
-            w.OnDocumentTextChanged(d.Id, newSourceText, PreservationMode.PreserveIdentity);
-        });
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
@@ -308,25 +305,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 return (workspaceCurrentSolution, IsForked: false);
 
             // Step 2: Push through any changes to the underlying workspace if it's a mutating workspace.
-            if (workspace is IMutatingLspWorkspace)
-            {
-                foreach (var (uri, sourceText) in _trackedDocuments)
-                {
-                    foreach (var documentId in workspaceCurrentSolution.GetDocumentIds(uri))
-                    {
-                        // If not already open in this workspace, open it.  If already opened, update it to this latest text value.
-                        if (!workspace.IsDocumentOpen(documentId))
-                        {
-                            // TODO(cyrusn): What is the right value for isCurrentContext here?
-                            workspace.OnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
-                        }
-                        else
-                        {
-                            workspace.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
-                        }
-                    }
-                }
-            }
+            OpenOrEditDocumentsInMutatingWorkspace(workspace);
+
+            workspaceCurrentSolution = workspace.CurrentSolution;
 
             // Step 3: Check to see if the LSP text matches the workspace text.
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
@@ -349,6 +330,30 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             // Remember this forked solution and the workspace version it was forked from.
             _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
             return (lspSolution, IsForked: true);
+        }
+
+        void OpenOrEditDocumentsInMutatingWorkspace(Workspace workspace)
+        {
+            if (workspace is IMutatingLspWorkspace)
+            {
+                var currentSolution = workspace.CurrentSolution;
+                foreach (var (uri, sourceText) in _trackedDocuments)
+                {
+                    foreach (var documentId in currentSolution.GetDocumentIds(uri))
+                    {
+                        // If not already open in this workspace, open it.  If already opened, update it to this latest text value.
+                        if (workspace.IsDocumentOpen(documentId))
+                        {
+                            workspace.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
+                        }
+                        else
+                        {
+                            // TODO(cyrusn): What is the right value for isCurrentContext here?
+                            workspace.OnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
+                        }
+                    }
+                }
+            }
         }
     }
 
