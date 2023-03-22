@@ -292,11 +292,6 @@
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallNotInterceptable">
-        <source>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">Nie można przekonwertować ciągu wejściowego na równoważną reprezentację bajtową UTF-8. {0}</target>
@@ -2125,6 +2120,16 @@
       <trans-unit id="WRN_CallArgMixing_Title">
         <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
         <target state="translated">Ta kombinacja argumentów może uwidaczniać zmienne przywoływane przez parametr poza zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallNotInterceptable">
+        <source>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallNotInterceptable_Title">
+        <source>Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

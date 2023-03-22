@@ -292,11 +292,6 @@
         <target state="translated">AsyncMethodBuilder 属性は、明示的な戻り値の型のない匿名メソッドでは許可されていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallNotInterceptable">
-        <source>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">入力文字列を同等の UTF-8 バイト表現に変換できません。{0}</target>
@@ -2125,6 +2120,16 @@
       <trans-unit id="WRN_CallArgMixing_Title">
         <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
         <target state="translated">この引数の組み合わせは、パラメーターによって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallNotInterceptable">
+        <source>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallNotInterceptable_Title">
+        <source>Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
-                case ErrorCode.ERR_CallNotInterceptable:
+                case ErrorCode.WRN_CallNotInterceptable:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -328,9 +328,10 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27000: Cannot intercept a call to 'C.InterceptableMethod(string)' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
+            // Program.cs(21,6): warning CS27000: Cannot intercept a call to 'C.InterceptableMethod(string)' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
             //     [InterceptsLocation("Program.cs", 14, 10)]
-            Diagnostic(ErrorCode.ERR_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(21, 6));
+            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(21, 6)
+            );
     }
 
     [Fact]

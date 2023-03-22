@@ -162,8 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(ic): it was speculated that we could avoid work if we know the current method is not interceptable.
                 // i.e. use this as an early out before even calling Compilation.GetInterceptor.
                 // But by calling 'GetInterceptor' before this, we don't really avoid that work. Is that fine?
-                this._diagnostics.Add(ErrorCode.ERR_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
-                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+                // PROTOTYPE(ic): eventually we probably want this to be an error but for now it's convenient to just warn
+                // so we can experiment with intercepting APIs that haven't yet been marked.
+                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
             }
 
             Debug.Assert(interceptor.Arity == 0);
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var (method, receiverOpt, arguments, argsToParamsOpt, argRefKindsOpt, invokedAsExtensionMethod) = InterceptCallAndAdjustArguments(node);
 
             // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(receiverOpt);
 
             ArrayBuilder<LocalSymbol>? temps = null;
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(

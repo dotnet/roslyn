@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCaseInSwitchArm = 9134,
 
         // PROTOTYPE(ic): pack errors
-        ERR_CallNotInterceptable = 27000,
+        WRN_CallNotInterceptable = 27000,
         ERR_InterceptorCannotBeGeneric = 27001,
         ERR_InterceptorPathNotInCompilation = 27002,
         ERR_InterceptorPathNotInCompilationWithCandidate = 27003,
