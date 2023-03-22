@@ -344,6 +344,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                         // If not already open in this workspace, open it.  If already opened, update it to this latest text value.
                         if (workspace.IsDocumentOpen(documentId))
                         {
+                            // Only bother updating if we 
+                            var document = currentSolution.GetDocument(documentId);
+                            if (document != null && document.TryGetText(out var existingText) && existingText == sourceText)
+                                continue;
+
                             workspace.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
                         }
                         else
@@ -378,12 +383,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         return true;
     }
 
-    private static async Task<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
+    private static async ValueTask<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
     {
-        var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var documentTextChecksum = documentText.GetChecksum();
-        var lspTextChecksum = lspText.GetChecksum();
-        return lspTextChecksum.SequenceEqual(documentTextChecksum);
+        var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        if (documentText == lspText)
+            return true;
+
+        return lspText.GetChecksum().AsSpan().SequenceEqual(documentText.GetChecksum().AsSpan());
     }
 
     #endregion
