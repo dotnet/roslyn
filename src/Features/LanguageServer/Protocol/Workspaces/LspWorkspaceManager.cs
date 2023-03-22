@@ -289,9 +289,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             //     it's a mutating workspace.  This will bring that workspace into sync with all that we've heard from lsp.
             //
             //  3. If the cached solution isn't a match, we compare the LSP text to the workspace's text and return the
-            //     workspace text if all LSP text matches. This check is performant as checksums will be computed for
-            //     these documents in order to make requests OOP.  So these are already computed or will be later in
-            //     this request.
+            //     workspace text if all LSP text matches. While this does compute checksums, generally speaking that's
+            //     a reasonable price to pay.  For example, we always do this in VS anyways to make OOP calls, and it is
+            //     not a burden there.
             //
             //  4. Third, we check to see if we have cached a forked LSP solution for the current set of LSP texts
             //     against the current workspace version. If so, we can just reuse that instead of re-forking and
