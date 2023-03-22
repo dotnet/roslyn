@@ -225,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
                 var cancellationTokenSource = new CancellationTokenSource();
                 var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
-
-                // Fetch the cancellation token here to avoid capturing linkedCts in the computeTask lambda as the task may run after linkedCts has been disposed due to cancellation.
                 cancellationToken = linkedCancellationTokenSource.Token;
 
                 var computeTask = Task.Run(async () =>
