@@ -2117,7 +2117,9 @@ class Driver
                 {
                     static async Task Main()
                     {
-                        await new C().M1();
+                        await new C().M1(catchFirst: false);
+                        WriteLine("--- catch first ---");
+                        await new C().M1(catchFirst: true);
                     }
 
                     bool F(string caller, Exception ex, bool result)
@@ -2126,13 +2128,13 @@ class Driver
                         return result;
                     }
 
-                    async Task M1()
+                    async Task M1(bool catchFirst)
                     {
                         try
                         {
                             throw new Exception("M1");
                         }
-                        catch (Exception ex) when (F("M1-catch1", ex, false))
+                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst))
                         {
                             await M2("M1-catch1", ex);
                         }
@@ -2160,6 +2162,9 @@ class Driver
                 F: M1-catch1 M1
                 F: M1-catch2 M1
                 M2: M1-catch2-catch M1
+                --- catch first ---
+                F: M1-catch1 M1
+                M2: M1-catch1 M1
                 """;
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -2178,7 +2183,14 @@ class Driver
                 {
                     static async Task Main()
                     {
-                        await new C().M1();
+                        foreach (var catchFirst1 in new[] { false, true })
+                        {
+                            foreach (var catchFirst2 in new[] { false, true })
+                            {
+                                WriteLine($"--- catchFirst1={catchFirst1}, catchFirst2={catchFirst2} ---");
+                                await new C().M1(catchFirst1: catchFirst1, catchFirst2: catchFirst2);
+                            }
+                        }
                     }
 
                     bool F(string caller, Exception ex, bool result)
@@ -2187,13 +2199,13 @@ class Driver
                         return result;
                     }
 
-                    async Task M1()
+                    async Task M1(bool catchFirst1, bool catchFirst2)
                     {
                         try
                         {
                             throw new Exception("M1-try");
                         }
-                        catch (Exception ex) when (F("M1-catch1", ex, false))
+                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst1))
                         {
                             await M2("M1-catch1", ex);
                         }
@@ -2203,7 +2215,7 @@ class Driver
                             {
                                 throw new Exception("M1-catch2");
                             }
-                            catch (Exception ex2) when (F("M1-catch2-catch1", ex2, false))
+                            catch (Exception ex2) when (F("M1-catch2-catch1", ex2, catchFirst2))
                             {
                                 await M2("M1-catch2-catch1", ex2);
                             }
@@ -2230,12 +2242,24 @@ class Driver
                 }
                 """;
             var expectedOutput = """
+                --- catchFirst1=False, catchFirst2=False ---
                 F: M1-catch1 M1-try
                 F: M1-catch2 M1-try
                 F: M1-catch2-catch1 M1-catch2
                 F: M1-catch2-catch2 M1-catch2
                 M2: M1-catch2-catch2-catch-ex M1-try
                 M2: M1-catch2-catch2-catch-ex2 M1-catch2
+                --- catchFirst1=False, catchFirst2=True ---
+                F: M1-catch1 M1-try
+                F: M1-catch2 M1-try
+                F: M1-catch2-catch1 M1-catch2
+                M2: M1-catch2-catch1 M1-catch2
+                --- catchFirst1=True, catchFirst2=False ---
+                F: M1-catch1 M1-try
+                M2: M1-catch1 M1-try
+                --- catchFirst1=True, catchFirst2=True ---
+                F: M1-catch1 M1-try
+                M2: M1-catch1 M1-try
                 """;
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
