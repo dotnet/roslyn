@@ -694,5 +694,23 @@ class C
         Assert.Empty(scopes.Single().XmlNamespaces);
     }
 
+    [Fact]
+    public void TestBeforeCommentBlockAtEndOfFile()
+    {
+        var text = @"
+global using System;
+
+/*pos*//**/";
+        var pos = GetPositionForBinding(text);
+        var tree = Parse(text);
+        var comp = CreateCompilationWithExternAlias(new[] { tree });
+        var model = comp.GetSemanticModel(tree);
+        var scopes = model.GetImportScopes(pos);
+
+        Assert.Single(scopes);
+        Assert.Equal(1, scopes.Single().Imports.Length);
+        Assert.True(scopes.Single().Imports.Any(i => i.NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) }));
+    }
+
     #endregion
 }
