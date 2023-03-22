@@ -20,13 +20,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
+interface IMutatingLspWorkspace
+{
+
+}
+
 /// <summary>
 /// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
 /// <remarks>
 /// This type provides an LSP view of the registered workspace solutions so that all LSP requests operate
-/// on the state of the world that matches the LSP requests we've recieved.  
+/// on the state of the world that matches the LSP requests we've received.  
 /// 
 /// This is done by storing the LSP text as provided by client didOpen/didClose/didChange requests.  When asked for a document we provide either
 /// <list type="bullet">
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspService
+internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
@@ -68,7 +73,7 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
-    protected LspWorkspaceManager(
+    public LspWorkspaceManager(
         ILspLogger logger,
         LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -85,12 +90,26 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
 
     #region Implementation of IDocumentChangeTracker
 
+    private void PushChangeThroughToWorkspace(Uri uri, Action<Workspace, IMutatingLspWorkspace, ImmutableArray<Document>> action)
+    {
+        var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+        foreach (var workspace in registeredWorkspaces)
+        {
+            if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
+                continue;
+
+            var solution = workspace.CurrentSolution;
+            var documents = solution.GetDocuments(uri);
+            action(workspace, mutatingWorkspace, documents);
+        }
+    }
+
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public virtual void StartTracking(Uri uri, SourceText documentText)
+    public void StartTracking(Uri uri, SourceText documentText)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -100,6 +119,12 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentOpened(document.Id, documentText.Container);
+        });
     }
 
     /// <summary>
@@ -107,7 +132,7 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
     /// 
     /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public virtual void StopTracking(Uri uri)
+    public void StopTracking(Uri uri)
     {
         // First, stop tracking this URI and source text as it is no longer owned by LSP.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
@@ -120,6 +145,12 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
         _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(w.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
+        });
     }
 
     /// <summary>
@@ -127,7 +158,7 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
     /// 
     /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public virtual void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
+    public void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
     {
         // Store the updated LSP view of the source text.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didChange received for {uri} which is not open.");
@@ -137,6 +168,12 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentTextChanged(document.Id, newSourceText, PreservationMode.PreserveValue);
+        });
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
@@ -368,33 +405,5 @@ internal abstract class LspWorkspaceManager : IDocumentChangeTracker, ILspServic
         {
             return _manager._lspWorkspaceRegistrationService.GetAllRegistrations().Contains(workspace);
         }
-    }
-}
-
-internal sealed class NonMutatingLspWorkspaceManager : LspWorkspaceManager
-{
-    public NonMutatingLspWorkspaceManager(
-        ILspLogger logger,
-        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        RequestTelemetryLogger requestTelemetryLogger)
-        : base(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, requestTelemetryLogger)
-    {
-    }
-}
-
-/// <summary>
-/// Implementation of the <see cref="LspWorkspaceManager"/> that also pushes all text changes along such that they
-/// change the data of the underlying workspace.
-/// </summary>
-internal sealed class MutatingLspWorkspaceManager : LspWorkspaceManager
-{
-    public MutatingLspWorkspaceManager(
-        ILspLogger logger,
-        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        RequestTelemetryLogger requestTelemetryLogger)
-        : base(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, requestTelemetryLogger)
-    {
     }
 }
