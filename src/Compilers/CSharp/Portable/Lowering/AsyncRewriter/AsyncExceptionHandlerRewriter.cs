@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool TryGetHoistedLocal(LocalSymbol originalLocal, out LocalSymbol hoistedLocal)
             {
                 return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal) ||
-                    (_parentOpt is { } parent && parent.TryGetHoistedLocal(originalLocal, out hoistedLocal));
+                    (_parentOpt?.TryGetHoistedLocal(originalLocal, out hoistedLocal) == true);
             }
         }
     }
