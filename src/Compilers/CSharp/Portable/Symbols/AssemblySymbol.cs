@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -853,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag? warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
-            // Type from this assembly usually wins unless we search for well-known type and find file-local declaration in source.
+            // Type from this assembly always wins.
             // After that we look in references, which may yield ambiguities. If `ignoreCorLibraryDuplicatedTypes` is set,
             // corlib does not contribute to ambiguities (corlib loses over other references).
             // For well-known types before C# 7, ambiguities are reported as a warning and the first candidate wins.
@@ -992,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(result.ContainingType is null || IsValidWellKnownType(result.ContainingType),
+            Debug.Assert((object)result.ContainingType == null || IsValidWellKnownType(result.ContainingType),
                 "Checking the containing type is the caller's responsibility.");
 
             return result.DeclaredAccessibility == Accessibility.Public || IsSymbolAccessible(result, this);
