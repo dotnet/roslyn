@@ -18,6 +18,5 @@ internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public WorkspaceRegistrationService()
     {
-
     }
 }
