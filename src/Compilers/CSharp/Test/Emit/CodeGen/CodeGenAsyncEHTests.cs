@@ -2120,13 +2120,10 @@ class Driver
                         await new C().M1();
                     }
 
-                    int _counter;
-
-                    bool F(Exception ex)
+                    bool F(string caller, Exception ex, bool result)
                     {
-                        _counter++;
-                        WriteLine($"F: {_counter} {ex.Message}");
-                        return _counter == 2;
+                        WriteLine($"F: {caller} {ex.Message}");
+                        return result;
                     }
 
                     async Task M1()
@@ -2135,11 +2132,11 @@ class Driver
                         {
                             throw new Exception("M1");
                         }
-                        catch (Exception ex) when (F(ex))
+                        catch (Exception ex) when (F("M1-catch1", ex, false))
                         {
-                            await M2(ex);
+                            await M2("M1-catch1", ex);
                         }
-                        catch (Exception ex) when (F(ex))
+                        catch (Exception ex) when (F("M1-catch2", ex, true))
                         {
                             try
                             {
@@ -2147,22 +2144,22 @@ class Driver
                             }
                             catch 
                             {
-                                await M2(ex);
+                                await M2("M1-catch2-catch", ex);
                             }
                         }
                     }
 
-                    async Task M2(Exception ex)
+                    async Task M2(string caller, Exception ex)
                     {
-                        WriteLine($"M2: {ex.Message}");
+                        WriteLine($"M2: {caller} {ex.Message}");
                         await Task.Yield();
                     }
                 }
                 """;
             var expectedOutput = """
-                F: 1 M1
-                F: 2 M1
-                M2: M1
+                F: M1-catch1 M1
+                F: M1-catch2 M1
+                M2: M1-catch2-catch M1
                 """;
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -2184,13 +2181,10 @@ class Driver
                         await new C().M1();
                     }
 
-                    int _counter;
-
-                    bool F(Exception ex)
+                    bool F(string caller, Exception ex, bool result)
                     {
-                        _counter++;
-                        WriteLine($"F: {_counter} {ex.Message}");
-                        return _counter % 2 == 0;
+                        WriteLine($"F: {caller} {ex.Message}");
+                        return result;
                     }
 
                     async Task M1()
@@ -2199,21 +2193,21 @@ class Driver
                         {
                             throw new Exception("M1-try");
                         }
-                        catch (Exception ex) when (F(ex))
+                        catch (Exception ex) when (F("M1-catch1", ex, false))
                         {
-                            await M2(ex);
+                            await M2("M1-catch1", ex);
                         }
-                        catch (Exception ex) when (F(ex))
+                        catch (Exception ex) when (F("M1-catch2", ex, true))
                         {
                             try
                             {
                                 throw new Exception("M1-catch2");
                             }
-                            catch (Exception ex2) when (F(ex2))
+                            catch (Exception ex2) when (F("M1-catch2-catch1", ex2, false))
                             {
-                                await M2(ex2);
+                                await M2("M1-catch2-catch1", ex2);
                             }
-                            catch (Exception ex2) when (F(ex2))
+                            catch (Exception ex2) when (F("M1-catch2-catch2", ex2, true))
                             {
                                 try
                                 {
@@ -2221,27 +2215,27 @@ class Driver
                                 }
                                 catch
                                 {
-                                    await M2(ex);
-                                    await M2(ex2);
+                                    await M2("M1-catch2-catch2-catch-ex", ex);
+                                    await M2("M1-catch2-catch2-catch-ex2", ex2);
                                 }
                             }
                         }
                     }
 
-                    async Task M2(Exception ex)
+                    async Task M2(string caller, Exception ex)
                     {
                         await Task.Yield();
-                        WriteLine($"M2: {ex.Message}");
+                        WriteLine($"M2: {caller} {ex.Message}");
                     }
                 }
                 """;
             var expectedOutput = """
-                F: 1 M1-try
-                F: 2 M1-try
-                F: 3 M1-catch2
-                F: 4 M1-catch2
-                M2: M1-try
-                M2: M1-catch2
+                F: M1-catch1 M1-try
+                F: M1-catch2 M1-try
+                F: M1-catch2-catch1 M1-catch2
+                F: M1-catch2-catch2 M1-catch2
+                M2: M1-catch2-catch2-catch-ex M1-try
+                M2: M1-catch2-catch2-catch-ex2 M1-catch2
                 """;
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
