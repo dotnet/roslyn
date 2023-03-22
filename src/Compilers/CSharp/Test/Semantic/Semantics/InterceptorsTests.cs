@@ -263,6 +263,10 @@ public class InterceptorsTests : CSharpTestBase
             );
     }
 
+    // PROTOTYPE(ic): duplicates
+    // PROTOTYPE(ic): intercept with instance method
+    // PROTOTYPE(ic): intercept with instance base method
+
     [Fact]
     public void LocalFunctionInterceptable()
     {

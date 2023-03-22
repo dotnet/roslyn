@@ -2319,6 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorCharacterOutOfRange:
                 case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                 case ErrorCode.ERR_InterceptorMethodMustBeOrdinary:
+                case ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
