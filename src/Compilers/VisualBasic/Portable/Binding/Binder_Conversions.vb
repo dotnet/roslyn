@@ -1042,15 +1042,6 @@ DoneWithDiagnostics:
 
             Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
 
-            Dim targetNamedType = TryCast(targetType, NamedTypeSymbol)
-            If argument.IsNothingLiteral() AndAlso targetNamedType IsNot Nothing AndAlso targetType.IsStructureType() Then
-                ' Check to see if we're creating a default value of a structure with required members
-                If targetNamedType.AllRequiredMembers.Count > 0 OrElse targetNamedType.HasRequiredMembersError Then
-                    Dim structCtor As MethodSymbol = targetNamedType.InstanceConstructors.FirstOrDefault(Function(ctor) ctor.ParameterCount = 0)
-                    CheckRequiredMembersInObjectInitializer(structCtor, targetNamedType, ImmutableArray(Of BoundExpression).Empty, argument.Syntax, diagnostics)
-                End If
-            End If
-
             Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
         End Function
 

@@ -56,6 +56,12 @@ BC37322: Cannot inherit from 'Base' because it has required members.
 BC37322: Cannot inherit from 'Derived' because it has required members.
     Inherits Derived
     ~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Field As Integer' must be set in the object initializer or attribute arguments.
+        Dim v1 = New VbDerivedBase()
+                     ~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Field As Integer' must be set in the object initializer or attribute arguments.
+        Dim v2 = New VbDerivedDerived()
+                     ~~~~~~~~~~~~~~~~
 BC37324: 'VbDerivedBase' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub G(Of T As New)()' because 'VbDerivedBase' has required members.
         G(Of VbDerivedBase)()
         ~~~~~~~~~~~~~~~~~~~
@@ -641,11 +647,7 @@ Module M
 End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
-            comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public F As Integer' must be set in the object initializer or attribute arguments.
-        Dim s As S = Nothing
-                     ~~~~~~~
-                                        </expected>)
+            comp.AssertNoDiagnostics()
         End Sub
 
         <Fact>
@@ -666,11 +668,7 @@ Module M
 End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
-            comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public F As Integer' must be set in the object initializer or attribute arguments.
-        Dim s As S = Nothing
-                     ~~~~~~~
-                                        </expected>)
+            comp.AssertNoDiagnostics()
         End Sub
 
         <Fact>
@@ -1092,7 +1090,7 @@ BC37323: The required members list for 'Derived' is malformed and cannot be inte
 Module M
     Sub Main()
         Dim d1 = New Derived()
-        'Dim d2 = New Derived(1)
+        Dim d2 = New Derived(1)
     End Sub
 End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
 
@@ -1641,6 +1639,11 @@ BC30182: Type expected.
         Dim c = New C(Of)()
                         ~
                                         </expected>)
+
+            Dim c = comp.GetTypeByMetadataName("C`1")
+            Dim u_c = c.ConstructUnboundGenericType()
+            Assert.False(u_c.HasAnyDeclaredRequiredMembers)
+            Assert.Empty(u_c.AllRequiredMembers)
         End Sub
 
         <Fact>
@@ -1918,6 +1921,12 @@ Class C
         Dim t3 = new System.ValueTuple(Of Integer, Integer)()
         Dim t4 As (Integer, Integer) = Nothing 
         Dim t5 As System.ValueTuple(of integer, integer) = Nothing
+        Dim t6 = new System.ValueTuple(Of Integer, Integer)() With {
+            .Item1 = 1,
+            .Item2 = 2,
+            .[Property] = 3,
+            .AnotherField = 4
+        }
     End Sub
 End Class", {csharpCompReference}, targetFramework:=TargetFramework.Mscorlib461)
 
@@ -1961,31 +1970,6 @@ BC37321: Required member 'Public Item2 As Integer' must be set in the object ini
 BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
         Dim t3 = new System.ValueTuple(Of Integer, Integer)()
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 As (Integer, Integer) = Nothing 
-                                       ~~~~~~~
-BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 As (Integer, Integer) = Nothing 
-                                       ~~~~~~~
-BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 As (Integer, Integer) = Nothing 
-                                       ~~~~~~~
-BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 As (Integer, Integer) = Nothing 
-                                       ~~~~~~~
-BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
-        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
-                                                           ~~~~~~~
-BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
-                                                           ~~~~~~~
-BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
-                                                           ~~~~~~~
-BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
-        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
-                                                           ~~~~~~~
-
                                         </expected>)
 
             comp = CreateCompilation("
