@@ -17,6 +17,8 @@ internal sealed class ExportProviderBuilder
     {
         var baseDirectory = AppContext.BaseDirectory;
 
+        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
+
         // Load any Roslyn assemblies from the extension directory
         var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
         assembliesToDiscover = assembliesToDiscover.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
@@ -32,11 +34,12 @@ internal sealed class ExportProviderBuilder
         }
 
         var discovery = PartDiscovery.Combine(
-            new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
-            new AttributedPartDiscoveryV1(Resolver.DefaultInstance));
+            resolver,
+            new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
+            new AttributedPartDiscoveryV1(resolver));
 
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
-        var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
+        var catalog = ComposableCatalog.Create(resolver)
             .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
             .AddParts(await discovery.CreatePartsAsync(assembliesToDiscover))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
