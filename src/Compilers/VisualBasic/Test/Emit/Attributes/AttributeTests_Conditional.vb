@@ -233,7 +233,6 @@ End Class
                         ' PartiallyPreservedAppliedAttribute has its conditional constant defined midway through the source file.
                         ' Hence this attribute is emitted in metadata only for some symbols.
 
-
                         Dim attributesArray As ImmutableArray(Of VisualBasicAttributeData) = tup.Item1
                         Dim actualAttributeNames = GetAttributeNames(attributesArray)
 

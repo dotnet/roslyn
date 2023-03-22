@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            return DiagnosticData.Create(diagnostic, Project);
+            return DiagnosticData.Create(Project.Solution, diagnostic, Project);
         }
     }
 }

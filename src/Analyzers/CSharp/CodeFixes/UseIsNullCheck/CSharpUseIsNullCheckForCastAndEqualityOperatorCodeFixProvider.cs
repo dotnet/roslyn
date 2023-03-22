@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
+    using static SyntaxFactory;
+    using static UseIsNullCheckHelpers;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForCastAndEqualityOperator), Shared]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -32,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
 
@@ -42,9 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             var diagnostic = context.Diagnostics.First();
             if (IsSupportedDiagnostic(diagnostic))
             {
+                var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
+                var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
+
                 context.RegisterCodeFix(
-                    new MyCodeAction(CSharpAnalyzersResources.Use_is_null_check,
-                    c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -53,14 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
                 if (!IsSupportedDiagnostic(diagnostic))
-                {
                     continue;
-                }
 
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
@@ -76,17 +77,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             var isPattern = RewriteWorker(binary);
             if (binary.IsKind(SyntaxKind.EqualsExpression))
-            {
                 return isPattern;
-            }
 
-            // convert:  (object)expr != null   to    expr is object
-            return SyntaxFactory
-                .BinaryExpression(
+            if (SupportsIsNotPattern(binary.SyntaxTree.Options))
+            {
+                // convert:  (object)expr != null   to    expr is not null
+                return isPattern.WithPattern(
+                    UnaryPattern(isPattern.Pattern));
+            }
+            else
+            {
+                // convert:  (object)expr != null   to    expr is object
+                return BinaryExpression(
                     SyntaxKind.IsExpression,
                     isPattern.Expression,
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-                .WithTriviaFrom(isPattern);
+                    PredefinedType(Token(SyntaxKind.ObjectKeyword))).WithTriviaFrom(isPattern);
+            }
         }
 
         private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)
@@ -98,18 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             BinaryExpressionSyntax binary, ExpressionSyntax expr, ExpressionSyntax nullLiteral)
         {
             var castExpr = (CastExpressionSyntax)expr;
-            return SyntaxFactory.IsPatternExpression(
+            return IsPatternExpression(
                 castExpr.Expression.WithTriviaFrom(binary.Left),
-                SyntaxFactory.Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
-                SyntaxFactory.ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
+                Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
+                ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
         }
     }
 }

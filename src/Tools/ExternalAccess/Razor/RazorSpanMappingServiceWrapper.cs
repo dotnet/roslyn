@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Document newDocument,
             CancellationToken cancellationToken)
         {
-            var diffService = newDocument.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var diffService = newDocument.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             // This is a hack that finds a minimal diff. It's not the ideal algorithm but should cover most scenarios. In the future,
             // we should improve this algorithm - see https://github.com/dotnet/roslyn/issues/53346 for additional details.

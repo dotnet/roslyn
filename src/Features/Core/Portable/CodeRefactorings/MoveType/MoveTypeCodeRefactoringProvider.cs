@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -24,19 +22,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var workspace = document.Project.Solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
-            }
 
             if (document.IsGeneratedCode(cancellationToken))
-            {
                 return;
-            }
 
-            var service = document.GetLanguageService<IMoveTypeService>();
-            var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<IMoveTypeService>();
+            var actions = await service.GetRefactoringAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

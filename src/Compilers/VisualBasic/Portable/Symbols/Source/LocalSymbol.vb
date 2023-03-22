@@ -301,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_ScopedKind As ScopedKind Implements ILocalSymbol.ScopedKind
+            Get
+                Return ScopedKind.None
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
@@ -404,8 +410,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#End Region
+        Private ReadOnly Property ILocalSymbol_IsForEach As Boolean Implements ILocalSymbol.IsForEach
+            Get
+                Return Me.IsForEach
+            End Get
+        End Property
 
+        Private ReadOnly Property ILocalSymbol_IsUsing As Boolean Implements ILocalSymbol.IsUsing
+            Get
+                Return Me.IsUsing
+            End Get
+        End Property
+
+#End Region
 
 #Region "ISymbol"
 
@@ -421,6 +438,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitLocal(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitLocal(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
@@ -24,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // void M() => throw
-            if (context.TargetToken.Kind() == SyntaxKind.EqualsGreaterThanToken)
+            if (context.TargetToken.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 return true;
             }
 
             // val ?? throw
-            if (context.TargetToken.Kind() == SyntaxKind.QuestionQuestionToken)
+            if (context.TargetToken.IsKind(SyntaxKind.QuestionQuestionToken))
             {
                 return true;
             }
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.TargetToken.Kind() is SyntaxKind.QuestionToken or
                 SyntaxKind.ColonToken)
             {
-                return context.TargetToken.Parent.Kind() == SyntaxKind.ConditionalExpression;
+                return context.TargetToken.Parent.IsKind(SyntaxKind.ConditionalExpression);
             }
 
             return false;

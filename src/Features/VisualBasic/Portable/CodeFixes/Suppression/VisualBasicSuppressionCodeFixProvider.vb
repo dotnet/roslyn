@@ -6,7 +6,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 targetSymbol As ISymbol,
                 suppressMessageAttribute As INamedTypeSymbol,
                 diagnostic As Diagnostic,
-                services As HostWorkspaceServices,
+                services As SolutionServices,
                 options As SyntaxFormattingOptions,
                 addImportsService As IAddImportsService,
                 cancellationToken As CancellationToken) As SyntaxNode

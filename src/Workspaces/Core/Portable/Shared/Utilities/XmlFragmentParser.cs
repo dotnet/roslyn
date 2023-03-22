@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             _textReader.SetText(text);
 
-            if (_xmlReader == null)
-            {
-                _xmlReader = XmlReader.Create(_textReader, s_xmlSettings);
-            }
+            _xmlReader ??= XmlReader.Create(_textReader, s_xmlSettings);
 
             try
             {
@@ -212,13 +209,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public override int Read()
             {
                 // XmlReader does not call this API
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override int Peek()
             {
                 // XmlReader does not call this API
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

@@ -234,17 +234,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                             list.Add(parameter);
                         }
 
-                        if (localDumper != null)
-                        {
-                            localDumper.GetLocalSymbols(method.GetSymbol(), list);
-                        }
+                        localDumper?.GetLocalSymbols(method.GetSymbol(), list);
 
                         break;
                     case SymbolKind.Field:
-                        if (localDumper != null)
-                        {
-                            localDumper.GetLocalSymbols(memberSymbol.GetSymbol<FieldSymbol>(), list);
-                        }
+                        localDumper?.GetLocalSymbols(memberSymbol.GetSymbol<FieldSymbol>(), list);
 
                         break;
                 }

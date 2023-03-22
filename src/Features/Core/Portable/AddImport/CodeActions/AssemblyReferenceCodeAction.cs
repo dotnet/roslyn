@@ -16,10 +16,14 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private class AssemblyReferenceCodeAction : AddImportCodeAction
         {
+            /// <summary>
+            /// This code action only works by adding a reference.  As such, it requires a non document change (and is
+            /// thus restricted in which hosts it can run).
+            /// </summary>
             public AssemblyReferenceCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
             }
@@ -79,13 +83,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                     operation.Apply(workspace, cancellationToken);
                 }
 
-                internal override Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
                     var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)
                         return SpecializedTasks.False;
 
-                    return operation.TryApplyAsync(workspace, progressTracker, cancellationToken);
+                    return operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
                 }
 
                 private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)

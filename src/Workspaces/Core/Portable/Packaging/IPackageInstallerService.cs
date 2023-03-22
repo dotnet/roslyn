@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Packaging
     {
         bool IsEnabled(ProjectId projectId);
 
-        bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
+        bool IsInstalled(ProjectId projectId, string packageName);
 
         Task<bool> TryInstallPackageAsync(
             Workspace workspace, DocumentId documentId,

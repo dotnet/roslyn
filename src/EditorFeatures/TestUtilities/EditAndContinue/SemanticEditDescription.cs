@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
         public readonly Func<Compilation, ITypeSymbol>? PartialType;
+        public readonly Func<Compilation, ISymbol>? DeletedSymbolContainerProvider;
 
         /// <summary>
         /// If specified the node mappings will be validated against the actual syntax map function.
@@ -27,13 +28,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Func<Compilation, ISymbol> symbolProvider,
             Func<Compilation, ITypeSymbol>? partialType,
             IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap,
-            bool hasSyntaxMap)
+            bool hasSyntaxMap,
+            Func<Compilation, ISymbol>? deletedSymbolContainerProvider)
         {
             Kind = kind;
             SymbolProvider = symbolProvider;
             SyntaxMap = syntaxMap;
             PartialType = partialType;
             HasSyntaxMap = hasSyntaxMap;
+            DeletedSymbolContainerProvider = deletedSymbolContainerProvider;
         }
     }
 }

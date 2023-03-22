@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class PossibleTupleContextTests : AbstractContextTests
     {
         protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
@@ -29,67 +30,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             VerifyTrue(AddInsideMethod(x));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test1()
             => VerifyMultipleContexts(@"((a, b) $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test2()
             => VerifyMultipleContexts(@"(xyz, (a, b) $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test3()
             => VerifyMultipleContexts(@"(a $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test4()
             => VerifyMultipleContexts(@"(a, b $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test5()
             => VerifyMultipleContexts(@"($$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test6()
             => VerifyMultipleContexts(@"(a, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test7()
             => VerifyMultipleContexts(@"(a.b $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test8()
             => VerifyMultipleContexts(@"(a, a.b $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test9()
             => VerifyTrue(@"class C : I<($$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test10()
             => VerifyTrue(@"class C : I<(a, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test11()
             => VerifyTrue(AddInsideMethod(@"(var $$)"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test12()
             => VerifyTrue(AddInsideMethod(@"(var a, var $$)"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Test13()
             => VerifyTrue(AddInsideMethod(@"var str = (($$)items) as string;"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void False1()
             => VerifyFalse(@"$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void False2()
             => VerifyFalse(AddInsideMethod(@"(int) $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void False3()
             => VerifyFalse(AddInsideMethod(@"(Goo()) $$"));
     }

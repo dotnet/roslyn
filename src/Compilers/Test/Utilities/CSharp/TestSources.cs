@@ -28,7 +28,7 @@ namespace System
         public Span(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }
@@ -74,6 +74,8 @@ namespace System
 
         public static implicit operator Span<T>(T[] array) => new Span<T>(array);
 
+        public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
+
         public Span<T> Slice(int offset, int length)
         {
             var copy = new T[length];
@@ -99,7 +101,7 @@ namespace System
         public ReadOnlySpan(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }
@@ -415,6 +417,39 @@ namespace System.Runtime.CompilerServices
     {
         int Length { get; }
         object this[int index] { get; }
+    }
+}";
+
+        public const string MemoryExtensions = @"
+namespace System
+{
+    public static class MemoryExtensions
+    {
+        public static bool SequenceEqual<T> (this ReadOnlySpan<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool SequenceEqual<T> (this Span<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
     }
 }";
     }

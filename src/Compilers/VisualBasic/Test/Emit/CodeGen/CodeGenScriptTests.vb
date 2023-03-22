@@ -359,7 +359,8 @@ System.Console.Write("complete")
                 "s0.dll",
                 syntaxTree:=Parse(source0.Value, parseOptions),
                 references:=references)
-            Dim verifier = CompileAndVerify(s0, verify:=Verification.Fails)
+            ' PEVerify: Error: Assembly name contains leading spaces or path or extension.
+            Dim verifier = CompileAndVerify(s0, verify:=Verification.FailsPEVerify)
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
             methodData.VerifyIL(

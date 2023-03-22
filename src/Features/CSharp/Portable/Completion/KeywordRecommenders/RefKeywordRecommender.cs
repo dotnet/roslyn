@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using System.Collections.Generic;
@@ -82,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var syntaxTree = context.SyntaxTree;
             return
                 IsRefParameterModifierContext(position, context) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
                 IsValidContextForType(context, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
                 IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier == SyntaxKind.None)
+                if (previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword)
                 {
                     return true;
                 }
@@ -150,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 //     return ref  ...
                 // 
                 case SyntaxKind.ReturnKeyword:
+                    return true;
+
+                // scoped ref ...
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.IdentifierToken when token.Text == "scoped":
                     return true;
 
                 // {

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (reportDiagnostics)
                 {
-                    context.Diagnostics.Add(ErrorCode.ERR_NotAnAttributeClass, context.SyntaxNode?.Location ?? NoLocation.Singleton, this.AttributeClass);
+                    context.Diagnostics.Add(ErrorCode.ERR_NotAnAttributeClass, context.Location ?? NoLocation.Singleton, this.AttributeClass);
                 }
 
                 return null;

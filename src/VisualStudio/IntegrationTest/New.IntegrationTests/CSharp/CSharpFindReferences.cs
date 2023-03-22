@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -50,13 +50,9 @@ class SomeOtherClass
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            const string ProgramReferencesCaption = "'Program' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(ProgramReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: ProgramReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
@@ -80,7 +76,7 @@ class SomeOtherClass
             await WaitForNavigateAsync(HangMitigatingCancellationToken);
 
             // Assert we are in the right file now
-            Assert.Equal("Class1.cs*", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"Class1.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
         }
 
@@ -99,13 +95,9 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            const string LocalReferencesCaption = "'local' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(LocalReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: LocalReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
@@ -141,13 +133,9 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            const string FindReferencesCaption = "'\"1\"' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(FindReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: FindReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
@@ -175,9 +163,9 @@ class Program
 
             await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
 
-            // because the solution cache directory is stored in the user temp folder, 
-            // closing the solution has no effect on what is returned.
-            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+            // Since we no longer have an open solution, we don't have a storage location for it, since that
+            // depends on the open solution.
+            Assert.Null(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
         }
 
         private async Task WaitForNavigateAsync(CancellationToken cancellationToken)

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
-
     internal class OptionUpdater : SettingsUpdaterBase<IOption2, object>
     {
         public OptionUpdater(Workspace workspace, string editorconfigPath)
@@ -18,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         {
         }
 
-        protected override SourceText? GetNewText(SourceText SourceText,
+        protected override SourceText? GetNewText(SourceText sourceText,
                                                   IReadOnlyList<(IOption2 option, object value)> settingsToUpdate,
                                                   CancellationToken token)
-            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(SourceText, EditorconfigPath, Workspace.Options, settingsToUpdate);
+            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
     }
 }

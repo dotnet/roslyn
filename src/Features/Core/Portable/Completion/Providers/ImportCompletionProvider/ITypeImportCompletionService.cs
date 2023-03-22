@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : ILanguageService
     {
@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// Because items from each entity are cached as a separate array, we simply return them as is instead of an 
         /// aggregated array to avoid unnecessary allocations.
         /// </remarks>
-        Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+        Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CompletionOptions options,
             CancellationToken cancellationToken);
 
-        Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken);
+        void QueueCacheWarmUpTask(Project project);
     }
 }

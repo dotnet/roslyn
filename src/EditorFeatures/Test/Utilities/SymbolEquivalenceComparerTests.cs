@@ -215,8 +215,7 @@ class Type2
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(field4_v1, field4_v2));
         }
 
-        [WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
         public async Task TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -1092,8 +1091,7 @@ class Type1
                          SymbolEquivalenceComparer.Instance.GetHashCode(method_v2));
         }
 
-        [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/599")]
         public async Task TestRefVersusOut()
         {
             var csharpCode1 =
@@ -1131,10 +1129,9 @@ class C
                          falseComp.GetHashCode(method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples1()
         {
             var csharpCode1 =
@@ -1162,10 +1159,9 @@ class C
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples2()
         {
             var csharpCode1 =
@@ -1193,10 +1189,9 @@ class C
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples3()
         {
             var csharpCode1 =
@@ -1225,10 +1220,9 @@ class C
             Assert.True(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples4()
         {
             var csharpCode1 =
@@ -1257,10 +1251,9 @@ class C
             Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples5()
         {
             var csharpCode1 =
@@ -1289,11 +1282,10 @@ class C
             Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(56133, "https://github.com/dotnet/roslyn/issues/56133")]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
-        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
-        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56133")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples6()
         {
             var csharpCode1 =
@@ -1768,11 +1760,8 @@ End Class
             var method_root = method.DeclaringSyntaxReferences[0].GetSyntax();
 
             var invocation = method_root.DescendantNodes().OfType<TInvocation>().FirstOrDefault();
-            if (invocation == null)
-            {
-                // vb method root is statement, but we need block to find body with invocation
-                invocation = method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
-            }
+            // vb method root is statement, but we need block to find body with invocation
+            invocation ??= method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
 
             var model = compilation.GetSemanticModel(invocation.SyntaxTree);
             var info = model.GetSymbolInfo(invocation);

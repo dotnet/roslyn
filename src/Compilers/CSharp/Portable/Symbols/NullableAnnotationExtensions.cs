@@ -9,9 +9,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-// https://github.com/dotnet/roslyn/issues/34962 IDE005 "Fix formatting" does a poor job with a switch expression as the body of an expression-bodied method
-#pragma warning disable IDE0055
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class NullableAnnotationExtensions

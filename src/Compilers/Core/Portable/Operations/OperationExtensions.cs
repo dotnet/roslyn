@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return false;
             }
 
-            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(static d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
         /// <summary>

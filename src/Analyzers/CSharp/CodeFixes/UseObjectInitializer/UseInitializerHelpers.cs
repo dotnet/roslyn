@@ -2,31 +2,49 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 {
+    using static SyntaxFactory;
+
     internal static class UseInitializerHelpers
     {
-        public static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        public static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax baseObjectCreation,
             SeparatedSyntaxList<ExpressionSyntax> expressions)
         {
-            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                         .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-            var initializer = SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression, expressions).WithOpenBraceToken(openBrace);
-
-            if (objectCreation.ArgumentList != null &&
-                objectCreation.ArgumentList.Arguments.Count == 0)
+            if (baseObjectCreation is ObjectCreationExpressionSyntax objectCreation &&
+                objectCreation.ArgumentList?.Arguments.Count == 0)
             {
-                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
-                                               .WithArgumentList(null);
+                baseObjectCreation = objectCreation
+                    .WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
+                    .WithArgumentList(null);
             }
 
-            return objectCreation.WithInitializer(initializer);
+            var firstExpression = expressions.First();
+            var initializerKind = firstExpression is AssignmentExpressionSyntax
+                ? SyntaxKind.ObjectInitializerExpression
+                : SyntaxKind.CollectionInitializerExpression;
+
+            return baseObjectCreation.WithInitializer(InitializerExpression(initializerKind, expressions));
+        }
+
+        public static void AddExistingItems(BaseObjectCreationExpressionSyntax objectCreation, ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (objectCreation.Initializer != null)
+                nodesAndTokens.AddRange(objectCreation.Initializer.Expressions.GetWithSeparators());
+
+            // If we have an odd number of elements already, add a comma at the end so that we can add the rest of the
+            // items afterwards without a syntax issue.
+            if (nodesAndTokens.Count % 2 == 1)
+            {
+                var last = nodesAndTokens.Last();
+                nodesAndTokens.RemoveLast();
+                nodesAndTokens.Add(last.WithTrailingTrivia());
+                nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(last.GetTrailingTrivia()));
+            }
         }
     }
 }

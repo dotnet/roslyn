@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim base6 = derived6.BaseType
             BaseTypeResolution.AssertBaseType(base6, "GenericBase(Of K).NestedGenericBase(Of L)")
 
-
             Assert.Equal(assembly3, base1.ContainingAssembly)
             Assert.Equal(assembly3, base4.ContainingAssembly)
             Assert.Equal(assembly3, base6.ContainingAssembly)
@@ -61,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(base1, assembly3.CachedTypeByEmittedName(base1.ToTestDisplayString()))
             Assert.Equal(base4.OriginalDefinition, assembly3.CachedTypeByEmittedName("GenericBase`1"))
             Assert.Equal(2, assembly3.EmittedNameToTypeMapCount)
-
 
             Dim derived2 = DirectCast(module2.GlobalNamespace.GetMembers("Derived").Single(), NamedTypeSymbol)
             Dim base2 = derived2.BaseType
@@ -999,7 +997,6 @@ End class
                                  End Sub
             ).VerifyDiagnostics()
 
-
             Dim ilSource1 =
             <![CDATA[
 .assembly extern ForwarderTargetAssembly
@@ -1047,7 +1044,7 @@ End class
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
             ' Exported types in .NET module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=Verification.Fails,
+            CompileAndVerify(appCompilation, verify:=Verification.FailsPEVerify,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1225,7 +1222,7 @@ End class
             Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(appCompilation))
 
             ' Exported types in .NET module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=Verification.Fails,
+            CompileAndVerify(appCompilation, verify:=Verification.FailsPEVerify,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(m.ContainingAssembly))
@@ -1275,7 +1272,6 @@ End class
 </compilation>, {ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.TypeForwarders.Forwarded).GetReference(),
                  New VisualBasicCompilationReference(cC_v1)},
                 TestOptions.ReleaseDll)
-
 
             Dim cC_v2 = CreateCompilationWithMscorlib40(
 <compilation name="C">

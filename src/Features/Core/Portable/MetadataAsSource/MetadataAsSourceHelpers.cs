@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolId, Document generatedDocument, CancellationToken cancellationToken)
         {
             var resolution = symbolId.Resolve(
-                await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
+                await generatedDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false),
                 ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
             var location = GetFirstSourceLocation(resolution);
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 // If we cannot find the location of the  symbol.  Just put the caret at the 
                 // beginning of the file.
-                var tree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await generatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 location = Location.Create(tree, new TextSpan(0, 0));
             }
 
             return location;
         }
 
-        private static Location GetFirstSourceLocation(SymbolKeyResolution resolution)
+        private static Location? GetFirstSourceLocation(SymbolKeyResolution resolution)
         {
             foreach (var symbol in resolution)
             {
@@ -92,6 +92,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             return null;
+        }
+
+        public static bool IsReferenceAssembly(IAssemblySymbol assemblySymbol)
+        {
+            foreach (var attribute in assemblySymbol.GetAttributes())
+            {
+                if (attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute) &&
+                    attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node.IsKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax? recursivePattern))
+            if (node is RecursivePatternSyntax recursivePattern)
             {
                 var positional = recursivePattern.PositionalPatternClause;
                 var property = recursivePattern.PropertyPatternClause;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
-                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern, out recursivePattern))
+                if (isPattern.Pattern is RecursivePatternSyntax recursivePattern2)
                 {
                     // ex:
                     // ```
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // _ = expr is { }$$
                     // M();
                     // ```
-                    var propertyPatternClause = recursivePattern.PropertyPatternClause;
+                    var propertyPatternClause = recursivePattern2.PropertyPatternClause;
                     if (propertyPatternClause != null)
                     {
                         AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
-                if (_options.SearchReferenceAssemblies)
+                if (_options.SearchOptions.SearchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(

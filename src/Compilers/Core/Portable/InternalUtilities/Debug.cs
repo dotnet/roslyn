@@ -38,7 +38,7 @@ namespace Roslyn.Utilities
         [Conditional("DEBUG")]
         internal static void AssertOrFailFast([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
-#if NET20 || NETSTANDARD1_3
+#if NETSTANDARD1_3
             Debug.Assert(condition);
 #else
             if (!condition)

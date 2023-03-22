@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -16,12 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [Export(typeof(AbstractCodeCleanUpFixer))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CSharpCodeCleanUpFixer : AbstractCodeCleanUpFixer
+    internal sealed class CSharpCodeCleanUpFixer : AbstractCodeCleanUpFixer
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IVsHierarchyItemManager vsHierarchyItemManager)
-            : base(threadingContext, workspace, vsHierarchyItemManager)
+        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IVsHierarchyItemManager vsHierarchyItemManager, IGlobalOptionService globalOptions)
+            : base(threadingContext, workspace, vsHierarchyItemManager, globalOptions)
         {
         }
     }

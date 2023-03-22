@@ -48,7 +48,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -80,7 +79,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda3()
@@ -116,7 +114,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -148,7 +145,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda5()
@@ -225,7 +221,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda7()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -261,7 +256,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -296,7 +290,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda9()
@@ -336,7 +329,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda10()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -371,7 +363,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda11()
@@ -412,7 +403,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda12()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -452,7 +442,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda13()

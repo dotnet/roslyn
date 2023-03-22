@@ -139,9 +139,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Map active statement spans in non-remappable regions to the latest source locations.
             if (remapping.TryGetValue(instructionId.Method, out var regionsInMethod))
             {
+                // Note that active statement spans can be nested. For example,
+                // [|var x = y switch { 1 => 0, _ => [|1|] };|]
+
                 foreach (var region in regionsInMethod)
                 {
-                    if (region.OldSpan.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.OldSpan.Path)
+                    if (!region.IsExceptionRegion &&
+                        region.OldSpan.Span == activeSpan &&
+                        activeStatementInfo.DocumentName == region.OldSpan.Path)
                     {
                         newSpan = region.NewSpan.Span;
                         return true;
@@ -168,8 +173,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal ImmutableArray<UnmappedActiveStatement> GetOldActiveStatements(IEditAndContinueAnalyzer analyzer, SyntaxTree oldSyntaxTree, SourceText oldText, SyntaxNode oldRoot, CancellationToken cancellationToken)
         {
-            Debug.Assert(oldText == oldSyntaxTree.GetText(cancellationToken));
-            Debug.Assert(oldRoot == oldSyntaxTree.GetRoot(cancellationToken));
+            Debug.Assert(oldRoot.SyntaxTree == oldSyntaxTree);
 
             return ImmutableInterlocked.GetOrAdd(
                 ref _lazyOldDocumentActiveStatements,
@@ -188,6 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Also guard against active statements unmapped to multiple locations in the unmapped file
                 // (when multiple #line map to the same span that overlaps with the active statement).
                 if (TryGetTextSpan(oldText.Lines, unmappedLineSpan, out var unmappedSpan) &&
+                    oldRoot.FullSpan.Contains(unmappedSpan.Start) &&
                     mappedStatements.Add(activeStatement))
                 {
                     var exceptionRegions = analyzer.GetExceptionRegions(oldRoot, unmappedSpan, activeStatement.IsNonLeaf, cancellationToken);
@@ -247,13 +252,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var unmappedStartLine = mappedSpan.Start.Line + lineDifference;
             var unmappedEndLine = mappedSpan.End.Line + lineDifference;
 
-            var unmappedStartColumn = (mappedSpan.Start.Line == mappedSection.Start.Line) ?
-                unmappedSection.Start.Character + mappedSpan.Start.Character - mappedSection.Start.Character :
-                mappedSpan.Start.Character;
+            var unmappedStartColumn = (mappedSpan.Start.Line == mappedSection.Start.Line)
+                ? unmappedSection.Start.Character + mappedSpan.Start.Character - mappedSection.Start.Character
+                : mappedSpan.Start.Character;
 
-            var unmappedEndColumn = (mappedSpan.End.Line == mappedSection.Start.Line) ?
-                unmappedSection.Start.Character + mappedSpan.End.Character - mappedSection.Start.Character :
-                mappedSpan.End.Character;
+            var unmappedEndColumn = (mappedSpan.End.Line == mappedSection.Start.Line)
+                ? unmappedSection.Start.Character + mappedSpan.End.Character - mappedSection.Start.Character
+                : mappedSpan.End.Character;
 
             return new(new(unmappedStartLine, unmappedStartColumn), new(unmappedEndLine, unmappedEndColumn));
         }

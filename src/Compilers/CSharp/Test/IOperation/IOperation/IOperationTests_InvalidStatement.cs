@@ -54,10 +54,10 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "( 1 ").WithLocation(8, 26),
                 // CS1003: Syntax error, '[' expected
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 26),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 26),
                 // CS1003: Syntax error, ']' expected
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 30),
                 // CS0168: The variable 'x' is declared but never used
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 23)

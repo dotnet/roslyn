@@ -8,67 +8,57 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
-    internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
+    [Method(Methods.TextDocumentFoldingRangeName)]
+    internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
-        public override string Method => Methods.TextDocumentFoldingRangeName;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler()
+        public FoldingRangesHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-        public override async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
+            if (document is null)
                 return null;
 
-            var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
-            if (blockStructureService == null)
-            {
-                return Array.Empty<FoldingRange>();
-            }
-
-            var options = BlockStructureOptions.From(document.Project);
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
-            if (blockStructure == null)
-            {
-                return Array.Empty<FoldingRange>();
-            }
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return GetFoldingRanges(blockStructure, text);
+            var options = _globalOptions.GetBlockStructureOptions(document.Project);
+            return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
-        public static FoldingRange[] GetFoldingRanges(
-            SyntaxTree syntaxTree,
-            HostLanguageServices languageServices,
-            in BlockStructureOptions options,
+        /// <summary>
+        /// Used here and by lsif generator.
+        /// </summary>
+        public static async Task<FoldingRange[]> GetFoldingRangesAsync(
+            Document document,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
-            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, cancellationToken);
+            var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
-            {
                 return Array.Empty<FoldingRange>();
-            }
 
-            var text = syntaxTree.GetText(cancellationToken);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return GetFoldingRanges(blockStructure, text);
         }
 
@@ -112,7 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     StartCharacter = linePositionSpan.Start.Character,
                     EndLine = linePositionSpan.End.Line,
                     EndCharacter = linePositionSpan.End.Character,
-                    Kind = foldingRangeKind
+                    Kind = foldingRangeKind,
+                    CollapsedText = span.BannerText
                 });
             }
 

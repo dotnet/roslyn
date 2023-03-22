@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         internal override bool ApplyDuringTests => true;
 
         internal override Task<bool> TryApplyAsync(
-            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackageAsync(
                 workspace, _document.Id, _source, _packageName,

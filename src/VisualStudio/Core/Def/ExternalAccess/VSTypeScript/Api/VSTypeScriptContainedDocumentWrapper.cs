@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
-    internal struct VSTypeScriptContainedDocumentWrapper
+    internal readonly struct VSTypeScriptContainedDocumentWrapper
     {
         private readonly ContainedDocument _underlyingObject;
 
@@ -45,13 +45,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
 
         public IVsContainedLanguageHost Host
             => _underlyingObject.ContainedLanguageHost;
-
-        [Obsolete("Remove once TypeScript has stopped using this.")]
-        internal AbstractProject Project
-            => _underlyingObject.Project;
-
-        [Obsolete("Remove once TypeScript has stopped using this.")]
-        internal IVisualStudioHostDocument HostDocument
-            => _underlyingObject;
     }
 }

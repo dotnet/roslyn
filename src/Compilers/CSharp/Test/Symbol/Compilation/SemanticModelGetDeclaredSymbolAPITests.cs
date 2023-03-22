@@ -3269,7 +3269,6 @@ class C
             var localDecl = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
             var initializer = localDecl.Declaration.Variables[0].Initializer.Value;
 
-
             var initInfo = model.GetSemanticInfoSummary(initializer);
             Assert.Null(initInfo.Type);
             Assert.NotNull(initInfo.ConvertedType);
@@ -4022,7 +4021,6 @@ public class A<T>
             Assert.Equal(typeA, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
 
-
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("B<U>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.Equal(typeB, boundType);
@@ -4040,7 +4038,6 @@ public class A<T>
             Assert.NotEqual(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
-
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<>.B<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             boundType = symbolInfo.Symbol as ITypeSymbol;

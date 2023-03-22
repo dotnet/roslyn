@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CreateFrom_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(null));
-            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(default(ImmutableArray<byte>)));
+            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(default));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromFile(null));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromFile(null, default(MetadataReferenceProperties)));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromStream(null));
@@ -55,14 +56,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [Fact]
-        public void CreateFromImage()
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Assembly(bool module, bool immutableArray, bool explicitProperties)
         {
-            var r = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var properties = explicitProperties ? MetadataReferenceProperties.Assembly : default;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable(), properties)
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable(), properties);
 
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Null(r.FilePath);
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Module(bool module, bool immutableArray)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable(), MetadataReferenceProperties.Module)
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable(), MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
         }
@@ -100,12 +122,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ((AssemblyMetadata)r.GetMetadataNoCopy()).GetAssembly().Identity.GetDisplayName());
         }
 
-        [Fact]
-        public void CreateFromFile_Assembly()
+        [Theory, CombinatorialData]
+        public void CreateFromStream_Assembly(bool module, bool explicitProperties)
         {
-            var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = MetadataReference.CreateFromStream(
+                new MemoryStream(peImage, writable: false),
+                explicitProperties ? MetadataReferenceProperties.Assembly : default);
 
-            var r = MetadataReference.CreateFromFile(file.Path);
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
+            Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromStream_Module(bool module)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = MetadataReference.CreateFromStream(
+                new MemoryStream(peImage, writable: false),
+                MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromFile_Assembly(bool module, bool explicitProperties)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var file = Temp.CreateFile().WriteAllBytes(peImage);
+
+            var r = MetadataReference.CreateFromFile(file.Path,
+                explicitProperties ? MetadataReferenceProperties.Assembly : default);
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
@@ -118,15 +175,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
             var metadata = (AssemblyMetadata)r.GetMetadataNoCopy();
-            Assert.Equal("CommonLanguageRuntimeLibrary", metadata.GetModules()[0].Name);
+            Assert.Equal(module ? "ModuleCS00.netmodule" : "CommonLanguageRuntimeLibrary", metadata.GetModules()[0].Name);
         }
 
-        [Fact]
-        public void CreateFromFile_Module()
+        [Theory, CombinatorialData]
+        public void CreateFromFile_Module(bool module)
         {
-            var file = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.NetModule01.ModuleCS00);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var file = Temp.CreateFile().WriteAllBytes(peImage);
 
             var r = MetadataReference.CreateFromFile(file.Path, MetadataReferenceProperties.Module);
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
@@ -139,7 +198,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
             var metadata = (ModuleMetadata)r.GetMetadataNoCopy();
-            Assert.Equal("ModuleCS00.netmodule", metadata.Name);
+            Assert.Equal(module ? "ModuleCS00.netmodule" : "CommonLanguageRuntimeLibrary", metadata.Name);
         }
 
         [Fact]
@@ -174,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TestDocumentationProvider : DocumentationProvider
         {
-            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
             {
                 return string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
             }
@@ -405,7 +464,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             private readonly string _display;
 
             public MyReference(string fullPath, string display)
-                : base(default(MetadataReferenceProperties), fullPath)
+                : base(default, fullPath)
             {
                 _display = display;
             }
@@ -433,8 +492,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class MyReference2 : PortableExecutableReference
         {
-            public MyReference2(string fullPath, string display)
-                : base(default(MetadataReferenceProperties), fullPath)
+            public MyReference2(string fullPath)
+                : base(properties: default, fullPath)
             {
             }
 
@@ -476,8 +535,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("m1b", m1b.Display);
             var m2 = new MyReference(@"c:\b\goo.dll", display: "m2");
             Assert.Equal("m2", m2.Display);
-            var m3 = new MyReference(null, display: "m3");
-            var m4 = new MyReference(null, display: "m4");
 
             var c1a = CS.CSharpCompilation.Create("goo").ToMetadataReference();
             var c1b = c1a.Compilation.ToMetadataReference();
@@ -505,19 +562,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void PortableReference_Display()
-        {
-            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbolInternal>.MetadataReferenceEqualityComparer.Instance;
-
-            var f1 = MscorlibRef;
-            var f2 = SystemCoreRef;
-
-            var m1a = new MyReference2(@"c:\a\goo.dll", display: "m1a");
-            Assert.Equal(@"c:\a\goo.dll", m1a.Display);
-            Assert.Equal(@"c:\a\goo.dll", m1a.FilePath);
-        }
-
-        [Fact]
         public void DocCommentProvider()
         {
             var docProvider = new TestDocumentationProvider();
@@ -525,7 +569,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 GetReference(display: "corlib", documentation: docProvider);
 
             var comp = (Compilation)CS.CSharpCompilation.Create("goo",
-                syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
+                syntaxTrees: new[] { CSharpTestSource.Parse("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 
             var c = (ITypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();

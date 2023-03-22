@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             _slotAllocator = slotAllocator;
 
-            // Add placeholders for pre-allocated locals. 
+            // Add placeholders for pre-allocated locals.
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocator != null)
             {

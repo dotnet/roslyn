@@ -564,7 +564,6 @@ End Module]]>
 
 #Region "TryGetSpeculativeSemanticModel"
 
-
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -721,6 +720,7 @@ End Class
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim typeInfo = speculativeModel.GetTypeInfo(expression)
             Assert.Equal("System.Int16", typeInfo.Type.ToTestDisplayString())
@@ -728,6 +728,10 @@ End Class
             Dim constantInfo = speculativeModel.GetConstantValue(expression)
             Assert.True(constantInfo.HasValue, "must be a constant")
             Assert.Equal(CType(0, System.Int16), constantInfo.Value)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel))
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1082,12 +1086,18 @@ End Module
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim upperBound = speculatedRangeArgument.UpperBound
             Dim symbolInfo = speculativeModel.GetSymbolInfo(upperBound)
             Assert.NotNull(symbolInfo.Symbol)
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
             Assert.Equal("NewMethod", symbolInfo.Symbol.Name)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel))
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1710,6 +1720,7 @@ End Class
             Dim success = model.TryGetSpeculativeSemanticModel(position, speculatedTypeSyntax, speculativeModel, bindingOption)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Assert.True(speculativeModel.IsSpeculativeSemanticModel)
             Assert.Equal(model, speculativeModel.ParentModel)
@@ -1816,6 +1827,13 @@ End Namespace
             Dim implementsClause = typeBlock.Implements(0)
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsClause.Types.First.Position,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "N.I")
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Dim speculativeModel As SemanticModel = Nothing
+            Dim success = model.TryGetSpeculativeSemanticModel(inheritsClause.Types.First.Position, speculatedTypeExpression, speculativeModel, SpeculativeBindingOption.BindAsExpression)
+            Assert.True(success)
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact>
@@ -2424,7 +2442,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2552,7 +2569,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2638,7 +2654,6 @@ End Enum
             CompilationUtils.AssertNoErrors(compilation)
 
         End Sub
-
 
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>

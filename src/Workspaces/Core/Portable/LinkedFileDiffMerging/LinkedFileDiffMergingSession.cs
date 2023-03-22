@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
 
             // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
-            var textDifferencingService = _oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var textDifferencingService = _oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
             var unmergedChanges = new List<UnmergedDocumentChanges>();
 

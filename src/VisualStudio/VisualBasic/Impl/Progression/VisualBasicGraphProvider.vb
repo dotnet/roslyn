@@ -10,17 +10,23 @@ Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
-
     <GraphProvider(Name:="VisualBasicRoslynProvider", ProjectCapability:="VB")>
     Friend NotInheritable Class VisualBasicGraphProvider
         Inherits AbstractGraphProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspace As VisualStudioWorkspace, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                glyphService As IGlyphService,
+                serviceProvider As SVsServiceProvider,
+                workspace As VisualStudioWorkspace,
+                streamingPresenter As Lazy(Of IStreamingFindUsagesPresenter),
+                listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, streamingPresenter, listenerProvider)
         End Sub
     End Class
 End Namespace

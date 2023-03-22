@@ -63,7 +63,7 @@ class C
 }
 ";
 
-            var c1 = CreateEmptyCompilation(src1, references);
+            var c1 = CreateEmptyCompilation(src1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: references);
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
@@ -133,9 +133,10 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, parseOptions: parseOptions, references: new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
+            var c1 = CreateEmptyCompilation(src1, parseOptions: parseOptions, references: new[] { MscorlibRef });
             var c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
@@ -481,7 +482,8 @@ class C
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
-            var v0 = CompileAndVerify(compilation0);
+            // ILVerify: Multiple modules named 'Lib' were found
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsILVerify);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");

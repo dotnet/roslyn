@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -81,6 +82,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsRemovableBitwiseEnumNegation(cast, semanticModel, cancellationToken))
                 return true;
 
+            // Special case for converting a method group to object. The compiler issues a warning if the cast is removed:
+            // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
+            var castExpressionOperation = semanticModel.GetOperation(cast.Expression, cancellationToken);
+            if (castExpressionOperation is
+                {
+                    Kind: OperationKind.MethodReference,
+                    Parent.Kind: OperationKind.DelegateCreation,
+                    Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
         }
 
@@ -90,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             CancellationToken cancellationToken)
         {
             var leftOrRightChild = castExpression.WalkUpParentheses();
-            if (leftOrRightChild.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            if (leftOrRightChild.Parent is BinaryExpressionSyntax(SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression) binary)
             {
                 var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
                 var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
@@ -311,10 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The final converted type may be the same even after removing the cast.  However, the cast may 
             // have been necessary to convert the type and/or value in a way that could be observable.  For example:
             //
-            // object o1 = (long)expr; // or (long)0
+            // object o1 = (long)expr;  // or (long)0
+            // object o1 = (long?)expr; // or (long?)0
             //
-            // We need to keep the cast so that the stored value stays a 'long'.
-            if (originalConversion.IsConstantExpression || originalConversion.IsNumeric || originalConversion.IsEnumeration)
+            // We need to keep the cast so that the stored value stays the right type.
+            if (originalConversion.IsConstantExpression ||
+                originalConversion.IsNumeric ||
+                originalConversion.IsEnumeration ||
+                originalConversion.IsNullable)
             {
                 if (rewrittenConversion.IsBoxing)
                     return false;
@@ -334,12 +363,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
+                originalParentConversion.GetConversion().IsImplicit)
             {
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -348,6 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
             // identity cast, we don't want to remove these because the user may be depending on that truncation.
             if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
+                return false;
+
+            // Identity struct casts will make a copy.  This copy may need to be kept to preserve semantics that only
+            // the copy is being manipulated and not the original struct.
+            if (IsIdentityStructCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
                 return false;
 
             #endregion blocked cases
@@ -431,6 +466,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
+            // We can safely remove convertion to object in interpolated strings regardless of nullability
+            if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
+                return true;
+
             // There are cases where the types change but things may still be safe to remove.
 
             // Case1.  A value type casted to `object` is safe if it's now getting converted to `dynamic`.
@@ -479,6 +518,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             #endregion allowed cases.
 
             return false;
+        }
+
+        private static bool IsIdentityStructCastThatMustBePreserved(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Identity struct casts will make a copy.  This copy may need to be kept to preserve semantics that only
+            // the copy is being manipulated and not the original struct.
+            //
+            // Note: this is an innacurate heuristic.  Generally speaking, practically any member accessed off of a
+            // struct might mutate it (like accessing .Length on an ImmutableArray).  But practically speaking that is
+            // highly unlikely to actually mutate.  To avoid many false negatives from allowing us to simplify pointless
+            // struct casts, we only look for a very narrow case that just rises up to be potentially problematic.
+            // Specifically, the invocation of a non-known method on a non-known struct type where neitehr the struct
+            // nor method are readonly.
+
+            var conversion = semanticModel.GetConversion(castedExpressionNode, cancellationToken);
+            if (!conversion.IsIdentity)
+                return false;
+
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            if (castType is null)
+                return false;
+
+            // we presume all the built-in types are immutable, so we can skip copying them.
+            if (castType.IsSpecialType())
+                return false;
+
+            // if it's not a struct, then we're not making a copy and can safely remove the cast.
+            if (!castType.IsStructType())
+                return false;
+
+            // if the struct is readonly, then we can safely remove the cast as it's not mutable.
+            if (castType.IsReadOnly)
+                return false;
+
+            // Only have to care if we're actually casting a location (an LVALUE).  If we're operating on an rvalue then
+            // we already have a copy.
+            var castedSymbol = semanticModel.GetSymbolInfo(castedExpressionNode, cancellationToken).GetAnySymbol();
+            if (castedSymbol is not IFieldSymbol and not ILocalSymbol and not IParameterSymbol and not IParameterSymbol { RefKind: RefKind.Ref })
+                return false;
+
+            // ok, we have some *potentially* mutable struct.  In practice these are rare, but do exist. We'll
+            // optimistically presume it's ok to remove thist cast *unless* it's the form: `((X)x).SomeMethod()` (where
+            // SomeMethod is not an override from System.Object and is not readonly itself).
+            if (castNode.WalkUpParentheses().Parent is not MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccessExpression)
+                return false;
+
+            var memberSymbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).GetAnySymbol();
+            if (memberSymbol is not IMethodSymbol methodSymbol)
+                return false;
+
+            // if it's a readonly method, it's fine to call on the original without copying.
+            if (methodSymbol.IsReadOnly)
+                return false;
+
+            for (var current = methodSymbol; current != null; current = current.OverriddenMethod)
+            {
+                if (current.ContainingType.SpecialType == SpecialType.System_Object)
+                    return false;
+            }
+
+            // Ok, calling some method that could mutate this struct.  have to keep this cast.
+            return true;
         }
 
         private static bool IsMultipleImplicitNullableConversion(IConversionOperation originalConversionOperation)
@@ -635,8 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
-                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }
@@ -660,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (parentBinary != null && parentBinary.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression)
             {
                 var operation = semanticModel.GetOperation(parentBinary, cancellationToken);
-                if (UnwrapImplicitConversion(operation) is IBinaryOperation binaryOperation)
+                if (operation.UnwrapImplicitConversion() is IBinaryOperation binaryOperation)
                 {
                     if (binaryOperation.LeftOperand.Type?.SpecialType == SpecialType.System_Object &&
                         !IsExplicitCast(parentBinary.Left) &&
@@ -726,11 +830,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsExplicitCast(SyntaxNode node)
             => node is ExpressionSyntax expression && expression.WalkDownParentheses().Kind() is SyntaxKind.CastExpression or SyntaxKind.AsExpression;
-
-        private static IOperation? UnwrapImplicitConversion(IOperation? value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
 
         private static bool IsExplicitCastThatMustBePreserved(
             SemanticModel semanticModel,
@@ -836,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
-            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
+            else if (castNode.Parent is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // Identity fp conversion is safe if this is in an array initializer.
                 var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);

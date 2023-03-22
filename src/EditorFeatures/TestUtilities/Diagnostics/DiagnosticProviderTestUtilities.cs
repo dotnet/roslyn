@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Workspace workspace,
             Document document,
             TextSpan span,
-            bool includeSuppressedDiagnostics = false)
+            bool includeSuppressedDiagnostics = false,
+            bool includeNonLocalDocumentDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
             return await testDriver.GetAllDiagnosticsAsync(document, span);
         }
 
@@ -26,18 +27,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Workspace workspace,
             Document document,
             TextSpan span,
-            bool includeSuppressedDiagnostics = false)
+            bool includeSuppressedDiagnostics = false,
+            bool includeNonLocalDocumentDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
             return await testDriver.GetDocumentDiagnosticsAsync(document, span);
         }
 
         public static async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(
             Workspace workspace,
             Project project,
-            bool includeSuppressedDiagnostics = false)
+            bool includeSuppressedDiagnostics = false,
+            bool includeNonLocalDocumentDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
             return await testDriver.GetProjectDiagnosticsAsync(project);
         }
     }

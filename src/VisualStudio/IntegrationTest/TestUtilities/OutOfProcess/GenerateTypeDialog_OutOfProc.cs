@@ -38,9 +38,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTargetFileToNewName(string newFileName)
             => _inProc.SetTargetFileToNewName(newFileName);
 
-        public void SetTargetFileToExisting(string existingFileName)
-            => _inProc.SetTargetFileToExisting(existingFileName);
-
         /// <summary>
         /// Clicks the "OK" button and waits for the related Code Action to complete.
         /// </summary>

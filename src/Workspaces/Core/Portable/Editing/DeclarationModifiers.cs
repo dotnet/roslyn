@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Editing
 namespace Microsoft.CodeAnalysis.Editing
 #endif
 {
-    public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
+    public readonly struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {
         private readonly Modifiers _modifiers;
 
@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWriteOnly = false,
             bool isRef = false,
             bool isVolatile = false,
-            bool isExtern = false)
+            bool isExtern = false,
+            bool isRequired = false,
+            bool isFile = false)
             : this(
                   (isStatic ? Modifiers.Static : Modifiers.None) |
                   (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -54,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isWriteOnly ? Modifiers.WriteOnly : Modifiers.None) |
                   (isRef ? Modifiers.Ref : Modifiers.None) |
                   (isVolatile ? Modifiers.Volatile : Modifiers.None) |
-                  (isExtern ? Modifiers.Extern : Modifiers.None))
+                  (isExtern ? Modifiers.Extern : Modifiers.None) |
+                  (isRequired ? Modifiers.Required : Modifiers.None) |
+                  (isFile ? Modifiers.File : Modifiers.None))
         {
         }
 
@@ -69,19 +73,23 @@ namespace Microsoft.CodeAnalysis.Editing
                 var field = symbol as IFieldSymbol;
                 var property = symbol as IPropertySymbol;
                 var method = symbol as IMethodSymbol;
+                var type = symbol as INamedTypeSymbol;
+                var isConst = field?.IsConst == true;
 
                 return new DeclarationModifiers(
-                    isStatic: symbol.IsStatic,
+                    isStatic: symbol.IsStatic && !isConst,
                     isAbstract: symbol.IsAbstract,
-                    isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true,
+                    isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true || type?.IsReadOnly == true || method?.IsReadOnly == true,
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
-                    isConst: field?.IsConst == true,
+                    isConst: isConst,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
-                    isAsync: method?.IsAsync == true);
+                    isAsync: method?.IsAsync == true,
+                    isRequired: symbol.IsRequired(),
+                    isFile: type?.IsFileLocal == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.
@@ -120,6 +128,10 @@ namespace Microsoft.CodeAnalysis.Editing
         public bool IsVolatile => (_modifiers & Modifiers.Volatile) != 0;
 
         public bool IsExtern => (_modifiers & Modifiers.Extern) != 0;
+
+        public bool IsRequired => (_modifiers & Modifiers.Required) != 0;
+
+        public bool IsFile => (_modifiers & Modifiers.File) != 0;
 
         public DeclarationModifiers WithIsStatic(bool isStatic)
             => new(SetFlag(_modifiers, Modifiers.Static, isStatic));
@@ -170,6 +182,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public DeclarationModifiers WithIsExtern(bool isExtern)
             => new(SetFlag(_modifiers, Modifiers.Extern, isExtern));
 
+        public DeclarationModifiers WithIsRequired(bool isRequired)
+            => new(SetFlag(_modifiers, Modifiers.Required, isRequired));
+
+        public DeclarationModifiers WithIsFile(bool isFile)
+            => new(SetFlag(_modifiers, Modifiers.File, isFile));
+
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
             => isSet ? (existing | modifier) : (existing & ~modifier);
 
@@ -194,6 +212,8 @@ namespace Microsoft.CodeAnalysis.Editing
             Ref         = 1 << 13,
             Volatile    = 1 << 14,
             Extern      = 1 << 15,
+            Required    = 1 << 16,
+            File        = 1 << 17,
 #pragma warning restore format
         }
 
@@ -215,6 +235,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public static DeclarationModifiers Ref => new(Modifiers.Ref);
         public static DeclarationModifiers Volatile => new(Modifiers.Volatile);
         public static DeclarationModifiers Extern => new(Modifiers.Extern);
+        public static DeclarationModifiers Required => new(Modifiers.Required);
+        public static DeclarationModifiers File => new(Modifiers.File);
 
         public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
             => new(left._modifiers | right._modifiers);

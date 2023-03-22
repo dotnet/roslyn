@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
+    <Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
     Public Class ValidateRegexStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -18,13 +18,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Shared Function OptionOn() As OptionsCollection
-            Dim values = New OptionsCollection(LanguageNames.VisualBasic)
-            values.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, True)
-            Return values
+        Private Function OptionOn() As OptionsCollection
+            Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
+        <Fact>
         Public Async Function TestWarning1() As Task
             Await TestDiagnosticInfoAsync("
         imports System.Text.RegularExpressions
@@ -34,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        globalOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
+        <Fact>
         Public Async Function TestWarning2() As Task
             Await TestDiagnosticInfoAsync("
         imports System.Text.RegularExpressions
@@ -50,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""""""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        globalOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))

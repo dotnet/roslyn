@@ -9,7 +9,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 {
     using static EmbeddedSyntaxHelpers;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     _ => null,
                 };
 
-                return diagnostic ?? CheckChildren(node);
+                return Earliest(diagnostic, CheckChildren(node));
 
                 static EmbeddedDiagnostic? CheckChildren(JsonNode node)
                 {

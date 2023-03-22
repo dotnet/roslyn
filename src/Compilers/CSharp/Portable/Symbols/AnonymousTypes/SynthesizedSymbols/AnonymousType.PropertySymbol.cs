@@ -129,6 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal override bool IsRequired => false;
+
+            internal sealed override bool HasUnscopedRefAttribute => false;
+
             internal sealed override ObsoleteAttributeData ObsoleteAttributeData
             {
                 get { return null; }

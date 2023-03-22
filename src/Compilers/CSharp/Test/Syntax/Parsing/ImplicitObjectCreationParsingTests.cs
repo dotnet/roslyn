@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(SyntaxKind.ModuloExpression, SyntaxKind.PercentToken)]
         [InlineData(SyntaxKind.LeftShiftExpression, SyntaxKind.LessThanLessThanToken)]
         [InlineData(SyntaxKind.RightShiftExpression, SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(SyntaxKind.UnsignedRightShiftExpression, SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
         [InlineData(SyntaxKind.LogicalOrExpression, SyntaxKind.BarBarToken)]
         [InlineData(SyntaxKind.LogicalAndExpression, SyntaxKind.AmpersandAmpersandToken)]
         [InlineData(SyntaxKind.BitwiseOrExpression, SyntaxKind.BarToken)]
@@ -306,10 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken)]
         public void TestBinaryOperators(SyntaxKind expressionKind, SyntaxKind tokenKind)
         {
-            UsingExpression($"new(Int32,Int32){SyntaxFacts.GetText(tokenKind),2}", DefaultParseOptions,
-                // (1,18): error CS1733: Expected expression
-                // new(Int32,Int32) +
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 19));
+            UsingExpression($"new(Int32,Int32){SyntaxFacts.GetText(tokenKind),3}", DefaultParseOptions,
+                // (1,20): error CS1733: Expected expression
+                // new(Int32,Int32)  +
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 20));
 
             N(expressionKind);
             {
@@ -401,11 +402,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEmptyArgList_LangVersion()
         {
-            UsingExpression("new()", options: TestOptions.Regular8,
-                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // new()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
-                );
+            var test = "new()";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,30): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { var v = new(); } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 30),
+                // (1,30): error CS8754: There is no target type for 'new()'
+                // class C { void M() { var v = new(); } }
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(1, 30));
+
+            UsingExpression(test, options: TestOptions.Regular8);
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
             {
@@ -443,11 +451,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEmptyObjectInitializer_LangVersion()
         {
-            UsingExpression("new(){}", options: TestOptions.Regular8,
-                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // new(){}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
-                );
+            var test = "new(){}";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,30): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { var v = new(){}; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 30),
+                // (1,30): error CS8754: There is no target type for 'new()'
+                // class C { void M() { var v = new(){}; } }
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(){}").WithArguments("new()").WithLocation(1, 30));
+
+            UsingExpression(test, options: TestOptions.Regular8);
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
             {
@@ -517,11 +532,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestObjectInitializer_LangVersion()
         {
-            UsingExpression("new(a,b){x=y}", options: TestOptions.Regular8,
-                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // new(a,b){x=y}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
-                );
+            var test = "new(a,b){x=y}";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,30): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { var v = new(a,b){x=y}; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 30),
+                // (1,34): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = new(a,b){x=y}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 34),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = new(a,b){x=y}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36),
+                // (1,41): error CS0103: The name 'y' does not exist in the current context
+                // class C { void M() { var v = new(a,b){x=y}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(1, 41));
+
+            UsingExpression(test, options: TestOptions.Regular8);
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
             {

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -18,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         /// <param name="document">The document to format.</param>
         /// <param name="spans">The spans of the document's text to format. If null, the entire document should be formatted.</param>
-        /// <param name="options">Set of formatting options.</param>
+        /// <param name="lineFormattingOptions">Line formatting options.</param>
+        /// <param name="syntaxFormattingOptions">Formatting options, if available. Null for non-Roslyn languages.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken);
     }
 }

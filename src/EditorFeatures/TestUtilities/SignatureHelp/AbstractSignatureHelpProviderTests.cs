@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -159,10 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private static async Task<SignatureHelpState> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options)
+        private static async Task<SignatureHelpState?> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options)
         {
             var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
-            return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, null);
+            return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, argumentNames: default);
         }
 
         private async Task VerifyCurrentParameterNameWorkerAsync(string markup, string expectedParameterName, SourceCodeKind sourceCodeKind)
@@ -179,13 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var options = new SignatureHelpOptions();
 
             _ = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
-            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo, options)).ArgumentName);
+            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo, options)).Value.ArgumentName);
         }
 
         private static void CompareAndAssertCollectionsAndCurrentParameter(
             IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems)
         {
-            Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
+            Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Count(), $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Count()}");
 
             for (var i = 0; i < expectedTestItems.Count(); i++)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedTestItem.CurrentParameterIndex != null)
             {
-                Assert.Equal(expectedTestItem.CurrentParameterIndex, items.ArgumentIndex);
+                Assert.True(expectedTestItem.CurrentParameterIndex == items.ArgumentIndex, $"The current parameter is {items.ArgumentIndex}, but we expected {expectedTestItem.CurrentParameterIndex}");
             }
 
             if (expectedTestItem.Description != null)

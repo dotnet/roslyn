@@ -5,8 +5,10 @@
 using System;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 #if !CODE_STYLE
+using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 #endif
 
@@ -45,9 +47,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// </summary>
         internal OptionsCollection Options { get; }
 
+#if !CODE_STYLE
+        internal CodeActionOptionsProvider CodeActionOptions { get; set; } = CodeAnalysis.CodeActions.CodeActionOptions.DefaultProvider;
+        internal IdeAnalyzerOptions? IdeAnalyzerOptions { get; set; }
+
+        internal IdeAnalyzerOptions GetIdeAnalyzerOptions(Project project)
+            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.GetDefault(project.Services);
+#endif
         internal void Apply()
         {
-            var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);
+            var analyzerConfigSource = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);
             if (analyzerConfigSource is not null)
             {
                 if (_analyzerConfigIndex is null)
@@ -67,34 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             var solutionTransformIndex = _remainingOptionsSolutionTransform is not null ? _test.SolutionTransforms.IndexOf(_remainingOptionsSolutionTransform) : -1;
-            if (remainingOptions is not null)
-            {
-                // Generate a new solution transform
-                _remainingOptionsSolutionTransform = (solution, projectId) =>
-                {
-#if !CODE_STYLE
-                    var options = solution.Options;
-                    foreach (var (key, value) in remainingOptions)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-#endif
-
-                    return solution;
-                };
-
-                if (solutionTransformIndex < 0)
-                {
-                    _test.SolutionTransforms.Add(_remainingOptionsSolutionTransform);
-                }
-                else
-                {
-                    _test.SolutionTransforms[solutionTransformIndex] = _remainingOptionsSolutionTransform;
-                }
-            }
-            else if (_remainingOptionsSolutionTransform is not null)
+            if (_remainingOptionsSolutionTransform is not null)
             {
                 _test.SolutionTransforms.Remove(_remainingOptionsSolutionTransform);
                 _remainingOptionsSolutionTransform = null;

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var service = _solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded
             // us, and we've totally hydrated the oop side.  Until that happens, we'll attempt to
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         s_remoteHostHydrateTask = Task.Run(async () =>
                         {
-                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Workspace, _disposalToken).ConfigureAwait(false);
+                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Services, _disposalToken).ConfigureAwait(false);
                             if (client != null)
                             {
                                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(

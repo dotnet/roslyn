@@ -388,7 +388,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { return this.ToArray(); }
         }

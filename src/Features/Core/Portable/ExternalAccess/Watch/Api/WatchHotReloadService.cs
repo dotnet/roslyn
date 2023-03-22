@@ -43,14 +43,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public readonly ImmutableArray<byte> MetadataDelta;
             public readonly ImmutableArray<byte> PdbDelta;
             public readonly ImmutableArray<int> UpdatedTypes;
+            public readonly ImmutableArray<string> RequiredCapabilities;
 
-            public Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes)
+            internal Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes, ImmutableArray<string> requiredCapabilities)
             {
                 ModuleId = moduleId;
                 ILDelta = ilDelta;
                 MetadataDelta = metadataDelta;
                 PdbDelta = pdbDelta;
                 UpdatedTypes = updatedTypes;
+                RequiredCapabilities = requiredCapabilities;
             }
         }
 
@@ -74,6 +76,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new DebuggerService(_capabilities),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
@@ -98,13 +101,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
             var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _encService.CommitSolutionUpdate(sessionId, out _);
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
+                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes, update.RequiredCapabilities.ToStringArray()));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 

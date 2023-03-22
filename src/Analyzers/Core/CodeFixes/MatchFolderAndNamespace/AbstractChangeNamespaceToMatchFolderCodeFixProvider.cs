@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -24,17 +24,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+            var service = context.Document.Project.Solution.Services.GetRequiredService<ISupportedChangesService>();
+            if (service.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(AnalyzersResources.Change_namespace_to_match_folder_structure, cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken)),
+                    CodeAction.Create(
+                        AnalyzersResources.Change_namespace_to_match_folder_structure,
+                        cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics,
+                        context.GetOptionsProvider(),
+                        cancellationToken),
+                        nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                     context.Diagnostics);
             }
 
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // All the target namespaces should be the same for a given document
             Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[MatchFolderAndNamespaceConstants.TargetNamespace]).Distinct().Count() == 1);
@@ -50,6 +56,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             var documentWithInvalidFolders = document.WithFolders(document.Folders.Concat("Force-Namespace-Change"));
             var renameActionSet = await Renamer.RenameDocumentAsync(
                 documentWithInvalidFolders,
+                new DocumentRenameOptions(),
+#if !CODE_STYLE
+                options,
+#endif
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -61,13 +71,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override FixAllProvider? GetFixAllProvider()
             => CustomFixAllProvider.Instance;
-
-        private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
-        }
     }
 }

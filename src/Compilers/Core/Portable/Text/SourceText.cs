@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -33,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Text
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
-        private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+        private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
@@ -337,8 +336,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal static bool IsBinary(string text)
+        internal static bool IsBinary(ReadOnlySpan<char> text)
         {
+#if NETCOREAPP
+            // On .NET Core, Contains has an optimized vectorized implementation, much faster than a custom loop.
+            return text.Contains("\0\0", StringComparison.Ordinal);
+#else
             // PERF: We can advance two chars at a time unless we find a NUL.
             for (int i = 1; i < text.Length;)
             {
@@ -358,7 +361,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return false;
+#endif
         }
+
+        /// <inheritdoc cref="IsBinary(ReadOnlySpan{char})" />
+        internal static bool IsBinary(string text) => IsBinary(text.AsSpan());
 
         /// <summary>
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
@@ -724,13 +731,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
-        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
-        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>
-        /// </summary>
+        /// </summary>        
         /// <remarks>
         /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
         /// perform better if they are.
         /// </remarks>
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>        
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);

@@ -27,6 +27,7 @@
           <Interface Name="IDkmClrFormatter"/>
           <Interface Name="IDkmClrFormatter2"/>
           <Interface Name="IDkmClrFullNameProvider"/>
+          <Interface Name="IDkmClrFullNameProvider2"/>
         </InterfaceGroup>
       </Implements>
     </Class>

@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         /// </summary>
         bool SupportsFormattingOnTypedCharacter(Document document, char ch);
 
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compat)
         /// <summary>
         /// Returns the text changes necessary to format the document.  If "textSpan" is provided,
         /// only the text changes necessary to format that span are needed.
@@ -47,5 +48,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         /// Returns the text changes necessary to format the document after the user enters a Return
         /// The position provided is the position of the caret in the document after Return.</summary>
         Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
+#pragma warning restore
     }
 }

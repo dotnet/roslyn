@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -13,8 +12,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -30,23 +30,15 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
 
-        internal override CodeFixCategory CodeFixCategory { get; }
-            = CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
@@ -57,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
+            if (!HashCodeAnalyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
             {
                 Debug.Fail("Could not get analyzer");
                 return;
@@ -70,6 +62,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
                 var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
+                if (method == null)
+                    continue;
+
                 var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
 
                 var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);
@@ -90,14 +85,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             generatorInternal, analyzer.SystemHashCodeType, components));
                     editor.ReplaceNode(methodBlock, updatedDecl);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_System_HashCode, createChangedDocument, AnalyzersResources.Use_System_HashCode)
-            {
             }
         }
     }

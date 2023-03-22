@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var rewrittenLocals = node.Locals.WhereAsArray((local, rewriter) => local.IsCompilerGenerated || local.Name == null || rewriter.GetVariable(local.Name) == null, this);
             var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
-            return node.Update(rewrittenLocals, rewrittenLocalFunctions, rewrittenStatements);
+            return node.Update(rewrittenLocals, rewrittenLocalFunctions, node.HasUnsafeModifier, instrumentation: null, rewrittenStatements);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
-            if (!local.IsCompilerGenerated)
+            if (!local.IsCompilerGenerated && local is EEDisplayClassFieldLocalSymbol)
             {
                 var variable = this.GetVariable(local.Name);
                 if (variable != null)
@@ -67,20 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return node;
         }
 
-        public override BoundNode VisitParameter(BoundParameter node)
-        {
-            var parameter = node.ParameterSymbol;
-            var variable = this.GetVariable(parameter.Name);
-            if (variable == null)
-            {
-                return node;
-            }
-            return variable.ToBoundExpression(node.Syntax);
-        }
-
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)

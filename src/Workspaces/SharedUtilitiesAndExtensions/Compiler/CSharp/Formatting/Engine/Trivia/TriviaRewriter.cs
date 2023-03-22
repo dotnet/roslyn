@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> _spans;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap;
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap;
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = new();
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap = new();
 
         public TriviaRewriter(
             SyntaxNode node,
@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             _node = node;
             _spans = spanToFormat;
             _cancellationToken = cancellationToken;
-
-            _trailingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
-            _leadingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
 
             PreprocessTriviaListMap(map, cancellationToken);
         }
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
             var width = trailingTrivia.GetFullWidth();
-            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
+            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text[width..]);
 
             return (trailingTrivia, leadingTrivia);
         }
@@ -150,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return SyntaxFactory.ParseLeadingTrivia(text);
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public override SyntaxNode? Visit(SyntaxNode? node)
         {
             _cancellationToken.ThrowIfCancellationRequested();

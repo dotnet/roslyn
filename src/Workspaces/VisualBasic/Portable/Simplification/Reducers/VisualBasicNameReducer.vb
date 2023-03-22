@@ -19,23 +19,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
+        Private Shared ReadOnly s_simplifyName As Func(Of ExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyName
+
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyName As Func(Of ExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyName
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
 
         Private Overloads Shared Function SimplifyName(
             node As ExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExpressionSyntax
 
             Dim replacementNode As ExpressionSyntax = Nothing
             Dim issueSpan As TextSpan
             If Not ExpressionSimplifier.Instance.TrySimplify(
-                node, semanticModel, optionSet,
+                node, semanticModel, DirectCast(options, VisualBasicSimplifierOptions),
                 replacementNode, issueSpan, cancellationToken) Then
 
                 Return node

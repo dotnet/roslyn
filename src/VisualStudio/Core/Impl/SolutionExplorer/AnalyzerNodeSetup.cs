@@ -5,28 +5,39 @@
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(IAnalyzerNodeSetup))]
     internal sealed class AnalyzerNodeSetup : IAnalyzerNodeSetup
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly AnalyzerItemsTracker _analyzerTracker;
         private readonly AnalyzersCommandHandler _analyzerCommandHandler;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerNodeSetup(AnalyzerItemsTracker analyzerTracker, AnalyzersCommandHandler analyzerCommandHandler)
+        public AnalyzerNodeSetup(
+            IThreadingContext threadingContext,
+            AnalyzerItemsTracker analyzerTracker,
+            AnalyzersCommandHandler analyzerCommandHandler)
         {
+            _threadingContext = threadingContext;
             _analyzerTracker = analyzerTracker;
             _analyzerCommandHandler = analyzerCommandHandler;
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            _analyzerTracker.Register();
-            _analyzerCommandHandler.Initialize((IMenuCommandService)serviceProvider.GetService(typeof(IMenuCommandService)));
+            await _analyzerTracker.RegisterAsync(serviceProvider, cancellationToken).ConfigureAwait(false);
+            await _analyzerCommandHandler.InitializeAsync(
+                await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public void Unregister()

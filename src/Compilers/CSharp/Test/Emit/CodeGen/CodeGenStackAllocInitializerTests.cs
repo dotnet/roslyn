@@ -488,10 +488,11 @@ static unsafe class C
     }
 }
 ";
+            // PEVerify: [ : C::Main][mdToken=0x6000002][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails).VerifyIL("C.Main",
+                verify: Verification.FailsPEVerify).VerifyIL("C.Main",
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -582,6 +583,62 @@ static unsafe class C
 }");
         }
 
+        [Fact]
+        public void TestEnum()
+        {
+            var text = """
+using System;
+
+static unsafe class C
+{
+    static void Print(E* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Main()
+    {
+        var p1 = stackalloc[] { E.A, E.B, E.C };
+        var p2 = stackalloc[] { E.D, E.D, E.D };
+
+        Print(p1);
+        Print(p2);
+    }
+
+    enum E : byte { A, B, C, D }
+}
+""";
+            CompileAndVerify(text,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails, expectedOutput: @"ABCDDD").VerifyIL("C.Main",
+"""
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (C.E* V_0) //p1
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  localloc
+  IL_0004:  dup
+  IL_0005:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.AE4B3280E56E2FAF83F414A6E3DABE9D5FBE18976544C05FED121ACCB85B53FC"
+  IL_000a:  ldc.i4.3
+  IL_000b:  cpblk
+  IL_000d:  stloc.0
+  IL_000e:  ldc.i4.3
+  IL_000f:  conv.u
+  IL_0010:  localloc
+  IL_0012:  dup
+  IL_0013:  ldc.i4.3
+  IL_0014:  ldc.i4.3
+  IL_0015:  initblk
+  IL_0017:  ldloc.0
+  IL_0018:  call       "void C.Print(C.E*)"
+  IL_001d:  call       "void C.Print(C.E*)"
+  IL_0022:  ret
+}
+""");
+        }
         [Fact]
         public void TestMixedBlockInit()
         {

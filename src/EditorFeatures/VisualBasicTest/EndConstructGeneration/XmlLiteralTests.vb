@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class XmlLiteralTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlStartElement()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
@@ -22,7 +23,7 @@ End Class",
                 afterCaret:={2, 21})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlStartElementSplitAcrossLines()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
@@ -41,7 +42,7 @@ End Class",
                 afterCaret:={3, 21})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlStartElementWithNamespace()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
@@ -58,7 +59,7 @@ End Class",
                 afterCaret:={2, 21})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyInParameterDeclaration1()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -68,7 +69,7 @@ End Class",
                 caret:={1, 16})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyInParameterDeclaration2()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -79,7 +80,7 @@ End Class",
                 caret:={2, 16})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyAfterXmlStartElementWithEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -90,7 +91,7 @@ End Class",
                 caret:={2, 23})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyAfterXmlEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -101,7 +102,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyAfterSingleXmlTag()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -112,7 +113,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyAfterProcessingInstruction()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
@@ -123,7 +124,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlStartElementWhenPassedAsParameter1()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
@@ -140,7 +141,7 @@ End Class",
                 afterCaret:={2, 16})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlStartElementWhenPassedAsParameter2()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
@@ -157,7 +158,7 @@ End Class",
                 afterCaret:={2, 16})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlComment()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
@@ -174,7 +175,7 @@ End Class",
                 afterCaret:={2, 20})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlCommentWhenPassedAsParameter1()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
@@ -191,7 +192,7 @@ End Class",
                 afterCaret:={2, 15})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlCommentWhenPassedAsParameter2()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
@@ -208,7 +209,7 @@ End Class",
                 afterCaret:={2, 15})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlCData()
             VerifyXmlCDataEndConstructApplied(
                 before:="Class C1
@@ -225,7 +226,7 @@ End Class",
                 afterCaret:={2, 25})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlCData2()
             VerifyXmlCDataEndConstructApplied(
                 before:="Class C1
@@ -242,7 +243,7 @@ End Class",
                 afterCaret:={2, 31})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlEmbeddedExpression1()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
@@ -259,7 +260,7 @@ End Class",
                 afterCaret:={2, 20})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlEmbeddedExpression2()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
@@ -276,7 +277,7 @@ End Class",
                 afterCaret:={2, 23})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlEmbeddedExpression3()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
@@ -293,7 +294,7 @@ End Class",
                 afterCaret:={2, 23})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlProcessingInstruction()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
@@ -310,7 +311,7 @@ End Class",
                 afterCaret:={2, 18})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter1()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
@@ -327,7 +328,7 @@ End Class",
                 afterCaret:={2, 13})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter2()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
@@ -344,7 +345,7 @@ End Class",
                 afterCaret:={2, 13})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestInsertBlankLineWhenPressingEnterInEmptyXmlTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C1

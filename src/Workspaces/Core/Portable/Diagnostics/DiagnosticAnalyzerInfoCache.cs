@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -32,6 +38,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
 
+        /// <summary>
+        /// Lazily populated map from diagnostic IDs to diagnostic descriptor.
+        /// If same diagnostic ID is reported by multiple descriptors, a null value is stored in the map for that ID.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap;
+
         private sealed class DiagnosticDescriptorsInfo
         {
             public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
@@ -46,9 +58,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [Export, Shared]
+        internal sealed class SharedGlobalCache
+        {
+            public readonly DiagnosticAnalyzerInfoCache AnalyzerInfoCache = new();
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public SharedGlobalCache()
+            {
+            }
+        }
+
         internal DiagnosticAnalyzerInfoCache()
         {
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
+            _idToDescriptorsMap = new ConcurrentDictionary<string, DiagnosticDescriptor?>();
         }
 
         /// <summary>
@@ -82,6 +107,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer)
             => GetOrCreateDescriptorsInfo(analyzer).TelemetryAllowed;
 
+        public bool TryGetDescriptorForDiagnosticId(string diagnosticId, [NotNullWhen(true)] out DiagnosticDescriptor? descriptor)
+            => _idToDescriptorsMap.TryGetValue(diagnosticId, out descriptor) && descriptor != null;
+
         private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
             => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
 
@@ -100,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
             }
 
+            PopulateIdToDescriptorMap(descriptors);
             var telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
             return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
         }
@@ -107,34 +136,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
             => analyzer.IsCompilerAnalyzer() ||
                analyzer is IBuiltInAnalyzer ||
-               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry);
+               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(static t => t == WellKnownDiagnosticTags.Telemetry);
 
-        /// <summary>
-        /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
-        /// NOTE: This API is intended to be used only for performance optimization.
-        /// </summary>
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
+        private void PopulateIdToDescriptorMap(ImmutableArray<DiagnosticDescriptor> descriptors)
         {
-            var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            foreach (var descriptor in descriptors)
             {
-                return false;
-            }
+                if (!_idToDescriptorsMap.TryGetValue(descriptor.Id, out var existingDescriptor))
+                {
+                    _idToDescriptorsMap[descriptor.Id] = descriptor;
+                }
+                else if (existingDescriptor != null && !descriptor.Equals(existingDescriptor))
+                {
+                    // Multiple descriptors with same diagnostic ID, store null in the map.
+                    // Exception case: Many CAxxxx analyzers use multiple descriptors with same ID which differ only in MessageFormat.
+                    //                 This allows analyzer to report slightly differing diagnostic messages with same ID.
+                    //                 We handle this case here by allowing existing descriptor to be used.
+                    if (descriptor.WithMessageFormat(existingDescriptor.MessageFormat).Equals(existingDescriptor))
+                        continue;
 
-            // If user has disabled analyzer execution for this project, we only want to execute required analyzers
-            // that report diagnostics with category "Compiler".
-            if (!project.State.RunAnalyzers &&
-                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
-            {
-                return true;
+                    _idToDescriptorsMap[descriptor.Id] = null;
+                }
             }
-
-            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
-            //       on this code path, which returns true if analyzer is suppressed through compilation options.
-            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
-            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
-            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
-            return false;
         }
     }
 }

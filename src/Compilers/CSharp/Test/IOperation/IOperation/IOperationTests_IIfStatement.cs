@@ -931,7 +931,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
                 // file.cs(7,6): error CS1003: Syntax error, '(' expected
                 //     {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(7, 6),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(7, 6),
                 // file.cs(7,6): error CS1525: Invalid expression term 'else'
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
@@ -1036,7 +1036,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
                 // file.cs(20,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(20, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(20, 14),
                 // file.cs(20,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
@@ -1108,7 +1108,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
                 // file.cs(12,28): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (flag)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 28),
                 // file.cs(12,28): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (flag)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
@@ -1190,7 +1190,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
                 // file.cs(12,20): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/{
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 20),
                 // file.cs(12,20): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/{
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
@@ -1208,7 +1208,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
                 // file.cs(15,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(15, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(15, 14),
                 // file.cs(15,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
@@ -1395,7 +1395,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
                 // file.cs(10,30): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (a == 1)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 30),
                 // file.cs(10,30): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),

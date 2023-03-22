@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.OrganizeImports
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -17,10 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
 
             Public ReadOnly TextChanges As IList(Of TextChange) = New List(Of TextChange)()
 
-            Public Sub New(placeSystemNamespaceFirst As Boolean, separateGroups As Boolean, newLineTrivia As SyntaxTrivia)
-                _placeSystemNamespaceFirst = placeSystemNamespaceFirst
-                _separateGroups = separateGroups
-                _newLineTrivia = newLineTrivia
+            Public Sub New(options As OrganizeImportsOptions)
+                _placeSystemNamespaceFirst = options.PlaceSystemNamespaceFirst
+                _separateGroups = options.SeparateImportDirectiveGroups
+                _newLineTrivia = VisualBasicSyntaxGeneratorInternal.Instance.EndOfLine(options.NewLine)
             End Sub
 
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode

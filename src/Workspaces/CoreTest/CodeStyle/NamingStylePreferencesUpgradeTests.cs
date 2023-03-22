@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 {
+    [Trait(Traits.Feature, Traits.Features.NamingStyle)]
     public class NamingStylePreferencesUpgradeTests
     {
         private static string ReserializePreferences(string serializedPreferences)
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         private static void AssertTrimmedEqual(string expected, string actual)
             => Assert.Equal(expected.Trim(), actual.Trim());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestPreserveDefaultPreferences()
         {
             AssertTrimmedEqual(
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestCannotUpgrade3To5()
         {
             var serializedPreferences = @"
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestUpgrade4To5()
         {
             var serializedPreferences = @"
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestPreserveLatestVersion5()
         {
             var serializedPreferences = @"
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestCannotDowngradeHigherThanLatestVersion5()
         {
             var serializedPreferences = @"

@@ -5,10 +5,14 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpSelectedMembers : AbstractSelectedMembers<
         MemberDeclarationSyntax,
@@ -23,16 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        protected override IEnumerable<VariableDeclaratorSyntax> GetAllDeclarators(FieldDeclarationSyntax field)
-            => field.Declaration.Variables;
+        protected override ImmutableArray<(SyntaxNode declarator, SyntaxToken identifier)> GetDeclaratorsAndIdentifiers(MemberDeclarationSyntax member)
+        {
+            return member switch
+            {
+                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.SelectAsArray(
+                    v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+                EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.SelectAsArray(
+                    v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+                _ => ImmutableArray.Create((declaration: (SyntaxNode)member, identifier: member.GetNameToken())),
+            };
+        }
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax containingType)
             => containingType.Members;
-
-        protected override SyntaxToken GetPropertyIdentifier(PropertyDeclarationSyntax declarator)
-            => declarator.Identifier;
-
-        protected override SyntaxToken GetVariableIdentifier(VariableDeclaratorSyntax declarator)
-            => declarator.Identifier;
     }
 }

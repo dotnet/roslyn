@@ -7,6 +7,11 @@
         <target state="translated">Agregar las importaciones que faltan al pegar</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">Contraer importaciones al abrir archivos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">En los operadores relacionales:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>

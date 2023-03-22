@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -23,34 +22,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly BindingDiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
-        protected readonly VariableSlotAllocator slotAllocatorOpt;
+        protected readonly VariableSlotAllocator? slotAllocatorOpt;
         protected readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals;
+        protected readonly ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder;
 
-        protected FieldSymbol stateField;
-        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
+        protected FieldSymbol? stateField;
+        protected FieldSymbol? instanceIdField;
+        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement>? nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
-        protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
-        protected FieldSymbol initialThreadIdField;
+        protected IOrderedReadOnlySet<Symbol>? hoistedVariables;
+        protected Dictionary<Symbol, CapturedSymbolReplacement>? initialParameters;
+        protected FieldSymbol? initialThreadIdField;
 
         protected StateMachineRewriter(
             BoundStatement body,
             MethodSymbol method,
             SynthesizedContainer stateMachineType,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+            VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert((object)stateMachineType != null);
+            Debug.Assert(stateMachineType is not null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
+            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
 
             this.body = body;
             this.method = method;
             this.stateMachineType = stateMachineType;
+            this.stateMachineStateDebugInfoBuilder = stateMachineStateDebugInfoBuilder;
             this.slotAllocatorOpt = slotAllocatorOpt;
             this.synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
             this.diagnostics = diagnostics;
@@ -60,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(F.Syntax == body.Syntax);
         }
 
+#nullable disable
         /// <summary>
         /// True if the initial values of locals in the rewritten method and the initial thread ID need to be preserved. (e.g. enumerable iterator methods and async-enumerable iterator methods)
         /// </summary>
@@ -380,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate the GetEnumerator() method for iterators and GetAsyncEnumerator() for async-iterators.
         /// </summary>
-        protected SynthesizedImplementationMethod GenerateIteratorGetEnumerator(MethodSymbol getEnumeratorMethod, ref BoundExpression managedThreadId, int initialState)
+        protected SynthesizedImplementationMethod GenerateIteratorGetEnumerator(MethodSymbol getEnumeratorMethod, ref BoundExpression managedThreadId, StateMachineState initialState)
         {
             // Produces:
             //    {StateMachineType} result;
@@ -433,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);
@@ -482,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate logic to reset the current instance (rather than creating a new instance)
         /// </summary>
-        protected virtual void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
+        protected virtual void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, StateMachineState initialState)
         {
             builder.Add(
                 // this.state = {initialState};

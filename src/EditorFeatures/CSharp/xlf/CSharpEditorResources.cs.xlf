@@ -37,6 +37,11 @@
         <target state="translated">Opravit interpolovaný doslovný řetězec</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">Oprava řetězcových literálů po vložení</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">Pro {1} se našlo několik ({0}) sestavení:</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generovat odběr událostí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">Zvětšit nezpracovaný řetězec</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -95,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Chytré odsazování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">Rozdělit nezpracovaný řetězec</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

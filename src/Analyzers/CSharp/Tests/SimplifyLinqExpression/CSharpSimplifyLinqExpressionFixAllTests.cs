@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
         CSharpSimplifyLinqExpressionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
     public partial class CSharpSimplifyLinqExpressionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task FixAllInDocument()
         {
             await new VerifyCS.Test
@@ -58,7 +59,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task FixAllInDocumentExplicitCall()
         {
 
@@ -99,7 +100,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task NestedInDocument()
         {
 

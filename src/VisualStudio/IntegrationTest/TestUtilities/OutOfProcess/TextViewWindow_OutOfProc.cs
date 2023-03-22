@@ -94,22 +94,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InvokeCodeActionList()
         {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawlerLegacy);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
             ShowLightBulb();
             WaitForLightBulbSession();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
-        }
-
-        /// <summary>
-        /// Invokes the lightbulb without waiting for diagnostics
-        /// Compare to <see cref="InvokeCodeActionList"/>
-        /// </summary>
-        public void InvokeCodeActionListWithoutWaiting()
-        {
-            ShowLightBulb();
-            WaitForLightBulbSession();
         }
 
         public void InvokeQuickInfo()

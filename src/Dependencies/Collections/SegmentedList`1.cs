@@ -1107,11 +1107,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (_size > 1)
             {
-#if NET
-                _items.AsSpan(0, _size).Sort(comparison);
-#else
                 SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
-#endif
             }
             _version++;
         }
@@ -1180,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -1209,9 +1205,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return false;
             }
 
-            public T Current => _current!;
+            public readonly T Current => _current!;
 
-            object? IEnumerator.Current
+            readonly object? IEnumerator.Current
             {
                 get
                 {

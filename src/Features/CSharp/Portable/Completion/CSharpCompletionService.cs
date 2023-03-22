@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -20,21 +19,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
         internal sealed class Factory : ILanguageServiceFactory
         {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
             {
+                _listenerProvider = listenerProvider;
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
+                => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
         }
 
         private CompletionRules _latestRules = CompletionRules.Default;
 
-        private CSharpCompletionService(Workspace workspace)
-            : base(workspace)
+        private CSharpCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(services, listenerProvider)
         {
         }
 

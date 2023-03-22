@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                     // remove specified suffix
                     var suffix = rule.NamingStyle.Suffix;
                     newBaseName = newBaseName.EndsWith(suffix)
-                        ? newBaseName.Substring(0, newBaseName.Length - suffix.Length)
+                        ? newBaseName[..^suffix.Length]
                         : newBaseName;
 
                     break;

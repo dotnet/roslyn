@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    internal struct FSharpBraceMatchingResult
+    internal readonly struct FSharpBraceMatchingResult
     {
         public TextSpan LeftSpan { get; }
         public TextSpan RightSpan { get; }

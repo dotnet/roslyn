@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.SyncNamespaces;
 namespace Microsoft.CodeAnalysis.CSharp.SyncNamespaces
 {
     [ExportLanguageService(typeof(ISyncNamespacesService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpSyncNamespacesService : AbstractSyncNamespacesSevice<SyntaxKind, BaseNamespaceDeclarationSyntax>
+    internal sealed class CSharpSyncNamespacesService : AbstractSyncNamespacesService<SyntaxKind, BaseNamespaceDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

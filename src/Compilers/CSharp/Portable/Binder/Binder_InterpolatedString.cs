@@ -18,7 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            CheckFeatureAvailability(node, MessageID.IDS_FeatureInterpolatedStrings, diagnostics);
+            if (CheckFeatureAvailability(node, MessageID.IDS_FeatureInterpolatedStrings, diagnostics))
+            {
+                // Only bother reporting an issue for raw string literals if we didn't already report above that
+                // interpolated strings are not allowed.
+                if (node.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureRawStringLiterals, diagnostics);
+                }
+            }
 
             var startText = node.StringStartToken.Text;
             if (startText.StartsWith("@$\"") && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings))
@@ -41,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                var isRawInterpolatedString = node.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
                 var newLinesInInterpolationsAllowed = this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNewLinesInInterpolations);
 
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
@@ -90,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (interpolation.AlignmentClause != null)
                                 {
                                     alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
-                                    var alignmentConstant = alignment.ConstantValue;
+                                    var alignmentConstant = alignment.ConstantValueOpt;
                                     if (alignmentConstant != null && !alignmentConstant.IsBad)
                                     {
                                         const int magnitudeLimit = 32767;
@@ -130,28 +139,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 builder.Add(new BoundStringInsert(interpolation, value, alignment, format, isInterpolatedStringHandlerAppendCall: false));
                                 if (!isResultConstant ||
-                                    value.ConstantValue == null ||
+                                    value.ConstantValueOpt == null ||
                                     !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
-                                    !(value.ConstantValue is { IsString: true, IsBad: false }))
+                                    !(value.ConstantValueOpt is { IsString: true, IsBad: false }))
                                 {
                                     isResultConstant = false;
                                     continue;
                                 }
                                 resultConstant = (resultConstant is null)
-                                    ? value.ConstantValue
-                                    : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
+                                    ? value.ConstantValueOpt
+                                    : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValueOpt);
                                 continue;
                             }
                         case SyntaxKind.InterpolatedStringText:
                             {
                                 var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
-                                builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
+                                // Raw string literals have no escapes.  So there is no need to manipulate their value texts.
+                                // We have to unescape normal interpolated strings as the parser stores their text without
+                                // interpreting {{ and }} sequences (as '{' and '}') respectively.  Changing that at the syntax
+                                // level might potentially be a breaking change, so we do the conversion here when creating the
+                                // bound nodes.
+                                if (!isRawInterpolatedString)
+                                {
+                                    text = unescapeInterpolatedStringLiteral(text);
+                                }
+
+                                var constantValue = ConstantValue.Create(text, SpecialType.System_String);
+                                builder.Add(new BoundLiteral(content, constantValue, stringType));
                                 if (isResultConstant)
                                 {
-                                    var constantVal = ConstantValue.Create(ConstantValueUtils.UnescapeInterpolatedStringLiteral(text), SpecialType.System_String);
-                                    resultConstant = (resultConstant is null)
-                                        ? constantVal
-                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantVal);
+                                    resultConstant = resultConstant is null
+                                        ? constantValue
+                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantValue);
                                 }
                                 continue;
                             }
@@ -168,6 +187,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(isResultConstant == (resultConstant != null));
             return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+
+            static string unescapeInterpolatedStringLiteral(string value)
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                var stringBuilder = builder.Builder;
+                for (int i = 0, formatLength = value.Length; i < formatLength; i++)
+                {
+                    var c = value[i];
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}' &&
+                        i + 1 < formatLength &&
+                        value[i + 1] == c)
+                    {
+                        i++;
+                    }
+                }
+
+                // Avoid unnecessary allocation in the common case of no escaped curlies.
+                var result = builder.Length == value.Length
+                    ? value
+                    : builder.Builder.ToString();
+                builder.Free();
+
+                return result;
+            }
         }
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
@@ -193,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We need to do the determination of 1, 2, 3, or 4/5 up front, rather than in lowering, as it affects diagnostics (ref structs not being
             // able to be used, for example). However, between 4 and 5, we don't need to know at this point, so that logic is deferred for lowering.
 
-            if (unconvertedInterpolatedString.ConstantValue is not null)
+            if (unconvertedInterpolatedString.ConstantValueOpt is not null)
             {
                 // Case 1
                 Debug.Assert(unconvertedInterpolatedString.Parts.All(static part => part.Type is null or { SpecialType: SpecialType.System_String }));
@@ -221,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconvertedInterpolatedString.Syntax,
                     data,
                     parts,
-                    unconvertedInterpolatedString.ConstantValue,
+                    unconvertedInterpolatedString.ConstantValueOpt,
                     unconvertedInterpolatedString.Type,
                     unconvertedInterpolatedString.HasErrors);
 
@@ -274,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The constant value is folded as part of creating the unconverted operator. If there is a constant value, then the top-level binary operator
             // will have one.
-            if (binaryOperator.ConstantValue is not null)
+            if (binaryOperator.ConstantValueOpt is not null)
             {
                 // This is case 1. Let the standard machinery handle it
                 return false;
@@ -342,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression.Syntax,
                     interpolationData: null,
                     arg.AppendCalls[i],
-                    expression.ConstantValue,
+                    expression.ConstantValueOpt,
                     expression.Type,
                     expression.HasErrors);
             }
@@ -353,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BinaryOperatorKind.StringConcatenation,
                     left,
                     right,
-                    original.ConstantValue,
+                    original.ConstantValueOpt,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
@@ -403,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unconvertedInterpolatedString.Syntax,
                 interpolationData,
                 appendCalls[0],
-                unconvertedInterpolatedString.ConstantValue,
+                unconvertedInterpolatedString.ConstantValueOpt,
                 unconvertedInterpolatedString.Type,
                 unconvertedInterpolatedString.HasErrors);
         }
@@ -518,7 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionDiagnostics.Free();
             }
 
-
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
             int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
@@ -532,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
             var trailingConstructorValidityPlaceholder =
-                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType)
                 { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
@@ -619,7 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 interpolatedStringHandlerType,
                                 constructorCall,
                                 usesBoolReturn,
-                                LocalScopeDepth,
                                 additionalConstructorArguments.NullToEmpty(),
                                 positionInfo,
                                 implicitBuilderReceiver);
@@ -739,8 +781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var boundLiteral = (BoundLiteral)part;
-                        Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
-                        var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
+                        Debug.Assert(boundLiteral.ConstantValueOpt != null && boundLiteral.ConstantValueOpt.IsString);
+                        var literalText = boundLiteral.ConstantValueOpt.StringValue;
                         methodName = BoundInterpolatedString.AppendLiteralMethod;
                         argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                         isLiteral = true;
@@ -809,7 +851,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
             BoundExpression? receiver,
-            bool requiresInstanceReceiver,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
@@ -963,27 +1004,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 SyntaxNode placeholderSyntax;
-                uint valSafeToEscapeScope;
                 bool isSuppressed;
 
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valSafeToEscapeScope = requiresInstanceReceiver
-                            ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                            : Binder.ExternalScope;
                         isSuppressed = receiver.IsSuppressed;
                         placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = Binder.ExternalScope;
                         isSuppressed = false;
                         break;
                     case >= 0:
                         placeholderSyntax = arguments[argumentIndex].Syntax;
-                        valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
                         isSuppressed = arguments[argumentIndex].IsSuppressed;
                         break;
                     default:
@@ -994,7 +1029,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
-                        valSafeToEscapeScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
                     { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));

@@ -34,10 +34,5 @@ namespace Microsoft.CodeAnalysis.Telemetry
         /// Removes a <see cref="TraceSource"/> used to log unexpected exceptions.
         /// </summary>
         void UnregisterUnexpectedExceptionLogger(TraceSource logger);
-
-        /// <summary>
-        /// Reports telemetry on API usage.
-        /// </summary>
-        void ReportApiUsage(HashSet<ISymbol> symbols, Guid solutionSessionId, Guid projectGuid);
     }
 }

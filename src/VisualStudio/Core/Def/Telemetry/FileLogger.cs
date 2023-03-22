@@ -9,11 +9,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Internal.Log
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// A logger that publishes events to a log file.
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             _gate = new();
             _buffer = new();
             _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
-            _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics);
+            _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             globalOptions.OptionChanged += OptionService_OptionChanged;
         }
 
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option == VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics)
+            if (e.Option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             {
                 Contract.ThrowIfNull(e.Value);
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 {
                     _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
 
-                    try
+                    IOUtilities.PerformIO(() =>
                     {
                         if (!File.Exists(_logFilePath))
                         {
@@ -92,11 +94,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
                         File.AppendAllText(_logFilePath, _buffer.ToString());
                         _buffer.Clear();
-                    }
-                    catch (IOException)
-                    {
-                        // Ignore IOException, we will log the buffer contents in next Log call.
-                    }
+                    });
                 }
             }, CancellationToken.None);
         }

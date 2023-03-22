@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static string GetDebuggerDisplay(string expr, ConsList<FieldSymbol> fields)
         {
-            return fields.Any() ?
-                $"{GetDebuggerDisplay(expr, fields.Tail)}.{fields.Head.Name}" :
-                expr;
+            return fields.Any()
+                ? $"{GetDebuggerDisplay(expr, fields.Tail)}.{fields.Head.Name}"
+                : expr;
         }
 
         protected abstract string GetInstanceName();

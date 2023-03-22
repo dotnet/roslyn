@@ -17,11 +17,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseRecursivePatterns)]
     public class UseRecursivePatternsRefactoringTests
     {
-        private static Task VerifyAsync(string initialMarkup, string expectedMarkup, bool skipCodeActionValidation = false)
+        private static Task VerifyAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            bool skipCodeActionValidation = false,
+            LanguageVersion languageVersion = LanguageVersion.CSharp9)
         {
             return new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.CSharp9,
+                LanguageVersion = languageVersion,
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
                 CodeActionValidationMode = skipCodeActionValidation
@@ -72,6 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("a?.b?.c.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
         [InlineData("a?.b?.c?.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
 
+        [InlineData("a.b.c.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a?.b.c.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a.b?.c.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a.b.c?.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a.b?.c?.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a?.b.c?.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a?.b?.c.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+        [InlineData("a?.b?.c?.d && b", "this is { a.b.c.d: n, b: n }", LanguageVersion.CSharp10)]
+
         [InlineData("a.b.m().d && a.b.m().a", "a.b.m() is { d: n, a: n }")]
         [InlineData("a.m().c.d && a.m().a", "a.m() is { c: { d: n }, a: n }")]
         [InlineData("a?.m().c.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
@@ -81,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("a?.m().c?.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
         [InlineData("a?.m()?.c.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
         [InlineData("a?.m()?.c?.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
-        public async Task TestLogicalAndExpression_Receiver(string actual, string expected)
+        public async Task TestLogicalAndExpression_Receiver(string actual, string expected, LanguageVersion languageVersion = LanguageVersion.CSharp9)
         {
-            await VerifyAsync(WrapInIfStatement("n == " + actual + " == n", "&&"), WrapInIfStatement(expected));
+            await VerifyAsync(WrapInIfStatement("n == " + actual + " == n", "&&"), WrapInIfStatement(expected), languageVersion: languageVersion);
         }
 
         [Theory]

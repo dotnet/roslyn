@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var firstOffset = lineText.GetFirstNonWhitespaceOffset();
 
             return firstOffset.HasValue
-                ? lineText.Substring(0, firstOffset.Value)
+                ? lineText[..firstOffset.Value]
                 : lineText;
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var lastOffset = lineText.GetLastNonWhitespaceOffset();
 
             return lastOffset.HasValue && lastOffset.Value < lineText.Length
-                ? lineText.Substring(lastOffset.Value + 1)
+                ? lineText[(lastOffset.Value + 1)..]
                 : string.Empty;
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return text;
             }
 
-            return text.Substring(0, lineBreak + 1);
+            return text[..(lineBreak + 1)];
         }
 
         public static string GetLastLineText(this string text)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return text;
             }
 
-            return text.Substring(lineBreak + 1);
+            return text[(lineBreak + 1)..];
         }
 
         public static bool ContainsLineBreak(this string text)

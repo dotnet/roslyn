@@ -1,0 +1,173 @@
+﻿<vs:DialogWindow
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
+    d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
+    x:Uid="MoveStaticMembersDialog"
+    x:Name="dialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers.MoveStaticMembersDialog"
+    x:ClassModifier="internal"
+    mc:Ignorable="d"
+    WindowStartupLocation="CenterOwner"
+    Height="498"
+    Width="500"
+    MinHeight="298"
+    MinWidth="210"
+    HasDialogFrame="True"
+    ShowInTaskbar="False"
+    ResizeMode="CanResize"
+    Title="{Binding MoveStaticMembersDialogTitle, ElementName=dialog}">
+    <vs:DialogWindow.Resources>
+        <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
+        <sys:Double x:Key="ButtonWidth">73</sys:Double>
+        <sys:Double x:Key="ButtonHeight">21</sys:Double>
+        <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
+        <Thickness x:Key="messageMargin">0, 9, 0, 0</Thickness>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </vs:DialogWindow.Resources>
+    <Grid Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel
+            Orientation="Vertical"
+            Grid.Row="0">
+            <Label x:Uid="DestinationLabel" 
+                       x:Name="DestinationLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
+                       Target="{Binding ElementName=DestinationTextBox}" />
+            <ComboBox
+                x:Uid="DestinationBox"
+                Name="DestinationBox"
+                IsEditable="True"
+                IsReadOnly="False"
+                AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
+                BorderThickness="1" 
+                Margin="0 0 20 0"
+                MaxDropDownHeight="120">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <imaging:CrispImage
+                                Grid.Column="0"
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+                            <TextBlock
+                                Grid.Column="3"
+                                HorizontalAlignment="Left"
+                                TextTrimming="CharacterEllipsis"
+                                Text="{Binding TypeName}"/>
+                            <TextBlock
+                                Grid.Column="4"
+                                HorizontalAlignment="Right"
+                                Text="{Binding DeclarationFile}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <GroupBox
+                BorderThickness="0">
+                <GroupBox.Header>
+                    <StackPanel 
+                    Orientation="Horizontal"  
+                    Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="{StaticResource messageMargin}">
+                        <imaging:CrispImage 
+                            Name="MessageIcon"
+                            Moniker="{Binding Icon}" 
+                            Height="16"
+                            Width="16"
+                            VerticalAlignment="Top" />
+
+                        <vs:LiveTextBlock 
+                            x:Name="MessageText"
+                            Text="{Binding Message}"
+                            Margin="7, 0, 0, 0"/>
+                    </StackPanel>
+                </GroupBox.Header>
+
+                <Grid 
+                    Margin="{StaticResource messageMargin}"
+                    HorizontalAlignment="Left"
+                    Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <vs:LiveTextBlock 
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
+                        x:Name="Namespace"
+                        Text="{Binding PrependedNamespace}"
+                        TextTrimming="CharacterEllipsis"/>
+
+                    <vs:LiveTextBlock 
+                        Grid.Column="1"
+                        x:Name="TypeName"
+                        Text="{Binding DestinationName.TypeName}"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+
+        <GroupBox 
+            x:Uid="MemberSelectionGroupBox"
+            x:Name="MemberSelectionGroupBox"
+            Margin="0, 20, 0, 0"
+            Grid.Row="1"
+            Header="{Binding ElementName=dialog, Path=SelectMembers}"
+            BorderThickness="1">
+
+            <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
+        </GroupBox>
+        <StackPanel Grid.Row="2"
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <Button x:Uid="OkButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=ButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"
+                    IsEnabled="{Binding CanSubmit}"/>
+            <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=ButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("new B { [A] x => y }", TestOptions.RegularPreview,
                 // (1,13): error CS1003: Syntax error, '=' expected
                 // new B { [A] x => y }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=").WithLocation(1, 13));
 
             N(SyntaxKind.ObjectCreationExpression);
             {
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("s[..[A] () => { }]", TestOptions.RegularPreview,
                 // (1,5): error CS1003: Syntax error, ',' expected
                 // s[..[A] () => { }]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 5));
 
             N(SyntaxKind.ElementAccessExpression);
             {
@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [return: A] y").WithArguments("=>").WithLocation(1, 1),
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // _ = x is string ? [return: A] y => y : z
-                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(",", "return").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(",").WithLocation(1, 20));
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2686,10 +2686,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,13): error CS1003: Syntax error, '=' expected
                 // new() { [A] x => x, [B] () => { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=", "").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=").WithLocation(1, 13),
                 // (1,25): error CS1003: Syntax error, '=' expected
                 // new() { [A] x => x, [B] () => { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=", "(").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=").WithLocation(1, 25));
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
             {
@@ -2774,6 +2774,103 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ObjectInitializer_01()
+        {
+            string source = "new() { P = [A] x => x, Q = [B] () => { } }";
+            UsingExpression(source, TestOptions.Regular9);
+            verify();
+
+            UsingExpression(source, TestOptions.Regular10);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ImplicitObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ObjectInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "P");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleLambdaExpression);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Q");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void AnonymousType_01()
         {
             string source = "new { [A] x => x, [B] () => { } }";
@@ -2852,7 +2949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // new { x [B] y => y }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.AnonymousObjectCreationExpression);
             {

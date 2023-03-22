@@ -17,12 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     {
         private static readonly ImmutableDictionary<string, string?> s_properties =
             ImmutableDictionary<string, string?>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
+        private static readonly ImmutableDictionary<string, string?> s_NegatedProperties =
+            s_properties.Add(UseIsNullConstants.Negated, "");
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
-                   CSharpAnalyzersResources.Use_is_null_check,
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_is_null_check), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
@@ -41,18 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-
-            var option = context.Options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
+            var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
             if (!option.Value)
             {
                 return;
             }
 
             var binaryExpression = (BinaryExpressionSyntax)context.Node;
+            var semanticModel = context.SemanticModel;
 
             if (!IsObjectCastAndNullCheck(semanticModel, binaryExpression.Left, binaryExpression.Right) &&
                 !IsObjectCastAndNullCheck(semanticModel, binaryExpression.Right, binaryExpression.Left))
@@ -61,9 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
 
             var severity = option.Notification.Severity;
+            var properties = binaryExpression.Kind() == SyntaxKind.EqualsExpression
+                ? s_properties
+                : s_NegatedProperties;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, s_properties));
+                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, properties));
         }
 
         private static bool IsObjectCastAndNullCheck(

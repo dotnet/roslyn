@@ -5,20 +5,15 @@
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
     Friend Module CompilationUnitSyntaxExtensions
-        <Extension>
-        Public Function CanAddImportsStatements(contextNode As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Boolean
-            Return CanAddImportsStatements(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken)
-        End Function
-
         <Extension>
         Public Function CanAddImportsStatements(contextNode As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
             If contextNode.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then

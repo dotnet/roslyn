@@ -46,7 +46,7 @@ class C
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (3L, 4))", false)]
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (0L, 4))", false)]
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (3L, 0))", false)]
-        void TestSimple(string change1, string change2, bool expectedMatch)
+        public void TestSimple(string change1, string change2, bool expectedMatch)
         {
             var sourceTemplate = @"
 class C
@@ -2122,7 +2122,7 @@ public class C
         }
 
         [Fact]
-        void TestTupleEqualityPreferredOverCustomOperator_Nested()
+        public void TestTupleEqualityPreferredOverCustomOperator_Nested()
         {
             string source = @"
 public class C
@@ -4957,7 +4957,7 @@ public class C
         }
 
         [Fact]
-        void TestValueTupleWithObsoleteEqualityOperator()
+        public void TestValueTupleWithObsoleteEqualityOperator()
         {
             string source = @"
 public class C

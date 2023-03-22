@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousType
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
     Public Class ConvertAnonymousTypeToClassTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTy
             Return New VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function ConvertSingleAnonymousType() As Task
             Dim text = "
 class Test
@@ -54,7 +55,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function OnEmptyAnonymousType() As Task
             Await TestInRegularAndScriptAsync("
 class Test
@@ -86,7 +87,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function OnSingleFieldAnonymousType() As Task
             Await TestInRegularAndScriptAsync("
 class Test
@@ -124,7 +125,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function ConvertSingleAnonymousTypeWithInferredName() As Task
             Dim text = "
 class Test
@@ -164,7 +165,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function ConvertMultipleInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -206,7 +207,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
             Dim text = "
 class Test
@@ -258,7 +259,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function OnlyConvertMatchingTypesInSameMethod() As Task
             Dim text = "
 class Test
@@ -304,7 +305,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function TestFixAllMatchesInSingleMethod() As Task
             Dim text = "
 class Test
@@ -350,7 +351,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function TestFixNotAcrossMethods() As Task
             Dim text = "
 class Test
@@ -402,7 +403,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
             Dim text = "
 class Test
@@ -415,7 +416,7 @@ end class
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function ConvertMultipleNestedInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -457,7 +458,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function RenameAnnotationOnStartingPoint() As Task
             Dim text = "
 class Test
@@ -499,7 +500,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function UpdateReferences() As Task
             Dim text = "
 class Test
@@ -541,7 +542,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function CapturedTypeParameters() As Task
             Dim text = "
 imports System.Collections.Generic
@@ -585,7 +586,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function TestNonKeyProperties() As Task
             Dim text = "
 class Test
@@ -634,7 +635,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function TestNameCollision() As Task
             Dim text = "
 class Test
@@ -680,7 +681,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact>
         Public Async Function TestDuplicatedName() As Task
             Dim text = "
 class Test

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.ClassName);
 
         [DebuggerStepThrough]
-        public static FormattedClassification Record(string text)
+        public static FormattedClassification RecordClass(string text)
             => New(text, ClassificationTypeNames.RecordClassName);
 
         [DebuggerStepThrough]
@@ -109,6 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         public static FormattedClassification Keyword(string text)
             => New(text, ClassificationTypeNames.Keyword);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification PunctuationText(string text)
+            => New(text, ClassificationTypeNames.Punctuation);
 
         [DebuggerStepThrough]
         public static FormattedClassification ControlKeyword(string text)

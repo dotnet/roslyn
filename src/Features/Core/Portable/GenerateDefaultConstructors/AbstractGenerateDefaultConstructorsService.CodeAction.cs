@@ -3,19 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
-        private class GenerateDefaultConstructorCodeAction : AbstractCodeAction
+        private sealed class GenerateDefaultConstructorCodeAction : AbstractCodeAction
         {
             public GenerateDefaultConstructorCodeAction(
                 Document document,
                 State state,
-                IMethodSymbol constructor)
-                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor))
+                IMethodSymbol constructor,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
             {
             }
 

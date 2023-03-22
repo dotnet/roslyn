@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
             return default!;
         }
 
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue)
             where TKey : notnull
         {
@@ -71,6 +71,18 @@ namespace Roslyn.Utilities
             }
 
             builder.Add(value);
+        }
+
+        public static void MultiAddRange<TKey, TValue>(this IDictionary<TKey, ArrayBuilder<TValue>> dictionary, TKey key, IEnumerable<TValue> values)
+            where TKey : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var builder))
+            {
+                builder = ArrayBuilder<TValue>.GetInstance();
+                dictionary.Add(key, builder);
+            }
+
+            builder.AddRange(values);
         }
 
         public static bool MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue>? comparer = null)

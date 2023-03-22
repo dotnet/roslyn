@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -20,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
         }
 
-        protected override ILogger CreateLogger(TelemetrySession telemetrySession)
+        protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
             => AggregateLogger.Create(
-                new VSTelemetryLogger(telemetrySession),
+                TelemetryLogger.Create(telemetrySession, logDelta),
                 Logger.GetLogger());
     }
 }

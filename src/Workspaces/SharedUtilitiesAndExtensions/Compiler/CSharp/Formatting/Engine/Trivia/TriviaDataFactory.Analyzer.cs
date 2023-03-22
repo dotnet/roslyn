@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         }
 
                         // Finally hit the first previous token with non-zero full width.
-                        if (previousToken.TrailingTrivia.Count > 0 &&
-                            previousToken.TrailingTrivia.Last().Kind() == SyntaxKind.EndOfLineTrivia)
-                        {
+                        if (previousToken.TrailingTrivia is [.., (kind: SyntaxKind.EndOfLineTrivia)])
                             result.LineBreaks = 1;
-                        }
 
                         break;
                     }

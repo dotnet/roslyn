@@ -1060,7 +1060,8 @@ class C
     }
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.FailsPEVerify);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1147,8 +1148,8 @@ class C
         }
     }
 ";
-
-            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] sourceGeneratedFiles = null,
             string[] metadataReferences = null,
             string extension = null,
-            bool commonReferences = true)
+            bool commonReferences = true,
+            bool isMarkup = true)
         {
             var documentElements = new List<XElement>();
 
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 foreach (var file in files)
                 {
-                    documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                    documentElements.Add(CreateDocumentElement(
+                        file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
                 }
             }
 
@@ -169,12 +171,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static XElement CreateMetadataReference(string path)
             => new XElement(MetadataReferenceElementName, path);
 
-        protected static XElement CreateDocumentElement(string code, string filePath, ParseOptions parseOptions = null)
+        protected static XElement CreateDocumentElement(
+            string code, string filePath, ParseOptions parseOptions = null, bool isMarkup = true)
         {
-            return new XElement(DocumentElementName,
+            var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
                 CreateParseOptionsElement(parseOptions),
                 code.Replace("\r\n", "\n"));
+
+            if (!isMarkup)
+                element.Add(new XAttribute(MarkupAttributeName, isMarkup));
+
+            return element;
         }
 
         protected static XElement CreateDocumentFromSourceGeneratorElement(string code, string hintName, ParseOptions parseOptions = null)

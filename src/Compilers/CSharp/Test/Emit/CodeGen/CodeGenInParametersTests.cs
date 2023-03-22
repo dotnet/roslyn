@@ -897,7 +897,6 @@ class Program
   IL_0010:  ret
 }");
 
-
             comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
@@ -957,7 +956,6 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
 }");
-
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -1128,24 +1126,24 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 = 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(6, 9),
-                // (7,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 9),
+                // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice = 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(7, 9),
-                // (9,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 9),
+                // (9,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 ++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(9, 9),
-                // (10,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(9, 9),
+                // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice --;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(10, 9),
-                // (12,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(10, 9),
+                // (12,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 += 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (13,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(12, 9),
+                // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice -= 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(13, 9));
         }
 
         [Fact]
@@ -1180,12 +1178,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (18,20): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (18,20): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //         return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(18, 20),
-                // (23,20): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(18, 20),
+                // (23,20): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
                 //         return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(23, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(23, 20)
             );
         }
 
@@ -1205,12 +1203,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (6,25): error CS8329: Cannot use variable 'arg1' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (7,25): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 25),
+                // (7,25): error CS8330: Members of variable 'arg2' cannot be used as a ref or out value because it is a readonly variable
                 //         ref int a = ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 25));
         }
 
         [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
@@ -1271,12 +1269,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (10,24): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(10, 24),
-                // (14,24): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(10, 24),
+                // (14,24): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
                 //             return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(14, 24)
             );
         }
 
@@ -1390,12 +1388,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (12,28): error CS8333: Cannot return variable 'arg11' by writable reference because it is a readonly variable
                 //                 return ref arg11;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
-                // (16,28): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "arg11").WithLocation(12, 28),
+                // (16,28): error CS8334: Members of variable 'arg21' cannot be returned by writable reference because it is a readonly variable
                 //                 return ref arg21.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "arg21").WithLocation(16, 28)
                 );
         }
 
@@ -1984,7 +1982,6 @@ public struct S1
 3
 3");
         }
-
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
@@ -2923,7 +2920,6 @@ class Program
   IL_0009:  ret
 }");
 
-
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
   Instance Receiver: 
@@ -2966,7 +2962,6 @@ class Program
   IL_0005:  call       ""void Program.Test(in int)""
   IL_000a:  ret
 }");
-
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(10)')
@@ -3982,7 +3977,8 @@ public class Test
 
             var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("Test..ctor()", @"
 {
@@ -4389,6 +4385,498 @@ class Derived : Test { }
   IL_0026:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(in S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            // Note: we use a temp instead of directly doing a constrained call on `in` parameter
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M<T>(in T value) where T : struct, IEnumerable<int>
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            verifier.VerifyIL("C.M<T>(in T)", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "T"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "T"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnReadonlyField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    readonly S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
+            // Note: we use a temp instead of directly doing a constrained call on readonly field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       73 (0x49)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S D.field"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ldarg.0
+  IL_0033:  ldflda     "S D.field"
+  IL_0038:  constrained. "S"
+  IL_003e:  callvirt   "string object.ToString()"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            // Note: we do a constrained call directly on the field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       70 (0x46)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "S D.field"
+  IL_0006:  constrained. "S"
+  IL_000c:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0011:  stloc.0
+  .try
+  {
+    IL_0012:  br.s       IL_001b
+    IL_0014:  ldloc.0
+    IL_0015:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001a:  pop
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0021:  brtrue.s   IL_0014
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   "void System.IDisposable.Dispose()"
+    IL_002e:  endfinally
+  }
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     "S D.field"
+  IL_0035:  constrained. "S"
+  IL_003b:  callvirt   "string object.ToString()"
+  IL_0040:  call       "void System.Console.Write(string)"
+  IL_0045:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeStructToStringOverrideOnInParameter()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        S1 s = new S1();
+        Console.Write(M(in s));
+        Console.Write(M(in s));
+    }
+    static string M(in S1 s)
+    {
+        return s.ToString();
+    }
+}
+struct S1
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+}
+";
+
+            var comp = CompileAndVerify(text, expectedOutput: "00");
+
+            comp.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S1"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnInParameter()
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write("RAN "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = """
+public class C
+{
+    public static string M(in S s)
+    {
+        return s.ToString();
+    }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            CompileAndVerify(libUser).VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            var src = """
+using System;
+
+S s = new S();
+s.Report();
+Console.Write(C.M(in s));
+Console.Write(C.M(in s));
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "RAN 00");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnReadonlyField()
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write($"Report{i} "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = """
+public class C
+{
+    readonly S field;
+    public C(int i)
+    {
+        field.ToString();
+    }
+    public string M()
+    {
+        return field.ToString();
+    }
+    public void Report() { field.Report(); }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            var verifier = CompileAndVerify(libUser);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S C.field"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            verifier.VerifyIL("C..ctor(int)", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "object..ctor()"
+  IL_0006:  ldarg.0
+  IL_0007:  ldflda     "S C.field"
+  IL_000c:  constrained. "S"
+  IL_0012:  callvirt   "string object.ToString()"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+
+            var src = """
+C c = new C(42);
+c.Report();
+System.Console.Write(c.M());
+System.Console.Write(c.M());
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "Report1 11");
         }
     }
 }

@@ -42,7 +42,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.ReleaseExe);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3", options: TestOptions.ReleaseExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -126,7 +126,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.DebugExe);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3", options: TestOptions.DebugExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -257,7 +257,7 @@ public static class Program
         actions[2]();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -432,7 +432,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
@@ -584,7 +584,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
@@ -730,7 +730,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -949,7 +949,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 one
 one");
 
@@ -1129,7 +1129,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 one
 one");
 
@@ -1364,7 +1364,7 @@ public class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
@@ -1730,8 +1730,7 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
-
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -1840,7 +1839,7 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -1992,7 +1991,7 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -2157,7 +2156,7 @@ public static class Program
 		public void Dispose(){}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -2311,7 +2310,7 @@ public static class Program
 		public void Dispose(){}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -2514,7 +2513,7 @@ public static class Program
 		public void Dispose() { }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 three
 Program+Disposable
 two
@@ -2847,7 +2846,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 two
 three");
 
@@ -3050,7 +3049,7 @@ public static class Program
 		actions[1]();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"two
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"two
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -3253,7 +3252,7 @@ public static class Program
         action();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -3449,7 +3448,7 @@ public static class Program
             action();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -3586,7 +3585,7 @@ public static class Program
             action();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -3730,7 +3729,7 @@ public static class Program
             actions[2]();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -3941,7 +3940,7 @@ public static class Program
         
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4031,7 +4030,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4119,7 +4118,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4223,7 +4222,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4326,7 +4325,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4422,7 +4421,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4522,7 +4521,7 @@ public static class Program
 
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4615,7 +4614,7 @@ public static class Program
 		goto target;
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4733,7 +4732,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4850,7 +4849,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4969,7 +4968,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5089,7 +5088,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5219,7 +5218,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5336,7 +5335,7 @@ public static class Program
 		Action _ = () => Console.WriteLine(a);
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5465,7 +5464,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5565,7 +5564,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5662,7 +5661,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5796,7 +5795,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"4");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"4");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5939,7 +5938,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"2");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"2");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6092,7 +6091,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6227,7 +6226,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6359,7 +6358,7 @@ public class Program
 		actions[3]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1
 1");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6551,7 +6550,7 @@ public class Program
         actions[3]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1
 1");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6749,7 +6748,7 @@ public class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6917,7 +6916,7 @@ target:
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -7085,7 +7084,7 @@ target:
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -7263,7 +7262,7 @@ public class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
@@ -7399,7 +7398,7 @@ public class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
@@ -7601,7 +7600,7 @@ public class C {
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class public auto ansi beforefieldinit C
@@ -8041,7 +8040,7 @@ public class C {
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class public auto ansi beforefieldinit C

@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 {
     internal abstract class JsonNode : EmbeddedSyntaxNode<JsonKind, JsonNode>
     {

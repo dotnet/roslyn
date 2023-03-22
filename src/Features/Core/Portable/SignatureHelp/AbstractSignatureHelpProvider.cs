@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,34 +33,39 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public abstract bool IsTriggerCharacter(char ch);
         public abstract bool IsRetriggerCharacter(char ch);
-        public abstract SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
-        /// <remarks>
-        /// This overload is required for compatibility with existing extensions.
-        /// </remarks>
         protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
         {
-            return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
-        }
-
-        protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem>? items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
-        {
-            if (items == null || !items.Any() || state == null)
-            {
+            if (items is null || items.Count == 0 || state == null)
                 return null;
-            }
 
-            if (selectedItem < 0)
+            if (selectedItemIndex < 0)
+                selectedItemIndex = null;
+
+            (items, selectedItemIndex) = Filter(items, state.Value.ArgumentNames, selectedItemIndex);
+
+            // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
+            var argumentIndex = state.Value.ArgumentIndex;
+            if (parameterIndexOverride >= 0)
             {
-                selectedItem = null;
+                // However, in the case where the overridden index is to a variadic member, and the syntactic index goes
+                // beyond the length of hte normal parameters, do not do this.  The syntactic index is valid for the
+                // variadic member, and we still want to remember where we are syntactically so that if the user picks
+                // another member that we correctly pick the right parameter for it.
+                var keepSyntacticIndex =
+                    argumentIndex > parameterIndexOverride &&
+                    selectedItemIndex != null &&
+                    items[selectedItemIndex.Value].IsVariadic &&
+                    argumentIndex >= items[selectedItemIndex.Value].Parameters.Length;
+
+                if (!keepSyntacticIndex)
+                    argumentIndex = parameterIndexOverride;
             }
 
-            (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItemIndex);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
@@ -85,39 +90,39 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             // So, we include all the .Add methods, but we prefer selecting the first that has
             // at least two parameters.
             return CreateSignatureHelpItems(
-                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
+                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2), parameterIndexOverride: -1);
         }
 
-        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string>? parameterNames, int? selectedItem)
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, ImmutableArray<string> parameterNames, int? selectedItem)
         {
-            if (parameterNames == null)
-            {
+            if (parameterNames.IsDefault)
                 return (items.ToList(), selectedItem);
-            }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
             var isEmpty = filteredList.Count == 0;
             if (!selectedItem.HasValue || isEmpty)
-            {
                 return (isEmpty ? items.ToList() : filteredList, selectedItem);
-            }
 
             // adjust the selected item
             var selection = items[selectedItem.Value];
             selectedItem = filteredList.IndexOf(selection);
+
             return (filteredList, selectedItem);
         }
 
-        private static bool Include(SignatureHelpItem item, IEnumerable<string> parameterNames)
+        private static bool Include(SignatureHelpItem item, ImmutableArray<string> parameterNames)
         {
-            var itemParameterNames = item.Parameters.Select(p => p.Name).ToSet();
-            return parameterNames.All(itemParameterNames.Contains);
-        }
+            using var _ = PooledHashSet<string>.GetInstance(out var itemParameterNames);
+            foreach (var parameter in item.Parameters)
+                itemParameterNames.Add(parameter.Name);
 
-        public async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return GetCurrentArgumentState(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
+            foreach (var name in parameterNames)
+            {
+                if (!itemParameterNames.Contains(name))
+                    return false;
+            }
+
+            return true;
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
@@ -301,7 +306,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             using var _ = ArrayBuilder<Document>.GetInstance(out var builder);
             foreach (var relatedDocument in document.GetLinkedDocuments())
             {
-                var syntaxTree = await relatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await relatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (!relatedDocument.GetRequiredLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
                     builder.Add(relatedDocument);
@@ -337,9 +342,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             {
                 var found = candidates.IndexOf(matched);
                 if (found >= 0)
-                {
                     return found;
-                }
             }
 
             return null;

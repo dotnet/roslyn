@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -39,14 +40,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 if (diagnostics.IsDefaultOrEmpty)
                     return null;
 
-                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-                return new MyCodeAction(
+                var title = fixAllContext.GetDefaultFixAllTitle();
+                return CodeAction.Create(
                     title,
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
                         fixAllContext.GetProgressTracker(),
-                        cancellationToken));
+#if CODE_STYLE
+                        CodeActionOptions.DefaultProvider,
+#else
+                        fixAllContext.State.CodeActionOptionsProvider,
+#endif
+                        cancellationToken),
+                    title);
 
                 static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
                 {
@@ -66,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
                 IProgressTracker progressTracker,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 // Use documentId instead of tree here because the
@@ -88,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     var document = newSolution.GetRequiredDocument(documentId);
                     using var _ = progressTracker.ItemCompletedScope(document.Name);
 
-                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
+                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, options, cancellationToken).ConfigureAwait(false);
                 }
 
                 return newSolution;

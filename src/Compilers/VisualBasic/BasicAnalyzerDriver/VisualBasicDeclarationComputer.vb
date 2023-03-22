@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return level.HasValue AndAlso level.Value <= 0
         End Function
 
-
         Private Shared Function DecrementLevel(level As Integer?) As Integer?
             Return If(level.HasValue, level.Value - 1, level)
         End Function

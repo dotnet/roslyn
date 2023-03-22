@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial struct InvocationReasons
+    internal readonly partial struct InvocationReasons
     {
         public static readonly InvocationReasons DocumentAdded =
             new(
@@ -84,5 +84,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public static readonly InvocationReasons ReanalyzeHighPriority =
             Reanalyze.With(PredefinedInvocationReasons.HighPriority);
+
+        public static readonly InvocationReasons ActiveDocumentSwitched =
+            new(PredefinedInvocationReasons.ActiveDocumentSwitched);
     }
 }

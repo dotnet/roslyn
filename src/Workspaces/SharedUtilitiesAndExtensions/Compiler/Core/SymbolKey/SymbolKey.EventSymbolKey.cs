@@ -6,18 +6,21 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class EventSymbolKey
+        private sealed class EventSymbolKey : AbstractSymbolKey<IEventSymbol>
         {
-            public static void Create(IEventSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly EventSymbolKey Instance = new();
+
+            public sealed override void Create(IEventSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IEventSymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
+                var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
 
                 if (containingTypeFailureReason != null)
                 {

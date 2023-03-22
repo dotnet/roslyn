@@ -45,13 +45,15 @@ End Class
 
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Generate method 'Goo.Bar'", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Goo.vb", @"
+            AssertEx.EqualOrDiff(
+                @"
 Class Goo
     Friend Sub Bar()
         Throw New NotImplementedException()
     End Sub
 End Class
-");
+",
+                VisualStudio.SolutionExplorer.GetFileContents(project, "Goo.vb"));
         }
     }
 }

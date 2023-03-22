@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
                 return ThroughMember == null
                     ? factory.CreateThrowNotImplementedStatement(compilation)
                     : factory.GenerateDelegateThroughMemberStatement(method, ThroughMember);

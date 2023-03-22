@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics,
                         out BoundExpression conversionIntoBoolOperator, out BoundValuePlaceholder conversionIntoBoolOperatorPlaceholder,
                         out UnaryOperatorSignature boolOperator);
-                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, diagnostics);
+                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, isUnsignedRightShift: false, boolOperator.ConstrainedToTypeOpt, diagnostics);
 
                     return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.Method, binary.ConstrainedToType,
                         conversionIntoBoolOperatorPlaceholder, conversionIntoBoolOperator, boolOperator);

@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     _lastTokenEndedInWhitespace = false;
                 }
 
-                if (token.Kind() is SyntaxKind.StringLiteralToken or
-                    SyntaxKind.InterpolatedStringTextToken)
+                if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken)
                 {
                     if (s_newlinePattern.IsMatch(token.Text))
                     {

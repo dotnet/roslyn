@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class TryBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub ApplyAfterTryStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -26,7 +27,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyForMatchedTryWithCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -39,7 +40,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyForMatchedTryWithoutCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -51,7 +52,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedTryBlock()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -80,7 +81,7 @@ End Class",
                 afterCaret:={6, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedTryBlockWithCode()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -105,7 +106,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyMissingCatchInTryBlock()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -120,7 +121,7 @@ End Class",
                 caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
@@ -131,7 +132,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidLocation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC

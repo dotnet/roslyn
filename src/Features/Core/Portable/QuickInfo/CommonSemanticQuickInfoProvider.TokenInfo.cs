@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract partial class CommonSemanticQuickInfoProvider
     {
-        public struct TokenInformation
+        public readonly struct TokenInformation
         {
             public readonly ImmutableArray<ISymbol> Symbols;
 

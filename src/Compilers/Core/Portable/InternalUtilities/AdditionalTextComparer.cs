@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -32,8 +32,15 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var xText = x.GetText();
-            var yText = y.GetText();
+            var xText = GetTextOrNullIfBinary(x);
+            var yText = GetTextOrNullIfBinary(y);
+
+            // If xText and yText are both null, then the additional text is observably not changed
+            // and can be treated as equal.
+            if (xText is null && yText is null)
+            {
+                return true;
+            }
 
             if (xText is null || yText is null || xText.Length != yText.Length)
             {
@@ -46,7 +53,20 @@ namespace Microsoft.CodeAnalysis
         public int GetHashCode(AdditionalText obj)
         {
             return Hash.Combine(PathUtilities.Comparer.GetHashCode(obj.Path),
-                                ByteSequenceComparer.GetHashCode(obj.GetText()?.GetChecksum() ?? ImmutableArray<byte>.Empty));
+                                ByteSequenceComparer.GetHashCode(GetTextOrNullIfBinary(obj)?.GetChecksum() ?? ImmutableArray<byte>.Empty));
+        }
+
+        private static SourceText? GetTextOrNullIfBinary(AdditionalText text)
+        {
+            try
+            {
+                return text.GetText();
+            }
+            catch (InvalidDataException)
+            {
+                // InvalidDataException is thrown when the underlying text is binary
+                return null;
+            }
         }
     }
 }

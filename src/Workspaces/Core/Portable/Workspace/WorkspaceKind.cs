@@ -26,6 +26,5 @@ namespace Microsoft.CodeAnalysis
 
         internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
-        internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);
     }
 }

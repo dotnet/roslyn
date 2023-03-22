@@ -21,16 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
+        private static readonly Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+
         public CSharpEscapingReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxToken SimplifyIdentifierToken(
             SyntaxToken token,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var unescapedIdentifier = token.ValueText;
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return originalToken;
             }
 
-            var unescapedText = isVerbatimIdentifier ? originalToken.ToString().Substring(1) : originalToken.ToString();
+            var unescapedText = isVerbatimIdentifier ? originalToken.ToString()[1..] : originalToken.ToString();
 
             return escape
                 ? originalToken.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(originalToken.LeadingTrivia, unescapedText, originalToken.ValueText, originalToken.TrailingTrivia))

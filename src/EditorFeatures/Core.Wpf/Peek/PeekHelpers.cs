@@ -6,7 +6,7 @@
 
 using System.IO;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     break;
             }
 
-            return identifierLocation.SourceTree.GetLocation(node.Span).GetLineSpan().Span;
+            return identifierLocation.SourceTree.GetLocation(node.Span).GetMappedLineSpan().Span;
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace IdeCoreBenchmarks
 {
@@ -51,7 +52,7 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void RenameNodes()
         {
-            _ = Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(_solution, _symbol, "NewName", optionSet: null);
+            _ = Renamer.RenameSymbolAsync(_solution, _symbol, new SymbolRenameOptions(), "NewName");
         }
 
         [IterationCleanup]

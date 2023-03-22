@@ -8,7 +8,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
 
                         var constructorName = symbol.IsStatic ? "cctor" : "ctor";
 
-                        return displayName.Substring(0, lastDotBeforeOpenParenIndex + 1) +
+                        return displayName[..(lastDotBeforeOpenParenIndex + 1)] +
                                constructorName +
-                               displayName.Substring(openParenIndex);
+                               displayName[openParenIndex..];
                     }
 
                 case SyntaxKind.IndexerDeclaration:
@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                         var openBracketIndex = displayName.IndexOf('[');
                         var lastDotBeforeOpenBracketIndex = displayName.LastIndexOf('.', openBracketIndex, openBracketIndex);
 
-                        return displayName.Substring(0, lastDotBeforeOpenBracketIndex) +
-                               displayName.Substring(openBracketIndex) +
+                        return displayName[..lastDotBeforeOpenBracketIndex] +
+                               displayName[openBracketIndex..] +
                                " Indexer";
                     }
 
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                         var spaceIndex = displayName.IndexOf(' ');
                         var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', spaceIndex, spaceIndex);
 
-                        return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                               displayName.Substring(spaceIndex + 1) +
+                        return displayName[..(lastDotBeforeSpaceIndex + 1)] +
+                               displayName[(spaceIndex + 1)..] +
                                " Operator";
                     }
 
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                         var secondSpaceIndex = displayName.IndexOf(' ', firstSpaceIndex + 1);
                         var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', firstSpaceIndex, firstSpaceIndex);
 
-                        return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                               displayName.Substring(secondSpaceIndex + 1) +
+                        return displayName[..(lastDotBeforeSpaceIndex + 1)] +
+                               displayName[(secondSpaceIndex + 1)..] +
                                " Operator";
                     }
 

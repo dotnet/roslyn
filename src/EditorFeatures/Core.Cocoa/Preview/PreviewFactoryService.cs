@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ICocoaTextEditorFactoryService textEditorFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
             ICocoaDifferenceViewerFactoryService differenceViewerService)
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                   textBufferFactoryService,
                   contentTypeRegistryService,
                   projectionBufferFactoryService,
-                  editorOptionsFactoryService,
+                  editorOptionsService,
                   differenceSelectorService,
                   differenceBufferService,
                   textEditorFactoryService.CreateTextViewRoleSet(

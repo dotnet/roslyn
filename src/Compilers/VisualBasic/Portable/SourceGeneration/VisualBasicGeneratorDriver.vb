@@ -6,6 +6,9 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.SourceGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -50,6 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property SyntaxHelper As ISyntaxHelper = VisualBasicSyntaxHelper.Instance
     End Class
-
 End Namespace

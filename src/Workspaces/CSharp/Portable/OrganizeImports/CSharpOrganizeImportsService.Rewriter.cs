@@ -4,8 +4,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
 {
     internal partial class CSharpOrganizeImportsService
     {
-        private class Rewriter : CSharpSyntaxRewriter
+        private sealed class Rewriter : CSharpSyntaxRewriter
         {
             private readonly bool _placeSystemNamespaceFirst;
             private readonly bool _separateGroups;
@@ -21,13 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
 
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
-            public Rewriter(bool placeSystemNamespaceFirst,
-                            bool separateGroups,
-                            SyntaxTrivia newLineTrivia)
+            public Rewriter(OrganizeImportsOptions options)
             {
-                _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
-                _separateGroups = separateGroups;
-                _newLineTrivia = newLineTrivia;
+                _placeSystemNamespaceFirst = options.PlaceSystemNamespaceFirst;
+                _separateGroups = options.SeparateImportDirectiveGroups;
+                _newLineTrivia = CSharpSyntaxGeneratorInternal.Instance.EndOfLine(options.NewLine);
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)

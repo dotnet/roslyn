@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// a NotificationOption, so <paramref name="notification"/> will default to <paramref name="defaultNotification"/>.
         /// </summary>
         public static bool TryGetCodeStyleValueAndOptionalNotification(
-            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2? notification)
+            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2 notification)
         {
             var args = arg.Split(':');
             Debug.Assert(args.Length > 0);
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             // We only support 0 or 1 args.  Anything else can't be parsed properly.
             value = null;
-            notification = null;
+            notification = default;
             return false;
         }
 
@@ -112,42 +113,39 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static Option2<T> CreateOption<T>(
-            OptionGroup group,
-            string feature,
+        public static Option2<CodeStyleOption2<T>> CreateEditorConfigOption<T>(
+            this ImmutableArray<IOption2>.Builder optionsBuilder,
             string name,
-            T defaultValue,
-            ImmutableArray<IOption2>.Builder optionsBuilder,
-            OptionStorageLocation2 storageLocation)
+            CodeStyleOption2<T> defaultValue,
+            OptionGroup group,
+            string? languageName = null,
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation));
+            var option = new Option2<CodeStyleOption2<T>>(name, defaultValue, group, languageName, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
             optionsBuilder.Add(option);
             return option;
         }
 
-        public static Option2<T> CreateOption<T>(
-            OptionGroup group,
-            string feature,
+        public static Option2<T> CreateEditorConfigOption<T>(
+            this ImmutableArray<IOption2>.Builder optionsBuilder,
             string name,
             T defaultValue,
-            ImmutableArray<IOption2>.Builder optionsBuilder,
-            OptionStorageLocation2 storageLocation1,
-            OptionStorageLocation2 storageLocation2)
+            OptionGroup group,
+            EditorConfigValueSerializer<T>? serializer = null)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2));
+            var option = new Option2<T>(name, defaultValue, group, languageName: null, isEditorConfigOption: true, serializer: serializer);
             optionsBuilder.Add(option);
             return option;
         }
 
-        public static Option2<T> CreateOption<T>(
-            OptionGroup group,
-            string feature,
+        public static PerLanguageOption2<CodeStyleOption2<T>> CreatePerLanguageEditorConfigOption<T>(
+            this ImmutableArray<IOption2>.Builder optionsBuilder,
             string name,
-            T defaultValue,
-            ImmutableArray<IOption2>.Builder optionsBuilder,
-            ImmutableArray<OptionStorageLocation2> storageLocations)
+            CodeStyleOption2<T> defaultValue,
+            OptionGroup group,
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption2<CodeStyleOption2<T>>(name, defaultValue, group, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
             optionsBuilder.Add(option);
             return option;
         }
@@ -162,24 +160,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
 
-        public static Option2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
-            OptionGroup group,
-            string feature,
-            string name,
-            string editorConfigName,
-            CodeStyleOption2<UnusedValuePreference> defaultValue,
-            ImmutableArray<IOption2>.Builder optionsBuilder)
-            => CreateOption(
-                group,
-                feature,
-                name,
-                defaultValue,
-                optionsBuilder,
-                new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
-                    editorConfigName,
-                    s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
-                    o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference"));
+        internal static EditorConfigValueSerializer<CodeStyleOption2<UnusedValuePreference>> GetUnusedValuePreferenceSerializer(CodeStyleOption2<UnusedValuePreference> defaultValue)
+            => new(parseValue: str => ParseUnusedExpressionAssignmentPreference(str, defaultValue),
+                   serializeValue: value => GetUnusedExpressionAssignmentPreferenceEditorConfigString(value, defaultValue));
 
         private static Optional<CodeStyleOption2<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
             string optionString,

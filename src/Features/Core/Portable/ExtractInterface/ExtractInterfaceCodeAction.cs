@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,
                 containingNamespaceDisplay,
+                _typeAnalysisResult.FallbackOptions,
                 cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 

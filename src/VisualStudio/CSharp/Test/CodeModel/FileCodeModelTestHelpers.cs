@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 var state = new CodeModelState(
                     threadingContext,
                     serviceProvider,
-                    project.LanguageServices,
+                    project.Services,
                     visualStudioWorkspaceMock,
                     workspace.ExportProvider.GetExportedValue<ProjectCodeModelFactory>());
 

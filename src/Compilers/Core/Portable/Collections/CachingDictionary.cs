@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         /// <param name="existingMap">The existing map which may be null or a ConcurrentDictionary.</param>
         /// <returns></returns>
-        private IDictionary<TKey, ImmutableArray<TElement>> CreateFullyPopulatedMap(IDictionary<TKey, ImmutableArray<TElement>>? existingMap)
+        private IDictionary<TKey, ImmutableArray<TElement>> CreateFullyPopulatedMap(ConcurrentDictionary<TKey, ImmutableArray<TElement>>? existingMap)
         {
             Debug.Assert(IsNotFullyPopulatedMap(existingMap));
 
@@ -233,13 +233,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 foreach (var key in allKeys)
                 {
                     // Copy non-empty values from the existing map
-                    ImmutableArray<TElement> elements;
-
-                    if (!existingMap.TryGetValue(key, out elements))
-                    {
-                        elements = _getElementsOfKey(key);
-                    }
-
+                    ImmutableArray<TElement> elements = existingMap.GetOrAdd(key, _getElementsOfKey);
                     Debug.Assert(elements != s_emptySentinel);
                     fullyPopulatedMap.Add(key, elements);
                 }
@@ -254,15 +248,10 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private IDictionary<TKey, ImmutableArray<TElement>> EnsureFullyPopulated()
         {
-            IDictionary<TKey, ImmutableArray<TElement>>? fullyPopulatedMap = null;
-
             var currentMap = _map;
             while (IsNotFullyPopulatedMap(currentMap))
             {
-                if (fullyPopulatedMap == null)
-                {
-                    fullyPopulatedMap = CreateFullyPopulatedMap(currentMap);
-                }
+                IDictionary<TKey, ImmutableArray<TElement>> fullyPopulatedMap = CreateFullyPopulatedMap((ConcurrentDictionary<TKey, ImmutableArray<TElement>>?)currentMap);
 
                 var replacedMap = Interlocked.CompareExchange(ref _map, fullyPopulatedMap, currentMap);
                 if (replacedMap == currentMap)

@@ -10,20 +10,23 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class AliasSymbolKey
+        private sealed class AliasSymbolKey : AbstractSymbolKey<IAliasSymbol>
         {
-            public static void Create(IAliasSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly AliasSymbolKey Instance = new();
+
+            public sealed override void Create(IAliasSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.Name);
                 visitor.WriteSymbolKey(symbol.Target);
                 visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IAliasSymbol? contextualSymbol, out string? failureReason)
             {
-                var name = reader.ReadString()!;
-                var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
-                var filePath = reader.ReadString()!;
+                var name = reader.ReadRequiredString();
+                var targetResolution = reader.ReadSymbolKey(contextualSymbol?.Target, out var targetFailureReason);
+                var filePath = reader.ReadRequiredString();
 
                 if (targetFailureReason != null)
                 {

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal struct RenameLocation : IEquatable<RenameLocation>
+    internal readonly struct RenameLocation : IEquatable<RenameLocation>
     {
         public readonly Location Location;
         public readonly DocumentId DocumentId;

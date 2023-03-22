@@ -5,7 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                         Return Me.Document.SemanticModel.Compilation.GetSpecialType(SpecialType.System_String)
                 End Select
 
-                Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
+                Dim typeInference = Document.Project.Services.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
                     name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)

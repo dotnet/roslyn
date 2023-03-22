@@ -722,4 +722,38 @@
   <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
     <value>Changes must be within bounds of SourceText</value>
   </data>
+  <data name="EncCannotResumeSuspendedAsyncMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</value>
+  </data>
+  <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
+  </data>
+  <data name="GeneratorNameColumnHeader" xml:space="preserve">
+    <value>Generator</value>
+  </data>
+  <data name="GeneratorTotalExecutionTime" xml:space="preserve">
+    <value>Total generator execution time: {0} seconds.</value>
+  </data>
+  <data name="BadBuiltInOps1" xml:space="preserve">
+    <value>Illegal built-in operator name '{0}'</value>
+  </data>
+  <data name="BadBuiltInOps2" xml:space="preserve">
+    <value>Unsupported built-in operator: {0}</value>
+  </data>
+  <data name="BadBuiltInOps3" xml:space="preserve">
+    <value>'{0}' was not a valid built-in operator name</value>
+  </data>
+  <data name="HintNameInvalidSegment" xml:space="preserve">
+    <value>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</value>
+    <comment>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</comment>
+  </data>
+  <data name="HintNameNotWithinCurrentDirectory" xml:space="preserve">
+    <value>The hintName '{0}' is not within the current directory.</value>
+  </data>
+  <data name="MethodSymbolExpected" xml:space="preserve">
+    <value>Method symbol expected</value>
+  </data>
+  <data name="InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
 </root>

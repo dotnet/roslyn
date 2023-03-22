@@ -638,7 +638,7 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,19): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     static void M(params int[] x, int y)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] x").WithLocation(4, 19),
                 // (9,14): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'

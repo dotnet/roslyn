@@ -10,7 +10,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract class AbstractDocumentationCommentService<
         TDocumentationCommentTriviaSyntax,
@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private static void AddSpaceIfNotAlreadyThere(StringBuilder sb)
         {
-            if (sb.Length > 0 && sb[sb.Length - 1] != ' ')
-            {
+            if (sb is [.., not ' '])
                 sb.Append(' ');
-            }
         }
 
         private string GetDocumentationCommentPrefix(TDocumentationCommentTriviaSyntax documentationComment)
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             Contract.ThrowIfNull(documentationComment);
 
             var leadingTrivia = documentationComment.GetLeadingTrivia();
-            var exteriorTrivia = leadingTrivia.Where(t => _syntaxFacts.IsDocumentationCommentExteriorTrivia(t))
+            var exteriorTrivia = leadingTrivia.Where(_syntaxFacts.IsDocumentationCommentExteriorTrivia)
                                               .FirstOrNull();
 
             return exteriorTrivia != null ? exteriorTrivia.Value.ToString() : string.Empty;
@@ -86,12 +84,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var syntaxTree = documentationComment.SyntaxTree;
                 var spanStart = documentationComment.SpanStart;
                 var line = syntaxTree.GetText(cancellationToken).Lines.GetLineFromPosition(spanStart);
-                text = prefix + " " + line.ToString().Substring(spanStart - line.Start).Trim() + " " + Ellipsis;
+                text = prefix + " " + line.ToString()[(spanStart - line.Start)..].Trim() + " " + Ellipsis;
             }
 
             if (text.Length > maxBannerLength)
             {
-                text = text.Substring(0, maxBannerLength) + " " + Ellipsis;
+                text = text[..maxBannerLength] + " " + Ellipsis;
             }
 
             return text;

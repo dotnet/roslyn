@@ -4,10 +4,11 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal struct EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>
+    internal readonly struct EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
+
+        public TextSpan? GetFullSpan()
+            => IsNode ? Node.GetFullSpan() : _token.GetFullSpan();
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode? node)
             => new(node);

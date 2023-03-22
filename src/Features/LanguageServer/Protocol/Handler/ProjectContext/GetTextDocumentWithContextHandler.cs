@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(VSMethods.GetProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
+    [Method(VSMethods.GetProjectContextsName)]
+    internal class GetTextDocumentWithContextHandler : ILspServiceDocumentRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,19 +25,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => VSMethods.GetProjectContextsName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
-
-        public override Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Workspace);
             Contract.ThrowIfNull(context.Solution);
 
             // We specifically don't use context.Document here because we want multiple
-            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri);
 
             if (!documents.Any())
             {
@@ -49,21 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var projectContext = new VSProjectContext
-                {
-                    Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
-                    Label = project.Name
-                };
-
-                if (project.Language == LanguageNames.CSharp)
-                {
-                    projectContext.Kind = VSProjectKind.CSharp;
-                }
-                else if (project.Language == LanguageNames.VisualBasic)
-                {
-                    projectContext.Kind = VSProjectKind.VisualBasic;
-                }
-
+                var projectContext = ProtocolConversions.ProjectToProjectContext(project);
                 contexts.Add(projectContext);
             }
 
@@ -73,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
             var openDocument = documents.First();
-            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
+            var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
             return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
             {

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -49,6 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool MayBeNameofOperator(this InvocationExpressionSyntax node)
+        {
+            if (node.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() == SyntaxKind.NameOfKeyword &&
+                node.ArgumentList.Arguments.Count == 1)
+            {
+                ArgumentSyntax argument = node.ArgumentList.Arguments[0];
+                if (argument.NameColon == null && argument.RefOrOutKeyword == default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// This method is used to keep the code that generates binders in sync
         /// with the code that searches for binders.  We don't want the searcher
@@ -63,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind kind = syntax.Kind();
             switch (kind)
             {
+                case SyntaxKind.InvocationExpression when ((InvocationExpressionSyntax)syntax).MayBeNameofOperator():
+                    return true;
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -79,17 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.PrimaryConstructorBaseType:
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
                     return true;
-
-                case SyntaxKind.RecordDeclaration:
-                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
 
                 case SyntaxKind.RecordStructDeclaration:
                     return false;
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
-
             }
         }
 
@@ -202,33 +219,96 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static RefKind GetRefKind(this TypeSyntax syntax)
+        internal static RefKind GetRefKindInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            syntax.SkipRef(out var refKind);
+            syntax.SkipRefInLocalOrReturn(diagnostics, out var refKind);
             return refKind;
         }
 
+        /// <summary>
+        /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
+        /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
+        /// will error out for them.  Callers that do want to know what the ref-kind is should use <see
+        /// cref="SkipRefInLocalOrReturn"/> or <see cref="SkipRefInField"/> depending on which language feature they are
+        /// asking for.
+        /// </summary>
         internal static TypeSyntax SkipRef(this TypeSyntax syntax)
-        {
-            if (syntax.Kind() == SyntaxKind.RefType)
-            {
-                syntax = ((RefTypeSyntax)syntax).Type;
-            }
+            => SkipRefWorker(syntax, diagnostics: null, out _);
 
-            return syntax;
+        internal static TypeSyntax SkipRefInField(this TypeSyntax syntax, out RefKind refKind)
+        {
+            // Intentionally pass no diagnostics here.  This is for ref-fields which handles all its diagnostics itself
+            // in the field symbol.
+            return SkipRefWorker(syntax, diagnostics: null, out refKind);
         }
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        internal static TypeSyntax SkipRefInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
+            => SkipRefWorker(syntax, diagnostics, out refKind);
+
+        private static TypeSyntax SkipRefWorker(TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
-            refKind = RefKind.None;
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
-                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
-                    RefKind.RefReadOnly :
-                    RefKind.Ref;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
+                    ? RefKind.RefReadOnly
+                    : RefKind.Ref;
 
-                syntax = refType.Type;
+                if (diagnostics != null)
+                {
+#if DEBUG
+                    var current = syntax;
+                    if (current.Parent is ScopedTypeSyntax scopedType)
+                        current = scopedType;
+
+                    // Should only be called with diagnostics from a location where we're a return-type or local-type.
+                    Debug.Assert(
+                        (current.Parent is ParenthesizedLambdaExpressionSyntax lambda && lambda.ReturnType == current) ||
+                        (current.Parent is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType == current) ||
+                        (current.Parent is MethodDeclarationSyntax method && method.ReturnType == current) ||
+                        (current.Parent is BasePropertyDeclarationSyntax property && property.Type == current) ||
+                        (current.Parent is DelegateDeclarationSyntax delegateDeclaration && delegateDeclaration.ReturnType == current) ||
+                        (current.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == current));
+#endif
+
+                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType, refType.RefKeyword.GetLocation());
+
+                    if (refType.ReadOnlyKeyword != default)
+                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, refType, refType.ReadOnlyKeyword.GetLocation());
+                }
+
+                return refType.Type;
+            }
+
+            refKind = RefKind.None;
+            return syntax;
+        }
+
+        internal static TypeSyntax SkipScoped(this TypeSyntax syntax, out bool isScoped)
+        {
+            if (syntax is ScopedTypeSyntax scopedType)
+            {
+                isScoped = true;
+                return scopedType.Type;
+            }
+
+            isScoped = false;
+            return syntax;
+        }
+
+        internal static SyntaxNode ModifyingScopedOrRefTypeOrSelf(this SyntaxNode syntax)
+        {
+            SyntaxNode? parentNode = syntax.Parent;
+
+            if (parentNode is RefTypeSyntax refType && refType.Type == syntax)
+            {
+                syntax = refType;
+                parentNode = parentNode.Parent;
+            }
+
+            if (parentNode is ScopedTypeSyntax scopedType && scopedType.Type == syntax)
+            {
+                return scopedType;
             }
 
             return syntax;
@@ -239,16 +319,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
-            refKind = RefKind.None;
-            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            if (syntax is not RefExpressionSyntax { Expression: var expression } refExpression)
             {
-                refKind = RefKind.Ref;
-                syntax = ((RefExpressionSyntax)syntax).Expression;
-
-                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
+                refKind = RefKind.None;
+                return syntax;
             }
 
-            return syntax;
+            MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(
+                diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
+            refKind = RefKind.Ref;
+            expression.CheckDeconstructionCompatibleArgument(diagnostics);
+            return expression;
         }
 
         internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)

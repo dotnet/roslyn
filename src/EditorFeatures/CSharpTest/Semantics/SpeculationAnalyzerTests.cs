@@ -36,9 +36,13 @@ class Program
 }           ", "Vain(string.Empty)", true);
         }
 
-        [Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
+            // We consider a change here to be a change in semantics as an instance call became a static call. In
+            // practice this is fine as the only thing that makes this change is complexification, and we don't test for
+            // semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            // changes that won't break semantics.
             Test(@"
 static class Program
 {
@@ -47,7 +51,7 @@ static class Program
     {
         [|5.Vain()|];
     }
-}           ", "Vain(5)", false);
+}           ", "Vain(5)", semanticChanges: true);
         }
 
         [Fact]
@@ -303,7 +307,7 @@ class Collection : IEnumerable
 }           ", "5", true);
         }
 
-        [Fact, WorkItem(1088815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088815")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088815")]
         public void SpeculationAnalyzerBrokenCode()
         {
             Test(@"
@@ -318,7 +322,7 @@ public interface IRogueAction
 }           ", "Name", semanticChanges: false, isBrokenCode: true);
         }
 
-        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
         public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithNeededCast()
         {
             Test(@"
@@ -332,7 +336,7 @@ class Program
 }           ", "Directions.South", semanticChanges: true);
         }
 
-        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
         public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithUnneededCast()
         {
             Test(@"
@@ -346,7 +350,7 @@ class Program
 }           ", "Directions.South", semanticChanges: false);
         }
 
-        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19987")]
         public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
         {
             Test(@"
@@ -370,7 +374,7 @@ class Program
             ", "1", semanticChanges: false);
         }
 
-        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19987")]
         public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
         {
             Test(@"
@@ -394,7 +398,7 @@ class Program
             ", "1", semanticChanges: true);
         }
 
-        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
         public void SpeculationAnalyzerIndexerPropertyWithRedundantCast()
         {
             Test(code: @"
@@ -420,7 +424,7 @@ class Program
 ", replacementExpression: "b", semanticChanges: false);
         }
 
-        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
         public void SpeculationAnalyzerIndexerPropertyWithRequiredCast()
         {
             Test(code: @"
@@ -447,7 +451,7 @@ class Program
 ", replacementExpression: "b", semanticChanges: true);
         }
 
-        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
         public void SpeculationAnalyzerDelegatePropertyWithRedundantCast()
         {
             Test(code: @"
@@ -470,7 +474,7 @@ class Program
 ", replacementExpression: "b", semanticChanges: false);
         }
 
-        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
         public void SpeculationAnalyzerDelegatePropertyWithRequiredCast()
         {
             Test(code: @"

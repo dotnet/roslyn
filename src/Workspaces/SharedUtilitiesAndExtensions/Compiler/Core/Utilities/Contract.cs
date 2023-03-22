@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace Roslyn.Utilities
 {
-    internal static class Contract
+    internal static partial class Contract
     {
         // Guidance on inlining:
         // ThrowXxx methods are used heavily across the code base. 
@@ -57,6 +57,19 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
+        /// Throws a non-accessible exception if the provided value is null.  This method executes in
+        /// all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull<T>([NotNull] T value, [InterpolatedStringHandlerArgument("value")] ThrowIfNullInterpolatedStringHandler<T> message, [CallerLineNumber] int lineNumber = 0)
+        {
+            if (value is null)
+            {
+                Fail(message.GetFormattedText(), lineNumber);
+            }
+        }
+
+        /// <summary>
         /// Throws a non-accessible exception if the provided value is false.  This method executes
         /// in all builds
         /// </summary>
@@ -83,6 +96,19 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
+        /// Throws a non-accessible exception if the provided value is false.  This method executes
+        /// in all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfFalseInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0)
+        {
+            if (!condition)
+            {
+                Fail(message.GetFormattedText(), lineNumber);
+            }
+        }
+
+        /// <summary>
         /// Throws a non-accessible exception if the provided value is true. This method executes in
         /// all builds.
         /// </summary>
@@ -105,6 +131,19 @@ namespace Roslyn.Utilities
             if (condition)
             {
                 Fail(message, lineNumber);
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is true. This method executes in
+        /// all builds.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfTrueInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0)
+        {
+            if (condition)
+            {
+                Fail(message.GetFormattedText(), lineNumber);
             }
         }
 

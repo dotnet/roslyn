@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class ObjectCreationInitializerStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of ObjectCreationInitializerSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New ObjectCreationInitializerStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCollectionInitializer() As Task
             Const code = "
 Class C
@@ -30,7 +31,7 @@ End Class
                 Region("textspan", "hintspan", bannerText:="...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestMemberInitializer() As Task
             Const code = "
 Class C

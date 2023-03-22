@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         break;
                     case MethodKind.UserDefinedOperator:
                     case MethodKind.BuiltinOperator:
-                        builder.Append("operator ");
+                        AppendOperatorKeywords(symbol, builder);
                         builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
                         break;
                     case MethodKind.Conversion:
-                        builder.Append("operator ");
+                        AppendOperatorKeywords(symbol, builder);
                         AddType(symbol.ReturnType, builder);
                         break;
                 }
@@ -73,6 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 AddParameters(symbol.Parameters, builder);
                 builder.Append(')');
                 return builder.ToString();
+
+                static void AppendOperatorKeywords(IMethodSymbol symbol, StringBuilder builder)
+                {
+                    builder.Append("operator ");
+                    if (SyntaxFacts.IsCheckedOperator(symbol.MetadataName))
+                    {
+                        builder.Append("checked ");
+                    }
+                }
             }
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)

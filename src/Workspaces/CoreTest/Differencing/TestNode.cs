@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         {
             get
             {
-                if (_lazyRoot == null)
-                {
-                    _lazyRoot = this.Parent == null ? this : this.Parent.Root;
-                }
+                _lazyRoot ??= this.Parent == null ? this : this.Parent.Root;
 
                 return _lazyRoot;
             }
