@@ -33,5 +33,6 @@
     "powershell.integratedConsole.showOnStartup": false,
     "powershell.startAutomatically": false,
     // ms-azure-devops.azure-pipelines settings
-    "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json"
+    "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
+    "dotnet.defaultSolution": "Roslyn.sln"
 }

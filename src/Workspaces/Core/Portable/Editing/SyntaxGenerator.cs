@@ -611,10 +611,11 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? members = null)
         {
             return ClassDeclaration(
-                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, modifiers, baseType, interfaceTypes, members);
+                isRecord: false, name, typeParameters?.Select(TypeParameter), accessibility, modifiers, baseType, interfaceTypes, members);
         }
 
         private protected abstract SyntaxNode ClassDeclaration(
+            bool isRecord,
             string name,
             IEnumerable<SyntaxNode>? typeParameters,
             Accessibility accessibility,
@@ -635,10 +636,11 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? members = null)
         {
             return StructDeclaration(
-                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, modifiers, interfaceTypes, members);
+                isRecord: false, name, typeParameters?.Select(TypeParameter), accessibility, modifiers, interfaceTypes, members);
         }
 
         private protected abstract SyntaxNode StructDeclaration(
+            bool isRecord,
             string name,
             IEnumerable<SyntaxNode>? typeParameters,
             Accessibility accessibility,
@@ -764,63 +766,53 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.NamedType:
                     var type = (INamedTypeSymbol)symbol;
-                    SyntaxNode? declaration = null;
 
-                    switch (type.TypeKind)
+                    var declaration = type.TypeKind switch
                     {
-                        case TypeKind.Class:
-                            declaration = ClassDeclaration(
+                        TypeKind.Class => ClassDeclaration(
+                            type.IsRecord,
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            modifiers: DeclarationModifiers.From(type),
+                            baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Struct => StructDeclaration(
+                            type.IsRecord,
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            modifiers: DeclarationModifiers.From(type),
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Interface => InterfaceDeclaration(
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Enum => EnumDeclaration(
+                            type.Name,
+                            underlyingType: type.EnumUnderlyingType is null or { SpecialType: SpecialType.System_Int32 }
+                                ? null
+                                : TypeExpression(type.EnumUnderlyingType.SpecialType),
+                            accessibility: type.DeclaredAccessibility,
+                            members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration)),
+                        TypeKind.Delegate => type.GetMembers(WellKnownMemberNames.DelegateInvokeName) is [IMethodSymbol invoke, ..]
+                            ? DelegateDeclaration(
                                 type.Name,
-                                type.TypeParameters.Select(p => TypeParameter(p)),
+                                typeParameters: type.TypeParameters.Select(TypeParameter),
+                                parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
+                                returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                 accessibility: type.DeclaredAccessibility,
-                                modifiers: DeclarationModifiers.From(type),
-                                baseType: (type.BaseType != null) ? TypeExpression(type.BaseType) : null,
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Struct:
-                            declaration = StructDeclaration(
-                                type.Name,
-                                type.TypeParameters.Select(p => TypeParameter(p)),
-                                accessibility: type.DeclaredAccessibility,
-                                modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Interface:
-                            declaration = InterfaceDeclaration(
-                                type.Name,
-                                type.TypeParameters.Select(p => TypeParameter(p)),
-                                accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Enum:
-                            declaration = EnumDeclaration(
-                                type.Name,
-                                underlyingType: (type.EnumUnderlyingType == null || type.EnumUnderlyingType.SpecialType == SpecialType.System_Int32) ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
-                                accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
-                            break;
-                        case TypeKind.Delegate:
-                            if (type.GetMembers("Invoke") is [IMethodSymbol invoke, ..])
-                            {
-                                declaration = DelegateDeclaration(
-                                    type.Name,
-                                    typeParameters: type.TypeParameters.Select(p => TypeParameter(p)),
-                                    parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
-                                    returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
-                                    accessibility: type.DeclaredAccessibility,
-                                    modifiers: DeclarationModifiers.From(type));
-                            }
-
-                            break;
-                    }
+                                modifiers: DeclarationModifiers.From(type))
+                            : null,
+                        _ => null,
+                    };
 
                     if (declaration != null)
-                    {
                         return WithTypeParametersAndConstraints(declaration, type.TypeParameters);
-                    }
 
                     break;
             }
@@ -830,13 +822,21 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private static bool CanBeDeclared(ISymbol symbol)
         {
+            // Skip implicitly declared members from a record.  No need to synthesize those as the compiler will do it
+            // anyways.
+            if (symbol.ContainingType?.IsRecord is true)
+            {
+                if (symbol.IsImplicitlyDeclared)
+                    return false;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Parameter:
-                    return true;
+                    return symbol.CanBeReferencedByName;
 
                 case SymbolKind.Method:
                     var method = (IMethodSymbol)symbol;
@@ -844,8 +844,9 @@ namespace Microsoft.CodeAnalysis.Editing
                     {
                         case MethodKind.Constructor:
                         case MethodKind.SharedConstructor:
-                        case MethodKind.Ordinary:
                             return true;
+                        case MethodKind.Ordinary:
+                            return method.CanBeReferencedByName;
                     }
 
                     break;
@@ -859,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Interface:
                         case TypeKind.Enum:
                         case TypeKind.Delegate:
-                            return true;
+                            return type.CanBeReferencedByName;
                     }
 
                     break;
