@@ -1126,7 +1126,7 @@ class A
 
                 throw ExceptionUtilities.Unreachable();
             }
-            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            catch (OperationCanceledException) when (analyzer.CancellationToken.IsCancellationRequested)
             {
             }
 
