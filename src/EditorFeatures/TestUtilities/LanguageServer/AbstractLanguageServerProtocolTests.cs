@@ -338,7 +338,7 @@ namespace Roslyn.Test.Utilities
             }
 
             solution = solution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() });
-            workspace.ChangeSolution(solution);
+            await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state

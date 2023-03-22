@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = 1;
 
-            var worker = await ExecuteOperation(workspace, w => w.ChangeSolution(changedSolution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeSolutionAsync(changedSolution));
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var documentId = project.DocumentIds[0];
             var solution = workspace.CurrentSolution.RemoveDocument(documentId);
 
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, solution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, solution));
             Assert.Equal(0, worker.SyntaxDocumentIds.Count);
             Assert.Equal(1, worker.InvalidateDocumentIds.Count);
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             project = project.WithAssemblyName("newName");
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, project.Solution));
 
             var expectedDocumentEvents = 5;
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             project = project.WithDefaultNamespace("newNamespace");
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, project.Solution));
 
             var expectedDocumentEvents = 5;
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             project = project.AddAdditionalDocument("a1", SourceText.From("")).Project;
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, project.Solution));
 
             var expectedDocumentEvents = 5;
 
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var newSolution = workspace.CurrentSolution.WithProjectOutputFilePath(project.Id, "/newPath");
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, newSolution));
 
             var expectedDocumentEvents = 5;
 
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var newSolution = workspace.CurrentSolution.WithProjectOutputRefFilePath(project.Id, "/newPath");
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, newSolution));
 
             var expectedDocumentEvents = 5;
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var newSolution = workspace.CurrentSolution.WithProjectCompilationOutputInfo(project.Id, new CompilationOutputInfo(assemblyPath: "/newPath"));
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, newSolution));
 
             var expectedDocumentEvents = 5;
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.True(project.State.RunAnalyzers);
 
             var newSolution = workspace.CurrentSolution.WithRunAnalyzers(project.Id, false);
-            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProjectAsync(project.Id, newSolution));
 
             project = workspace.CurrentSolution.GetProject(project.Id);
             Assert.False(project.State.RunAnalyzers);
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = await ExecuteOperation(workspace, w => w.ChangeDocument(document.Id, SourceText.From("//")));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeDocumentAsync(document.Id, SourceText.From("//")));
 
             var expectedDocumentEvents = 1;
 
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
             var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
-            workspace.ChangeDocument(document.Id, SourceText.From("//"));
+            await workspace.ChangeDocumentAsync(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
             {
                 analyzer.RunningEvent.Wait();
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             token.Dispose();
 
-            workspace.ChangeDocument(document.Id, SourceText.From("// "));
+            await workspace.ChangeDocumentAsync(document.Id, SourceText.From("// "));
             await WaitAsync(service, workspace);
             await expeditedWait;
 
@@ -885,14 +885,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
             var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
-            workspace.ChangeDocument(document.Id, SourceText.From("//"));
+            await workspace.ChangeDocumentAsync(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
             {
                 analyzer.RunningEvent.Wait();
                 analyzer.RunningEvent.Reset();
             }
 
-            workspace.ChangeDocument(document.Id, SourceText.From("// "));
+            await workspace.ChangeDocumentAsync(document.Id, SourceText.From("// "));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
             {
                 analyzer.RunningEvent.Wait();
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             token.Dispose();
 
-            workspace.ChangeDocument(document.Id, SourceText.From("//  "));
+            await workspace.ChangeDocumentAsync(document.Id, SourceText.From("//  "));
             await WaitAsync(service, workspace);
             await expeditedWait;
 
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             service.Register(workspace);
 
             // first invocation will block worker
-            workspace.ChangeDocument(id, SourceText.From("//"));
+            await workspace.ChangeDocumentAsync(id, SourceText.From("//"));
             analyzer.RunningEvent.Wait();
 
             var openReady = new ManualResetEventSlim(initialState: false);
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.DocumentClosed += (o, e) => closeReady.Set();
 
             // cause several different request to queue up
-            workspace.ChangeDocument(id, SourceText.From("// "));
+            _ = workspace.ChangeDocumentAsync(id, SourceText.From("// "));
             workspace.OpenDocument(id);
             workspace.CloseDocument(id);
 
@@ -1557,7 +1557,14 @@ class C
             Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
-        private static async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)
+        private static Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)
+            => ExecuteOperation(workspace, w =>
+            {
+                operation(w);
+                return Task.CompletedTask;
+            });
+
+        private static async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Func<TestWorkspace, Task> operation)
         {
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
             Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
@@ -1571,7 +1578,7 @@ class C
 
             // don't rely on background parser to have tree. explicitly do it here.
             await TouchEverything(workspace.CurrentSolution);
-            operation(workspace);
+            await operation(workspace);
             await TouchEverything(workspace.CurrentSolution);
 
             await WaitAsync(service, workspace);
