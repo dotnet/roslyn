@@ -949,9 +949,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!arguments.Attribute.HasErrors);
             var attributeArguments = arguments.Attribute.CommonConstructorArguments;
             if (attributeArguments is not [
-                    { Kind: not TypedConstantKind.Array, Value: string filePath },
-                    { Kind: not TypedConstantKind.Array, Value: int lineNumber },
-                    { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
+                { Kind: not TypedConstantKind.Array, Value: string filePath },
+                { Kind: not TypedConstantKind.Array, Value: int lineNumber },
+                { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
             {
                 // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
                 throw ExceptionUtilities.Unreachable();

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
         }
-        internal override sealed bool IsInterceptable
+        internal sealed override bool IsInterceptable
         {
             get
             {

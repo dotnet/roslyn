@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsInterceptable => throw ExceptionUtilities.Unreachable();
 
-
         #region Not used by MethodSignatureComparer
 
         internal override bool GenerateDebugInfo { get { throw ExceptionUtilities.Unreachable(); } }
