@@ -352,7 +352,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
                         // If not already open in this workspace, open it.  If already opened, update it to this latest
                         // text value.
-                        if (workspace.IsDocumentOpen(documentId))
+                        if (!workspace.IsDocumentOpen(documentId))
+                        {
+                            // TODO(cyrusn): What is the right value for isCurrentContext here?
+                            workspace.OnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
+                        }
+                        else
                         {
                             // Only bother updating if the solution is pointing at a different source-text.
 
@@ -367,11 +372,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                                 continue;
 
                             workspace.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
-                        }
-                        else
-                        {
-                            // TODO(cyrusn): What is the right value for isCurrentContext here?
-                            workspace.OnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
                         }
                     }
                 }
