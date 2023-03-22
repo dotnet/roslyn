@@ -18,12 +18,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
     {
-        /// <summary>
-        /// Used as a tiebreaker to position coincident type and parameter hints.
-        /// Type hints will always appear second.
-        /// </summary>
-        private const double Ranking = 1.0;
-
         protected static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -88,7 +82,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, taggedText, textChange, ranking: Ranking,
+                    span, taggedText, textChange, ranking: InlineHintsConstants.TypeRanking,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
