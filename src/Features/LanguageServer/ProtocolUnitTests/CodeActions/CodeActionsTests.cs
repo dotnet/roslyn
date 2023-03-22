@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {
         }
 
-        [WpfFact]
-        public async Task TestCodeActionHandlerAsync()
+        [WpfTheory, CombinatorialData]
+        public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expected, useImplicitType);
         }
 
-        [WpfFact]
-        public async Task TestCodeActionHandlerAsync_NestedAction()
+        [WpfTheory, CombinatorialData]
+        public async Task TestCodeActionHandlerAsync_NestedAction(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expected, introduceConstant);
         }
 
-        [WpfFact]
-        public async Task TestCodeActionHasCorrectDiagnostics()
+        [WpfTheory, CombinatorialData]
+        public async Task TestCodeActionHasCorrectDiagnostics(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}Task.Delay(1);
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var caret = testLspServer.GetLocations("caret").Single();
             var codeActionParams = new LSP.CodeActionParams

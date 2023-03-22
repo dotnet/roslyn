@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
     public partial class DocumentChangesTests
     {
-        [Fact]
-        public async Task FindReferencesInChangingDocument()
+        [Theory, CombinatorialData]
+        public async Task FindReferencesInChangingDocument(bool mutatingLspWorkspace)
         {
             var source =
 @"class A
@@ -29,7 +29,7 @@ class B
     }
 }";
 
-            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
+            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
 
             await using (testLspServer)
             {
