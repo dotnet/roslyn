@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal class LanguageServerWorkspace : Workspace
+/// <summary>
+/// Mark this type as an <see cref="IMutatingLspWorkspace"/> so that LSP document changes are pushed into this instance,
+/// causing our <see cref="Workspace.CurrentSolution"/> to stay in sync with all the document changes.
+/// </summary>
+internal class LanguageServerWorkspace : Workspace, IMutatingLspWorkspace
 {
     public LanguageServerWorkspace(
         HostServices host)
