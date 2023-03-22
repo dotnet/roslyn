@@ -138,7 +138,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1014DiagnosticOption);
         }
 
-        [WpfFact, WorkItem(1087250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087250")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087250")]
         public void SetRuleSetFile_RemoveExtraBackslashes()
         {
             var ruleSetFile = Temp.CreateFile();
@@ -153,10 +153,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile);
         }
 
-        [WpfFact, WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
-        [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
-        [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectSettingsOverrideSpecificOptionsAndRestore()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -191,7 +191,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
         }
 
-        [WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectNoWarnOverridesOtherSettings()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -220,7 +220,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/33505")]
         public async Task RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
             var ruleSetSource =

@@ -242,7 +242,6 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
-        {"dotnet_enable_document_outline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
 
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
@@ -392,7 +391,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_show_navigation_bar", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Dropdown Bar", vbKey: "TextEditor.Basic.Dropdown Bar")},
 #pragma warning restore
-        {"dotnet_include_navigation_hints_in_quick_info", new RoamingProfileStorage("TextEditor.Specific.IncludeNavigationHintsInQuickInfo")},
+        {"dotnet_show_navigation_hints_in_quick_info", new RoamingProfileStorage("TextEditor.Specific.IncludeNavigationHintsInQuickInfo")},
         {"dotnet_show_remarks_in_quick_info", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
         {"dotnet_colorize_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns")},
         {"dotnet_highlight_related_regex_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
@@ -408,6 +407,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"visual_studio_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
+        {"visual_studio_enable_document_outline", new RoamingProfileStorage(@"DocumentOutline.Enable")},
         {"dotnet_enable_asynchronous_suggestions", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
         {"dotnet_disable_asynchronous_quick_actions", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},

@@ -13,16 +13,11 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Cocoa.Lsp;
 /// Implementation of the workspace registration service exported to be included in the VSMac composition.
 /// </summary>
 [Export(typeof(LspWorkspaceRegistrationService)), Shared]
-internal class VSMacWorkspaceRegistrationService : LspWorkspaceRegistrationService
+internal sealed class VSMacWorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSMacWorkspaceRegistrationService()
     {
     }
-
-    /// <summary>
-    /// VSMac uses <see cref="WorkspaceKind.Host"/> for their MonoDevelopWorkspace.
-    /// </summary>
-    public override string GetHostWorkspaceKind() => WorkspaceKind.Host;
 }

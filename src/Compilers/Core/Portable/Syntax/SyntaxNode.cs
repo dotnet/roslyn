@@ -612,6 +612,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
             int offset = 0;
             var green = this.Green;
             while (index > 0)
@@ -630,6 +635,36 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.Position + offset;
+        }
+
+        // Similar to GetChildPosition() but calculating based on the positions of
+        // following siblings rather than previous siblings.
+        internal int GetChildPositionFromEnd(int index)
+        {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
+            var green = this.Green;
+            int offset = green.GetSlot(index)?.FullWidth ?? 0;
+            int slotCount = green.SlotCount;
+            while (index < slotCount - 1)
+            {
+                index++;
+                var nextSibling = this.GetCachedSlot(index);
+                if (nextSibling != null)
+                {
+                    return nextSibling.Position - offset;
+                }
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
+                {
+                    offset += greenChild.FullWidth;
+                }
+            }
+
+            return this.EndPosition - offset;
         }
 
         public Location GetLocation()

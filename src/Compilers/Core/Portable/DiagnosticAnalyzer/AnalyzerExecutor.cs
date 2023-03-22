@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly Compilation? _compilation;
         private readonly AnalyzerOptions? _analyzerOptions;
-        private readonly Action<Diagnostic>? _addNonCategorizedDiagnostic;
-        private readonly Action<Diagnostic, DiagnosticAnalyzer, bool>? _addCategorizedLocalDiagnostic;
-        private readonly Action<Diagnostic, DiagnosticAnalyzer>? _addCategorizedNonLocalDiagnostic;
+        private readonly Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
+        private readonly Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
+        private readonly Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
         private readonly Action<Suppression>? _addSuppression;
-        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> _onAnalyzerException;
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static AnalyzerExecutor Create(
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
-            Action<Diagnostic>? addNonCategorizedDiagnostic,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
             bool logExecutionTime = false,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic = null,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic = null,
             Action<Suppression>? addSuppression = null,
             CancellationToken cancellationToken = default)
         {
@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? onAnalyzerException,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
-            onAnalyzerException ??= (ex, analyzer, diagnostic) => { };
+            onAnalyzerException ??= (ex, analyzer, diagnostic, cancellationToken) => { };
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null,
@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private AnalyzerExecutor(
             Compilation? compilation,
             AnalyzerOptions? analyzerOptions,
-            Action<Diagnostic>? addNonCategorizedDiagnosticOpt,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnosticOpt,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool>? isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
             Action<Suppression>? addSuppression,
             CancellationToken cancellationToken)
         {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal CancellationToken CancellationToken => _cancellationToken;
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> OnAnalyzerException => _onAnalyzerException;
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
         {
             get
@@ -547,19 +547,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModelActions">Semantic model actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="semanticModel">Semantic model to analyze.</param>
-        /// <param name="compilationUnitCompletedEvent">Compilation event for semantic model analysis.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
         public void ExecuteSemanticModelActions(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            CompilationUnitCompletedEvent compilationUnitCompletedEvent,
             AnalysisScope analysisScope,
             bool isGeneratedCode)
         {
-            Debug.Assert(!compilationUnitCompletedEvent.FilterSpan.HasValue || _isCompilerAnalyzer!(analyzer), "Only compiler analyzer supports span-based semantic model action callbacks");
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
             {
@@ -869,13 +865,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any());
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any());
                 }
             }
 
@@ -972,7 +968,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            Func<SyntaxNode, TLanguageKindEnum> getKind,
            TextSpan filterSpan,
            ISymbol declaredSymbol,
-           bool isGeneratedCode)
+           bool isGeneratedCode,
+           bool hasCodeBlockStartOrSymbolStartActions)
            where TLanguageKindEnum : struct
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -984,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions);
             diagReporter.Free();
         }
 
@@ -995,9 +992,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
-            Action<Diagnostic> addDiagnostic,
+            AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasCodeBlockStartOrSymbolStartActions)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActionsByKind.Any());
@@ -1014,9 +1012,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(nodeActionsByKind)}");
                     if (ShouldExecuteNode(node, analyzer))
                     {
+                        // If analyzer hasn't registered any CodeBlockStart or SymbolStart actions, then update the filter span
+                        // for local diagnostics to be the callback node's full span.
+                        // For this case, any diagnostic reported in node's callback outside it's full span will be considered
+                        // a non-local diagnostic.
+                        if (!hasCodeBlockStartOrSymbolStartActions)
+                            diagReporter.FilterSpanForLocalDiagnostics = node.FullSpan;
+
                         foreach (var action in actionsForKind)
                         {
-                            ExecuteSyntaxNodeAction(action, node, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode);
+                            ExecuteSyntaxNodeAction(action, node, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
                         }
                     }
                 }
@@ -1061,7 +1066,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel model,
             TextSpan filterSpan,
             ISymbol declaredSymbol,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasOperationBlockStartOrSymbolStartActions)
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
@@ -1072,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions);
             diagReporter.Free();
         }
 
@@ -1082,9 +1088,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
-            Action<Diagnostic> addDiagnostic,
+            AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasOperationBlockStartOrSymbolStartActions)
         {
             Debug.Assert(operationActionsByKind != null);
             Debug.Assert(operationActionsByKind.Any());
@@ -1101,9 +1108,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(operationActionsByKind)}");
                     if (ShouldExecuteOperation(operation, analyzer))
                     {
+                        // If analyzer hasn't registered any OperationBlockStart or SymbolStart actions, then update
+                        // the filter span for local diagnostics to be the callback operation's full span.
+                        // For this case, any diagnostic reported in operation's callback outside it's full span
+                        // will be considered a non-local diagnostic.
+                        if (!hasOperationBlockStartOrSymbolStartActions)
+                            diagReporter.FilterSpanForLocalDiagnostics = operation.Syntax.FullSpan;
+
                         foreach (var action in actionsForKind)
                         {
-                            ExecuteOperationAction(action, operation, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode);
+                            ExecuteOperationAction(action, operation, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
                         }
                     }
                 }
@@ -1175,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e, info);
                 try
                 {
-                    _onAnalyzerException(e, analyzer, diagnostic);
+                    _onAnalyzerException(e, analyzer, diagnostic, _cancellationToken);
                 }
                 catch (Exception)
                 {
@@ -1341,9 +1355,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SyntaxReference> cachedDeclaringReferences,
             Compilation compilation,
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic>? addNonCategorizedDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             CancellationToken cancellationToken)
@@ -1358,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (addCategorizedLocalDiagnostic == null)
                 {
                     Debug.Assert(addNonCategorizedDiagnostic != null);
-                    addNonCategorizedDiagnostic(diagnostic);
+                    addNonCategorizedDiagnostic(diagnostic, cancellationToken);
                     return;
                 }
 
@@ -1374,14 +1388,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation, cancellationToken);
                             if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
                             {
-                                addCategorizedLocalDiagnostic(diagnostic, analyzer, false);
+                                addCategorizedLocalDiagnostic(diagnostic, analyzer, false, cancellationToken);
                                 return;
                             }
                         }
                     }
                 }
 
-                addCategorizedNonLocalDiagnostic(diagnostic, analyzer);
+                addCategorizedNonLocalDiagnostic(diagnostic, analyzer, cancellationToken);
             };
         }
 
@@ -1397,11 +1411,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_addCategorizedNonLocalDiagnostic == null)
                 {
                     Debug.Assert(_addNonCategorizedDiagnostic != null);
-                    _addNonCategorizedDiagnostic(diagnostic);
+                    _addNonCategorizedDiagnostic(diagnostic, _cancellationToken);
                     return;
                 }
 
-                _addCategorizedNonLocalDiagnostic(diagnostic, analyzer);
+                _addCategorizedNonLocalDiagnostic(diagnostic, analyzer, _cancellationToken);
             };
         }
 

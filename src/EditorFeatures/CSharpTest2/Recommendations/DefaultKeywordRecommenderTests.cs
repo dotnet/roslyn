@@ -221,7 +221,7 @@ $$");
     $$"));
         }
 
-        [Fact, WorkItem(552717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
         public async Task TestNotAfterGotoInSwitch()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -237,28 +237,28 @@ $$");
 @"goto $$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInTypeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInDefault()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInSizeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -277,7 +277,7 @@ class C
 @"ref int x = ref $$"));
         }
 
-        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
@@ -289,7 +289,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint_InOverride()
         {
             await VerifyKeywordAsync(
@@ -301,7 +301,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
         {
             await VerifyKeywordAsync(
@@ -334,7 +334,7 @@ class C
 @"var lam = (int i = $$");
         }
 
-        [Fact, WorkItem(36472, "https://github.com/dotnet/roslyn/issues/36472")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36472")]
         public async Task InAmbiguousCast1()
         {
             await VerifyKeywordAsync(
