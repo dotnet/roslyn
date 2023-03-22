@@ -1032,6 +1032,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            // PROTOTYPE(ic): The attribute should probably be expected to contain "display locations" (1-indexed) a la Diagnostic.ToString().
+            // But to do this, we would want to expose helper API for source generators, to produce "display locations" to put in the attribute.
+            // We would normalize to 0-indexed in this step. all our location-oriented complaints are made here, so we shouldn't need to convert back to "display location" after that point.
             DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumber, characterNumber, attributeLocation), this);
         }
 
