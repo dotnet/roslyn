@@ -459,8 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = node.CatchBlocks.SelectAsArray(catchBlock =>
-                (BoundCatchBlock)this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame));
+            var rewrittenCatches = node.CatchBlocks.SelectAsArray(static (catchBlock, arg) =>
+            {
+                var (@this, origAwaitCatchFrame) = arg;
+                return (BoundCatchBlock)@this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame);
+            },
+            (this, origAwaitCatchFrame));
+
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
