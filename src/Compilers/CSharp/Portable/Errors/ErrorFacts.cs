@@ -2307,6 +2307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadRefInUsingAlias:
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
                     return false;
                 default:
