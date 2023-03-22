@@ -1833,9 +1833,9 @@ class C
 class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<C>()'
+                    // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
                     //     [Attr(nameof(Method<C>().Method))]
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<C>").WithArguments("C.Method<C>()").WithLocation(4, 18));
+                    Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18));
         }
     }
 }
