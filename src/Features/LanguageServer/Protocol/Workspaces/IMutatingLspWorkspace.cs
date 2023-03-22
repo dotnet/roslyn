@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Text;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -33,4 +34,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </summary>
 interface IMutatingLspWorkspace
 {
+    /// <summary>
+    /// If <paramref name="documentId"/> is currently within this workspace, then close it.  Does nothing if the
+    /// document is not present in the workspace (for example if something else removed it).
+    /// </summary>
+    void CloseIfPresent(DocumentId documentId, string filePath);
+
+    /// <summary>
+    /// If <paramref name="documentId"/> is currently within this workspace, then open it.  Does nothing if the document
+    /// is not present in the workspace (for example if something else removed it).
+    /// </summary>
+    void OpenIfPresent(DocumentId documentId, SourceTextContainer container);
+
+    /// <summary>
+    /// If <paramref name="documentId"/> is currently within this workspace, then its text is updated to <paramref
+    /// name="sourceText"/>.  Does nothing if the document is not present in the workspace (for example if something
+    /// else removed it).
+    /// </summary>
+    void UpdateTextIfPresent(DocumentId documentId, SourceText sourceText);
 }

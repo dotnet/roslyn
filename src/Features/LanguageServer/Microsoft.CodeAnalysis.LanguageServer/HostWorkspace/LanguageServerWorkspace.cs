@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -20,4 +21,17 @@ internal class LanguageServerWorkspace : Workspace, IMutatingLspWorkspace
     }
 
     protected internal override bool PartialSemanticsEnabled => true;
+
+    void IMutatingLspWorkspace.CloseIfPresent(DocumentId documentId, string filePath)
+        => OnDocumentClosed(
+            documentId,
+            new WorkspaceFileTextLoader(this.Services.SolutionServices, filePath, defaultEncoding: null),
+            _: false,
+            requireDocumentPresent: false);
+
+    void IMutatingLspWorkspace.OpenIfPresent(DocumentId documentId, SourceTextContainer container)
+        => OnDocumentOpened(documentId, container, isCurrentContext: false, requireDocumentPresent: false);
+
+    void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
+        => UpdateTextIfPresent(documentId, sourceText);
 }

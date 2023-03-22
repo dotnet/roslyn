@@ -355,15 +355,26 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnDocumentOpened(
-            DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+        protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresent: true);
+
+        private protected void OnDocumentOpened(
+            DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresent)
         {
             SetCurrentSolution(
                 static (oldSolution, data) =>
                 {
-                    var (@this, documentId, _, _) = data;
+                    var (@this, documentId, _, _, requireDocumentPresent) = data;
 
-                    CheckDocumentIsInSolution(oldSolution, documentId);
+                    if (requireDocumentPresent)
+                    {
+                        CheckDocumentIsInSolution(oldSolution, documentId);
+                    }
+                    else if (oldSolution.GetDocument(documentId) is null)
+                    {
+                        return oldSolution;
+                    }
+
                     @this.CheckDocumentIsClosed(documentId);
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
@@ -386,10 +397,10 @@ namespace Microsoft.CodeAnalysis
                         return oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                     }
                 },
-                data: (@this: this, documentId, textContainer, isCurrentContext),
+                data: (@this: this, documentId, textContainer, isCurrentContext, requireDocumentPresent),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
-                    var (@this, documentId, textContainer, isCurrentContext) = data;
+                    var (@this, documentId, textContainer, isCurrentContext, _) = data;
 
                     @this.AddToOpenDocumentMap(documentId);
                     @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
@@ -574,6 +585,12 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
 #pragma warning restore IDE0060 // Remove unused parameter
+            => OnDocumentClosed(documentId, reloader, updateActiveContext, requireDocumentPresent: true);
+
+        /// <param name="requireDocumentPresent">Whether <paramref name="documentId"/> must be contained within
+        /// the current solution.  If this is true, and the document is not, this operation will throw.  If
+        /// it is false and the document is not, this operation is a no-op.</param>
+        private protected void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool _, bool requireDocumentPresent)
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
@@ -586,12 +603,19 @@ namespace Microsoft.CodeAnalysis
                     {
                         var documentId = data.documentId;
 
-                        CheckDocumentIsInSolution(oldSolution, documentId);
-                        data.@this.CheckDocumentIsOpen(documentId);
+                        if (data.requireDocumentPresent)
+                        {
+                            CheckDocumentIsInSolution(oldSolution, documentId);
+                        }
+                        else if (oldSolution.GetDocument(documentId) is null)
+                        {
+                            return oldSolution;
+                        }
 
+                        data.@this.CheckDocumentIsOpen(documentId);
                         return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
                     },
-                    data: (@this: this, documentId, reloader, updateActiveContext),
+                    data: (@this: this, documentId, reloader, requireDocumentPresent),
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
                         var documentId = data.documentId;
