@@ -345,10 +345,23 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 {
                     foreach (var documentId in currentSolution.GetDocumentIds(uri))
                     {
-                        // If not already open in this workspace, open it.  If already opened, update it to this latest text value.
+                        // Note: for a mutating workspace, we (the workspace manager) own the open/closed state of
+                        // documents within the workspace (see the docs on IMutatingLspWorkspace).  So we do not have to
+                        // worry about external sources changing these values.  If they do, they are acting in a
+                        // non-compliant fashion, and the semantics here are not defined.
+
+                        // If not already open in this workspace, open it.  If already opened, update it to this latest
+                        // text value.
                         if (workspace.IsDocumentOpen(documentId))
                         {
-                            // Only bother updating if we 
+                            // Only bother updating if the solution is pointing at a different source-text.
+
+                            // Note: there is a race here in that we might see/change/return here based on the
+                            // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
+                            // confines of lsp queue might update the workspace externally.  That's completely fine
+                            // though.  The caller will always grab the 'current solution' again off of the workspace
+                            // and check the checksums of all documents against the ones this workspace manager is
+                            // tracking.  If there are any differences, it will fork and use that fork.
                             var document = currentSolution.GetDocument(documentId);
                             if (document != null && document.TryGetText(out var existingText) && existingText == sourceText)
                                 continue;
