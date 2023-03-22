@@ -20,7 +20,7 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
     {
     }
 
-    private protected static async Task VerifyInlayHintAsync(TestLspServer testLspServer)
+    private protected static async Task VerifyInlayHintAsync(TestLspServer testLspServer, bool hasTextEdits = true)
     {
         var expectedInlayHints = await GetAnnotatedLocationsAsync(testLspServer.TestWorkspace, testLspServer.GetCurrentSolution());
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -53,7 +53,10 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
                 AssertEx.NotNull(matchingInlayHint.Kind);
                 Assert.True(matchingInlayHint.PaddingRight);
                 Assert.False(matchingInlayHint.PaddingLeft);
-                AssertEx.NotNull(matchingInlayHint.TextEdits);
+                if (hasTextEdits)
+                {
+                    AssertEx.NotNull(matchingInlayHint.TextEdits);
+                }
 
                 var resolvedInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, matchingInlayHint, CancellationToken.None);
                 AssertEx.NotNull(resolvedInlayHint?.ToolTip);

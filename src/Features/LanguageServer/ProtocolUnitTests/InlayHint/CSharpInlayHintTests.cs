@@ -85,12 +85,26 @@ class A
             await RunVerifyInlayHintAsync(markup);
         }
 
-        private async Task RunVerifyInlayHintAsync(string markup)
+        [Fact]
+        public async Task TestInlayTypeHintsDeconstructAsync()
+        {
+            var markup =
+@"class A
+{
+    void X((int, bool) d)
+    {
+        var (i, b) = d;
+    }
+}";
+            await RunVerifyInlayHintAsync(markup, hasTextEdits: false);
+        }
+
+        private async Task RunVerifyInlayHintAsync(string markup, bool hasTextEdits = true)
         {
             await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, true);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, true);
-            await VerifyInlayHintAsync(testLspServer);
+            await VerifyInlayHintAsync(testLspServer, hasTextEdits);
         }
     }
 }
