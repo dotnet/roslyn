@@ -3669,7 +3669,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(sourceMember, sourceType);
 
         var sourceTypeCByMetadataName = comp.GetTypeByMetadataName("C");
-        Assert.Equal("C", sourceTypeCByMetadataName.MetadataName);
+        Assert.NotNull(sourceTypeCByMetadataName);
+        Assert.Equal("C", sourceTypeCByMetadataName!.MetadataName);
         Assert.False(sourceTypeCByMetadataName is SourceMemberContainerTypeSymbol { IsFileLocal: true });
 
         // from metadata
@@ -3683,7 +3684,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(metadataMember, metadataType);
 
         var metadataTypeCByMetadataName = comp2.GetTypeByMetadataName("C");
-        Assert.Equal("C", metadataTypeCByMetadataName.MetadataName);
+        Assert.NotNull(metadataTypeCByMetadataName);
+        Assert.Equal("C", metadataTypeCByMetadataName!.MetadataName);
     }
 
     [CombinatorialData]
