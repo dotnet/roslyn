@@ -148,15 +148,15 @@ public class Test
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
         }
 
         [Fact]
@@ -1038,27 +1038,27 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,19): error CS0150: A constant value is expected
+                // (8,19): error CS9135: A constant value of type 'object' is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(o.GetType().Name.Length)").WithArguments("object").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,19): error CS0150: A constant value is expected
+                // (8,19): error CS9135: A constant value of type 'object' is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(o.GetType().Name.Length)").WithArguments("object").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
         }
 
         [Fact]
