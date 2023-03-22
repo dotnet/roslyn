@@ -2937,6 +2937,8 @@ class Program
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
+                    case ErrorCode.ERR_CallNotInterceptable:
+                    case ErrorCode.ERR_InterceptorSignatureMismatch:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

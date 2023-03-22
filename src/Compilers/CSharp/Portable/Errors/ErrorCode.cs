@@ -2199,6 +2199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorLineOutOfRange = 27005,
         ERR_InterceptorCharacterOutOfRange = 27006,
         ERR_InterceptorSignatureMismatch = 27007,
+        ERR_InterceptableMethodMustBeOrdinary = 27008,
+        ERR_InterceptorMethodMustBeOrdinary = 27009,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

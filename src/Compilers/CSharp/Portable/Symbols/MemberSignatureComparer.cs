@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefKindDifferences,
-            bool considerArity = true, // PROTOTYPE(ic): make parameter required?
+            bool considerArity = true, // PROTOTYPE(ic): remove default value?
             TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");

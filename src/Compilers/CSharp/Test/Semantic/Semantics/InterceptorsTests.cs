@@ -118,6 +118,7 @@ public class InterceptorsTests : CSharpTestBase
 
     // PROTOTYPE(ic): test a case where the original method has type parameter constraints.
     // PROTOTYPE(ic): for now we will just completely disallow type parameters in the interceptor.
+    // PROTOTYPE(ic): test where interceptable is a constructed method or a retargeting method.
 
     [Fact]
     public void InterceptableInstanceMethod_InterceptorExtensionMethod()
@@ -183,6 +184,114 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call siteinterceptable call site");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableFromMetadata()
+    {
+        var source1 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            public interface I1 { }
+            public class C : I1
+            {
+                [Interceptable]
+                public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 8, 10)]
+                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """;
+
+        var comp1 = CreateCompilation(new[] { (source1, "File1.cs"), s_attributesSource });
+        comp1.VerifyEmitDiagnostics();
+
+        var verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, expectedOutput: "interceptor call site");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LocalFunctionInterceptor()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1 { }
+
+            static class Program
+            {
+                [Interceptable]
+                public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+
+                public static void Main()
+                {
+                    InterceptableMethod("call site");
+
+                    [InterceptsLocation("Program.cs", 13, 8)]
+                    static void Interceptor1(string param) { Console.Write("interceptor " + param); }
+                }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyDiagnostics(
+            // Program.cs(16,10): error CS27009: An interceptor method must be an ordinary member method.
+            //         [InterceptsLocation("Program.cs", 13, 8)]
+            Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(16, 10),
+            // Program.cs(17,21): warning CS8321: The local function 'Interceptor1' is declared but never used
+            //         static void Interceptor1(string param) { Console.Write("interceptor " + param); }
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Interceptor1").WithArguments("Interceptor1").WithLocation(17, 21)
+            );
+    }
+
+    [Fact]
+    public void LocalFunctionInterceptable()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1 { }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    InterceptableMethod("call site");
+
+                    [Interceptable]
+                    static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+                }
+
+                [InterceptsLocation("Program.cs", 10, 8)]
+                public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyDiagnostics(
+            // Program.cs(13,10): error CS27008: An interceptable method must be an ordinary member method.
+            //         [Interceptable]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(13, 10));
     }
 
     [Fact]

@@ -165,22 +165,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
-
-        // PROTOTYPE(ic): do we want to expose InterceptsLocation data on the symbol itself?
-        // private ImmutableArray<InterceptsLocationAttributeData> _interceptsLocations = ImmutableArray<InterceptsLocationAttributeData>.Empty;
-
-        // internal void AddInterceptsLocation(InterceptsLocationAttributeData interceptsLocation)
-        // {
-        //     _interceptsLocations = _interceptsLocations.Add(interceptsLocation);
-        // }
-
-        // public ImmutableArray<InterceptsLocationAttributeData> InterceptsLocationsAttributeData
-        // {
-        //     get
-        //     {
-        //         VerifySealed(expected: true);
-        //         return _interceptsLocations;
-        //     }
-        // }
     }
 }

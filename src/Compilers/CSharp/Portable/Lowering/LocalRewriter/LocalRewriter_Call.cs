@@ -152,26 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var interceptableLocation = node.InterceptableLocation;
             if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
             {
-                // PROTOTYPE(ic): if an interceptor doesn't refer to anything, we want to report it.
-                // that means we need some way of flagging when an interceptor is used.
+                // The call was not intercepted.
                 return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
             }
 
             Debug.Assert(interceptableLocation != null);
             if (!method.IsInterceptable)
             {
+                // PROTOTYPE(ic): it was speculated that we could avoid work if we know the current method is not interceptable.
+                // i.e. use this as an early out before even calling Compilation.GetInterceptor.
+                // But by calling 'GetInterceptor' before this, we don't really avoid that work. Is that fine?
                 this._diagnostics.Add(ErrorCode.ERR_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
                 return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
             }
 
-            if (interceptor.Arity != 0 || interceptor.ContainingType.VisitType(static (type, _, _) => type.GetArity() != 0, arg: (object?)null) is not null)
-            {
-                // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
-                // eventually, we could consider doing a type argument inference.
-                this._diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, interceptableLocation);
-                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
-            }
+            Debug.Assert(interceptor.Arity == 0);
 
+            // When the original call is to an instance method, and the interceptor is an extension method,
+            // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             var needToReduce = receiverOpt != null && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))

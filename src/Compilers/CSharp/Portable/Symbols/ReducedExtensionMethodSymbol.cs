@@ -574,7 +574,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
-        // PROTOTYPE(ic): These symbols are only used for public API and shouldn't be able to call into this
         internal override bool IsInterceptable => throw ExceptionUtilities.Unreachable();
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)

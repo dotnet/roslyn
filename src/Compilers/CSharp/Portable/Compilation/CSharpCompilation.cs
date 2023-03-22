@@ -2253,7 +2253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             LazyInitializer.EnsureInitialized(ref _interceptions).Add((location, interceptor));
-            // PROTOTYPE(ic): when all this is done, build a map and give duplicate/misplaced diagnostics which we can use in lowering.
         }
 
         internal (InterceptsLocationAttributeData data, MethodSymbol interceptor)? GetInterceptor(Location? callLocation)
@@ -2277,10 +2276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal void BuildInterceptorsMap()
+        private void BuildInterceptorsMap()
         {
             // PROTOTYPE(ic): build a map where we can quickly lookup with a location and get a symbol.
-            // At this time, should report any duplicate interceptor diagnostics.
+            // At this time, should report any duplicate interception diagnostics.
             // NB: the attribute which appears lexically first wins a tie. Subsequent attributes referring to same location result in errors.
         }
 

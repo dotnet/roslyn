@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
-        // PROTOTYPE(ic)
         internal sealed override bool IsInterceptable => throw ExceptionUtilities.Unreachable();
 
 

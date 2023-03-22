@@ -594,6 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptableAttribute))
             {
+                if (MethodKind != MethodKind.Ordinary)
+                {
+                    // PROTOTYPE(ic): consider relaxing this in future.
+                    diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                }
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasInterceptableAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptsLocationAttribute))
@@ -963,6 +968,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                // PROTOTYPE(ic): consider relaxing this in future.
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return;
+            }
+
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
             var matchingTree = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, filePath);
             if (matchingTree == null)
@@ -996,8 +1008,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // PROTOTYPE(ic): the call-site binding is going to need to look some of this stuff up again.
-            // are we sure this is the best place to do these kinds of checks?
             var referencedPosition = line.Start + characterNumber;
             var root = matchingTree.GetRoot();
             var referencedToken = root.FindToken(referencedPosition);

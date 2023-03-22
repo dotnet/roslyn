@@ -580,6 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
                 case ErrorCode.ERR_CallNotInterceptable:
+                case ErrorCode.ERR_InterceptorSignatureMismatch:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2313,8 +2314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
+                case ErrorCode.ERR_InterceptorPositionBadToken:
                 case ErrorCode.ERR_InterceptorLineOutOfRange:
                 case ErrorCode.ERR_InterceptorCharacterOutOfRange:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                case ErrorCode.ERR_InterceptorMethodMustBeOrdinary:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

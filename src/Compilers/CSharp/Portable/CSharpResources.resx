@@ -7535,4 +7535,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
     <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>
   </data>
+  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
+    <value>An interceptable method must be an ordinary member method.</value>
+  </data>
+  <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
+    <value>An interceptor method must be an ordinary member method.</value>
+  </data>
 </root>

@@ -842,6 +842,11 @@
         <target state="translated">インターフェイス内のインスタンス プロパティは初期化子を持つことができません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>An interceptable method must be an ordinary member method.</source>
+        <target state="new">An interceptable method must be an ordinary member method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
         <target state="new">Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</target>
@@ -855,6 +860,11 @@
       <trans-unit id="ERR_InterceptorLineOutOfRange">
         <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
         <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="new">An interceptor method must be an ordinary member method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
