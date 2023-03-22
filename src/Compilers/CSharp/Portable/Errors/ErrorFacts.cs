@@ -530,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_CallNotInterceptable:
                     return 1;
                 default:
                     return 0;
