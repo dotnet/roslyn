@@ -134,15 +134,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                if (workspace is not IMutatingLspWorkspace)
+                if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
                     continue;
 
                 foreach (var document in workspace.CurrentSolution.GetDocuments(uri))
                 {
-                    // Note: for a mutating workspace, we (the workspace manager) own the open/closed state of documents
-                    // within the workspace (see the docs on IMutatingLspWorkspace).  So we do not have to worry about
-                    // external sources changing these values.  If they do, they are acting in a non-compliant fashion,
-                    // and the semantics here are not defined.
                     if (workspace.IsDocumentOpen(document.Id))
                     {
                         // TODO(cyrusn): What if this document has a null filepath? What sort of loader should we give
