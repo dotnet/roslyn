@@ -751,11 +751,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             OnSourceGeneratedDocumentClosed(document);
         }
 
-        public void ChangeDocument(DocumentId documentId, SourceText text)
-        {
-            ChangeDocumentAsync(documentId, text);
-        }
-
         public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
         {
             return ChangeDocumentAsync(documentId, this.CurrentSolution.WithDocumentText(documentId, text));
@@ -791,11 +786,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
-        public void ChangeProject(ProjectId projectId, Solution solution)
-        {
-            ChangeProjectAsync(projectId, solution);
-        }
-
         public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
         {
             var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
@@ -805,11 +795,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public new void ClearSolution()
             => base.ClearSolution();
-
-        public void ChangeSolution(Solution solution)
-        {
-            ChangeSolutionAsync(solution);
-        }
 
         public Task ChangeSolutionAsync(Solution solution)
         {
