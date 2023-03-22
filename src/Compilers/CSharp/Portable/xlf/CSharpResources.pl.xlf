@@ -868,8 +868,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
-        <source>The provided character number must refer to the start of the token. Consider using character number '{0}' instead.</source>
-        <target state="new">The provided character number must refer to the start of the token. Consider using character number '{0}' instead.</target>
+        <source>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</source>
+        <target state="new">The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorPathNotInCompilation">

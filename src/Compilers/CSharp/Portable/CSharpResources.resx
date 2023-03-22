@@ -7530,7 +7530,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The provided line and character number does not refer to an interceptable method, but rather to token '{0}'.</value>
   </data>
   <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
-    <value>The provided character number must refer to the start of the token. Consider using character number '{0}' instead.</value>
+    <value>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</value>
   </data>
   <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
     <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>

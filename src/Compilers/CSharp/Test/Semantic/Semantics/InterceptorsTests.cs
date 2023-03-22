@@ -653,6 +653,42 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptsLocationBadPosition_04()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1 { }
+
+            static class Program
+            {
+                [Interceptable]
+                public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
+
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 12)]
+                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '10' instead.
+            //     [InterceptsLocation("Program.cs", 14, 12)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 12)").WithArguments("InterceptableMethod", "10").WithLocation(21, 6)
+        );
+    }
+
+    [Fact]
     public void SignatureMismatch_01()
     {
         var source = """

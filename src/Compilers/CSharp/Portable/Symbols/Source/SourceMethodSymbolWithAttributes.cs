@@ -1022,6 +1022,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
             }
 
+            // Did they actually refer to the start of the token, not the middle?
+            var tokenPositionDifference = referencedPosition - referencedToken.Span.Start;
+            Debug.Assert(tokenPositionDifference >= 0); // if the referenced position were smaller than the token's start position, we wouldn't have matched it.
+            if (tokenPositionDifference != 0)
+            {
+                // tokens don't span multiple lines, so we can apply the difference we found to the characterNumber within the line and figure out which character the user should have used.
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, characterNumber - tokenPositionDifference);
+                return;
+            }
+
             DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumber, characterNumber, attributeLocation), this);
         }
 
