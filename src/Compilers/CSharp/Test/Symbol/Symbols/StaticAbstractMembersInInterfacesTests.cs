@@ -13098,8 +13098,8 @@ class Test
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: _supportingFramework);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
