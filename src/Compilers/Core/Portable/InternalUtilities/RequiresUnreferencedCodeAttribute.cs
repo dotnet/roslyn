@@ -7,6 +7,10 @@ namespace System.Diagnostics.CodeAnalysis;
 
 internal sealed class RequiresUnreferencedCodeAttribute : Attribute
 {
-    public RequiresUnreferencedCodeAttribute(string message) { }
+    public string Message { get; }
+    public RequiresUnreferencedCodeAttribute(string message)
+    {
+        Message = message;
+     }
 }
 #endif
