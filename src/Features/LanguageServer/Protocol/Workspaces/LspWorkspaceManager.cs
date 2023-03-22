@@ -20,13 +20,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
+interface IMutatingLspWorkspace
+{
+
+}
+
 /// <summary>
 /// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
 /// <remarks>
 /// This type provides an LSP view of the registered workspace solutions so that all LSP requests operate
-/// on the state of the world that matches the LSP requests we've recieved.  
+/// on the state of the world that matches the LSP requests we've received.  
 /// 
 /// This is done by storing the LSP text as provided by client didOpen/didClose/didChange requests.  When asked for a document we provide either
 /// <list type="bullet">
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
+internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
@@ -85,6 +90,20 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region Implementation of IDocumentChangeTracker
 
+    private void PushChangeThroughToWorkspace(Uri uri, Action<Workspace, IMutatingLspWorkspace, ImmutableArray<Document>> action)
+    {
+        var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+        foreach (var workspace in registeredWorkspaces)
+        {
+            if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
+                continue;
+
+            var solution = workspace.CurrentSolution;
+            var documents = solution.GetDocuments(uri);
+            action(workspace, mutatingWorkspace, documents);
+        }
+    }
+
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
@@ -100,6 +119,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentOpened(document.Id, documentText.Container);
+        });
     }
 
     /// <summary>
@@ -120,6 +145,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(w.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
+        });
     }
 
     /// <summary>
@@ -137,6 +168,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
+        {
+            foreach (var document in ds)
+                w.OnDocumentTextChanged(document.Id, newSourceText, PreservationMode.PreserveValue);
+        });
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
