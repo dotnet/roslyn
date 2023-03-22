@@ -11760,7 +11760,7 @@ class Program
         [WorkItem(67041, "https://github.com/dotnet/roslyn/issues/67041")]
         [Theory]
         [CombinatorialData]
-        public void Conversion_ExplicitPointerToInteger(bool useNumericIntPtr)
+        public void PointerSubtraction(bool useNumericIntPtr)
         {
             var source = """
                 class Program
