@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Configuration;
-using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -31,8 +28,6 @@ namespace Microsoft.CodeAnalysis.Classification
             _supportedKinds = array.ToImmutableAndClear();
         }
 
-        protected abstract bool TextStartWithEscapeCharacter(string text);
-
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
             var token = context.SyntaxToken;
@@ -50,14 +45,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             foreach (var vc in virtualChars)
             {
-                // non-BMP UTF-16 characters' length can be two
-                if (vc.Span.Length > 1)
+                // utf-16 virtual char might have either one or two in text span
+                if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
                 {
-                    var text = token.SyntaxTree?.GetText(context.CancellationToken).ToString(vc.Span);
-                    if (text is not null && TextStartWithEscapeCharacter(text))
-                    {
-                        context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
-                    }
+                    context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
                 }
             }
         }
