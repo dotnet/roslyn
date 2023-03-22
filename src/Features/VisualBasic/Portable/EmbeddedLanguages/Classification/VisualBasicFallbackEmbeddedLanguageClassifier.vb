@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
@@ -14,5 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Private Sub New()
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
+
+        Protected Overrides Function TextStartWithEscapeCharacter(text As String) As Boolean
+            ' https://github.com/dotnet/vblang/blob/main/spec/lexical-grammar.md#string-literals
+            ' VB only escape double quote
+            Return text.StartsWith("""""", StringComparison.InvariantCulture)
+        End Function
     End Class
 End Namespace
