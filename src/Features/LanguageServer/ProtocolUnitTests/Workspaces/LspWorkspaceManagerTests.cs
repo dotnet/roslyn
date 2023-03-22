@@ -290,7 +290,6 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         var exportProvider = testLspServer.TestWorkspace.ExportProvider;
 
         var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
-        Assert.Equal(WorkspaceKind.Host, workspaceRegistrationService.Value.GetHostWorkspaceKind());
 
         // Verify the workspace is registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
