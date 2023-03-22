@@ -20,11 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-interface IMutatingLspWorkspace
-{
-
-}
-
 /// <summary>
 /// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
@@ -90,17 +85,19 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region Implementation of IDocumentChangeTracker
 
-    private void PushChangeThroughToWorkspace(Uri uri, Action<Workspace, IMutatingLspWorkspace, ImmutableArray<Document>> action)
+    private void PushChangeThroughToWorkspace(Uri uri, Action<Workspace, Document> action)
     {
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
         foreach (var workspace in registeredWorkspaces)
         {
-            if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
+            if (workspace is not IMutatingLspWorkspace)
                 continue;
 
             var solution = workspace.CurrentSolution;
             var documents = solution.GetDocuments(uri);
-            action(workspace, mutatingWorkspace, documents);
+
+            foreach (var document in documents)
+                action(workspace, document);
         }
     }
 
@@ -120,11 +117,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
-        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
-        {
-            foreach (var document in ds)
-                w.OnDocumentOpened(document.Id, documentText.Container);
-        });
+        PushChangeThroughToWorkspace(uri, (w, d) =>
+            w.OnDocumentOpened(d.Id, documentText.Container));
     }
 
     /// <summary>
@@ -146,11 +140,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
-        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
-        {
-            foreach (var document in ds)
-                w.OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(w.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
-        });
+        PushChangeThroughToWorkspace(uri, (w, d) =>
+            w.OnDocumentClosed(d.Id, new WorkspaceFileTextLoader(w.Services.SolutionServices, d.FilePath!, defaultEncoding: null)));
     }
 
     /// <summary>
@@ -169,11 +160,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
-        PushChangeThroughToWorkspace(uri, (w, mw, ds) =>
-        {
-            foreach (var document in ds)
-                w.OnDocumentTextChanged(document.Id, newSourceText, PreservationMode.PreserveValue);
-        });
+        PushChangeThroughToWorkspace(uri, (w, d) =>
+            w.OnDocumentTextChanged(d.Id, newSourceText, PreservationMode.PreserveIdentity));
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
