@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net8.0;$(TargetFrameworks)</TargetFrameworks>
     <VBRuntime>None</VBRuntime>
     <RootNamespace></RootNamespace>
     <IsShipping>false</IsShipping>
