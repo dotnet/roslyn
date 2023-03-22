@@ -3577,6 +3577,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Null(comp.GetTypeByMetadataName("F0__C"));
         Assert.Null(comp.GetTypeByMetadataName("<file>F0__C"));
         Assert.Null(comp.GetTypeByMetadataName("C"));
+        Assert.Null(comp.GetTypeByMetadataName("C`1"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3606,6 +3607,7 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C`1");
         Assert.Equal(sourceMember, sourceType);
         Assert.Null(comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C"));
+        Assert.Null(comp.GetTypeByMetadataName("C"));
         Assert.Null(comp.GetTypeByMetadataName("C`1"));
 
         // from metadata
