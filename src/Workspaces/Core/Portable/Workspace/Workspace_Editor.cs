@@ -421,9 +421,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Registers a SourceTextContainer to a source generated document. Unlike <see cref="OnDocumentOpened" />,
-        /// this doesn't result in the workspace being updated any time the contents of the container is changed; instead
-        /// this ensures that features going from the text container to the buffer back to a document get a usable document.
+        /// Registers a SourceTextContainer to a source generated document. Unlike <see
+        /// cref="OnDocumentOpened(DocumentId, SourceTextContainer, bool)" />, this doesn't result in the workspace
+        /// being updated any time the contents of the container is changed; instead this ensures that features going
+        /// from the text container to the buffer back to a document get a usable document.
         /// </summary>
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(

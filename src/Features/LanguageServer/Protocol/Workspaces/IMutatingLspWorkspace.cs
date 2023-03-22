@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// That way, the workspace's solution is always in sync with what LSP thinks it is (at least for open documents).
 /// <para/>
 /// A mutation lsp workspace has the open/closed lifetime of documents within it (see <see
-/// cref="Workspace.IsDocumentOpen"/>/<see cref="Workspace.OnDocumentOpened"/>/<see cref="Workspace.OnDocumentClosed"/>)
-/// entirely controlled by the <see cref="LspWorkspaceManager"/>.  The manager will tell the workspace when the document
-/// opens/closes based entirely on the corresponding lsp messages (see <see
-/// cref="LSP.Methods.TextDocumentDidOpen"/>/<see cref="LSP.Methods.TextDocumentDidClose"/>).  There should be no
-/// external changes to this state in the workspace.
+/// cref="Workspace.IsDocumentOpen"/>/<see cref="Workspace.OnDocumentOpened(DocumentId, SourceTextContainer,
+/// bool)"/>/<see cref="Workspace.OnDocumentClosed(DocumentId, TextLoader, bool)"/>) entirely controlled by the <see
+/// cref="LspWorkspaceManager"/>.  The manager will tell the workspace when the document opens/closes based entirely on
+/// the corresponding lsp messages (see <see cref="LSP.Methods.TextDocumentDidOpen"/>/<see
+/// cref="LSP.Methods.TextDocumentDidClose"/>).  There should be no external changes to this state in the workspace.
 /// <para/>
 /// It is fine for external changes to happen to the contents of documents within the workspace (see <see
-/// cref="Workspace.OnDocumentTextChanged(Microsoft.CodeAnalysis.Document)"/>).  However, they will be overwritten by
-/// the <see cref="LspWorkspaceManager"/> for any changed documents it knows about (through <see
+/// cref="Workspace.OnDocumentTextChanged(Document)"/>).  However, they will be overwritten by the <see
+/// cref="LspWorkspaceManager"/> for any changed documents it knows about (through <see
 /// cref="LSP.Methods.TextDocumentDidChange"/>).
 /// </summary>
 interface IMutatingLspWorkspace
