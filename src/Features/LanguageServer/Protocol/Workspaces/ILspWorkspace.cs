@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// cref="LspWorkspaceManager"/> for any changed documents it knows about (through <see
 /// cref="LSP.Methods.TextDocumentDidChange"/>).
 /// </summary>
-interface ILspWorkspace
+internal interface ILspWorkspace
 {
     bool SupportsMutation { get; }
 
