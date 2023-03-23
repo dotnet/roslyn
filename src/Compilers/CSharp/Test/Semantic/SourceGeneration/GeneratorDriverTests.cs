@@ -1471,6 +1471,51 @@ class C { }
             Assert.Equal(e, runResults.Results[0].Exception);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67386")]
+        public void Incremental_Generators_Exception_In_Comparer()
+        {
+            var source = """
+                class Attr : System.Attribute { }
+                [Attr] class C { }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var e = new InvalidOperationException("abc");
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                var name = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("Attr")
+                    .Select((c, _) => c.Identifier.ValueText)
+                    .WithComparer(new LambdaComparer<string>((_, _) => throw e));
+                ctx.RegisterSourceOutput(name, (spc, n) => spc.AddSource(n, "// generated"));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Empty(runResults.Diagnostics);
+            Assert.Equal("// generated", runResults.Results.Single().GeneratedSources.Single().SourceText.ToString());
+
+            compilation = compilation.ReplaceSyntaxTree(syntaxTree, CSharpSyntaxTree.ParseText("""
+                class Attr : System.Attribute { }
+                [Attr] class D { }
+                """, parseOptions));
+            compilation.VerifyDiagnostics();
+
+            driver = driver.RunGenerators(compilation);
+            runResults = driver.GetRunResult();
+
+            AssertEx.Equal(
+                "warning CS8785: Generator 'PipelineCallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'InvalidOperationException' with message 'abc'",
+                runResults.Diagnostics.Single().ToString());
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results.Single().Exception);
+        }
+
         [Fact]
         public void Incremental_Generators_Exception_During_Execution_Doesnt_Produce_AnySource()
         {
