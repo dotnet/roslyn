@@ -10713,7 +10713,6 @@ using unsafe X = System.Collections.Generic.List<int*[]>;
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
-
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -10741,8 +10740,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7)
-                );
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
@@ -10766,7 +10764,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(11, 17),
                 // (11,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = X (X x) => throw null; // 4, 5
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(11, 20)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(11, 20),
             };
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
@@ -10830,8 +10828,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 25),
                 // (13,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var z = int*[] (int*[] x) => throw null; // 7, 8, 9
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32)
-                );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
@@ -10864,8 +10861,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 25),
                 // (13,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var z = int*[] (int*[] x) => throw null; // 7, 8, 9
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32)
-                );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32));
 
             var expected = new[]
             {
@@ -10895,7 +10891,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 25),
                 // (13,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var z = int*[] (int*[] x) => throw null; // 7, 8, 9
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(13, 32),
             };
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
@@ -10933,8 +10929,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
                 // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(4, 14)
-                );
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(4, 14));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
