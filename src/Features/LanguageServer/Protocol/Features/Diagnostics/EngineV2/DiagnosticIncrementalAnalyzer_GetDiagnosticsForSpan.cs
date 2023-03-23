@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,31 +233,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             _document is Document &&
                             !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
-                            if (!_incrementalAnalysis)
+                            if (ShouldRunSemanticAnalysis(stateSet.Analyzer, _incrementalAnalysis, _blockForData,
+                                    semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers, out var stateSets))
                             {
-                                if (!_blockForData)
-                                {
-                                    containsFullResult = false;
-                                }
-                                else
-                                {
-                                    semanticSpanBasedAnalyzers.Add(stateSet);
-                                }
+                                stateSets.Add(stateSet);
                             }
                             else
                             {
-                                // We can perform incremental analysis only for analyzers that support
-                                // span-based semantic diagnostic analysis.
-                                var spanBased = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
-                                if (!_blockForData && !spanBased)
-                                {
-                                    containsFullResult = false;
-                                }
-                                else
-                                {
-                                    var stateSets = spanBased ? semanticSpanBasedAnalyzers : semanticDocumentBasedAnalyzers;
-                                    stateSets.Add(stateSet);
-                                }
+                                Debug.Assert(!_blockForData);
+                                containsFullResult = false;
                             }
                         }
                     }
@@ -297,6 +282,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     return true;
+                }
+
+                static bool ShouldRunSemanticAnalysis(
+                    DiagnosticAnalyzer analyzer,
+                    bool incrementalAnalysis,
+                    bool blockForData,
+                    ArrayBuilder<StateSet> semanticSpanBasedAnalyzers,
+                    ArrayBuilder<StateSet> semanticDocumentBasedAnalyzers,
+                    [NotNullWhen(true)] out ArrayBuilder<StateSet>? selectedStateSets)
+                {
+                    // For non-incremental analysis, we always attempt to compute all
+                    // analyzer diagnostics for the requested span.
+                    if (!incrementalAnalysis)
+                    {
+                        selectedStateSets = semanticSpanBasedAnalyzers;
+                        return true;
+                    }
+
+                    // We can perform incremental analysis only for analyzers that support
+                    // span-based semantic diagnostic analysis.
+                    var spanBased = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
+                    if (blockForData || spanBased)
+                    {
+                        selectedStateSets = spanBased ? semanticSpanBasedAnalyzers : semanticDocumentBasedAnalyzers;
+                        return true;
+                    }
+
+                    selectedStateSets = null;
+                    return false;
                 }
             }
 
