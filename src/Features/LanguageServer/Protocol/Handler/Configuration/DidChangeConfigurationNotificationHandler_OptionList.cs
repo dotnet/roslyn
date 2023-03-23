@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -29,6 +30,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
             // Document highlighting
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
-            HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor);
+            HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor,
+            // Inline hints
+            InlineHintsOptionsStorage.EnabledForParameters,
+            InlineHintsOptionsStorage.ForLiteralParameters,
+            InlineHintsOptionsStorage.ForIndexerParameters,
+            InlineHintsOptionsStorage.ForObjectCreationParameters,
+            InlineHintsOptionsStorage.ForOtherParameters,
+            InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix,
+            InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent,
+            InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName,
+            InlineHintsOptionsStorage.EnabledForTypes,
+            InlineHintsOptionsStorage.ForImplicitVariableTypes,
+            InlineHintsOptionsStorage.ForLambdaParameterTypes,
+            InlineHintsOptionsStorage.ForImplicitObjectCreation);
     }
 }
