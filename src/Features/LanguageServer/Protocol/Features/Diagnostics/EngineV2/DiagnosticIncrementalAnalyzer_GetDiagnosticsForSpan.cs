@@ -292,25 +292,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     ArrayBuilder<StateSet> semanticDocumentBasedAnalyzers,
                     [NotNullWhen(true)] out ArrayBuilder<StateSet>? selectedStateSets)
                 {
-                    // For non-incremental analysis, we always attempt to compute all
-                    // analyzer diagnostics for the requested span.
+                    // If the caller doesn't want us to force compute diagnostics,
+                    // we don't run semantic analysis.
+                    if (!blockForData)
+                    {
+                        selectedStateSets = null;
+                        return false;
+                    }
+
                     if (!incrementalAnalysis)
                     {
+                        // For non-incremental analysis, we always attempt to compute all
+                        // analyzer diagnostics for the requested span.
                         selectedStateSets = semanticSpanBasedAnalyzers;
-                        return true;
                     }
-
-                    // We can perform incremental analysis only for analyzers that support
-                    // span-based semantic diagnostic analysis.
-                    var spanBased = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
-                    if (blockForData || spanBased)
+                    else
                     {
-                        selectedStateSets = spanBased ? semanticSpanBasedAnalyzers : semanticDocumentBasedAnalyzers;
-                        return true;
+                        // We can perform incremental analysis only for analyzers that support
+                        // span-based semantic diagnostic analysis.
+                        selectedStateSets = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()
+                            ? semanticSpanBasedAnalyzers
+                            : semanticDocumentBasedAnalyzers;
                     }
 
-                    selectedStateSets = null;
-                    return false;
+                    return true;
                 }
             }
 
