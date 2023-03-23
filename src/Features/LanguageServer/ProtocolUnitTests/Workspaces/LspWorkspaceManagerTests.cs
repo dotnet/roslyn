@@ -68,8 +68,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         if (mutatingLspWorkspace)
         {
             // In the mutating case, adding/opening the second document will cause the workspace solution to actually
-            // change.  So it will not point to a different document instance for firstDocument.   The underlying state
-            // will be the same though.
+            // change.  So it will point to a different document instance for firstDocument.   The underlying state will
+            // be the same though.
             Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
             Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id)?.State, firstDocument?.State);
         }
