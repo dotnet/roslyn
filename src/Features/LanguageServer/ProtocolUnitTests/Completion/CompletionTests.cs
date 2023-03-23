@@ -1465,6 +1465,35 @@ class A
             Assert.True(list.SuggestionMode);
         }
 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
+        public async Task TestNotTriggerCompletionInArgumentListAsync()
+        {
+            var markup =
+@"
+using System;
+using System.Text;
+
+public class A
+{
+    public void M()
+    {
+        var x = new StringBuilder();
+        x.Append({|caret:|}
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "(",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results);
+        }
+
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             return testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
