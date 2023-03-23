@@ -994,6 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Added, 0), ("class2", EntryState.Added, 0)));
+            Assert.Equal(2, table.AsCached().Count); // [class1], [class2]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0), ("class2", EntryState.Cached, 0)));
 
             // update values, so that we'll no longer produce the first item in the select
@@ -1002,6 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Removed, 0), ("class2", EntryState.Cached, 0)));
+            Assert.Equal(2, table.AsCached().Count); // [], [class2]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class2", EntryState.Cached, 0)));
 
             values = ImmutableArray.Create(ImmutableArray.Create("class3"), ImmutableArray.Create("class4"));
@@ -1009,6 +1011,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class4", EntryState.Modified, 0)));
+            Assert.Equal(2, table.AsCached().Count); // [], [class4]
+            AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class4", EntryState.Cached, 0)));
 
             // now, remove the first input altogether
             values = ImmutableArray.Create(ImmutableArray.Create("class1"));
@@ -1016,6 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class4", EntryState.Removed, 0), ("class1", EntryState.Added, 0)));
+            Assert.Equal(1, table.AsCached().Count); // [class1]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0)));
         }
 
@@ -1030,6 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Added, 0), ("class1.1", EntryState.Added, 1), ("class2", EntryState.Added, 0), ("class2.1", EntryState.Added, 1)));
+            Assert.Equal(2, table.AsCached().Count); // [class1, class1.1], [class2, class2.1]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0), ("class1.1", EntryState.Cached, 1), ("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
 
             // update values, so that we'll no longer produce the first item in the select
@@ -1038,6 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Removed, 0), ("class1.1", EntryState.Removed, 1), ("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
+            Assert.Equal(2, table.AsCached().Count); // [], [class2, class2.1]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
 
             values = ImmutableArray.Create(ImmutableArray.Create("class3", "class3.1"), ImmutableArray.Create("class4", "class4.1"));
@@ -1045,6 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class4", EntryState.Modified, 0), ("class4.1", EntryState.Modified, 1)));
+            Assert.Equal(2, table.AsCached().Count); // [], [class4, class4.1]
+            AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class4", EntryState.Cached, 0), ("class4.1", EntryState.Cached, 1)));
 
             // now, remove the first input altogether
             values = ImmutableArray.Create(ImmutableArray.Create("class1", "class1.1"));
@@ -1052,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class4", EntryState.Removed, 0), ("class4.1", EntryState.Removed, 1), ("class1", EntryState.Added, 0), ("class1.1", EntryState.Added, 1)));
+            Assert.Equal(1, table.AsCached().Count); // [class1, class1.1]
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0), ("class1.1", EntryState.Cached, 1)));
         }
 
