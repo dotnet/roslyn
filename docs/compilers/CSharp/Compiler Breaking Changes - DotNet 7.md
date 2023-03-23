@@ -16,7 +16,7 @@ public class C
     public async Task M() 
     {
         RefStruct local = default; // disallowed
-        using (default(RefStruct)) { } // now disallowed too
+        using (default(RefStruct)) { } // now disallowed too ("error CS9104: A using statement resource of this type cannot be used in async methods or async lambda expressions")
     }
 }
 ```
