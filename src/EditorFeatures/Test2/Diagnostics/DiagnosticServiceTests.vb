@@ -2227,14 +2227,18 @@ class C
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify diagnostics for span
-                Dim t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
-                Dim diagnostic = Assert.Single(t.diagnostics)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriority.None,
+                    addOperationScope:=Nothing, DiagnosticKind.All, CancellationToken.None)
+                Dim diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
-                Assert.Empty(t.diagnostics)
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriority.None,
+                    addOperationScope:=Nothing, DiagnosticKind.All, CancellationToken.None)
+                Assert.Empty(diagnostics)
             End Using
         End Function
 
