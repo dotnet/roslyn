@@ -911,7 +911,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var local = localDeclarationOperation.GetDeclaredVariables().Single();
 
             // Check if the declared variable has no references in fixed code.
-            var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                local, document.Project.Solution,
+#if !CODE_STYLE
+                FindReferencesSearchOptions.Default with { CrossProcess = false },
+#endif
+                cancellationToken).ConfigureAwait(false);
             return referencedSymbols.Count() == 1 &&
                 referencedSymbols.Single().Locations.IsEmpty();
         }

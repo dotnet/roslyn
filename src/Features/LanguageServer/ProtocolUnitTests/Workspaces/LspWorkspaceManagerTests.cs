@@ -65,8 +65,20 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         var firstDocumentInitialVersion = await firstDocument.GetSyntaxVersionAsync(CancellationToken.None);
         var secondDocumentInitialVersion = await secondDocument.GetSyntaxVersionAsync(CancellationToken.None);
 
-        // Verify the LSP documents are the same instance as the workspaces documents.
-        Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+        if (mutatingLspWorkspace)
+        {
+            // In the mutating case, adding/opening the second document will cause the workspace solution to actually
+            // change.  So it will not point to a different document instance for firstDocument.   The underlying state
+            // will be the same though.
+            Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+            Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id)?.State, firstDocument?.State);
+        }
+        else
+        {
+            // Verify the LSP documents are the same instance as the workspaces documents.
+            Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+        }
+
         Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
 
         // Make a text change in one of the opened documents in both LSP and the workspace.
@@ -161,7 +173,16 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Open the document via LSP with different text from the workspace and verify the initial project name.
         var openedDocument = await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer);
         Assert.Equal("Test", openedDocument?.Project.AssemblyName);
-        Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+
+        // In the mutating case, the changes are pushed through such that the solutions are the same.
+        if (mutatingLspWorkspace)
+        {
+            Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+        }
+        else
+        {
+            Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+        }
 
         // Modify the project via the workspace.
         var newProject = testLspServer.TestWorkspace.CurrentSolution.Projects.First().WithAssemblyName("NewCSProj1");
@@ -172,7 +193,16 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         AssertEx.NotNull(openedDocument);
         Assert.Equal("LSP text", (await openedDocument.GetTextAsync(CancellationToken.None)).ToString());
         Assert.Equal("NewCSProj1", openedDocument.Project.AssemblyName);
-        Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+
+        // In the mutating case, the changes are pushed through such that the solutions are the same.
+        if (mutatingLspWorkspace)
+        {
+            Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+        }
+        else
+        {
+            Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+        }
     }
 
     [Theory, CombinatorialData]
@@ -453,7 +483,17 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var (_, documentServerTwo) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServerTwo).ConfigureAwait(false);
         AssertEx.NotNull(documentServerTwo);
-        Assert.Equal("Original text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+
+        if (mutatingLspWorkspace)
+        {
+            // If the underlying workspace is getting mutated, then given that the second lsp-server hasn't heard
+            // anything about doc-1 yet, it will see the change pushed through by the first lsp-server.
+            Assert.Equal("Server one text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+        }
+        else
+        {
+            Assert.Equal("Original text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+        }
 
         // Verify workspace updates are reflected in both servers.
         var newAssemblyName = "NewCSProj1";
