@@ -51,6 +51,9 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
+
+    <SourceBuildTargetFrameworks>net6.0</SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net8.0;$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworks>
   </PropertyGroup>
 
   <!--

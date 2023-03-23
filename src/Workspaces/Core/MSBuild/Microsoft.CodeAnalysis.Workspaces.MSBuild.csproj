@@ -5,8 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
-    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net8.0;$(TargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
