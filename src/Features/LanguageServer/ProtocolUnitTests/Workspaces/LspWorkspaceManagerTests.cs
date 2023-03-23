@@ -535,7 +535,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestLspDocumentPreferredOverProjectSystemDocumentAdd()
     {
         // This verifies that we will still see the lsp view of the document, even though it found out about a document
-        // prior to a project system even telling it about a file.
+        // prior to a project system even telling it about a file, and even if the project system removes the file.
 
         // Start with an empty workspace.
         await using var testLspServer = await CreateTestLspServerAsync(
@@ -589,6 +589,44 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         AssertEx.NotNull(document1);
         Assert.Equal("Text", (await document1.GetTextAsync(CancellationToken.None)).ToString());
+    }
+
+    [Fact]
+    public async Task TestLspDocumentPreferredOverProjectSystemDocumentChange()
+    {
+        // This verifies that we will still see the lsp view of the document, even if the project system feeds in
+        // external information about the contents of the file.
+
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "Initial Disk Contents", mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var documentUri = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetURI();
+        await testLspServer.OpenDocumentAsync(documentUri, "Text");
+
+        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace?.Kind);
+
+        // We should see the contents lsp told us about.
+        AssertEx.NotNull(document);
+        Assert.Equal("Text", (await document.GetTextAsync(CancellationToken.None)).ToString());
+
+        // Now, explicitly update the workspace, simulating the project system externally changing it.
+        await testLspServer.TestWorkspace.ChangeSolutionAsync(
+            testLspServer.TestWorkspace.CurrentSolution.WithDocumentText(document.Id, SourceText.From("New Disk Contents")));
+
+        // Querying the workspace directly, prior to an LSP call will show the new contents.
+        document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        Assert.Equal("New Disk Contents", (await document.GetTextAsync()).ToString());
+
+        // However, once we retrieve from LSP, the lsp contents should be pushed back into the workspace.
+        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+
+        AssertEx.NotNull(document);
+        Assert.Equal("Text", (await document.GetTextAsync(CancellationToken.None)).ToString());
+
+        document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        Assert.Equal("Text", (await document.GetTextAsync()).ToString());
     }
 
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
