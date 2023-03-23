@@ -922,9 +922,9 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
             => OnDocumentTextChanged(documentId, newText, mode, requireDocumentPresent: true);
 
-        private protected Solution OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
+        private protected void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
         {
-            return OnAnyDocumentTextChanged(
+            OnAnyDocumentTextChanged(
                 documentId,
                 (newText, mode),
                 static (solution, docId) => solution.GetDocument(docId),
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis
         /// workspace to avoid the workspace having solutions with linked files where the contents
         /// do not match.
         /// </summary>
-        private Solution OnAnyDocumentTextChanged<TArg>(
+        private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
             TArg arg,
             Func<Solution, DocumentId, TextDocument?> getDocumentInSolution,
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis
             // Data that is updated in the transformation, and read in in onAfterUpdate.  Because SetCurrentSolution may
             // loop, we have to make sure to always clear this each time we enter the loop.
             var updatedDocumentIds = new List<DocumentId>();
-            return SetCurrentSolution(
+            SetCurrentSolution(
                 static (oldSolution, data) =>
                 {
                     // Ensure this closure data is always clean if we had to restart the the operation.
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis
                             newSolution,
                             documentId: updatedDocumentInfo);
                     }
-                }).newSolution;
+                });
         }
 
         /// <summary>
