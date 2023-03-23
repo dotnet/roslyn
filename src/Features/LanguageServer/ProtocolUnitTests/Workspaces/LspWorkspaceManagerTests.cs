@@ -3,16 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
@@ -529,7 +532,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task TestLspDocumentPreferredOverProjectSystemDocumentAdd()
+    public async Task TestLspDocumentPreferredOverProjectSystemDocumentAddInMutatingWorkspace()
     {
         // This verifies that we will still see the lsp view of the document, even though it found out about a document
         // prior to a project system even telling it about a file, and even if the project system removes the file.
@@ -589,7 +592,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task TestLspDocumentPreferredOverProjectSystemDocumentChange()
+    public async Task TestLspDocumentPreferredOverProjectSystemDocumentChangeInMutatingWorkspace()
     {
         // This verifies that we will still see the lsp view of the document, even if the project system feeds in
         // external information about the contents of the file.
@@ -624,6 +627,66 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
         Assert.Equal("Text", (await document.GetTextAsync()).ToString());
+    }
+
+    [Fact]
+    public async Task TestLspDocumentChangedInMutatingWorkspaceIncrementallyParses()
+    {
+        // This verifies that we will still see the lsp view of the document, even if the project system feeds in
+        // external information about the contents of the file.
+
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "Initial Disk Contents", mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var initialContents = "namespace N { class C1 { void X() { } } class C2 { void Y() { } } class C3 { void Z() { } } }";
+        var documentUri = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetURI();
+        await testLspServer.OpenDocumentAsync(documentUri, initialContents);
+
+        var (workspace, originalDocument) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace?.Kind);
+
+        // We should see the contents lsp told us about.
+        AssertEx.NotNull(originalDocument);
+        var originalSourceText = await originalDocument.GetTextAsync(CancellationToken.None);
+        var originalRoot = await originalDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        Assert.Equal(initialContents, originalSourceText.ToString());
+
+        // Change "C3 => D3"
+        await testLspServer.ReplaceTextAsync(documentUri,
+            (ProtocolConversions.TextSpanToRange(new TextSpan(initialContents.IndexOf("C3"), 1), originalSourceText), "D"));
+
+        var (_, newDocument) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+
+        AssertEx.NotNull(newDocument);
+        var newSourceText = await newDocument.GetTextAsync(CancellationToken.None);
+        var newRoot = await newDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        Assert.Equal("namespace N { class C1 { void X() { } } class C2 { void Y() { } } class D3 { void Z() { } } }", newSourceText.ToString());
+
+        // Demonstrate that incremental parsing is working by showing that the first class is reused across edits, while
+        // the last class is not.  We don't test the second as that one may or may not be reused depending on how good
+        // incremental parsing may be.  For example, sometimes it will conservatively not reuse a node because that node
+        // touches a node that is getting recreated.
+        var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+        var oldClassDeclarations = originalRoot.DescendantNodes().Where(n => syntaxFacts.IsClassDeclaration(n)).ToImmutableArray();
+        var newClassDeclarations = newRoot.DescendantNodes().Where(n => syntaxFacts.IsClassDeclaration(n)).ToImmutableArray();
+
+        Assert.Equal(oldClassDeclarations.Length, newClassDeclarations.Length);
+        Assert.Equal(3, oldClassDeclarations.Length);
+
+        Assert.True(oldClassDeclarations[0].IsIncrementallyIdenticalTo(newClassDeclarations[0]));
+        Assert.False(oldClassDeclarations[2].IsIncrementallyIdenticalTo(newClassDeclarations[2]));
+
+        // All the methods will get reused.
+        var oldMethodDeclarations = originalRoot.DescendantNodes().Where(n => syntaxFacts.IsMethodLevelMember(n)).ToImmutableArray();
+        var newMethodDeclarations = newRoot.DescendantNodes().Where(n => syntaxFacts.IsMethodLevelMember(n)).ToImmutableArray();
+
+        Assert.Equal(oldMethodDeclarations.Length, newMethodDeclarations.Length);
+        Assert.Equal(3, oldMethodDeclarations.Length);
+
+        Assert.True(oldMethodDeclarations[0].IsIncrementallyIdenticalTo(newMethodDeclarations[0]));
+        Assert.True(oldMethodDeclarations[1].IsIncrementallyIdenticalTo(newMethodDeclarations[1]));
+        Assert.True(oldMethodDeclarations[2].IsIncrementallyIdenticalTo(newMethodDeclarations[2]));
     }
 
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
