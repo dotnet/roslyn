@@ -1489,14 +1489,37 @@ public class C
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof()
+        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof_Flat()
+        {
+            var source = @"
+System.Console.Write(C.M());
+public class C
+{
+    public object Property { get; }
+    public object Field;
+    public event System.Action Event;
+    public void M2() { }
+    public static string M() => nameof(Property)
+        + "","" + nameof(Field)
+        + "","" + nameof(Event)
+        + "","" + nameof(M2)
+        ;
+}";
+            var expectedOutput = "Property,Field,Event,M2";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof_Nested()
         {
             var source = @"
 System.Console.Write(C.M());
 public class C
 {
     public C1 Property { get; }
-    public C1 Field { get; }
+    public C1 Field;
     public event System.Action Event;
     public static string M() => nameof(Property.Property) 
         + "","" + nameof(Property.Field)
@@ -1517,11 +1540,36 @@ public class C1
     public void Method(){}
     public event System.Action Event;
 }";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugExe,
-                parseOptions: TestOptions.RegularPreview,
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext,
                 expectedOutput: "Property,Field,Method,Event,Property,Field,Method,Event,Invoke").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Property.Property) 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(8, 40),
+                // (9,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Field)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(9, 24),
+                // (10,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Method)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(10, 24),
+                // (11,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Event)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(11, 24),
+                // (12,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Property) 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(12, 24),
+                // (13,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Field)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(13, 24),
+                // (14,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Method)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(14, 24),
+                // (15,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Event)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(15, 24),
+                // (16,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Event.Invoke)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("reduced member access checks in 'nameof'").WithLocation(16, 24));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1533,37 +1581,50 @@ public class C
 {
     public string S { get; } = nameof(S.Length);
 }";
-            CompileAndVerify(
-                 source,
-                 options: TestOptions.DebugExe,
-                 parseOptions: TestOptions.RegularPreview,
-                 expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,39): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string S { get; } = nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromAttributeInNameof()
         {
             var source = @"
+var p = new C().P; // 1
 public class C
 {
     [System.Obsolete(nameof(S.Length))]
     public int P { get; }
     public string S { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (2,9): warning CS0618: 'C.P' is obsolete: 'Length'
+                // var p = new C().P; // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9));
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,29): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [System.Obsolete(nameof(S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromConstructorInitializersInNameof()
         {
             var source = @"
+System.Console.WriteLine(new C().S);
 public class C
 {
-    public C(string s){}
+    public C(string s){ S = s; }
     public C() : this(nameof(S.Length)){}
     public string S { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,30): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public C() : this(nameof(S.Length)){}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1572,70 +1633,98 @@ public class C
             var source = @"
 using System;
 
+string s = ""str"";
+new S().M(ref s);
+
 public struct S
 {
     public string P { get; }
     public void M(ref string x)
     {
         Func<string> func = () => nameof(P.Length);
+        Console.WriteLine(func());
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (12,42): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<string> func = () => nameof(P.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("reduced member access checks in 'nameof'").WithLocation(12, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameof1()
         {
             var source = @"
+System.Console.WriteLine(new C().M());
 public class C
 {
     public C Prop { get; }
     public static int StaticProp { get; }
     public string M() => nameof(Prop.StaticProp);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,33): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 33));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameof2()
         {
             var source = @"
+System.Console.WriteLine(C.M());
 public class C
 {
     public C Prop { get; }
     public static int StaticProp { get; }
     public static string M() => nameof(Prop.StaticProp);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 40),
+                // (7,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameof3()
         {
             var source = @"
+System.Console.WriteLine(C.M());
 public class C
 {
     public C Prop { get; }
     public static string M() => nameof(Prop.M);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "M").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.M);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameof4()
         {
             var source = @"
+System.Console.WriteLine(new C().M());
 public class C
 {
     public C Prop { get; }
     public static void StaticMethod(){}
     public string M() => nameof(Prop.StaticMethod);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotReferenceInstanceMembersFromStaticMemberInNameofInCSharp9()
+        public void TestCannotReferenceInstanceMembersFromStaticMemberInNameofInCSharp11()
         {
             var source = @"
 public class C
@@ -1643,28 +1732,28 @@ public class C
     public string S { get; }
     public static string M() => nameof(S.Length);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (5,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(S.Length);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotReferenceInstanceMembersFromFieldInitializerInNameofInCSharp9()
+        public void TestCannotReferenceInstanceMembersFromFieldInitializerInNameofInCSharp11()
         {
             var source = @"
 public class C
 {
     public string S { get; } = nameof(S.Length);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (4,39): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string S { get; } = nameof(S.Length);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotReferenceInstanceMembersFromAttributeInNameofInCSharp9()
+        public void TestCannotReferenceInstanceMembersFromAttributeInNameofInCSharp11()
         {
             var source = @"
 public class C
@@ -1673,14 +1762,14 @@ public class C
     public int P { get; }
     public string S { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (4,29): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [System.Obsolete(nameof(S.Length))]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotReferenceInstanceMembersFromConstructorInitializersInNameofInCSharp9()
+        public void TestCannotReferenceInstanceMembersFromConstructorInitializersInNameofInCSharp11()
         {
             var source = @"
 public class C
@@ -1689,14 +1778,14 @@ public class C
     public C() : this(nameof(S.Length)){}
     public string S { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (5,30): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public C() : this(nameof(S.Length)){}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotAccessStructInstancePropertyInLambdaInNameofInCSharp9()
+        public void TestCannotAccessStructInstancePropertyInLambdaInNameofInCSharp11()
         {
             var source = @"
 using System;
@@ -1709,14 +1798,14 @@ public struct S
         Func<string> func = () => nameof(P.Length);
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (9,42): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<string> func = () => nameof(P.Length);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("reduced member access checks in 'nameof'").WithLocation(9, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestCannotReferenceStaticPropertyFromInstanceMemberInNameofInCSharp9()
+        public void TestCannotReferenceStaticPropertyFromInstanceMemberInNameofInCSharp11()
         {
             var source = @"
 public class C
@@ -1725,23 +1814,24 @@ public class C
     public static int StaticProp { get; }
     public string M() => nameof(Prop.StaticProp);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,33): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string M() => nameof(Prop.StaticProp);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 33));
         }
 
         [Fact]
-        public void TestCanReferenceStaticMethodFromInstanceMemberInNameofInCSharp9()
+        public void TestCanReferenceStaticMethodFromInstanceMemberInNameofInCSharp11()
         {
             var source = @"
+System.Console.WriteLine(new C().M());
 public class C
 {
     public C Prop { get; }
     public static void StaticMethod(){}
     public string M() => nameof(Prop.StaticMethod);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "StaticMethod").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1750,58 +1840,82 @@ public class C
             var source = @"
 using System;
 
+string s = ""str"";
+new S().M(ref s);
+
 public struct S
 {
     public void M(ref string x)
     {
         Func<string> func = () => nameof(x.Length);
+        Console.WriteLine(func());
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "Length").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes1()
         {
             var source = @"
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetProperty(""Prop"").GetCustomAttribute<Attr>().S);
 class C
 {
     [Attr(nameof(Prop.StaticMethod))]
     public C Prop { get; }
     public static void StaticMethod(){}
 }
-class Attr : System.Attribute { public Attr(string s) {} }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics();
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod")
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes2()
         {
             var source = @"
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetProperty(""Prop"").GetCustomAttribute<Attr>().S);
 class C
 {
     [Attr(nameof(Prop.Prop))]
     public static C Prop { get; }
 }
-class Attr : System.Attribute { public Attr(string s) {} }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics();
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop")
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes3()
         {
             var source = @"
-
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetCustomAttribute<Attr>().S);
 [Attr(nameof(C.Prop.Prop))]
 class C
 {
     public static C Prop { get; }
 }
-class Attr : System.Attribute { public Attr(string s) {} }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics();
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop")
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
