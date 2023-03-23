@@ -56,10 +56,9 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
