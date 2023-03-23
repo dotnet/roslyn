@@ -922,9 +922,9 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
             => OnDocumentTextChanged(documentId, newText, mode, requireDocumentPresent: true);
 
-        private protected Solution OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
+        private protected void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
         {
-            return OnAnyDocumentTextChanged(
+            OnAnyDocumentTextChanged(
                 documentId,
                 (newText, mode),
                 static (solution, docId) => solution.GetDocument(docId),
@@ -1016,12 +1016,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
-        /// files also have their content updated in the new solution before applying it to the
-        /// workspace to avoid the workspace having solutions with linked files where the contents
-        /// do not match.
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked files also have their
+        /// content updated in the new solution before applying it to the workspace to avoid the workspace having
+        /// solutions with linked files where the contents do not match.
         /// </summary>
-        private Solution OnAnyDocumentTextChanged<TArg>(
+        /// <param name="requireDocumentPresent">Allow caller to indicate behavior that should happen if this is a
+        /// request to update a document not currently in the workspace.  This should be used only in hosts where there
+        /// may be disparate sources of text change info, without an underlying agreed upon synchronization context to
+        /// ensure consistency between events.  For example, in an LSP server it might be the case that some events were
+        /// being posted by an attached lsp client, while another source of events reported information produced by a
+        /// self-hosted project system.  These systems might report events on entirely different cadences, leading to
+        /// scenarios where there might be disagreements as to the state of the workspace.  Clients in those cases must
+        /// be resilient to those disagreements (for example, by falling back to a misc-workspace if the lsp client
+        /// referred to a document no longer in the workspace populated by the project system).</param>
+        private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
             TArg arg,
             Func<Solution, DocumentId, TextDocument?> getDocumentInSolution,
@@ -1033,7 +1041,7 @@ namespace Microsoft.CodeAnalysis
             // Data that is updated in the transformation, and read in in onAfterUpdate.  Because SetCurrentSolution may
             // loop, we have to make sure to always clear this each time we enter the loop.
             var updatedDocumentIds = new List<DocumentId>();
-            return SetCurrentSolution(
+            SetCurrentSolution(
                 static (oldSolution, data) =>
                 {
                     // Ensure this closure data is always clean if we had to restart the the operation.
@@ -1117,7 +1125,7 @@ namespace Microsoft.CodeAnalysis
                             newSolution,
                             documentId: updatedDocumentInfo);
                     }
-                }).newSolution;
+                });
         }
 
         /// <summary>

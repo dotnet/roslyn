@@ -369,9 +369,8 @@ namespace Roslyn.Test.Utilities
         internal TestWorkspace CreateWorkspace(
             InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace)
         {
-            var workspace = mutatingLspWorkspace
-                ? new LspMutatingTestWorkspace(Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true))
-                : new TestWorkspace(Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
+            var workspace = new TestWorkspace(
+                Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);

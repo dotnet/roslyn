@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         {
         }
 
-        [Fact]
-        public async Task TestOneInlayParameterHintAsync()
+        [Theory, CombinatorialData]
+        public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         M({|x:|}5);
     }
 }";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task TestMultipleInlayParameterHintsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         M({|a:|}5, {|b:|}5.5, {|c:|}true);
     }
 }";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task TestOneInlayTypeHintAsync()
+        [Theory, CombinatorialData]
+        public async Task TestOneInlayTypeHintAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         var {|int:|}x = 5;
     }
 }";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task TestMultipleInlayTypeHintsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestMultipleInlayTypeHintsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -82,11 +82,11 @@ class A
         var {|object:|}obj = new Object();
     }
 }";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task TestInlayTypeHintsDeconstructAsync()
+        [Theory, CombinatorialData]
+        public async Task TestInlayTypeHintsDeconstructAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -96,12 +96,12 @@ class A
         var (i, b) = d;
     }
 }";
-            await RunVerifyInlayHintAsync(markup, hasTextEdits: false);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace, hasTextEdits: false);
         }
 
-        private async Task RunVerifyInlayHintAsync(string markup, bool hasTextEdits = true)
+        private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace, bool hasTextEdits = true)
         {
-            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, true);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, true);
             await VerifyInlayHintAsync(testLspServer, hasTextEdits);

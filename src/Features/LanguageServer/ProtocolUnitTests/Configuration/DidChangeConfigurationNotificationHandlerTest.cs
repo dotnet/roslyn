@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
         {
         }
 
-        [Fact]
-        public async Task VerifyWorkflow()
+        [Theory, CombinatorialData]        public async Task VerifyWorkflow(bool mutatingLspWorkspace)
         {
             var markup = @"
 public class A { }";
@@ -59,8 +58,7 @@ public class A { }";
 
             // 1. When initialized, server should register workspace/didChangeConfiguration if client support DynamicRegistration
             var server = await CreateTestLspServerAsync(
-                markup,
-                initializationOptions: initializationOptions);
+                markup, mutatingLspWorkspace, initializationOptions);
 
             Assert.True(clientCallbackTarget.WorkspaceDidChangeConfigurationRegistered);
 
@@ -74,6 +72,7 @@ public class A { }";
             await server.ExecuteRequestAsync<DidChangeConfigurationParams, object>(Methods.WorkspaceDidChangeConfigurationName, new DidChangeConfigurationParams(), CancellationToken.None).ConfigureAwait(false);
             VerifyValuesInServer(server.TestWorkspace, clientCallbackTarget.MockClientSideValues);
         }
+
 
         private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)
         {
