@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
         private readonly TemporaryStorageService _temporaryStorageService;
-        private readonly IWorkspaceConfigurationService _configurationService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -63,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            TemporaryStorageService temporaryStorageService,
-            IWorkspaceConfigurationService configurationService)
+            TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -75,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(SmartOpenScopeServiceOpt);
 
             _temporaryStorageService = temporaryStorageService;
-            _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);
         }
 
