@@ -73,7 +73,6 @@ public class A { }";
             VerifyValuesInServer(server.TestWorkspace, clientCallbackTarget.MockClientSideValues);
         }
 
-
         private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
