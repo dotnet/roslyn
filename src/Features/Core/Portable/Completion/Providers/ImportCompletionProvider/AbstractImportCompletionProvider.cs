@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
-                // Queue a backgound task to warm up cache and return immediately if this is not the context to trigger this provider.
+                // Queue a background task to warm up cache and return immediately if this is not the context to trigger this provider.
                 // `ForceExpandedCompletionIndexCreation` and `UpdateImportCompletionCacheInBackground` are both test only options to
                 // make test behavior deterministic.
                 var options = completionContext.CompletionOptions;

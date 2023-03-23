@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var completionOptions = GetCompletionOptions(document) with { UpdateImportCompletionCacheInBackground = true };
+            var completionOptions = GetCompletionOptions(document);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -469,6 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
+                UpdateImportCompletionCacheInBackground = false,
                 TriggerInArgumentLists = false
             };
         }
