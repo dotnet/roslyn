@@ -2077,18 +2077,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors = false;
                 if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
-                    var diagnosticsTemp = IsInsideNameof ? BindingDiagnosticBag.Discarded : diagnostics;
+                    DiagnosticInfo diagnosticInfoOpt = null;
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
                         //can't access "this" in field initializers
-                        Error(diagnosticsTemp, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
-                        hasErrors = true;
+                        diagnosticInfoOpt = new CSDiagnosticInfo(ErrorCode.ERR_FieldInitRefNonstatic, member);
                     }
                     else if (InConstructorInitializer || InAttributeArgument)
                     {
                         //can't access "this" in constructor initializers or attribute arguments
-                        Error(diagnosticsTemp, ErrorCode.ERR_ObjectRequired, node, member);
-                        hasErrors = true;
+                        diagnosticInfoOpt = new CSDiagnosticInfo(ErrorCode.ERR_ObjectRequired, member);
                     }
                     else
                     {
@@ -2100,16 +2098,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!locationIsInstanceMember)
                         {
                             // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
-                            Error(diagnosticsTemp, ErrorCode.ERR_ObjectRequired, node, member);
-                            hasErrors = true;
+                            diagnosticInfoOpt = new CSDiagnosticInfo(ErrorCode.ERR_ObjectRequired, member);
                         }
                     }
 
-                    hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnosticsTemp);
+                    diagnosticInfoOpt ??= GetDiagnosticIfRefOrOutThisParameterCaptured();
+                    hasErrors = hasErrors || diagnosticInfoOpt is not null;
 
-                    if (hasErrors && IsInsideNameof)
+                    if (hasErrors)
                     {
-                        CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
+                        if (IsInsideNameof)
+                        {
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
+                        }
+                        else
+                        {
+                            Error(diagnostics, diagnosticInfoOpt, node);
+                        }
                     }
                 }
 
@@ -2282,19 +2287,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
+#nullable enable
         private bool IsRefOrOutThisParameterCaptured(SyntaxNodeOrToken thisOrBaseToken, BindingDiagnosticBag diagnostics)
         {
-            ParameterSymbol thisSymbol = this.ContainingMemberOrLambda.EnclosingThisSymbol();
-            // If there is no this parameter, then it is definitely not captured and 
-            // any diagnostic would be cascading.
-            if ((object)thisSymbol != null && thisSymbol.ContainingSymbol != ContainingMemberOrLambda && thisSymbol.RefKind != RefKind.None)
+            if (GetDiagnosticIfRefOrOutThisParameterCaptured() is { } diagnosticInfo)
             {
-                Error(diagnostics, ErrorCode.ERR_ThisStructNotInAnonMeth, thisOrBaseToken);
+                var location = thisOrBaseToken.GetLocation();
+                Debug.Assert(location is not null);
+                Error(diagnostics, diagnosticInfo, location);
                 return true;
             }
 
             return false;
         }
+
+        private DiagnosticInfo? GetDiagnosticIfRefOrOutThisParameterCaptured()
+        {
+            Debug.Assert(this.ContainingMemberOrLambda is not null);
+            ParameterSymbol? thisSymbol = this.ContainingMemberOrLambda.EnclosingThisSymbol();
+            // If there is no this parameter, then it is definitely not captured and 
+            // any diagnostic would be cascading.
+            if (thisSymbol is not null && thisSymbol.ContainingSymbol != ContainingMemberOrLambda && thisSymbol.RefKind != RefKind.None)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_ThisStructNotInAnonMeth);
+            }
+
+            return null;
+        }
+#nullable disable
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
