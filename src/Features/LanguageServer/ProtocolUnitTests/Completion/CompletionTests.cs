@@ -26,20 +26,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = CreateCoreCompletionCapabilities();
 
         private static LSP.VSInternalClientCapabilities CreateCoreCompletionCapabilities()
-            => new LSP.VSInternalClientCapabilities
+            => new()
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new()
                 {
-                    Completion = new LSP.VSInternalCompletionSetting
+                    Completion = new()
                     {
-                        CompletionListSetting = new LSP.CompletionListSetting
+                        CompletionListSetting = new()
                         {
-                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                            ItemDefaults = new[] { CompletionHandler.EditRangeSetting },
                         },
                         CompletionItemKind = new(),
-                    }
-                }
+                    },
+                },
             };
 
         public CompletionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
@@ -1465,8 +1465,8 @@ class A
             Assert.True(list.SuggestionMode);
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
-        public async Task TestNotTriggerCompletionInArgumentListAsync()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
+        public async Task TestNotTriggerCompletionInArgumentListAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"
@@ -1481,7 +1481,7 @@ public class A
         x.Append({|caret:|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
