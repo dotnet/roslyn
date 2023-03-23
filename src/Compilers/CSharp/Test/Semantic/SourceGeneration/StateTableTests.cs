@@ -991,12 +991,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var transformNode = new TransformNode<ImmutableArray<string>, string>(inputNode, (arr, ct) => arr[0] == "class3" ? ImmutableArray<string>.Empty : arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: false);
-            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Added, 0), ("class2", EntryState.Added, 0)));
+            AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0), ("class2", EntryState.Cached, 0)));
 
             // update values, so that we'll no longer produce the first item in the select
             values = ImmutableArray.Create(ImmutableArray.Create("class3"), ImmutableArray.Create("class2"));
             dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: false);
-            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+            table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Removed, 0), ("class2", EntryState.Cached, 0)));
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class2", EntryState.Cached, 0)));
@@ -1024,12 +1027,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var transformNode = new TransformNode<ImmutableArray<string>, string>(inputNode, (arr, ct) => arr[0] == "class3" ? ImmutableArray<string>.Empty : arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: false);
-            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Added, 0), ("class1.1", EntryState.Added, 1), ("class2", EntryState.Added, 0), ("class2.1", EntryState.Added, 1)));
+            AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class1", EntryState.Cached, 0), ("class1.1", EntryState.Cached, 1), ("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
 
             // update values, so that we'll no longer produce the first item in the select
             values = ImmutableArray.Create(ImmutableArray.Create("class3", "class3.1"), ImmutableArray.Create("class2", "class2.1"));
             dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: false);
-            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+            table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
             AssertTableEntries(table, ImmutableArray.Create(("class1", EntryState.Removed, 0), ("class1.1", EntryState.Removed, 1), ("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
             AssertTableEntries(table.AsCached(), ImmutableArray.Create(("class2", EntryState.Cached, 0), ("class2.1", EntryState.Cached, 1)));
