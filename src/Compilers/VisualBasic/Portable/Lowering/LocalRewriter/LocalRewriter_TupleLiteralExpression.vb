@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     hasErrors:=True)
                     End If
 
-                    Binder.CheckRequiredMembersInObjectInitializer(tuple8Ctor, tuple8Type, initializers:=ImmutableArray(Of BoundExpression).Empty, syntax, _diagnostics)
+                    Binder.CheckRequiredMembersInObjectInitializer(tuple8Ctor, tuple8Ctor.ContainingType, initializers:=ImmutableArray(Of BoundExpression).Empty, syntax, _diagnostics)
 
                     ' make successively larger creation expressions containing the previous one
                     Do
