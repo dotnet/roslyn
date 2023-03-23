@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
