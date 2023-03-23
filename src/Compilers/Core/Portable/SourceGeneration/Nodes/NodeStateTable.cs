@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Mark the corresponding entries to this node execution in the previous table as removed.
+                // Since they are removed due to their input having been removed, we won't have to keep placeholders for them.
                 var previousEntries = _previous._states[_states.Count].AsRemovedDueToInputRemoval();
                 _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
@@ -468,7 +469,15 @@ namespace Microsoft.CodeAnalysis
             private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
             private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
             private static readonly ImmutableArray<EntryState> s_allModifiedEntries = ImmutableArray.Create(EntryState.Modified);
+
+            /// <summary>
+            /// All items removed as part of a transformation from non-empty input.
+            /// </summary>
             private static readonly ImmutableArray<EntryState> s_allRemovedEntries = ImmutableArray.Create(EntryState.Removed);
+
+            /// <summary>
+            /// All items removed because the input has been removed.
+            /// </summary>
             private static readonly ImmutableArray<EntryState> s_allRemovedDueToInputRemoval = ImmutableArray.Create(EntryState.Removed);
 
             private readonly OneOrMany<T> _items;
