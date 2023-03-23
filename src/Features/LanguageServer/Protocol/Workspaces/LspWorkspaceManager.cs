@@ -302,6 +302,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             // Step 2: Push through any changes to the underlying workspace if it's a mutating workspace.
             OpenOrEditDocumentsInMutatingWorkspace(workspace);
 
+            // Because the workspace may have been mutated, go back and retrieve its current snapshot so we're operating
+            // against that view.
             workspaceCurrentSolution = workspace.CurrentSolution;
 
             // Step 3: Check to see if the LSP text matches the workspace text.
