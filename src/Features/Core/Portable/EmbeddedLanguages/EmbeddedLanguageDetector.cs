@@ -167,9 +167,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             var formatMethod = iformattable
                 .GetMembers(nameof(IFormattable.ToString))
                 .FirstOrDefault(
-                    m => m is IMethodSymbol method &&
-                         method.Parameters.Length > 0 &&
-                         method.Parameters[0].Type.SpecialType is SpecialType.System_String);
+                    m => m is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_String }, ..] });
             if (formatMethod == null)
                 return false;
 

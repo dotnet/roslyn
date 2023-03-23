@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
-        protected sealed override ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptions.Location);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics);
+        protected sealed override ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptionsStorage.Location);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, project.Language);
+            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptionsStorage.Location, project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService,
                 _classificationTypeRegistryService, locationOption, navigateService);

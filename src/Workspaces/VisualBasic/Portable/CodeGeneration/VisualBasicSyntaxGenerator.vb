@@ -160,11 +160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
-            Return ExpressionGenerator.GenerateExpression(value)
+            Return ExpressionGenerator.GenerateExpression(Me, value)
         End Function
 
         Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
-            Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
+            Return ExpressionGenerator.GenerateExpression(Me, type, value, canUseFieldReference)
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -1366,13 +1366,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Protected Overrides Function ClassDeclaration(
-            name As String,
-            typeParameters As IEnumerable(Of SyntaxNode),
-            accessibility As Accessibility,
-            modifiers As DeclarationModifiers,
-            baseType As SyntaxNode,
-            interfaceTypes As IEnumerable(Of SyntaxNode),
-            members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+                isRecord As Boolean,
+                name As String,
+                typeParameters As IEnumerable(Of SyntaxNode),
+                accessibility As Accessibility,
+                modifiers As DeclarationModifiers,
+                baseType As SyntaxNode,
+                interfaceTypes As IEnumerable(Of SyntaxNode),
+                members As IEnumerable(Of SyntaxNode)) As SyntaxNode
 
             Dim itypes = If(interfaceTypes IsNot Nothing, interfaceTypes.Cast(Of TypeSyntax), Nothing)
             If itypes IsNot Nothing AndAlso itypes.Count = 0 Then
@@ -1403,12 +1404,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Protected Overrides Function StructDeclaration(
-            name As String,
-            typeParameters As IEnumerable(Of SyntaxNode),
-            accessibility As Accessibility,
-            modifiers As DeclarationModifiers,
-            interfaceTypes As IEnumerable(Of SyntaxNode),
-            members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+                isRecord As Boolean,
+                name As String,
+                typeParameters As IEnumerable(Of SyntaxNode),
+                accessibility As Accessibility,
+                modifiers As DeclarationModifiers,
+                interfaceTypes As IEnumerable(Of SyntaxNode),
+                members As IEnumerable(Of SyntaxNode)) As SyntaxNode
 
             Dim itypes = If(interfaceTypes IsNot Nothing, interfaceTypes.Cast(Of TypeSyntax), Nothing)
             If itypes IsNot Nothing AndAlso itypes.Count = 0 Then

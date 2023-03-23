@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(546199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
         <WpfFact>
         Public Async Function TestErrorBaseType() As Task
             Using testState = ProgressionTestState.Create(

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
 
                 if (Identity.AssemblyPath != null)
                 {
-                    FileVersion = IOUtilities.PerformIO(() => FileVersionInfo.GetVersionInfo(Identity.AssemblyPath).FileVersion, defaultValue: "(reading version threw exception)");
+                    FileVersion = IOUtilities.PerformIO(() => FileVersionInfo.GetVersionInfo(Identity.AssemblyPath).FileVersion, defaultValue: "(reading version threw exception)")!;
                 }
             }
 

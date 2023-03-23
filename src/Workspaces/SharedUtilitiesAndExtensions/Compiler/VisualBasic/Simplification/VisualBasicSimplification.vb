@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Property
 
         Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
-            Return options.GetVisualBasicSimplifierOptions(DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+            Return New VisualBasicSimplifierOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default))
         End Function
     End Class
 End Namespace

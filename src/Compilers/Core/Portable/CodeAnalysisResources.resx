@@ -750,4 +750,10 @@
   <data name="HintNameNotWithinCurrentDirectory" xml:space="preserve">
     <value>The hintName '{0}' is not within the current directory.</value>
   </data>
+  <data name="MethodSymbolExpected" xml:space="preserve">
+    <value>Method symbol expected</value>
+  </data>
+  <data name="InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
 </root>

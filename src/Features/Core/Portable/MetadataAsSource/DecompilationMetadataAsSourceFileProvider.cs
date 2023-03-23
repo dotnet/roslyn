@@ -81,8 +81,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
+#pragma warning disable SYSLIB0025  // 'SuppressIldasmAttribute' is obsolete: 'SuppressIldasmAttribute has no effect in .NET 6.0+.'
                 useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+#pragma warning restore SYSLIB0025
             }
 
             var refInfo = GetReferenceInfo(compilation, symbol.ContainingAssembly);

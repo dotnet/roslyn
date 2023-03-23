@@ -55,12 +55,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SetGlobalOption(WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources, language: null, value);
         }
 
-        public void SetArgumentCompletionSnippetsOption(bool value)
-        {
-            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
-            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
-        }
-
         public void SetTriggerCompletionInArgumentLists(bool value)
             => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 

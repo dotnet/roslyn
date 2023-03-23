@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Equal(semanticResults.Single().ResultId, semanticResults2.Single().ResultId);
         }
 
-        [Fact, WorkItem(65172, "https://github.com/dotnet/roslyn/issues/65172")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65172")]
         public async Task TestDocumentDiagnosticsHasVSExpandedMessage()
         {
             var markup =
@@ -297,7 +297,7 @@ class A {
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1481208, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
         public async Task TestDocumentDiagnosticsWhenEnCVersionChanges(bool useVSDiagnostics)
         {
             var markup =
@@ -1656,6 +1656,54 @@ class A {";
             Assert.Equal(@"C:/C.cs", results[0].TextDocument.Uri.AbsolutePath);
             Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.Uri.AbsolutePath);
             Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.AbsolutePath);
+        }
+
+        [Fact]
+        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspTextChanges()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+
+            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+
+            // Assert that the connection isn't closed and task doesn't complete even after some delay.
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Assert.False(resultTask.IsCompleted);
+
+            // Make an LSP document change that will trigger connection close.
+            var uri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
+            await testLspServer.OpenDocumentAsync(uri);
+
+            // Assert the task completes after a change occurs
+            var results = await resultTask;
+            Assert.NotEmpty(results);
+        }
+
+        [Fact]
+        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspSolutionChanges()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+
+            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+
+            // Assert that the connection isn't closed and task doesn't complete even after some delay.
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Assert.False(resultTask.IsCompleted);
+
+            // Make workspace change that will trigger connection close.
+            var projectInfo = testLspServer.TestWorkspace.Projects.Single().ToProjectInfo();
+            testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
+
+            // Assert the task completes after a change occurs
+            var results = await resultTask;
+            Assert.NotEmpty(results);
         }
 
         #endregion

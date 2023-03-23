@@ -221,7 +221,7 @@ var q = s || [|Goo()|];", "global::System.Boolean", mode);
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestOverloadedConditionalLogicalOperatorsInferBool(TestMode mode)
         {
             await TestAsync(
@@ -252,7 +252,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestConditionalLogicalOrOperatorAlwaysInfersBool(TestMode mode)
         {
             var text = @"using System;
@@ -267,7 +267,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestConditionalLogicalAndOperatorAlwaysInfersBool(TestMode mode)
         {
             var text = @"using System;
@@ -281,7 +281,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference1()
         {
             var text = @"using System;
@@ -295,7 +295,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference2()
         {
             var text = @"using System;
@@ -310,7 +310,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference3(TestMode mode)
         {
             var text = @"using System;
@@ -324,7 +324,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference4()
         {
             var text = @"using System;
@@ -343,7 +343,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference5(TestMode mode)
         {
             var text = @"using System;
@@ -361,7 +361,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference6()
         {
             var text = @"using System;
@@ -376,7 +376,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference7(TestMode mode)
         {
             var text = @"using System;
@@ -390,7 +390,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference1()
         {
             var text = @"using System;
@@ -404,7 +404,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference2()
         {
             var text = @"using System;
@@ -419,7 +419,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference3(TestMode mode)
         {
             var text = @"using System;
@@ -433,7 +433,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference4()
         {
             var text = @"using System;
@@ -452,7 +452,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference5(TestMode mode)
         {
             var text = @"using System;
@@ -470,7 +470,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference6()
         {
             var text = @"using System;
@@ -485,7 +485,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference7(TestMode mode)
         {
             var text = @"using System;
@@ -499,7 +499,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference1()
         {
             var text = @"using System;
@@ -513,7 +513,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference2()
         {
             var text = @"using System;
@@ -528,7 +528,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference3(TestMode mode)
         {
             var text = @"using System;
@@ -542,7 +542,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference4()
         {
             var text = @"using System;
@@ -561,7 +561,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference5(TestMode mode)
         {
             var text = @"using System;
@@ -579,7 +579,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference6()
         {
             var text = @"using System;
@@ -594,7 +594,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference7(TestMode mode)
         {
             var text = @"using System;
@@ -609,7 +609,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrEqualsOperatorInference1(TestMode mode)
         {
             var text = @"using System;
@@ -624,7 +624,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrEqualsOperatorInference2(TestMode mode)
         {
             var text = @"using System;
@@ -639,7 +639,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndEqualsOperatorInference1(TestMode mode)
         {
             var text = @"using System;
@@ -654,7 +654,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndEqualsOperatorInference2(TestMode mode)
         {
             var text = @"using System;
@@ -669,7 +669,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorEqualsOperatorInference1(TestMode mode)
         {
             var text = @"using System;
@@ -684,7 +684,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorEqualsOperatorInference2(TestMode mode)
         {
             var text = @"using System;
@@ -1011,14 +1011,14 @@ void M()
 @"void M() => [|Goo()|];", "void", mode);
         }
 
-        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTMethod(TestMode mode)
         {
             await TestInClassAsync(
 @"async System.Threading.Tasks.Task<int> M() => [|Goo()|];", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTMethodNullableReference(TestMode mode)
         {
             await TestInClassAsync(
@@ -1026,7 +1026,7 @@ void M()
 async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.String?", mode);
         }
 
-        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskMethod(TestMode mode)
         {
             await TestInClassAsync(
@@ -1120,7 +1120,7 @@ async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.S
 }", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTLocalFunction(TestMode mode)
         {
             await TestInClassAsync(
@@ -1130,7 +1130,7 @@ async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.S
 }", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskLocalFunction(TestMode mode)
         {
             await TestInClassAsync(
@@ -1151,7 +1151,7 @@ async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.S
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task TestYieldReturnInMethod([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
         {
             var markup =
@@ -1217,7 +1217,7 @@ $@"class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
         public async Task TestYieldReturnInLocalFunction(TestMode mode)
         {
             var markup =
@@ -1333,7 +1333,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.String?", mode);
         }
 
-        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTSimpleLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1343,7 +1343,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTParenthesizedLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1353,7 +1353,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTAnonymousMethod(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1456,7 +1456,7 @@ System.Func<System.Threading.Tasks.Task<string?>> f = async delegate ()
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestAsyncTaskOfTSimpleLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1472,7 +1472,7 @@ System.Func<string, System.Threading.Tasks.Task<string?>> f = async s => [|Goo()
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestAsyncTaskOfTParenthesizedLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1480,14 +1480,14 @@ System.Func<string, System.Threading.Tasks.Task<string?>> f = async s => [|Goo()
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestAsyncTaskSimpleLambda(TestMode mode)
         {
             await TestInMethodAsync(
 @"System.Func<string, System.Threading.Tasks.Task> f = async s => [|Goo()|];", "void", mode);
         }
 
-        [Theory, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/30232"), CombinatorialData]
         public async Task TestAsyncTaskParenthesizedLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1794,7 +1794,7 @@ C(string? s)
 }", "global::System.String?", mode);
         }
 
-        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestThisConstructorInitializer1(TestMode mode)
         {
             await TestAsync(
@@ -1806,7 +1806,7 @@ C(string? s)
 }", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestThisConstructorInitializer2(TestMode mode)
         {
             await TestAsync(
@@ -1832,7 +1832,7 @@ class MyClass
 }", "global::System.String?", mode);
         }
 
-        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestBaseConstructorInitializer(TestMode mode)
         {
             await TestAsync(
@@ -2071,7 +2071,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCollectionInitializer1(TestMode mode)
         {
             var text =
@@ -2108,7 +2108,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCollectionInitializer2(TestMode mode)
         {
             var text =
@@ -2127,7 +2127,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCollectionInitializer3(TestMode mode)
         {
             var text =
@@ -2145,7 +2145,7 @@ class C
             await TestAsync(text, "global::System.String", mode);
         }
 
-        [Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCustomCollectionInitializerAddMethod1()
         {
             var text =
@@ -2169,7 +2169,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCustomCollectionInitializerAddMethod2(TestMode mode)
         {
             var text =
@@ -2193,7 +2193,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCustomCollectionInitializerAddMethod3(TestMode mode)
         {
             var text =
@@ -2353,7 +2353,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
         public async Task TestInsideLambda2(TestMode mode)
         {
             var text =
@@ -2388,7 +2388,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(539813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
         public async Task TestPointer1(TestMode mode)
         {
             var text =
@@ -2404,7 +2404,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(539813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
         public async Task TestDynamic1(TestMode mode)
         {
             var text =
@@ -2435,7 +2435,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTaskOfT(TestMode mode)
         {
             var text =
@@ -2470,7 +2470,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTaskOfTaskOfT(TestMode mode)
         {
             var text =
@@ -2487,7 +2487,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTask(TestMode mode)
         {
             var text =
@@ -2504,7 +2504,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
         public async Task TestLockStatement(TestMode mode)
         {
             var text =
@@ -2522,7 +2522,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(617622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
         public async Task TestAwaitExpressionInLockStatement(TestMode mode)
         {
             var text =
@@ -2540,7 +2540,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task TestReturnFromAsyncTaskOfT(TestMode mode)
         {
             var markup =
@@ -2557,7 +2557,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments1(TestMode mode)
         {
             var markup =
@@ -2576,7 +2576,7 @@ class AAttribute : System.Attribute
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments2(TestMode mode)
         {
             var markup =
@@ -2595,7 +2595,7 @@ class AAttribute : System.Attribute
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments3(TestMode mode)
         {
             var markup =
@@ -2614,7 +2614,7 @@ class AAttribute : System.Attribute
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(757111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757111")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757111")]
         public async Task TestReturnStatementWithinDelegateWithinAMethodCall(TestMode mode)
         {
             var text =
@@ -2638,7 +2638,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause(TestMode mode)
         {
             var text =
@@ -2651,7 +2651,7 @@ catch (Exception) if ([|M()|])
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause1(TestMode mode)
         {
             var text =
@@ -2663,7 +2663,7 @@ catch (Exception) if ([|M|])
             await TestInMethodAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause2()
         {
             var text =
@@ -2675,7 +2675,7 @@ catch (Exception) if ([|M|].N)
             await TestInMethodAsync(text, "global::System.Object", TestMode.Node);
         }
 
-        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestAwaitExpressionWithChainingMethod()
         {
             var text =
@@ -2692,7 +2692,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Boolean>", TestMode.Node);
         }
 
-        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestAwaitExpressionWithChainingMethod2()
         {
             var text =
@@ -2709,7 +2709,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Object>", TestMode.Node);
         }
 
-        [Fact, WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4233")]
         public async Task TestAwaitExpressionWithGenericMethod1()
         {
             var text =
@@ -2728,7 +2728,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4233")]
         public async Task TestAwaitExpressionWithGenericMethod2(TestMode mode)
         {
             var text =
@@ -2747,7 +2747,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
         public async Task TestNullCoalescingOperator1(TestMode mode)
         {
             var text =
@@ -2764,7 +2764,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
         public async Task TestNullCoalescingOperator2(TestMode mode)
         {
             var text =
@@ -2781,7 +2781,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
         public async Task TestNullCoalescingOperator3(TestMode mode)
         {
             var text =
@@ -2798,7 +2798,7 @@ public class C
             await TestAsync(text, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
         }
 
-        [Fact, WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5126")]
         public async Task TestSelectLambda()
         {
             var text =
@@ -2815,7 +2815,7 @@ class C
             await TestAsync(text, "global::System.Object", TestMode.Node);
         }
 
-        [Fact, WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5126")]
         public async Task TestSelectLambda2()
         {
             var text =
@@ -2833,7 +2833,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1903, "https://github.com/dotnet/roslyn/issues/1903")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1903")]
         public async Task TestSelectLambda3(TestMode mode)
         {
             var text =
@@ -2852,7 +2852,7 @@ class C
             await TestAsync(text, "global::B", mode);
         }
 
-        [Fact, WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestDefaultStatement1()
         {
             var text =
@@ -2866,7 +2866,7 @@ class C
             await TestAsync(text, "global::System.ConsoleModifiers", TestMode.Position);
         }
 
-        [Fact, WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestDefaultStatement2()
         {
             var text =
@@ -2912,7 +2912,7 @@ class C
             await TestAsync(text, "global::System.Collections.Generic.IEnumerable<global::System.Object>", TestMode.Node);
         }
 
-        [Fact, WorkItem(12755, "https://github.com/dotnet/roslyn/issues/12755")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12755")]
         public async Task TestObjectCreationBeforeArrayIndexing()
         {
             var text =
@@ -2930,16 +2930,16 @@ class C
             await TestAsync(text, "global::C", TestMode.Position);
         }
 
-        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
-        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15468")]
         public async Task TestDeconstruction()
         {
             await TestInMethodAsync(
 @"[|(int i, _)|] =", "(global::System.Int32 i, global::System.Object _)", TestMode.Node);
         }
 
-        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
-        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15468")]
         public async Task TestDeconstruction2()
         {
             await TestInMethodAsync(
@@ -2953,7 +2953,7 @@ class C
 @"[|(string? s, _)|] =", "(global::System.String? s, global::System.Object _)", TestMode.Node);
         }
 
-        [Fact, WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13402")]
         public async Task TestObjectCreationBeforeBlock()
         {
             var text =
@@ -3022,21 +3022,21 @@ class Program
             await TestAsync(text, "global::System.Object", mode);
         }
 
-        [Theory, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
         public async Task TestValueInNestedTuple1(TestMode mode)
         {
             await TestInMethodAsync(
 @"(int, (string, bool)) x = ([|Goo()|], ("""", true));", "global::System.Int32", mode);
         }
 
-        [Theory, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
         public async Task TestValueInNestedTuple2(TestMode mode)
         {
             await TestInMethodAsync(
 @"(int, (string, bool)) x = (1, ("""", [|Goo()|]));", "global::System.Boolean", mode);
         }
 
-        [Fact, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14277")]
         public async Task TestValueInNestedTuple3()
         {
             await TestInMethodAsync(

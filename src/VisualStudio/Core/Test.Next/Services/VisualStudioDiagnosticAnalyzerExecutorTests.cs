@@ -102,11 +102,10 @@ End Class";
 
                 ideAnalyzerOptions = ideAnalyzerOptions with
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
-                        Common: new IdeCodeStyleOptions.CommonOptions()
-                        {
-                            PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
-                        })
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
+                    {
+                        PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
+                    }
                 };
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
@@ -116,11 +115,10 @@ End Class";
 
                 ideAnalyzerOptions = ideAnalyzerOptions with
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
-                        Common: new IdeCodeStyleOptions.CommonOptions()
-                        {
-                            PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                        })
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
+                    {
+                        PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                    }
                 };
 
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);

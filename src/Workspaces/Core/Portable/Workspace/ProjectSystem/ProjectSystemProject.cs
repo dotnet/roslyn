@@ -671,7 +671,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 }
 
                 // Give the host the opportunity to check if those files are open
-                _projectSystemProjectFactory.RaiseOnDocumentsAdded(documentFileNamesAdded.ToImmutable());
+                if (documentFileNamesAdded.Count > 0)
+                {
+                    await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded.ToImmutable()).ConfigureAwait(false);
+                }
             }
         }
 

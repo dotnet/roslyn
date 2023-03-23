@@ -43,11 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
+            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+            // get callbacks for expression nodes, but analyze nodes across the entire code block
+            // and eventually report a diagnostic on the local declaration statement node.
+            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+            => context.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+            blockStartContext.RegisterSyntaxNodeAction(SyntaxNodeAction,
                 SyntaxKind.EqualsExpression,
                 SyntaxKind.NotEqualsExpression,
                 SyntaxKind.IsExpression,
-                SyntaxKind.IsPatternExpression);
+                SyntaxKind.IsPatternExpression));
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -219,6 +225,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
                     {
                         return;
+                    }
+                }
+            }
+
+            // If we have an annotated local (like `string? s = o as string`) we can't convert this to `o is string s`
+            // if there are any assignments to `s` that end up assigning a `string?`.  These will now give a nullable
+            // warning.
+            if (localSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                {
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
+                        continue;
+
+                    if (descendentNode is IdentifierNameSyntax identifierName &&
+                        identifierName.Identifier.ValueText == localSymbol.Name &&
+                        localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
+                    {
+                        if (identifierName.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                            assignmentExpression.Left == identifierName)
+                        {
+                            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right);
+                            if (rightType.Type is null or { NullableAnnotation: NullableAnnotation.Annotated })
+                                return;
+                        }
                     }
                 }
             }

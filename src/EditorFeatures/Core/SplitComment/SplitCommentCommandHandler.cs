@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (document == null)
                 return false;
 
-            if (!_globalOptions.GetOption(SplitCommentOptions.Enabled, document.Project.Language))
+            if (!_globalOptions.GetOption(SplitCommentOptionsStorage.Enabled, document.Project.Language))
                 return false;
 
             var splitCommentService = document.GetLanguageService<ISplitCommentService>();

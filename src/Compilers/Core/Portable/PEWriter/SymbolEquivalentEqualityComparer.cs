@@ -54,7 +54,7 @@ namespace Microsoft.Cci
                 return objSymbol.GetHashCode();
             }
 
-            return obj is object ? RuntimeHelpers.GetHashCode(obj) : 0;
+            return RuntimeHelpers.GetHashCode(obj);
         }
 
         public bool Equals(INamespace? x, INamespace? y)
@@ -89,7 +89,7 @@ namespace Microsoft.Cci
                 return objSymbol.GetHashCode();
             }
 
-            return obj is object ? RuntimeHelpers.GetHashCode(obj) : 0;
+            return RuntimeHelpers.GetHashCode(obj);
         }
     }
 }

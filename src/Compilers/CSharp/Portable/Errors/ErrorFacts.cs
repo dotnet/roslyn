@@ -206,6 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_AddressOfInAsync:
+                    // Warning level 8 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
+                    return 8;
                 case ErrorCode.WRN_LowerCaseTypeName:
                     // Warning level 7 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
@@ -524,6 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                     return 1;
                 default:
                     return 0;
@@ -1219,6 +1225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadYieldInTryOfCatch:
                 case ErrorCode.ERR_EmptyYield:
                 case ErrorCode.ERR_AnonDelegateCantUse:
+                case ErrorCode.ERR_AnonDelegateCantUseRefLike:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured:
                 case ErrorCode.ERR_IllegalInnerUnsafe:
                 case ErrorCode.ERR_BadYieldInCatch:
                 case ErrorCode.ERR_BadDelegateLeave:
@@ -2279,6 +2290,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                 case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
                 case ErrorCode.ERR_BadSpecialByRefUsing:
+                case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
+                case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReturnPrimaryConstructorParameter:
+                case ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter:
+                case ErrorCode.ERR_UnexpectedParameterList:
+                case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.ERR_BadRefInUsingAlias:
+                case ErrorCode.ERR_BadUnsafeInUsingDirective:
+                case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_BadStaticAfterUnsafe:
+                case ErrorCode.ERR_BadCaseInSwitchArm:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
