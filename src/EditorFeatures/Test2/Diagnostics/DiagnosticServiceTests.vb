@@ -2326,8 +2326,8 @@ class MyClass
                 ' Try get diagnostics for span
                 Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
 
-                ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
-                Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
+                ' Verify only existing cached diagnostics are returned with TryAppendDiagnosticsForSpanAsync, with no analyzer callbacks being made.
+                Assert.False(analyzer.ReceivedOperationCallback)
             End Using
         End Function
 
