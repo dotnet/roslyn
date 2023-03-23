@@ -199,7 +199,7 @@ static class Extensions
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: new string[] { "ExtensionMethod", "Public" },
-                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+                request: completionParams, document: document, commitCharacters: null, textEditText: "Goo").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
@@ -238,7 +238,7 @@ static class Extensions
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: new string[] { "ExtensionMethod", "Public" },
-                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+                request: completionParams, document: document, commitCharacters: null, textEditText: "Goo").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
