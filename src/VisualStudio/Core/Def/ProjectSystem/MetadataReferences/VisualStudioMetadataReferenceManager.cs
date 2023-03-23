@@ -169,9 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     var storagesArray = storages.ToImmutable();
 
-                    var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
-                        ? ValueSource.Constant(newMetadata)
-                        : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+                    var valueSource = ValueSource.Constant(newMetadata);
 
                     s_valueSourceToStorages.Add(valueSource, storagesArray);
 
