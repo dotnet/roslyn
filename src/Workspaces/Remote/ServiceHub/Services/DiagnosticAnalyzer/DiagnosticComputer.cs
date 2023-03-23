@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 //  - Force cancellation of all the executing normal priority tasks
                 //    to minimize resource and CPU contention between normal priority tasks
                 //    and the high priority computeTask in Step 4 below.
-                CancelNormalPriorityTasks(cancellationToken);
+                CancelNormalPriorityTasks();
 
                 // Step 4:
                 //  - Execute the core 'computeTask' for diagnostic computation.
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            static void CancelNormalPriorityTasks(CancellationToken cancellationToken)
+            static void CancelNormalPriorityTasks()
             {
                 ImmutableArray<CancellationTokenSource> cancellationTokenSourcesToCancel;
                 lock (s_gate)
