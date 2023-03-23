@@ -2217,7 +2217,8 @@ class Driver
                             }
                             catch (Exception ex2) when (F("M1-catch2-catch1", ex2, catchFirst2))
                             {
-                                await M2("M1-catch2-catch1", ex2);
+                                await M2("M1-catch2-catch1-ex", ex);
+                                await M2("M1-catch2-catch1-ex2", ex2);
                             }
                             catch (Exception ex2) when (F("M1-catch2-catch2", ex2, true))
                             {
@@ -2253,7 +2254,8 @@ class Driver
                 F: M1-catch1 M1-try
                 F: M1-catch2 M1-try
                 F: M1-catch2-catch1 M1-catch2
-                M2: M1-catch2-catch1 M1-catch2
+                M2: M1-catch2-catch1-ex M1-try
+                M2: M1-catch2-catch1-ex2 M1-catch2
                 --- catchFirst1=True, catchFirst2=False ---
                 F: M1-catch1 M1-try
                 M2: M1-catch1 M1-try
