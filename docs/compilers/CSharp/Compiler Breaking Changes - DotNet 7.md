@@ -9,7 +9,7 @@ the compiler failed to notice some implicitly-declared locals. For instance, in
 `foreach` or `using` statements or deconstructions.  
 Now, such implicitly-declared locals are disallowed as well.
 
-```
+```csharp
 ref struct RefStruct { public void Dispose() { } }
 public class C 
 {
