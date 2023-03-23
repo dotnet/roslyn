@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {
@@ -28,5 +29,11 @@ namespace Roslyn.Test.Utilities
                   configurationOptions)
         {
         }
+
+        void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
+            => OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+
+        void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader)
+            => OnDocumentTextLoaderChanged(documentId, textLoader, requireDocumentPresent: false);
     }
 }

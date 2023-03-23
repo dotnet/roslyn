@@ -355,8 +355,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnDocumentOpened(
-            DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+        protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
             SetCurrentSolution(
                 static (oldSolution, data) =>
@@ -410,9 +409,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Registers a SourceTextContainer to a source generated document. Unlike <see cref="OnDocumentOpened" />,
-        /// this doesn't result in the workspace being updated any time the contents of the container is changed; instead
-        /// this ensures that features going from the text container to the buffer back to a document get a usable document.
+        /// Registers a SourceTextContainer to a source generated document. Unlike <see
+        /// cref="OnDocumentOpened(DocumentId, SourceTextContainer, bool)" />, this doesn't result in the workspace
+        /// being updated any time the contents of the container is changed; instead this ensures that features going
+        /// from the text container to the buffer back to a document get a usable document.
         /// </summary>
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis
 
                         return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
                     },
-                    data: (@this: this, documentId, reloader, updateActiveContext),
+                    data: (@this: this, documentId, reloader),
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
                         var documentId = data.documentId;

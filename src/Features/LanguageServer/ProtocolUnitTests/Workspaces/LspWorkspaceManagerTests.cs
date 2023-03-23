@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using System.Windows.Xps.Packaging;
+using System.Diagnostics.Contracts;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
@@ -65,12 +67,25 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         var firstDocumentInitialVersion = await firstDocument.GetSyntaxVersionAsync(CancellationToken.None);
         var secondDocumentInitialVersion = await secondDocument.GetSyntaxVersionAsync(CancellationToken.None);
 
-        // Verify the LSP documents are the same instance as the workspaces documents.
-        Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+        if (mutatingLspWorkspace)
+        {
+            // In the mutating case, adding/opening the second document will cause the workspace solution to actually
+            // change.  So it will not point to a different document instance for firstDocument.   The underlying state
+            // will be the same though.
+            Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+            Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id)?.State, firstDocument?.State);
+        }
+        else
+        {
+            // Verify the LSP documents are the same instance as the workspaces documents.
+            Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(firstDocument.Id), firstDocument);
+        }
+
         Assert.Same(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
 
         // Make a text change in one of the opened documents in both LSP and the workspace.
         await testLspServer.InsertTextAsync(firstDocumentUri, (0, 0, "Some more text"));
+        AssertEx.NotNull(firstDocument);
         await testLspServer.TestWorkspace.ChangeDocumentAsync(firstDocument.Id, SourceText.From($"Some more text{markupOne}", System.Text.Encoding.UTF8, SourceHashAlgorithms.Default));
 
         var (_, firstDocumentWithChange) = await GetLspWorkspaceAndDocumentAsync(firstDocumentUri, testLspServer).ConfigureAwait(false);
@@ -116,7 +131,15 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         (_, secondDocument) = await GetLspWorkspaceAndDocumentAsync(secondDocumentUri, testLspServer).ConfigureAwait(false);
         AssertEx.NotNull(secondDocument);
         Assert.Equal("Two is now three!", (await secondDocument.GetTextAsync()).ToString());
-        Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
+
+        if (mutatingLspWorkspace)
+        {
+            Assert.Equal(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
+        }
+        else
+        {
+            Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
+        }
     }
 
     [Theory, CombinatorialData]
@@ -153,7 +176,16 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Open the document via LSP with different text from the workspace and verify the initial project name.
         var openedDocument = await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer);
         Assert.Equal("Test", openedDocument?.Project.AssemblyName);
-        Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+
+        // In the mutating case, the changes are pushed through such that the solutions are the same.
+        if (mutatingLspWorkspace)
+        {
+            Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+        }
+        else
+        {
+            Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument!.Project.Solution);
+        }
 
         // Modify the project via the workspace.
         var newProject = testLspServer.TestWorkspace.CurrentSolution.Projects.First().WithAssemblyName("NewCSProj1");
@@ -164,7 +196,16 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         AssertEx.NotNull(openedDocument);
         Assert.Equal("LSP text", (await openedDocument.GetTextAsync(CancellationToken.None)).ToString());
         Assert.Equal("NewCSProj1", openedDocument.Project.AssemblyName);
-        Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+
+        // In the mutating case, the changes are pushed through such that the solutions are the same.
+        if (mutatingLspWorkspace)
+        {
+            Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+        }
+        else
+        {
+            Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, openedDocument.Project.Solution);
+        }
     }
 
     [Theory, CombinatorialData]
@@ -445,7 +486,17 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var (_, documentServerTwo) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServerTwo).ConfigureAwait(false);
         AssertEx.NotNull(documentServerTwo);
-        Assert.Equal("Original text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+
+        if (mutatingLspWorkspace)
+        {
+            // If the underlying workspace is getting mutated, then given that the second lsp-server hasn't heard
+            // anything about doc-1 yet, it will see the change pushed through by the first lsp-server.
+            Assert.Equal("Server one text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+        }
+        else
+        {
+            Assert.Equal("Original text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
+        }
 
         // Verify workspace updates are reflected in both servers.
         var newAssemblyName = "NewCSProj1";
@@ -478,6 +529,104 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.Equal("Text", (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         Assert.Same(testLspServer.TestWorkspace.CurrentSolution, lspDocument.Project.Solution);
+    }
+
+    [Fact]
+    public async Task TestLspDocumentPreferredOverProjectSystemDocumentAdd()
+    {
+        // This verifies that we will still see the lsp view of the document, even though it found out about a document
+        // prior to a project system even telling it about a file, and even if the project system removes the file.
+
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            Array.Empty<string>(), mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Open the doc
+        var filePath = @"c:\Test1.cs";
+        var documentUri = new Uri("file://" + filePath, UriKind.Absolute);
+        await testLspServer.OpenDocumentAsync(documentUri, "Text");
+
+        // Initially the doc will be in the lsp misc workspace.
+        var (workspace1, document1) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace1?.Kind);
+
+        AssertEx.NotNull(document1);
+        Assert.Equal("Text", (await document1.GetTextAsync(CancellationToken.None)).ToString());
+
+        // Now, add a project to the actual workspace containing Test1.cs with different content.
+        await testLspServer.TestWorkspace.ChangeSolutionAsync(
+            testLspServer.TestWorkspace.CurrentSolution.Projects.Single()
+                .AddDocument(filePath, SourceText.From("ProjectSystemText"), filePath: filePath)
+                .Project.Solution);
+
+        // if we were to directly query the workspace right now, the contents won't match what lsp thinks it is:
+        Assert.NotEqual(
+            (await document1.GetTextAsync(CancellationToken.None)).ToString(),
+            (await testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetTextAsync()).ToString());
+
+        // However, if we retrieve from lsp now, we'll see the document moved into the real workspace and we'll see the
+        // real workspace contents changed.
+        (workspace1, document1) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace1?.Kind);
+
+        AssertEx.NotNull(document1);
+        Assert.Equal("Text", (await document1.GetTextAsync(CancellationToken.None)).ToString());
+
+        // Retrieving the document from lsp should push its content into the workspace.
+        Assert.Equal(
+            (await document1.GetTextAsync(CancellationToken.None)).ToString(),
+            (await testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetTextAsync()).ToString());
+
+        // The file should not be in the misc workspace.
+        Assert.Empty(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects);
+
+        // Now, if the project system removes the file, we will still see the lsp version of, but back to the misc workspace.
+        await testLspServer.TestWorkspace.ChangeSolutionAsync(
+            testLspServer.TestWorkspace.CurrentSolution.Projects.Single().RemoveDocument(document1.Id).Solution);
+
+        (workspace1, document1) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace1?.Kind);
+
+        AssertEx.NotNull(document1);
+        Assert.Equal("Text", (await document1.GetTextAsync(CancellationToken.None)).ToString());
+    }
+
+    [Fact]
+    public async Task TestLspDocumentPreferredOverProjectSystemDocumentChange()
+    {
+        // This verifies that we will still see the lsp view of the document, even if the project system feeds in
+        // external information about the contents of the file.
+
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "Initial Disk Contents", mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var documentUri = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetURI();
+        await testLspServer.OpenDocumentAsync(documentUri, "Text");
+
+        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace?.Kind);
+
+        // We should see the contents lsp told us about.
+        AssertEx.NotNull(document);
+        Assert.Equal("Text", (await document.GetTextAsync(CancellationToken.None)).ToString());
+
+        // Now, explicitly update the workspace, simulating the project system externally changing it.
+        await testLspServer.TestWorkspace.ChangeSolutionAsync(
+            testLspServer.TestWorkspace.CurrentSolution.WithDocumentText(document.Id, SourceText.From("New Disk Contents")));
+
+        // Querying the workspace directly, prior to an LSP call will show the new contents.
+        document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        Assert.Equal("New Disk Contents", (await document.GetTextAsync()).ToString());
+
+        // However, once we retrieve from LSP, the lsp contents should be pushed back into the workspace.
+        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+
+        AssertEx.NotNull(document);
+        Assert.Equal("Text", (await document.GetTextAsync(CancellationToken.None)).ToString());
+
+        document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        Assert.Equal("Text", (await document.GetTextAsync()).ToString());
     }
 
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
