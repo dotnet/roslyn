@@ -1016,11 +1016,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
-        /// files also have their content updated in the new solution before applying it to the
-        /// workspace to avoid the workspace having solutions with linked files where the contents
-        /// do not match.
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked files also have their
+        /// content updated in the new solution before applying it to the workspace to avoid the workspace having
+        /// solutions with linked files where the contents do not match.
         /// </summary>
+        /// <param name="requireDocumentPresent">Allow caller to indicate behavior that should happen if this is a
+        /// request to update a document not currently in the workspace.  This should be used only in hosts where there
+        /// may be disparate sources of text change info, without an underlying agreed upon synchronization context to
+        /// ensure consistency between events.  For example, in an LSP server it might be the case that some events were
+        /// being posted by an attached lsp client, while another source of events reported information produced by a
+        /// self-hosted project system.  These systems might report events on entirely different cadences, leading to
+        /// scenarios where there might be disagreements as to the state of the workspace.  Clients in those cases must
+        /// be resilient to those disagreements (for example, by falling back to a misc-workspace if the lsp client
+        /// referred to a document no longer in the workspace populated by the project system).</param>
         private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
             TArg arg,
