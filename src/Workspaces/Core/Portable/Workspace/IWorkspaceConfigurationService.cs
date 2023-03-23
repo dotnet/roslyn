@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
         [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
         [property: DataMember(Order = 2)] bool DisableReferenceManagerRecoverableMetadata = false,
-        [property: DataMember(Order = 3)] bool DisableBackgroundCompilation = false,
-        [property: DataMember(Order = 4)] bool DisableSharedSyntaxTrees = false)
+        [property: DataMember(Order = 3)] bool DisableSharedSyntaxTrees = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Host
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
             DisableReferenceManagerRecoverableMetadata: false,
-            DisableBackgroundCompilation: false,
             DisableSharedSyntaxTrees: false);
     }
 }
