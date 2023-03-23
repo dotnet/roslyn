@@ -129,6 +129,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         if (mutatingLspWorkspace)
         {
+            // In the mutating case, opening the second doc pushes its changes through to the underlying workspace.  So
+            // the documents will be the same.
             Assert.Equal(testLspServer.TestWorkspace.CurrentSolution.GetDocument(secondDocument.Id), secondDocument);
         }
         else
