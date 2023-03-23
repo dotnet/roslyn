@@ -130,7 +130,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
+                if (workspace is not ILspWorkspace { SupportsMutation: true } mutatingWorkspace)
                     continue;
 
                 foreach (var document in workspace.CurrentSolution.GetDocuments(uri))
@@ -331,7 +331,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         void OpenOrEditDocumentsInMutatingWorkspace(Workspace workspace)
         {
-            if (workspace is not IMutatingLspWorkspace mutatingWorkspace)
+            if (workspace is not ILspWorkspace { SupportsMutation: true } mutatingWorkspace)
                 return;
 
             var currentSolution = workspace.CurrentSolution;

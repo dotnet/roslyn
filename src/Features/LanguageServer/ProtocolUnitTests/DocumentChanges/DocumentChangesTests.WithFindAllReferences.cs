@@ -87,7 +87,7 @@ class B
                     // In the mutating scenario, simulate this by rolling back to the text we had when the workspace was
                     // created.
                     if (mutatingLspWorkspace)
-                        ((IMutatingLspWorkspace)testLspServer.TestWorkspace).UpdateTextIfPresent(originalDocument.Id, await originalDocument.GetTextAsync());
+                        ((ILspWorkspace)testLspServer.TestWorkspace).UpdateTextIfPresent(originalDocument.Id, await originalDocument.GetTextAsync());
                 }
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<VSInternalReferenceItem>(testLspServer, locationTyped);
