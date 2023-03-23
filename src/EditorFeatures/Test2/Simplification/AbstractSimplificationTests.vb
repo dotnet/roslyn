@@ -18,13 +18,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public MustInherit Class AbstractSimplificationTests
 
         Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As OptionsCollection = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
-            Using workspace = Await CreateTestWorkspace(definition, csharpParseOptions)
+            Using workspace = Await CreateTestWorkspaceAsync(definition, csharpParseOptions)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
                 Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
 
-        Protected Shared Async Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As Task(Of TestWorkspace)
+        Protected Shared Async Function CreateTestWorkspaceAsync(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As Task(Of TestWorkspace)
             Dim workspace = TestWorkspace.Create(definition)
 
             If csharpParseOptions IsNot Nothing Then
