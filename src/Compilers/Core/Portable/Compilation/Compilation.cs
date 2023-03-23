@@ -1763,6 +1763,20 @@ namespace Microsoft.CodeAnalysis
         /// within this compilation, the reference is considered to be used. Etc.
         /// The returned set is a subset of references returned by <see cref="References"/> API.
         /// The result is undefined if the compilation contains errors.
+        /// 
+        /// The effect of imported namespaces on result of this API depends on whether reporting of
+        /// unused imports is disabled for the compilation. The reporting of unused imports is disabled
+        /// if <see cref="ParseOptions.DocumentationMode"/> is set to <see cref="DocumentationMode.None"/>.
+        /// 
+        /// When unused imports reporting is disabled, all referenced assemblies containing any types
+        /// that belong to imported namespaces are included in the result. I.e. considered used.
+        /// 
+        /// When unused imports reporting is enabled, imported namespaces do not have effect on the result
+        /// of this API. Therefore, removing assembly references that aren't in the result, could potentially
+        /// cause error "CS0246: The type or namespace name could not be found (are you missing a using directive or an assembly reference?)"
+        /// on an unused namespace import. However, that import would be reported by compiler as unused
+        /// for the compilation on which this API was invoked. In order to avoid the errors, it is recommended to
+        /// remove unused assembly references and unused imports at the same time.
         /// </summary>
         public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 
