@@ -213,9 +213,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             expectedSolution = testLspServer.GetCurrentSolution();
 
-            // solution should be different because there has been a workspace change
             solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
-            Assert.NotEqual(expectedSolution, solution);
+
+            if (mutatingLspWorkspace)
+            {
+                // In the case where this is a mutating workspace, we would expect the solutions to be the same as
+                // everything pushes through between the manager and the workspace, and there have been no text changes
+                // in one to cause us to fork.
+                Assert.Equal(expectedSolution, solution);
+            }
+            else
+            {
+                // in the case where this is a non-mutating solution, the solutions should be different because there
+                // has been a workspace change.
+                Assert.NotEqual(expectedSolution, solution);
+            }
 
             expectedSolution = solution;
 

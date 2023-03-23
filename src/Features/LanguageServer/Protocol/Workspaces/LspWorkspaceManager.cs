@@ -121,15 +121,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
-        CloseDocumentIfOpenInMutatingWorkspace(uri);
+        ReloadContentsFromDiskInMutatingWorkspace(uri);
 
         return;
 
-        // If this workspace thinks the document is opened, then transition it to the closed state here, reading the
-        // contents back in from disk.  If the workspace doesn't think it's open, then nothing to do.  We found out
-        // about the close prior to even notifying the workspace about it opening.  This can happen with workspaces that
-        // are populated from an external stream of events from a project system operating independently from lsp.
-        void CloseDocumentIfOpenInMutatingWorkspace(Uri uri)
+        void ReloadContentsFromDiskInMutatingWorkspace(Uri uri)
         {
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
@@ -139,17 +135,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
                 foreach (var document in workspace.CurrentSolution.GetDocuments(uri))
                 {
-                    // Note: as per the rules of IMutatingLspWorkspace, only we control the open/closed state of a
-                    // document.  So it's safe for us to read this value here, and then call into the workspace to
-                    // actually close the document.  Note: if an external source (like a project system) removes the
-                    // document, that's fine as CloseIfPresent will bail gracefully in that event.
-                    if (workspace.IsDocumentOpen(document.Id))
-                    {
-                        // TODO(cyrusn): What is the right thing to do if FilePath is null?
-                        mutatingWorkspace.CloseIfPresent(
-                            document.Id,
-                            new WorkspaceFileTextLoader(workspace.Services.SolutionServices, document.FilePath!, defaultEncoding: null));
-                    }
+                    if (document.FilePath is null)
+                        continue;
+
+                    mutatingWorkspace.UpdateTextIfPresent(
+                        document.Id,
+                        new WorkspaceFileTextLoader(workspace.Services.SolutionServices, document.FilePath, defaultEncoding: null));
                 }
             }
         }
@@ -346,17 +337,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 foreach (var documentId in currentSolution.GetDocumentIds(uri))
                 {
-                    // If not already open in this workspace, attempt to open it.
-
-                    // Note: as per the rules of IMutatingLspWorkspace, only we control the open/closed state of a
-                    // document.  So it's safe for us to read this value here, and then call into the workspace to
-                    // actually close the document.  Note: if an external source (like a project system) removes the
-                    // document, that's fine as CloseIfPresent will bail gracefully in that event.
-                    if (!workspace.IsDocumentOpen(documentId))
-                        mutatingWorkspace.OpenIfPresent(documentId, sourceText.Container);
-
-                    // Then, update it to point at this text value.
-
                     // Note: there is a race here in that we might see/change/return here based on the
                     // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
                     // confines of lsp queue might update the workspace externally.  That's completely fine

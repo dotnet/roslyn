@@ -47,12 +47,9 @@ internal class LanguageServerWorkspace : Workspace, IMutatingLspWorkspace
 
     protected internal override bool PartialSemanticsEnabled => true;
 
-    void IMutatingLspWorkspace.CloseIfPresent(DocumentId documentId, TextLoader textLoader)
-        => OnDocumentClosed(documentId, textLoader, _: false, requireDocumentPresent: false);
-
-    void IMutatingLspWorkspace.OpenIfPresent(DocumentId documentId, SourceTextContainer container)
-        => OnDocumentOpened(documentId, container, isCurrentContext: false, requireDocumentPresent: false);
-
     void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
         => OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+
+    void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader)
+        => OnDocumentTextLoaderChanged(documentId, textLoader, requireDocumentPresent: false);
 }

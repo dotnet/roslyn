@@ -968,6 +968,12 @@ namespace Microsoft.CodeAnalysis
         /// Call this method when the text of a document is changed on disk.
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+            => OnDocumentTextLoaderChanged(documentId, loader, requireDocumentPresent: true);
+
+        /// <summary>
+        /// Call this method when the text of a document is changed on disk.
+        /// </summary>
+        private protected void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader, bool requireDocumentPresent)
         {
             OnAnyDocumentTextChanged(
                 documentId,
@@ -976,7 +982,7 @@ namespace Microsoft.CodeAnalysis
                 (solution, docId, loader) => solution.WithDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.DocumentChanged,
                 isCodeDocument: true,
-                requireDocumentPresent: true);
+                requireDocumentPresent);
         }
 
         /// <summary>
@@ -1035,15 +1041,18 @@ namespace Microsoft.CodeAnalysis
                     updatedDocumentIds.Clear();
 
                     var document = data.getDocumentInSolution(oldSolution, data.documentId);
-                    if (data.requireDocumentPresent)
+                    if (document is null)
                     {
-                        throw new ArgumentException(string.Format(
-                            WorkspacesResources._0_is_not_part_of_the_workspace,
-                            oldSolution.Workspace.GetDocumentName(data.documentId)));
-                    }
-                    else if (document is null)
-                    {
-                        return oldSolution;
+                        if (data.requireDocumentPresent)
+                        {
+                            throw new ArgumentException(string.Format(
+                                WorkspacesResources._0_is_not_part_of_the_workspace,
+                                oldSolution.Workspace.GetDocumentName(data.documentId)));
+                        }
+                        else
+                        {
+                            return oldSolution;
+                        }
                     }
 
                     // First, just update the text for the document passed in.
