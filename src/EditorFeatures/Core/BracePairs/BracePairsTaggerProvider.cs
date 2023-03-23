@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.BracePairs
 
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
+
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnTextChanged(subjectBuffer),
