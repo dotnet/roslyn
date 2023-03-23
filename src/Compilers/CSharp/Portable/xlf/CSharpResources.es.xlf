@@ -2032,6 +2032,11 @@
         <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureReducedMemberAccessChecksInNameof">
+        <source>reduced member access checks in 'nameof'</source>
+        <target state="new">reduced member access checks in 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado "{0}" que contiene el tipo "{1}" hace referencia a .NET Framework, lo cual no se admite.</target>
