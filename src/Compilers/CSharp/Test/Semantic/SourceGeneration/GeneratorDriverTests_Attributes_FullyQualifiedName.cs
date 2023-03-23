@@ -1266,7 +1266,9 @@ class YAttribute : System.Attribute { }
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, new[] { comp0 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
-        verify(ref driver, compilation);
+        verify(ref driver, compilation,
+            ("Class1.g.cs", "partial class Class1 { /* generated */ }"),
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
 
         // Remove Class1 from the final provider via a TransformNode
         // (by removing the Generate attribute).
@@ -1275,7 +1277,8 @@ class YAttribute : System.Attribute { }
             [System.Obsolete]
             public partial class Class1 { }
             """);
-        verify(ref driver, compilation);
+        verify(ref driver, compilation,
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
 
         // Modify Class2 (make it internal).
         replace(ref compilation, parseOptions, "Class2", """
@@ -1283,13 +1286,15 @@ class YAttribute : System.Attribute { }
             [System.Obsolete]
             internal partial class Class2 { }
             """);
-        verify(ref driver, compilation);
+        verify(ref driver, compilation,
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
 
-        static void verify(ref GeneratorDriver driver, Compilation compilation)
+        static void verify(ref GeneratorDriver driver, Compilation compilation, params (string HintName, string SourceText)[] expectedGeneratedSources)
         {
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify();
+            Assert.Equal(expectedGeneratedSources, driver.GetRunResult().Results.Single().GeneratedSources.Select(s => (s.HintName, s.SourceText.ToString())));
         }
 
         static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string className, string source)
