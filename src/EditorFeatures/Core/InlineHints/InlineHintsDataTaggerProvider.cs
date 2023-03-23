@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 document, snapshotSpan.Span.ToTextSpan(), options,
                 displayAllOverride: _inlineHintKeyProcessor?.State is true,
                 cancellationToken).ConfigureAwait(false);
+
             foreach (var hint in hints)
             {
                 // If we don't have any text to actually show the user, then don't make a tag.
