@@ -1043,7 +1043,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.True(docClosed);
             Assert.True(textDocClosed);
 
-            await WaitWaiterAsync(workspace.ExportProvider);
             Assert.Equal(1, worker.ClosedDocumentIds.Count);
         }
 
