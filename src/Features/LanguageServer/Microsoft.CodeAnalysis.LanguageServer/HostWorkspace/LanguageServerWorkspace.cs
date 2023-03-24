@@ -10,8 +10,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 /// <summary>
-/// Mark this type as an <see cref="IMutatingLspWorkspace"/> so that LSP document changes are pushed into this instance,
-/// causing our <see cref="Workspace.CurrentSolution"/> to stay in sync with all the document changes.
+/// Mark this type as an <see cref="ILspWorkspace"/> so that LSP document changes are pushed into this instance, causing
+/// our <see cref="Workspace.CurrentSolution"/> to stay in sync with all the document changes.
 /// <para/>
 /// There is a fundamental race with how solution snapshot data is stored in this type.  Specifically, two entities push
 /// changes into this workspace.  First, the <see cref="LspWorkspaceManager"/> pushes changes into this relating to the
@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// workspace manager ever disagree on document contents, that is never itself an issue as the workspace manager always
 /// prefers the in-memory source text it is holding onto if the checksums of files change.
 /// <para/>
-/// 
 /// Put another way, the lsp workspace manager will use the data in the workspace if it sees it is in alignment with
 /// what it believes is the state of the world with respect to <see cref="LSP.Methods.TextDocumentDidOpen"/>/<see
 /// cref="LSP.Methods.TextDocumentDidChange"/>/<see cref="LSP.Methods.TextDocumentDidClose"/>.  However, if it is not,
