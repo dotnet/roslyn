@@ -11757,6 +11757,29 @@ class Program
             }
         }
 
+        [WorkItem(67041, "https://github.com/dotnet/roslyn/issues/67041")]
+        [Theory]
+        [CombinatorialData]
+        public void PointerSubtraction(bool useNumericIntPtr)
+        {
+            var source = """
+                class Program
+                {
+                    static unsafe long F(int* p1)
+                    {
+                        byte* p2 = (byte*)p1;
+                        p2++;
+                        return p2 - (byte*)p1;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.UnsafeReleaseDll,
+                targetFramework: useNumericIntPtr ? TargetFramework.Net60 : TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)
         {
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,

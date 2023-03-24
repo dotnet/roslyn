@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
-               usingDirective.Name == node;
+               usingDirective.NamespaceOrType == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
             alias = usingDirective.Alias!.Name.Identifier;
-            name = usingDirective.Name;
+            name = usingDirective.NamespaceOrType;
         }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
@@ -326,8 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         }
 
         private static PredefinedType GetPredefinedType(SyntaxToken token)
-        {
-            return (SyntaxKind)token.RawKind switch
+            => token.Kind() switch
             {
                 SyntaxKind.BoolKeyword => PredefinedType.Boolean,
                 SyntaxKind.ByteKeyword => PredefinedType.Byte,
@@ -345,9 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 SyntaxKind.CharKeyword => PredefinedType.Char,
                 SyntaxKind.ObjectKeyword => PredefinedType.Object,
                 SyntaxKind.VoidKeyword => PredefinedType.Void,
+                SyntaxKind.IdentifierToken => token.Text switch
+                {
+                    "nint" => PredefinedType.IntPtr,
+                    "nuint" => PredefinedType.UIntPtr,
+                    _ => PredefinedType.None,
+                },
                 _ => PredefinedType.None,
             };
-        }
 
         public bool IsPredefinedOperator(SyntaxToken token)
             => TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures(new[] { new KeyValuePair<string, string>("strict", "true") });
+
         public MakeFieldReadonlyTests(ITestOutputHelper logger)
           : base(logger)
         {
@@ -452,7 +456,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReturnedInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -480,7 +484,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReadInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -901,7 +905,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -917,7 +921,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -931,7 +935,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -948,7 +952,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -978,7 +982,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1004,7 +1008,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1025,7 +1029,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1045,7 +1049,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1065,7 +1069,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly1()
         {
             await TestInRegularAndScript1Async(
@@ -1091,7 +1095,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly2()
         {
             await TestInRegularAndScript1Async(
@@ -1113,7 +1117,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly3()
         {
             await TestInRegularAndScript1Async(
@@ -1141,7 +1145,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly4()
         {
             await TestInRegularAndScript1Async(
@@ -1193,7 +1197,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly5()
         {
             await TestInRegularAndScript1Async(
@@ -1237,7 +1241,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly6()
         {
             await TestInRegularAndScript1Async(
@@ -1273,7 +1277,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly7()
         {
             await TestInRegularAndScript1Async(
@@ -1307,7 +1311,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly8()
         {
             await TestInRegularAndScript1Async(
@@ -1341,7 +1345,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional1()
         {
             await TestInRegularAndScript1Async(
@@ -1369,7 +1373,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional2()
         {
             await TestInRegularAndScript1Async(
@@ -1615,7 +1619,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
         public async Task FieldAssignedInCtor_InParens()
         {
             await TestInRegularAndScript1Async(
@@ -1641,7 +1645,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
         public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
         {
             await TestInRegularAndScript1Async(
@@ -1667,7 +1671,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction()
         {
             await TestMissingAsync(
@@ -1685,7 +1689,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction_InParens()
         {
             await TestMissingAsync(
@@ -1703,7 +1707,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
         {
             await TestMissingAsync(
@@ -1721,7 +1725,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldUsedInTupleExpressionOnRight()
         {
             await TestInRegularAndScript1Async(
@@ -1751,7 +1755,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldInTypeWithGeneratedCode()
         {
             await TestInRegularAndScript1Async(
@@ -1783,7 +1787,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26364")]
         public async Task FieldIsFixed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1795,7 +1799,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(38995, "https://github.com/dotnet/roslyn/issues/38995")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38995")]
         public async Task FieldAssignedToLocalRef()
         {
             await TestMissingAsync(
@@ -1841,7 +1845,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(26213, "https://github.com/dotnet/roslyn/issues/26213")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26213")]
         public async Task TestFieldAccessesOnLeftOfDot()
         {
             await TestInRegularAndScript1Async(
@@ -1879,7 +1883,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField1()
         {
             await TestInRegularAndScript1Async(
@@ -1897,7 +1901,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField2()
         {
             await TestInRegularAndScript1Async(
@@ -1916,7 +1920,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField3()
         {
             await TestInRegularAndScript1Async(
@@ -1935,7 +1939,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46785")]
         public async Task UsedAsRef_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1953,7 +1957,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57983")]
         public async Task UsedAsRef_NoDiagnostic_02()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1974,7 +1978,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42760")]
         public async Task WithThreadStaticAttribute_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1989,7 +1993,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(50925, "https://github.com/dotnet/roslyn/issues/50925")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50925")]
         public async Task Test_MemberUsedInGeneratedCode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2023,7 +2027,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
         {
             await TestMissingAsync(
@@ -2043,7 +2047,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
         {
             await TestInRegularAndScript1Async(
@@ -2075,7 +2079,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
         {
             await TestInRegularAndScript1Async(
@@ -2113,7 +2117,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses()
         {
             await TestMissingAsync(
@@ -2132,7 +2136,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(59577, "https://github.com/dotnet/roslyn/issues/59577")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59577")]
         public async Task TestInStruct()
         {
             await TestInRegularAndScript1Async(
@@ -2150,7 +2154,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(59577, "https://github.com/dotnet/roslyn/issues/59577")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59577")]
         public async Task MissingForMemberInStructThatOverwritesThis()
         {
             await TestMissingAsync(
@@ -2167,7 +2171,7 @@ $@"class MyClass
                 """);
         }
 
-        [Fact, WorkItem(38468, "https://github.com/dotnet/roslyn/issues/38468")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38468")]
         public async Task PreserveLeadingTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -2185,6 +2189,80 @@ $@"class MyClass
                     int x;
 
                     readonly int y;
+                }
+                """);
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<T>.s_value = null;
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static readonly IEqualityComparer<T> s_value;
+
+                    static C()
+                    {
+                        C<T>.s_value = null;
+                    }
+                }
+                """, parseOptions: s_strictFeatureFlag);
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<string>.s_value = null;
+                    }
+                }
+                """, new TestParameters(parseOptions: s_strictFeatureFlag));
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<string>.s_value = null;
+                    }
                 }
                 """);
         }

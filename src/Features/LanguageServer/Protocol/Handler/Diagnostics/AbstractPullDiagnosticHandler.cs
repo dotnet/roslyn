@@ -113,6 +113,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
+        /// <summary>
+        /// Used by public workspace pull diagnostics to allow it to keep the connection open until
+        /// changes occur to avoid the client spamming the server with requests.
+        /// </summary>
+        protected virtual Task WaitForChangesAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
@@ -181,6 +190,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
                 }
             }
+
+            // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
+            // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
+            // so that the client asks us again.
+            await WaitForChangesAsync(context, cancellationToken).ConfigureAwait(false);
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.

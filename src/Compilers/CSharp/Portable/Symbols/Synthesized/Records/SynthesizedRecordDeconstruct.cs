@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordDeconstruct : SynthesizedRecordOrdinaryMethod
     {
-        private readonly SynthesizedRecordConstructor _ctor;
+        private readonly SynthesizedPrimaryConstructor _ctor;
         private readonly ImmutableArray<Symbol> _positionalMembers;
 
         public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
-            SynthesizedRecordConstructor ctor,
+            SynthesizedPrimaryConstructor ctor,
             ImmutableArray<Symbol> positionalMembers,
             int memberOffset,
             BindingDiagnosticBag diagnostics)

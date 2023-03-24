@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
             var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
-            AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
             AddBaseService<ILspServiceLogger>(logger);
@@ -81,6 +80,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
             AddBaseService<IOnInitialized>(this);
+
+            // In all VS cases, we already have a misc workspace.  Specifically
+            // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
+            // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
+            // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
+            if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
+                AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
 
             return baseServices.ToImmutableDictionary();
 

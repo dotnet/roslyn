@@ -2072,6 +2072,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
+            // Primary constructor parameter and its backing field share the slot when
+            // we are dealing with 'this' instance.
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
+                primaryConstructor.GetCapturedParameters().TryGetValue(parameter, out FieldSymbol? field))
+            {
+                Debug.Assert(containingSlot == 0);
+
+                var enclosingMemberMethod = _symbol as MethodSymbol;
+
+                while (enclosingMemberMethod?.MethodKind is MethodKind.AnonymousFunction or MethodKind.LocalFunction)
+                {
+                    enclosingMemberMethod = enclosingMemberMethod.ContainingSymbol as MethodSymbol;
+                }
+
+                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol methodThisParameter) == true &&
+                    methodThisParameter?.ContainingSymbol.ContainingSymbol == (object)primaryConstructor.ContainingSymbol &&
+                    GetOrCreateSlot(methodThisParameter) is >= 0 and var thisSlot)
+                {
+                    symbol = field;
+                    containingSlot = thisSlot;
+                }
+            }
+
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
 
@@ -2676,11 +2699,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (methodSymbol is SynthesizedRecordConstructor)
+            if (methodSymbol is SynthesizedPrimaryConstructor)
             {
                 if (_hasInitialState)
                 {
-                    // A record primary constructor's parameters are entered before analyzing initializers.
+                    // Primary constructor's parameters are entered before analyzing initializers.
                     // On the second pass, the correct parameter states (potentially modified by initializers)
                     // are contained in the initial state.
                     return;
@@ -5591,8 +5614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             bool isReachable)
         {
-            var savedState = this.State;
-            this.State = state;
+            var savedState = PossiblyConditionalState.Create(this);
+            this.SetState(state);
 
             bool previousDisabledDiagnostics = _disableDiagnostics;
             // If the node is not reachable, then we're only visiting to get
@@ -5621,7 +5644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = default;
                 _disableDiagnostics = previousDisabledDiagnostics;
             }
-            this.State = savedState;
+            this.SetPossiblyConditionalState(in savedState);
 
             return resultType;
         }
@@ -6213,16 +6236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentNoConversion = argumentsNoConversions[i];
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
-                        if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
-                        {
-                            Debug.Assert(node.HasErrors);
-                            Debug.Assert((object)argument == argumentNoConversion);
-                            // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                            // This lambda doesn't have a conversion, so we need to visit it here.
-                            VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
-                            continue;
-                        }
-
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
                         if (parameter is null)
@@ -6230,10 +6243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If this assert fails, we are missing necessary info to visit the
                             // conversion of a target typed construct.
                             Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true);
-
-                            // If this assert fails, it means we failed to visit a lambda for error recovery above.
-                            Debug.Assert(argumentNoConversion is not BoundLambda);
-
                             continue;
                         }
 
@@ -8942,7 +8951,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
+            // but in erroneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
+            if (!node.InAnonymousFunctionConversion)
+            {
+                VisitLambda(node, delegateTypeOpt: null);
+            }
+
             // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
@@ -10934,15 +10949,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-
-            if (node.Value is BoundLambda lambda)
-            {
-                // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                // This lambda doesn't have a conversion, so we need to visit it here.
-                Debug.Assert(node.HasAnyErrors);
-                VisitLambda(lambda, delegateTypeOpt: null);
-            }
-
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }

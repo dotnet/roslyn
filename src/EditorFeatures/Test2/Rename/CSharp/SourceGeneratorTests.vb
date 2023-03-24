@@ -57,7 +57,7 @@ public class GeneratedClass
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(51537, "https://github.com/dotnet/roslyn/issues/51537")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/51537")>
         Public Sub RenameWithCascadeIntoGeneratedFile(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>

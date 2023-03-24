@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -26,7 +25,7 @@ internal class LspWorkspaceManagerFactory : ILspServiceFactory
     {
         var logger = lspServices.GetRequiredService<ILspServiceLogger>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-        var miscFilesWorkspace = lspServices.GetRequiredService<LspMiscellaneousFilesWorkspace>();
+        var miscFilesWorkspace = lspServices.GetService<LspMiscellaneousFilesWorkspace>();
         return new LspWorkspaceManager(logger, miscFilesWorkspace, _workspaceRegistrationService, telemetryLogger);
     }
 }

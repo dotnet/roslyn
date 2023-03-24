@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var inProcOnlyProjectId = ProjectId.CreateNewId();
             var inProcOnlyDocumentId = DocumentId.CreateNewId(inProcOnlyProjectId);
 
-            localWorkspace.ChangeSolution(localWorkspace.CurrentSolution
+            await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
                 .AddProject(projectId, "proj", "proj", LanguageNames.CSharp)
                 .AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40))
                 .AddDocument(documentId, "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs")

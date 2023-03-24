@@ -1091,6 +1091,66 @@ class C
         }
 
         [Fact]
+        public async Task UpgradeProjectForPrimaryConstructors_Class()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program[|()|];",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForPrimaryConstructors_Struct()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+struct Program[|()|];",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Class()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Struct()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+struct Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Interface()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Enum()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+enum Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
         public async Task UpgradeProjectForTargetTypedNew()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1148,7 +1208,7 @@ class C
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57154")]
         public async Task UpgradeProjectForNewLinesInInterpolations()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1166,7 +1226,7 @@ class C
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_1()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1180,7 +1240,7 @@ class C
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_2()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1194,7 +1254,7 @@ class C
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_3()
         {
             await TestLanguageVersionUpgradedAsync("""
