@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(recursionDepth)
         { }
 
-        public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
+        public /*PROTOTYPE: sealed*/ override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
             if (node.Left.Kind != BoundKind.BinaryOperator)
             {
