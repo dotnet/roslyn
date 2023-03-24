@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,14 +15,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,7 +33,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public partial class TestWorkspace : Workspace
+    public partial class TestWorkspace : Workspace, ILspWorkspace
     {
         public ExportProvider ExportProvider { get; }
         public TestComposition? Composition { get; }
@@ -59,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
+        private readonly bool _supportsLspMutation;
 
         internal TestWorkspace(
             TestComposition? composition = null,
@@ -66,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-            WorkspaceConfigurationOptions? configurationOptions = null)
+            WorkspaceConfigurationOptions? configurationOptions = null,
+            bool supportsLspMutation = false)
             : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
             this.Composition = composition;
@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+            _supportsLspMutation = supportsLspMutation;
             this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
@@ -751,11 +752,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             OnSourceGeneratedDocumentClosed(document);
         }
 
-        public void ChangeDocument(DocumentId documentId, SourceText text)
-        {
-            ChangeDocumentAsync(documentId, text);
-        }
-
         public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
         {
             return ChangeDocumentAsync(documentId, this.CurrentSolution.WithDocumentText(documentId, text));
@@ -791,11 +787,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
-        public void ChangeProject(ProjectId projectId, Solution solution)
-        {
-            ChangeProjectAsync(projectId, solution);
-        }
-
         public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
         {
             var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
@@ -805,11 +796,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public new void ClearSolution()
             => base.ClearSolution();
-
-        public void ChangeSolution(Solution solution)
-        {
-            ChangeSolutionAsync(solution);
-        }
 
         public Task ChangeSolutionAsync(Solution solution)
         {

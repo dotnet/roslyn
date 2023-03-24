@@ -64,9 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfNull(textView);
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
@@ -120,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 document, snapshotSpan.Span.ToTextSpan(), options,
                 displayAllOverride: _inlineHintKeyProcessor?.State is true,
                 cancellationToken).ConfigureAwait(false);
+
             foreach (var hint in hints)
             {
                 // If we don't have any text to actually show the user, then don't make a tag.
