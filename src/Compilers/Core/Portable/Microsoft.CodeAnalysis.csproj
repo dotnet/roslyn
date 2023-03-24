@@ -9,8 +9,6 @@
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
-    <IsTrimmable Condition="'$(TargetFramework)' != 'netstandard2.0'">true</IsTrimmable>
-    <EnableAotAnalyzer Condition="'$(TargetFramework)' != 'netstandard2.0'">true</EnableAotAnalyzer>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
 
     <!-- NuGet -->
@@ -21,6 +19,13 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
+
+  <!-- Enable trimming/AOT compat -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' gt;= '6.0'">
+    <IsTrimmable>true</IsTrimmable>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
