@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
         {
         }
 
-        [Theory, CombinatorialData]        public async Task VerifyWorkflow(bool mutatingLspWorkspace)
+        [Theory, CombinatorialData]
+        public async Task VerifyWorkflow(bool mutatingLspWorkspace)
         {
             var markup = @"
 public class A { }";
