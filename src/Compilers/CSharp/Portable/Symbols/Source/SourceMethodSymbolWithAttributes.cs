@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lineLength = line.End - line.Start;
             if (characterNumber >= lineLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, referencedLines.Count, characterNumber);
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, characterNumber);
                 return;
             }
 

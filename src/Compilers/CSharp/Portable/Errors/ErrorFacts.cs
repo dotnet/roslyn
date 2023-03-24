@@ -582,6 +582,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNonUniquePath:
                 case ErrorCode.WRN_CallNotInterceptable:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;

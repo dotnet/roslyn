@@ -2202,6 +2202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptableMethodMustBeOrdinary = 27008,
         ERR_InterceptorMethodMustBeOrdinary = 27009,
         ERR_InterceptorMustReferToStartOfTokenPosition = 27010,
+        ERR_InterceptorMustHaveMatchingThisParameter = 27011,
+        ERR_InterceptorMustNotHaveThisParameter = 27012,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

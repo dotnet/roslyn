@@ -862,6 +862,16 @@
         <target state="new">An interceptor method must be an ordinary member method.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="new">Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="new">Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
         <source>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</source>
         <target state="new">The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</target>

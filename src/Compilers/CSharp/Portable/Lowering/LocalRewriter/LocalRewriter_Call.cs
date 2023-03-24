@@ -179,6 +179,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
             }
 
+            // PROTOTYPE(ic): should we also reduce 'method' when comparing, if it is being called as an extension method?
+
+            method.TryGetThisParameter(out var methodThisParameter);
+            symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
+            switch (methodThisParameter, interceptorThisParameterForCompare)
+            {
+                case (not null, null):
+                case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
+                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind: // PROTOTYPE(ic): and ref custom modifiers are equal?
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, interceptsLocationAttributeData.AttributeLocation, methodThisParameter, method);
+                    break;
+                case (null, not null):
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, interceptsLocationAttributeData.AttributeLocation, method);
+                    break;
+                default:
+                    break;
+
+            }
+
             if (needToReduce)
             {
                 Debug.Assert(!method.IsStatic);

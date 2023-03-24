@@ -127,11 +127,10 @@ public class InterceptorsTests : CSharpTestBase
             using System.Runtime.CompilerServices;
             using System;
 
-            interface I1 { }
-            class C : I1
+            class C
             {
                 [Interceptable]
-                public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
+                public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
             static class Program
@@ -145,11 +144,43 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 10)]
-                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+                [InterceptsLocation("Program.cs", 14, 10)]
+                public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ArgumentLabels()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod(string s1, string s2) { Console.Write(s1 + s2); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod(s2: "World", s1: "Hello ");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 10)]
+                public static void Interceptor1(this C c, string s1, string s2) { Console.Write("interceptor " + s1 + s2); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor Hello World");
         verifier.VerifyDiagnostics();
     }
 
@@ -193,11 +224,10 @@ public class InterceptorsTests : CSharpTestBase
             using System.Runtime.CompilerServices;
             using System;
 
-            public interface I1 { }
-            public class C : I1
+            public class C
             {
                 [Interceptable]
-                public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
+                public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
             """;
 
@@ -217,7 +247,7 @@ public class InterceptorsTests : CSharpTestBase
             static class D
             {
                 [InterceptsLocation("Program.cs", 8, 10)]
-                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
 
@@ -305,10 +335,9 @@ public class InterceptorsTests : CSharpTestBase
             using System.Runtime.CompilerServices;
             using System;
 
-            interface I1 { }
-            class C : I1
+            class C
             {
-                public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
+                public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
             static class Program
@@ -322,15 +351,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
-                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+                [InterceptsLocation("Program.cs", 13, 10)]
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): warning CS27000: Cannot intercept a call to 'C.InterceptableMethod(string)' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
-            //     [InterceptsLocation("Program.cs", 14, 10)]
-            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(21, 6)
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        verifier.VerifyDiagnostics(
+            // Program.cs(20,6): warning CS27000: Cannot intercept a call to 'C.InterceptableMethod(string)' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
+            //     [InterceptsLocation("Program.cs", 13, 10)]
+            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 13, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(20, 6)
             );
     }
 
@@ -615,9 +644,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(21,6): error CS27006: The given line is '23' characters long, which is fewer than the provided character number '1000'.
-                //     [InterceptsLocation("Program.cs", 15, 1000)]
-                Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 15, 1000)").WithArguments("23", "1000").WithLocation(21, 6)
+            // Program.cs(21,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
+            //     [InterceptsLocation("Program.cs", 15, 1000)]
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 15, 1000)").WithArguments("5", "1000").WithLocation(21, 6)
             );
     }
 
@@ -726,6 +755,84 @@ public class InterceptorsTests : CSharpTestBase
                 // Program.cs(15,11): error CS27007: Cannot intercept method 'Program.InterceptableMethod(I1, string)' with interceptor 'D.Interceptor1(I1, int)' because the signatures do not match.
                 //         c.InterceptableMethod("call site");
                 Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("Program.InterceptableMethod(I1, string)", "D.Interceptor1(I1, int)").WithLocation(15, 11)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_02()
+    {
+        // Instance method receiver type differs from interceptor 'this' parameter type.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1
+            {
+                [Interceptable]
+                public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 10)]
+                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C this' on 'C.InterceptableMethod(string)'.
+            //     [InterceptsLocation("Program.cs", 15, 10)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 15, 10)").WithArguments("C this", "C.InterceptableMethod(string)").WithLocation(22, 6)
+            );
+    }
+
+    // PROTOTYPE(ic): test interceptable explicit interface implementation (should error).
+    // PROTOTYPE(ic): test interceptor with 'ref this' to match a struct interceptable method.
+
+    [Fact]
+    public void SignatureMismatch_03()
+    {
+        // Instance method 'this' parameter ref kind differs from interceptor 'this' parameter ref kind.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            struct S
+            {
+                [Interceptable]
+                public void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var s = new S();
+                    s.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 10)]
+                public static void Interceptor1(this S s, string param) { Console.Write("interceptor " + param); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'ref S this' on 'S.InterceptableMethod(string)'.
+            //     [InterceptsLocation("Program.cs", 14, 10)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
             );
     }
 }

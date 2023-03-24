@@ -7541,4 +7541,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
     <value>An interceptor method must be an ordinary member method.</value>
   </data>
+  <data name="ERR_InterceptorMustHaveMatchingThisParameter" xml:space="preserve">
+    <value>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustNotHaveThisParameter" xml:space="preserve">
+    <value>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</value>
+  </data>
 </root>
