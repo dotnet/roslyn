@@ -1043,8 +1043,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.True(docClosed);
             Assert.True(textDocClosed);
 
-            // Get a compilation to ensure the analyzer is run and registers that a document was closed.
-            await workspace.CurrentSolution.Projects.Single().GetCompilationAsync();
+            await WaitWaiterAsync(workspace.ExportProvider);
             Assert.Equal(1, worker.ClosedDocumentIds.Count);
         }
 
