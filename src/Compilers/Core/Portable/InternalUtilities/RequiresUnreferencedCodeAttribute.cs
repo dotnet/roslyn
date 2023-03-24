@@ -11,6 +11,6 @@ internal sealed class RequiresUnreferencedCodeAttribute : Attribute
     public RequiresUnreferencedCodeAttribute(string message)
     {
         Message = message;
-     }
+    }
 }
 #endif
