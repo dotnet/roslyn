@@ -64,9 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfNull(textView);
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),

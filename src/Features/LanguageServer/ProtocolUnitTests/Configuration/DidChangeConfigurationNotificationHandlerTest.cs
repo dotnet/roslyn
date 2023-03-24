@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
         {
         }
 
-        [Theory, CombinatorialData]        public async Task VerifyWorkflow(bool mutatingLspWorkspace)
+        [Theory, CombinatorialData]
+        public async Task VerifyWorkflow(bool mutatingLspWorkspace)
         {
             var markup = @"
 public class A { }";
@@ -72,7 +73,6 @@ public class A { }";
             await server.ExecuteRequestAsync<DidChangeConfigurationParams, object>(Methods.WorkspaceDidChangeConfigurationName, new DidChangeConfigurationParams(), CancellationToken.None).ConfigureAwait(false);
             VerifyValuesInServer(server.TestWorkspace, clientCallbackTarget.MockClientSideValues);
         }
-
 
         private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)
         {

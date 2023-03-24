@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// it will use the local information it has outside of the workspace to ensure it is always matched with the lsp
 /// client.
 /// </summary>
-internal class LanguageServerWorkspace : Workspace, IMutatingLspWorkspace
+internal class LanguageServerWorkspace : Workspace, ILspWorkspace
 {
     public LanguageServerWorkspace(
         HostServices host)
@@ -47,9 +47,11 @@ internal class LanguageServerWorkspace : Workspace, IMutatingLspWorkspace
 
     protected internal override bool PartialSemanticsEnabled => true;
 
-    void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
+    bool ILspWorkspace.SupportsMutation => true;
+
+    void ILspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
         => OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
 
-    void IMutatingLspWorkspace.UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader)
+    void ILspWorkspace.UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader)
         => OnDocumentTextLoaderChanged(documentId, textLoader, requireDocumentPresent: false);
 }
