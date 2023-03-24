@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
-                if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
+                if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureAvailable(node, MessageID.IDS_FeatureInstanceMemberInNameof)))
                 {
                     DiagnosticInfo diagnosticInfoOpt = null;
                     if (InFieldInitializer && !currentType.IsScriptClass)
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (IsInsideNameof)
                         {
-                            CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureInstanceMemberInNameof, diagnostics);
                         }
                         else
                         {
@@ -7747,7 +7747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ErrorCode.ERR_ObjectProhibited;
                         Error(diagnostics, errorCode, node, symbol);
                     }
-                    else if (CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics))
+                    else if (CheckFeatureAvailability(node, MessageID.IDS_FeatureInstanceMemberInNameof, diagnostics))
                     {
                         return false;
                     }

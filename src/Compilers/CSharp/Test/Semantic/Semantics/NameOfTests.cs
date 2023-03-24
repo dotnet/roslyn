@@ -1543,33 +1543,33 @@ public class C1
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext,
                 expectedOutput: "Property,Field,Method,Event,Property,Field,Method,Event,Invoke").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Property.Property) 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(8, 40),
-                // (9,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(8, 40),
+                // (9,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Property.Field)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(9, 24),
-                // (10,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(9, 24),
+                // (10,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Property.Method)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(10, 24),
-                // (11,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(10, 24),
+                // (11,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Property.Event)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("reduced member access checks in 'nameof'").WithLocation(11, 24),
-                // (12,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(11, 24),
+                // (12,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Field.Property) 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(12, 24),
-                // (13,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(12, 24),
+                // (13,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Field.Field)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(13, 24),
-                // (14,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(13, 24),
+                // (14,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Field.Method)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(14, 24),
-                // (15,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(14, 24),
+                // (15,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Field.Event)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("reduced member access checks in 'nameof'").WithLocation(15, 24),
-                // (16,24): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(15, 24),
+                // (16,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         + "," + nameof(Event.Invoke)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("reduced member access checks in 'nameof'").WithLocation(16, 24));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(16, 24));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1583,9 +1583,9 @@ public class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,39): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string S { get; } = nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 39));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1604,9 +1604,9 @@ public class C
                 // var p = new C().P; // 1
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9));
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,29): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [System.Obsolete(nameof(S.Length))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 29));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1622,9 +1622,9 @@ public class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,30): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public C() : this(nameof(S.Length)){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(6, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1647,9 +1647,9 @@ public struct S
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (12,42): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<string> func = () => nameof(P.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("reduced member access checks in 'nameof'").WithLocation(12, 42));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(12, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1665,9 +1665,9 @@ public class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,33): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 33));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 33));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1683,12 +1683,12 @@ public class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 40),
-                // (7,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 40),
+                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(7, 40));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1703,9 +1703,9 @@ public class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "M").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Prop.M);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 40));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(6, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1733,9 +1733,9 @@ public class C
     public static string M() => nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 40));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1747,9 +1747,9 @@ public class C
     public string S { get; } = nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,39): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string S { get; } = nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1763,9 +1763,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,29): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [System.Obsolete(nameof(S.Length))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1779,9 +1779,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,30): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public C() : this(nameof(S.Length)){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1799,9 +1799,9 @@ public struct S
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (9,42): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<string> func = () => nameof(P.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("reduced member access checks in 'nameof'").WithLocation(9, 42));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(9, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1815,9 +1815,9 @@ public class C
     public string M() => nameof(Prop.StaticProp);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,33): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(6, 33));
         }
 
         [Fact]
