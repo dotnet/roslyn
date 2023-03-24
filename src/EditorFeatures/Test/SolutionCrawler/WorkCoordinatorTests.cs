@@ -1042,6 +1042,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             worker = await ExecuteOperationAsync(workspace, w => w.CloseDocument(id));
             Assert.True(docClosed);
             Assert.True(textDocClosed);
+
             Assert.Equal(1, worker.ClosedDocumentIds.Count);
         }
 
