@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }
                 """;
 
-            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
+            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }
                 """;
 
-            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
+            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }
                 """;
 
-            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
+            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }
                 """;
 
-            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
+            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
         private static async Task TestTypeDiscoveryAsync(
