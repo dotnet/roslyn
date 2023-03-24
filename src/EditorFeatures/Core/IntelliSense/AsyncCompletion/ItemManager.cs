@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
         private readonly RecentItemsManager _recentItemsManager;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
-        internal ItemManager(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
+        internal ItemManager(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService)
         {
             _recentItemsManager = recentItemsManager;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
@@ -96,6 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 else if (sessionData.ExpandedItemsTask != null)
                 {
                     var task = sessionData.ExpandedItemsTask;
+
+                    // we don't want to delay showing completion list on waiting for
+                    // expanded items, unless responsive typing is disabled by user.
+                    if (!sessionData.NonBlockingCompletionEnabled)
+                        await task.ConfigureAwait(false);
+
                     if (task.Status == TaskStatus.RanToCompletion)
                     {
                         // Make sure the task is removed when Adding expanded items,
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _globalOptions);
+                var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _editorOptionsService.GlobalOptions);
                 return await updater.UpdateCompletionListAsync(session, cancellationToken).ConfigureAwait(false);
             }
             finally
