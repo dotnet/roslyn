@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, interceptsLocationAttributeData.AttributeLocation, methodThisParameter, method);
                     break;
                 case (null, not null):
+                    // PROTOTYPE(ic): test intercepting a static method with an instance method
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, interceptsLocationAttributeData.AttributeLocation, method);
                     break;
                 default:
