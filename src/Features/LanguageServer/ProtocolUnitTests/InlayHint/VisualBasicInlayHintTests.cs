@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         {
         }
 
-        [Fact]
-        public async Task TestOneInlayParameterHintAsync()
+        [Theory, CombinatorialData]
+        public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"Class A
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         M({|x:|}5)
     End Sub
 End Class";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task TestMultipleInlayParameterHintsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"Class A
@@ -46,12 +46,12 @@ End Class";
         M({|x:|}5, {|y:|}True)
     End Sub
 End Class";
-            await RunVerifyInlayHintAsync(markup);
+            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
         }
 
-        private async Task RunVerifyInlayHintAsync(string markup)
+        private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace)
         {
-            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup);
+            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, true);
             await VerifyInlayHintAsync(testLspServer);
         }
