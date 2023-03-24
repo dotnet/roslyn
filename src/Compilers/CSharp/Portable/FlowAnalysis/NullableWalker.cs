@@ -5150,7 +5150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
 
-            // If we assigning the underlying value type to a nullable value type variable,
+            // If we are assigning the underlying value type to a nullable value type variable,
             // set the state of the .Value property of the variable.
             if (node.IsNullableValueTypeAssignment)
             {
