@@ -153,6 +153,39 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableStaticMethod_InterceptorInstanceMethod()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod("call site");
+                }
+            }
+            
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+
+                [InterceptsLocation("Program.cs", 7, 10)]
+                public void Interceptor1(string param) { Console.Write("interceptor " + param); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): error CS27012: Interceptor must not have a 'this' parameter because 'C.InterceptableMethod(string)' does not have a 'this' parameter.
+            //     [InterceptsLocation("Program.cs", 7, 10)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, @"InterceptsLocation(""Program.cs"", 7, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(17, 6));
+    }
+
+    // PROTOTYPE(ic): test intercepting an extension method with a non-extension method. Perhaps should be an error for simplicity even if calling in non-reduced form.
+
+    [Fact]
     public void ArgumentLabels()
     {
         var source = """
