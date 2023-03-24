@@ -110,10 +110,7 @@
         -->
         <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="RestoreWithR2R=true" />
 
-        <MSBuild Projects="@(ProjectToPublish)"
-                Targets="Publish"
-                BuildInParallel="true"
-                />
+        <MSBuild Projects="@(ProjectToPublish)" Targets="Publish" BuildInParallel="true" />
 
         <!-- We have to add the content files in a target (and not just defined in a normal item group) since they are produced by the prior step and won't exist at evaluation time. -->
         <Message Text="Adding content files for language server artifacts..." Importance="High" />

@@ -42,7 +42,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
             new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
             _projectSystem.ProjectSystemHostInfo);
 
-        var workspaceProject = new WorkspaceProject(project, _projectSystem.Workspace.Services.SolutionServices);
+        var workspaceProject = new WorkspaceProject(project, _projectSystem.Workspace.Services.SolutionServices, _projectSystem.TargetFrameworkManager);
 
         // We've created a new project, so initialize properties we have
         await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);

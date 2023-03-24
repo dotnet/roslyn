@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
@@ -14,11 +15,13 @@ internal class WorkspaceProject : IWorkspaceProject
 {
     private readonly ProjectSystemProject _project;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
+    private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
-    public WorkspaceProject(ProjectSystemProject project, SolutionServices solutionServices)
+    public WorkspaceProject(ProjectSystemProject project, SolutionServices solutionServices, ProjectTargetFrameworkManager targetFrameworkManager)
     {
         _project = project;
         _optionsProcessor = new ProjectSystemProjectOptionsProcessor(_project, solutionServices);
+        _targetFrameworkManager = targetFrameworkManager;
     }
 
     public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken _)
@@ -140,6 +143,7 @@ internal class WorkspaceProject : IWorkspaceProject
                 case "RunAnalyzersDuringLiveAnalysis": _project.RunAnalyzersDuringLiveAnalysis = bool.Parse(valueOrNull ?? bool.TrueString); break;
                 case "TargetPath": _project.OutputFilePath = GetFullyQualifiedPath(valueOrNull); break;
                 case "TargetRefPath": _project.OutputRefFilePath = GetFullyQualifiedPath(valueOrNull); break;
+                case "TargetFrameworkIdentifier": _targetFrameworkManager.UpdateIdentifierForProject(_project.Id, valueOrNull); break;
             }
         }
 

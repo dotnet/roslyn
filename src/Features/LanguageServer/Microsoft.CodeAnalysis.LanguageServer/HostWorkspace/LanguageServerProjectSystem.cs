@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -43,6 +44,7 @@ internal sealed class LanguageServerProjectSystem
         VSCodeAnalyzerLoader analyzerLoader,
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
+        ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -67,12 +69,14 @@ internal sealed class LanguageServerProjectSystem
             new ProjectSystemDiagnosticSource(),
             new HostDiagnosticAnalyzerProvider());
         _fileChangeWatcher = fileChangeWatcher;
+        TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
     public Workspace Workspace { get; }
 
     public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
+    public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
     public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
     {
@@ -100,6 +104,8 @@ internal sealed class LanguageServerProjectSystem
         _logger.LogInformation($"Opening solution {solutionFilePath}");
 
         var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
+
+        ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
         foreach (var project in solutionFile.ProjectsInOrder)
         {
@@ -171,7 +177,7 @@ internal sealed class LanguageServerProjectSystem
                             projectCreationInfo,
                             ProjectSystemHostInfo);
 
-                        var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher);
+                        var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher, TargetFrameworkManager);
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);
                         existingProjects.Add(loadedProject);
 
