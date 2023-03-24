@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    private static (string, string) s_attributesSource = ("""
+    private readonly static (string, string) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;
 
         [AttributeUsage(AttributeTargets.Method)]
@@ -81,6 +81,69 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact(Skip = "PROTOTYPE(ic): produce an error here")]
+    public void Accessibility_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod() { Console.Write("interceptable"); }
+
+                public static void Main()
+                {
+                    InterceptableMethod();
+                }
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 10, 8)]
+                private static void Interceptor1() { Console.Write("interceptor 1"); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1", verify: Verification.Fails);
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Accessibility_02()
+    {
+        var source1 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod() { Console.Write("interceptable"); }
+
+                public static void Main()
+                {
+                    InterceptableMethod();
+                }
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            file class D
+            {
+                [InterceptsLocation("Program.cs", 10, 8)]
+                public static void Interceptor1() { Console.Write("interceptor 1"); }
+            }
+            """;
+
+        // PROTOTYPE(ic): Consider if an error should be reported here. It's not possible to directly use 'Interceptor1' at the location of the intercepted call.
+        var verifier = CompileAndVerify(new[] { (source1, "Program.cs"), (source2, "Other.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
     }
 
