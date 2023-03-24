@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // most cases there's no additional semantic costs at all, and this just becomes a walk of the existing
                 // bound nodes with the same name to find hits, which is the fastest we could hope for without a
                 // dedicated compiler API.
-                if (!SymbolKey.IsBodyLevelSymbol(symbol) && options.CrossProcess && SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                if (!SymbolKey.IsBodyLevelSymbol(symbol) && SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     if (client != null)

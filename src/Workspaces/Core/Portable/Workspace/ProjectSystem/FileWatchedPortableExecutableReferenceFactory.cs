@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -44,12 +45,21 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
 
             var watchedDirectories = new List<WatchedDirectory>();
 
+            // On each platform, there is a place that reference assemblies for the framework are installed. These are rarely going to be changed
+            // but are the most common places that we're going to create file watches. Rather than either creating a huge number of file watchers
+            // for every single file, or eventually realizing we should just watch these directories, we just create the single directory watchers now.
             if (PlatformInformation.IsWindows)
             {
-                // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
-                // watches on individual .dlls that effectively never change.
                 var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
                 watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                watchedDirectories.Add(new WatchedDirectory("/usr/lib/dotnet/packs", ".dll"));
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                watchedDirectories.Add(new WatchedDirectory("/usr/local/share/dotnet/packs", ".dll"));
             }
 
             // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory

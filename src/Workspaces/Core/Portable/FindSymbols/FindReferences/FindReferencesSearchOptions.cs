@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [property: DataMember(Order = 0)] bool AssociatePropertyReferencesWithSpecificAccessor = false,
         [property: DataMember(Order = 1)] bool Cascade = true,
         [property: DataMember(Order = 2)] bool Explicit = true,
-        [property: DataMember(Order = 3)] bool UnidirectionalHierarchyCascade = false,
-        [property: DataMember(Order = 4)] bool CrossProcess = true)
+        [property: DataMember(Order = 3)] bool UnidirectionalHierarchyCascade = false)
     {
         public FindReferencesSearchOptions()
             : this(AssociatePropertyReferencesWithSpecificAccessor: false)
