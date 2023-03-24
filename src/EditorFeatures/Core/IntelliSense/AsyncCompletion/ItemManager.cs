@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -20,6 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
+        /// <summary>
+        /// The threshold for us to consider exclude (potentially large amount of) expanded items from completion list.
+        /// Showing a large amount of expanded items to user would introduce noise and render the list too long to browse.
+        /// Not processing those expanded items also has perf benefit (e.g. matching and highlighting could be expensive.)
+        /// We set it to 2 because it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuiler`.
+        /// </summary>
+        internal const int FilterTextLengthToExcludeExpandedItemsExclusive = 2;
+
         private readonly RecentItemsManager _recentItemsManager;
         private readonly EditorOptionsService _editorOptionsService;
 
@@ -93,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
-                else if (sessionData.ExpandedItemsTask != null)
+                else if (!ShouldHideExpandedItems() && sessionData.ExpandedItemsTask is not null)
                 {
                     var task = sessionData.ExpandedItemsTask;
 
@@ -133,6 +142,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
             }
+
+            // Don't hide expanded items if all these conditions are met:
+            // 1. filter text length >= 2 (it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuiler`)
+            // 2. the completion is triggered in the context of listing members (it usually has much fewer items and more often used for browsing purpose)
+            // 3. defaults is not empty (it might suggests an expanded item)
+            bool ShouldHideExpandedItems()
+                => session.ApplicableToSpan.GetText(data.Snapshot).Length < FilterTextLengthToExcludeExpandedItemsExclusive
+                    && !IsAfterDot(data.Snapshot, session.ApplicableToSpan)
+                    && data.Defaults.IsEmpty;
+        }
+
+        private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
+        {
+            var position = applicableToSpan.GetStartPoint(snapshot).Position;
+            return position > 0 && snapshot[position - 1] == '.';
         }
 
         private sealed class VSItemComparer : IComparer<VSCompletionItem>

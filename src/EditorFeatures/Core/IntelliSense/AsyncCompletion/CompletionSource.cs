@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var syntaxFacts = services.GetService<ISyntaxFactsService>();
-            // Snippets are included if the user types: <quesiton><tab>
+            // Snippets are included if the user types: <question><tab>
             // If at least one condition for snippets do not hold, bail out.
             if (syntaxFacts == null ||
                 caretPoint < 3 ||
@@ -240,10 +240,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // #1 is the essence of completion so we'd always wait until its task is completed and return the results. However, because we have
                 // a really tight perf budget in completion, and computing those items in #2 could be expensive especially in a large solution
                 // (e.g. requires syntax/symbol indices and/or runs in OOP,) we decide to kick off the computation in parallel when completion is
-                // triggered, but only include its results if it's completed by the time task #1 is completed, otherwise we don't wait on it and
-                // just return items from #1 immediately. Task #2 will still be running in the background (until session is dismissed/committed,)
-                // and we'd check back to see if it's completed whenever we have a chance to update the completion list, i.e. when user typed another
-                // character, a filter was selected, etc. If so, those items will be added as part of the refresh.
+                // triggered, but only include its results if:
+                //
+                //      (a) it's completed by the time task #1 is completed and
+                //      (b) including them won't interfere with users' ability to browse the list (e.g. when the list is too long since filter text is short)
+                //
+                // Otherwise we don't wait on it and return items from #1 immediately. Task #2 will still be running in the background
+                // (until session is dismissed/committed) and we'd check back to see if it's completed whenever we have a chance to update the completion list,
+                // i.e. when user typed another character, a filter was selected, etc. If so, those items will be added as part of the refresh.
                 //
                 // The reason of adopting this approach is we want to minimize typing delays. There are two ways user might perceive a delay in typing.
                 // First, they could see a delay between typing a character and completion list being displayed if they want to examine the items available.
@@ -254,12 +258,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 //
                 // This approach would ensure the computation of #2 will not be the cause of such delays, with the obvious trade off of potentially not providing
                 // expanded items until later (or never) in a completion session even if the feature is enabled. Note that in most cases we'd expect task #2 to finish
-                // in time and complete result would be available from the start of the session. However, even in the case only partial result is returned at the start,
-                // we still believe this is acceptable given how critical perf is in typing scenario.
+                // in time and complete result would be available when it's most likely needed (see `ShouldHideExpandedItems` helper in ItemManager for details.)
+                // However, even in the case only partial result is returned at the start, we still believe this is acceptable given how critical perf is in typing scenario.
                 // Additionally, expanded items are usually considered complementary. The need for them only rise occasionally (it's rare when users need to add imports,)
                 // and when they are needed, our hypothesis is because of their more intrusive nature (adding an import to the document) users would more likely to
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
-                // to still provide those items later before they are truly required.     
+                // to still provide those items later before they are truly required.
 
                 var showCompletionItemFilters = _editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, document.Project.Language);
                 var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
@@ -296,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // If the core items are exclusive, we don't include expanded items.
                     // This would cancel expandedItemsTask.
                     if (sessionData.IsExclusive)
-                    { 
+                    {
                         _ = _expandedItemsTaskCancellationSeries.CreateNext(CancellationToken.None);
                     }
                     else
@@ -345,25 +349,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (sessionData.CombinedSortedList is null)
                 {
-                // We only reach here when expanded items are disabled, but user requested them explicitly via expander.
-                // In this case, enable expanded items and trigger the completion only for them.
-                var document = initialTriggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
-                {
-                    // User selected expander explicitly, which means we need to collect and return
-                    // items from unimported namespace (and only those items) regardless of whether it's enabled.
-                    var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
+                    // We only reach here when expanded items are disabled, but user requested them explicitly via expander.
+                    // In this case, enable expanded items and trigger the completion only for them.
+                    var document = initialTriggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
                     {
-                        ShowItemsFromUnimportedNamespaces = true,
-                        ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
-                    };
+                        // User selected expander explicitly, which means we need to collect and return
+                        // items from unimported namespace (and only those items) regardless of whether it's enabled.
+                        var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
+                        {
+                            ShowItemsFromUnimportedNamespaces = true,
+                            ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
+                        };
 
-                    var (context, completionList) = await GetCompletionContextWorkerAsync(session, document, initialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
-                    UpdateSessionData(session, sessionData, completionList, initialTriggerLocation);
+                        var (context, completionList) = await GetCompletionContextWorkerAsync(session, document, initialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
+                        UpdateSessionData(session, sessionData, completionList, initialTriggerLocation);
 
-                    return context;
+                        return context;
+                    }
                 }
-            }
             }
 
             return VSCompletionContext.Empty;
