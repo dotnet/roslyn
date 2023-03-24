@@ -5150,11 +5150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
 
+            // If we assigning the underlying value type to a nullable value type variable,
+            // set the state of the .Value property of the variable.
             if (node.IsNullableValueTypeAssignment)
             {
-                // If we assigning the underlying value type to a nullable value type variable,
-                // set the state of the .Value property of the variable.
-                Debug.Assert(TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(targetType.Type.ContainsErrorType() ||
+                    node.Type.ContainsErrorType() ||
+                    TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
                 if (leftSlot > 0)
                 {
                     SetState(ref this.State, leftSlot, NullableFlowState.NotNull);
