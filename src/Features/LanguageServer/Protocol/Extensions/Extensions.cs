@@ -48,13 +48,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
             //       separator
             var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+            if (documentIds.Any())
+                return documentIds;
 
-            if (!documentIds.Any())
-            {
-                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
-            }
-
-            return documentIds;
+            return solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
         }
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)

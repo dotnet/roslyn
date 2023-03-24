@@ -31,7 +31,7 @@
     <VisualStudioMacEditorPackagesVersion>$(VisualStudioEditorPackagesVersion)</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.3.3101</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.6.26-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.6.16-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.6.35295-preview.2</MicrosoftVisualStudioShellPackagesVersion>
     <RefOnlyMicrosoftBuildPackagesVersion>16.10.0</RefOnlyMicrosoftBuildPackagesVersion>
