@@ -5155,7 +5155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsNullableValueTypeAssignment)
             {
                 Debug.Assert(targetType.Type.ContainsErrorType() ||
-                    node.Type.ContainsErrorType() ||
+                    node.Type?.ContainsErrorType() == true ||
                     TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
                 if (leftSlot > 0)
                 {
