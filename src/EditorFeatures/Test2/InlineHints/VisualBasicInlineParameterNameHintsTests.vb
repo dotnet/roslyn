@@ -885,5 +885,79 @@ end class
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsReservedKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N({|Integer:|}1)
+    End Sub
+
+    Sub N([Integer] As Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N(Integer:=1)
+    End Sub
+
+    Sub N([Integer] As Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsContextualKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N({|Async:|}True)
+    End Sub
+
+    Sub N(Async As Boolean)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N(Async:=True)
+    End Sub
+
+    Sub N(Async As Boolean)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace
