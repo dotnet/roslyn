@@ -28,9 +28,7 @@ internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolution
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        _projectSystem.OpenSolution(request.Solution.LocalPath);
-
-        return Task.CompletedTask;
+        return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
     }
 
     [DataContract]

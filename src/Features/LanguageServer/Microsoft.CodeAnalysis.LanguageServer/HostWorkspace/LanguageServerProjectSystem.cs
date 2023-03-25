@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
@@ -24,6 +26,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerProjectSystem
 {
     private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+
+    /// <summary>
+    /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" /> and modifying <see cref="_msbuildLoaded" />.
+    /// This is just we don't have code simultaneously trying to load and unload solutions at once.
+    /// </summary>
+    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+
+    private bool _msbuildLoaded = false;
+
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
 
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
@@ -32,7 +43,9 @@ internal sealed class LanguageServerProjectSystem
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
-    /// multiple projects at once; the key is a single List we just have a single thread processing any given project file.
+    /// multiple projects at once; the key is a single List we just have a single thread processing any given project file. This is only to be used
+    /// in <see cref="LoadOrReloadProjectsAsync" /> and downstream calls; any other updating of this (like unloading projects) should be achieved by adding
+    /// things to the <see cref="_projectsToLoadAndReload" />.
     /// </summary>
     private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = new();
 
@@ -59,20 +72,60 @@ internal sealed class LanguageServerProjectSystem
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
     }
 
-    public void OpenSolution(string solutionFilePath)
+    public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        _logger.LogInformation($"Opening solution {solutionFilePath}");
+        await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
+        await OpenSolutionCoreAsync(solutionFilePath);
+    }
 
-        var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
-
-        foreach (var project in solutionFile.ProjectsInOrder)
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenSolutionCoreAsync(string solutionFilePath)
+    {
+        using (await _gate.DisposableWaitAsync())
         {
-            if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
-            {
-                continue;
-            }
+            _logger.LogInformation($"Loading {solutionFilePath}...");
+            var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
 
-            _projectsToLoadAndReload.AddWork(project.AbsolutePath);
+            foreach (var project in solutionFile.ProjectsInOrder)
+            {
+                if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
+                {
+                    continue;
+                }
+
+                _projectsToLoadAndReload.AddWork(project.AbsolutePath);
+            }
+        }
+    }
+
+    private async Task<bool> TryEnsureMSBuildLoadedAsync(string workingDirectory)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            if (_msbuildLoaded)
+            {
+                return true;
+            }
+            else
+            {
+                var msbuildDiscoveryOptions = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = workingDirectory };
+                var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(msbuildDiscoveryOptions);
+                var msbuildInstance = msbuildInstances.FirstOrDefault();
+
+                if (msbuildInstance != null)
+                {
+                    MSBuildLocator.RegisterInstance(msbuildInstance);
+                    _logger.LogInformation($"Loaded MSBuild at {msbuildInstance.MSBuildPath}");
+                    _msbuildLoaded = true;
+
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    return false;
+                }
+            }
         }
     }
 
