@@ -557,9 +557,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValueOpt == null)
                 {
-                    if (inputType.Kind is not SymbolKind.ErrorType)
+                    var strippedInputType = inputType.StrippedType();
+                    if (strippedInputType.Kind is not SymbolKind.ErrorType and not SymbolKind.DynamicType and not SymbolKind.TypeParameter &&
+                        strippedInputType.SpecialType is not SpecialType.System_Object and not SpecialType.System_ValueType)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, inputType);
+                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, strippedInputType);
                     }
                     else
                     {
