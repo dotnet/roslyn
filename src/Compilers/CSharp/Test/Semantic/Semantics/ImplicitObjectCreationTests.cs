@@ -4846,18 +4846,18 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS9133: A constant value of type 'T' is expected
+                // (6,18): error CS0150: A constant value is expected
                 //         if (t is new()) { } // 1
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new()").WithArguments("T").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(6, 18),
                 // (7,18): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
                 //         if (t is new T()) { } // 2
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(7, 18),
-                // (12,18): error CS9133: A constant value of type 'T' is expected
+                // (12,18): error CS0150: A constant value is expected
                 //         if (t is new()) { } // 3
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new()").WithArguments("T").WithLocation(12, 18),
-                // (13,18): error CS9133: A constant value of type 'T' is expected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(12, 18),
+                // (13,18): error CS0150: A constant value is expected
                 //         if (t is new T()) { } // 4
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new T()").WithArguments("T").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
             );
         }
 

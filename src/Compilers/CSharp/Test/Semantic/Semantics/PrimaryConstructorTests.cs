@@ -10501,9 +10501,9 @@ class Color
                 // (6,28): warning CS9113: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28),
-                // (10,22): error CS9135: A constant value of type 'object' is expected
+                // (10,22): error CS0150: A constant value is expected
                 //             if (x is Color.Red)
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "Color.Red").WithArguments("object").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "Color.Red").WithLocation(10, 22)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());

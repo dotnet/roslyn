@@ -2623,9 +2623,9 @@ class Program
 }";
             var compilation = base.CreateCSharpCompilation(text);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS9135: A constant value of type 'int?' is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case i:
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "i").WithArguments("int?").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "i").WithArguments("int").WithLocation(8, 18)
             );
         }
 

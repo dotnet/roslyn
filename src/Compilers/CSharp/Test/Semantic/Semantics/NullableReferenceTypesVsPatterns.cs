@@ -174,9 +174,9 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // 0.cs(7,18): error CS9133: A constant value of type 'object' is expected
+                // 0.cs(7,18): error CS0150: A constant value is expected
                 //         if (x is nonConstant)
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "nonConstant").WithArguments("object").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
                 // 0.cs(9,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)

@@ -34920,15 +34920,15 @@ class C
                 // (8,28): error CS8081: Expression does not have a name.
                 //             case !M(nameof(M(out int z1)), z1):
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 28),
-                // (8,18): error CS9135: A constant value of type 'object' is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case !M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "!M(nameof(M(out int z1)), z1)").WithArguments("object").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
                 // (11,28): error CS8081: Expression does not have a name.
                 //             case !M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 28),
-                // (11,18): error CS9135: A constant value of type 'object' is expected
+                // (11,18): error CS0150: A constant value is expected
                 //             case !M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "!M(nameof(M(out var z2)), z2)").WithArguments("object").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
                 // (8,44): error CS0165: Use of unassigned local variable 'z1'
                 //             case !M(nameof(M(out int z1)), z1):
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 44),

@@ -1815,7 +1815,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // (8,18): error CS9135: A constant value of type 'int?' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int?").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2076,9 +2076,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // (8,18): error CS9135: A constant value of type 'dynamic' is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("dynamic").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2528,9 +2528,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // (8,18): error CS9135: A constant value of type 'object' is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other ?? 1:
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other ?? 1").WithArguments("object").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "other ?? 1").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -3222,7 +3222,7 @@ public sealed class MyClass
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (8,18): error CS9135: A constant value of type 'int?' is expected
                 //             case 1+(input is int x1 ? x1 : 0):
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(input is int x1 ? x1 : 0)").WithArguments("int?").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(input is int x1 ? x1 : 0)").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
