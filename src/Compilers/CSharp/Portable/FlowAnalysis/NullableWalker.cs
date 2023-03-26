@@ -11406,7 +11406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void EnsureCapacity(int capacity)
             {
-                _state.EnsureCapacity(capacity * 2);
+                int previousCapacity = _state.Capacity;
+                int newCapacity = capacity * 2;
+                _state.EnsureCapacity(newCapacity);
+
+                for (int i = previousCapacity; i < newCapacity; i++)
+                {
+                    _state[i] = true; // (true, true) means NotNull
+                }
             }
 
             public bool HasVariable(int slot)
