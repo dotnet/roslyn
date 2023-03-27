@@ -673,7 +673,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         internal override void TryOnDocumentClosed(DocumentId documentId)
         {
             Contract.ThrowIfFalse(this._supportsLspMutation);
-            CloseDocument(documentId);
+
+            var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
         }
 
         public override void CloseDocument(DocumentId documentId)

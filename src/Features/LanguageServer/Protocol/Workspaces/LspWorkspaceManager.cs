@@ -100,6 +100,26 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        // Attempt to open the doc if we find it in a workspace.  Note: if we don't (because we've heard from lsp about
+        // the doc before we've heard from the project system), that's ok.  We'll still attempt to open it later in
+        // GetLspSolutionForWorkspaceAsync
+        TryOpenDocumentsInMutatingWorkspace(uri);
+
+        return;
+
+        void TryOpenDocumentsInMutatingWorkspace(Uri uri)
+        {
+            var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+            foreach (var workspace in registeredWorkspaces)
+            {
+                if (workspace is not ILspWorkspace { SupportsMutation: true } mutatingWorkspace)
+                    continue;
+
+                foreach (var documentId in workspace.CurrentSolution.GetDocumentIds(uri))
+                    workspace.TryOnDocumentOpened(documentId, documentText.Container, isCurrentContext: false);
+            }
+        }
     }
 
     /// <summary>
