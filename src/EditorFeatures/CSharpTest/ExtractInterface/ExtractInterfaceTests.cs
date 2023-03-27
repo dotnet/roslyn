@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }$$
                 """;
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true);
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1360,6 +1360,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 class Program $$: ISomeInterface<object>
                 {
                     public void Goo() { }
+                }
+                """;
+
+            await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_TypeDiscovery_NameOnly11()
+        {
+            var markup = """
+                namespace N
+                {
+                $$    class Program
+                    {
+                    }
                 }
                 """;
 
