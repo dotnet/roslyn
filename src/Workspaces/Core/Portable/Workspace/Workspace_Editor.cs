@@ -369,7 +369,6 @@ namespace Microsoft.CodeAnalysis
                     var (@this, documentId, _, _, requireDocumentPresentAndClosed) = data;
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
-
                     if (oldDocument is null)
                     {
                         if (requireDocumentPresentAndClosed)
