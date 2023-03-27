@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ValuePlaceholder,
         CapturedReceiverPlaceholder,
         DeconstructValuePlaceholder,
+        GetResultOutExceptionPlaceholder,
         TupleOperandPlaceholder,
         AwaitableValuePlaceholder,
         DisposableValuePlaceholder,
@@ -554,6 +555,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || isDiscardExpression != this.IsDiscardExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol, isDiscardExpression, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundGetResultOutExceptionPlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundGetResultOutExceptionPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.GetResultOutExceptionPlaceholder, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundGetResultOutExceptionPlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.GetResultOutExceptionPlaceholder, syntax, type)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public new TypeSymbol Type => base.Type!;
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitGetResultOutExceptionPlaceholder(this);
+
+        public BoundGetResultOutExceptionPlaceholder Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundGetResultOutExceptionPlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8731,6 +8767,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCapturedReceiverPlaceholder((BoundCapturedReceiverPlaceholder)node, arg);
                 case BoundKind.DeconstructValuePlaceholder:
                     return VisitDeconstructValuePlaceholder((BoundDeconstructValuePlaceholder)node, arg);
+                case BoundKind.GetResultOutExceptionPlaceholder:
+                    return VisitGetResultOutExceptionPlaceholder((BoundGetResultOutExceptionPlaceholder)node, arg);
                 case BoundKind.TupleOperandPlaceholder:
                     return VisitTupleOperandPlaceholder((BoundTupleOperandPlaceholder)node, arg);
                 case BoundKind.AwaitableValuePlaceholder:
@@ -9190,6 +9228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitValuePlaceholder(BoundValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCapturedReceiverPlaceholder(BoundCapturedReceiverPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
@@ -9423,6 +9462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCapturedReceiverPlaceholder(BoundCapturedReceiverPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => this.DefaultVisit(node);
@@ -9676,6 +9716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node) => null;
+        public override BoundNode? VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node) => null;
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node) => null;
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => null;
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
@@ -10700,6 +10741,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.VariableSymbol, node.IsDiscardExpression, type);
+        }
+        public override BoundNode? VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
         }
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
         {
@@ -12144,6 +12190,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 updatedNode = node.Update(variableSymbol, node.IsDiscardExpression, node.Type);
             }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundGetResultOutExceptionPlaceholder updatedNode = node.Update(infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -14829,6 +14887,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("isDiscardExpression", node.IsDiscardExpression, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node, object? arg) => new TreeDumperNode("getResultOutExceptionPlaceholder", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

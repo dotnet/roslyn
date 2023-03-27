@@ -121,6 +121,15 @@
   </Node>
 
   <!--
+  This node is used to represent the out argument to the `GetResult(out System.Exception)`
+  invocation in an async method.
+  It does not survive the initial binding.
+  -->
+  <Node Name="BoundGetResultOutExceptionPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!--
   In a tuple binary operator, this node is used to represent tuple elements in a tuple binary
   operator, and to represent an element-wise comparison result to convert back to bool.
   It does not survive the initial binding.

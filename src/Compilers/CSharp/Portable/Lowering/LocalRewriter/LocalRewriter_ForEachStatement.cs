@@ -472,6 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement WrapWithAwait(SyntaxNode forEachSyntax, BoundExpression disposeCall, BoundAwaitableInfo disposeAwaitableInfoOpt)
         {
+            // PROTOTYPE how does a foreach statement work when a GetResult(Exception) method is present in the BoundAwaitableInfo?
             TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
             var debugInfo = new BoundAwaitExpressionDebugInfo(s_disposeAsyncAwaitId, ReservedStateMachineCount: 0);
             var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, debugInfo, used: false);

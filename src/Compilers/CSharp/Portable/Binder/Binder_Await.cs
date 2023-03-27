@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out MethodSymbol? getResult,
                 getAwaiterGetResultCall: out _,
                 node,
-                diagnostics);
+                diagnostics,
+                useGetResultException: true);
             hasErrors |= hasGetAwaitableErrors;
 
             return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
@@ -123,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _,
-                node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
+            return GetAwaitableExpressionInfo(expression, node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
         /// <summary>
@@ -241,11 +241,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression is awaitable; false otherwise.</returns>
         internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
+            SyntaxNode node,
+            BindingDiagnosticBag diagnostics)
+        {
+            // PROTOTYPE test all scenarios that rely on this method
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out _, node, diagnostics, useGetResultException: true);
+        }
+
+        /// <summary>
+        /// Finds and validates the required members of an awaitable expression, as described in spec 7.7.7.1.
+        /// </summary>
+        /// <returns>True if the expression is awaitable; false otherwise.</returns>
+        internal bool GetAwaitableExpressionInfo(
+            BoundExpression expression,
             out BoundExpression? getAwaiterGetResultCall,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
-            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, node, diagnostics);
+            // PROTOTYPE test all scenarios that rely on this method
+            // Callers (such as logic for async Main binding) who want to use the bound node for GetResult call
+            // should not use the `GetResult(out Exception)` overload.
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, node, diagnostics, useGetResultException: false);
         }
 
         private bool GetAwaitableExpressionInfo(
@@ -257,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MethodSymbol? getResult,
             out BoundExpression? getAwaiterGetResultCall,
             SyntaxNode node,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool useGetResultException)
         {
             Debug.Assert(TypeSymbol.Equals(expression.Type, getAwaiterArgument.Type, TypeCompareKind.ConsiderEverything));
 
@@ -272,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // PROTOTYPE deal with dynamic scenario
             if (expression.HasDynamicType())
             {
                 isDynamic = true;
@@ -284,9 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol awaiterType = getAwaiter.Type!;
+            useGetResultException = useGetResultException && !Flags.Includes(BinderFlags.InTryBlockOfTryCatch);
             return GetIsCompletedProperty(awaiterType, node, expression.Type!, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
-                && GetGetResultMethod(getAwaiter, node, expression.Type!, diagnostics, out getResult, out getAwaiterGetResultCall);
+                && (useGetResultException && GetGetResultExceptionMethod(getAwaiter, node, expression.Type!, out getResult, out getAwaiterGetResultCall)
+                    || GetGetResultMethod(getAwaiter, node, expression.Type!, diagnostics, out getResult, out getAwaiterGetResultCall));
         }
 
         /// <summary>
@@ -433,12 +453,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool GetGetResultMethod(BoundExpression awaiterExpression, SyntaxNode node, TypeSymbol awaitedExpressionType, BindingDiagnosticBag diagnostics, out MethodSymbol? getResultMethod, [NotNullWhen(true)] out BoundExpression? getAwaiterGetResultCall)
         {
-            var awaiterType = awaiterExpression.Type;
             getAwaiterGetResultCall = MakeInvocationExpression(node, awaiterExpression, WellKnownMemberNames.GetResult, ImmutableArray<BoundExpression>.Empty, diagnostics);
-            if (getAwaiterGetResultCall.HasAnyErrors)
+            if (!ValidateGetResultMethod(awaiterExpression, node, awaitedExpressionType, getAwaiterGetResultCall, allowExtensions: false, diagnostics, getResultMethod: out getResultMethod))
             {
                 getResultMethod = null;
                 getAwaiterGetResultCall = null;
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidateGetResultMethod(BoundExpression awaiterExpression, SyntaxNode node, TypeSymbol awaitedExpressionType,
+            BoundExpression getAwaiterGetResultCall, bool allowExtensions, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out MethodSymbol? getResultMethod)
+        {
+            var awaiterType = awaiterExpression.Type;
+            getResultMethod = null;
+            if (getAwaiterGetResultCall.HasAnyErrors)
+            {
                 return false;
             }
 
@@ -446,30 +478,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (getAwaiterGetResultCall.Kind != BoundKind.Call)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
-                getResultMethod = null;
-                getAwaiterGetResultCall = null;
                 return false;
             }
 
             getResultMethod = ((BoundCall)getAwaiterGetResultCall).Method;
-            if (getResultMethod.IsExtensionMethod)
+            if (!allowExtensions && getResultMethod.IsExtensionMethod)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
-                getResultMethod = null;
-                getAwaiterGetResultCall = null;
                 return false;
             }
 
             if (HasOptionalOrVariableParameters(getResultMethod) || getResultMethod.IsConditional)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaiterPattern, node, awaiterType, awaitedExpressionType);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Finds the GetResult(out Exception) method of an Awaiter type.
+        /// </summary>
+        private bool GetGetResultExceptionMethod(BoundExpression awaiterExpression, SyntaxNode node, TypeSymbol awaitedExpressionType,
+            out MethodSymbol? getResultMethod, [NotNullWhen(true)] out BoundExpression? getAwaiterGetResultCall)
+        {
+            // PROTOTYPE should this binding logic be conditional on LangVer?
+            Debug.Assert(awaiterExpression.Type is not null);
+
+            var discarded = BindingDiagnosticBag.Discarded;
+            getAwaiterGetResultCall = tryMakeGetResultExceptionInvocation(node, awaiterExpression, discarded);
+
+            if (getAwaiterGetResultCall is null ||
+                !ValidateGetResultMethod(awaiterExpression, node, awaitedExpressionType, getAwaiterGetResultCall, allowExtensions: true, discarded, getResultMethod: out getResultMethod))
+            {
                 getResultMethod = null;
                 getAwaiterGetResultCall = null;
                 return false;
             }
 
-            // The lack of a GetResult method will be reported by ValidateGetResult().
             return true;
+
+            // Find the GetResult(out Exception) method.
+            BoundExpression? tryMakeGetResultExceptionInvocation(SyntaxNode node, BoundExpression awaiterExpression, BindingDiagnosticBag diagnostics)
+            {
+                Debug.Assert(awaiterExpression.Type is not null);
+                Debug.Assert(!awaiterExpression.Type.IsDynamic());
+
+                const string methodName = WellKnownMemberNames.GetResult;
+                var memberAccess = BindInstanceMemberAccess(
+                    node, node, awaiterExpression, methodName, rightArity: 0,
+                    typeArgumentsSyntax: default, typeArgumentsWithAnnotations: default,
+                    invoked: true, indexed: false, diagnostics: diagnostics);
+
+                // PROTOTYPE we should not drop these diagnostics
+                //memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
+                memberAccess.WasCompilerGenerated = true;
+
+                if (memberAccess.Kind != BoundKind.MethodGroup)
+                {
+                    return null;
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+
+                try
+                {
+                    // PROTOTYPE handle missing System.Exception type
+                    var outPlaceholder = new BoundGetResultOutExceptionPlaceholder(node, GetWellKnownType(WellKnownType.System_Exception, diagnostics, node));
+                    analyzedArguments.Arguments.Add(outPlaceholder);
+                    analyzedArguments.RefKinds.Add(RefKind.Out);
+
+                    BoundExpression getAwaiterGetResultCall = BindMethodGroupInvocation(
+                        node, node, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
+                        allowUnexpandedForm: true, anyApplicableCandidates: out bool anyApplicableCandidates);
+
+                    getAwaiterGetResultCall.WasCompilerGenerated = true;
+
+                    if (!anyApplicableCandidates) // PROTOTYPE is this necessary/useful?
+                    {
+                        return null;
+                    }
+
+                    return getAwaiterGetResultCall;
+                }
+                finally
+                {
+                    analyzedArguments.Free();
+                }
+            }
         }
 
         private static bool HasOptionalOrVariableParameters(MethodSymbol method)
