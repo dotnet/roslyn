@@ -605,22 +605,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Tries to close the document identified by <paramref name="documentId"/>.  The contents of the closed
-        /// document will be set to whatever the contents of the document are in <see cref="CurrentSolution"/>.
-        /// Subclasses should override this if they want to have different behavior here (for example, reloading the
-        /// contents from disk).
+        /// Tries to close the document identified by <paramref name="documentId"/>.  This is only needed by
+        /// implementations of ILspWorkspace to indicate that the workspace should try to transition to the closed state
+        /// for this document, but can bail out gracefully if they don't know about it (for example if they haven't
+        /// heard about the file from the project system).  Subclasses should determine what file contents they should
+        /// transition to if the file is within the workspace.
         /// </summary>
         /// <param name="documentId"></param>
         internal virtual void TryOnDocumentClosed(DocumentId documentId)
         {
-            var doc = this.CurrentSolution.GetDocument(documentId);
-            if (doc != null)
-            {
-                var text = doc.GetTextSynchronously(CancellationToken.None);
-                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
-                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
-                this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
-            }
+            throw new NotImplementedException();
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
