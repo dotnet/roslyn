@@ -1211,5 +1211,33 @@ End Try"
                 [Class]("Exception"),
                 Local("ex"))
         End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeFourBytesCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = ""𠀀𠀁𠣶𤆐𥽠𪛕""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = """"""""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost,
+                Escape(""""""))
+        End Function
+
     End Class
 End Namespace

@@ -1179,5 +1179,91 @@ class Program
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsReservedKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        N({|int:|}0);
+    }
+
+    void N(int @int)
+    {
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        N(@int: 0);
+    }
+
+    void N(int @int)
+    {
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsContextualKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        N({|async:|}true);
+    }
+
+    void N(bool async)
+    {
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        N(async: true);
+    }
+
+    void N(bool async)
+    {
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace

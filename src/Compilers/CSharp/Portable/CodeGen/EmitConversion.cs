@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             Debug.Assert(
                                 (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerWrapperType ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer ||
+                                (fromPredefTypeKind == Cci.PrimitiveTypeCode.IntPtr && conversion.Operand is BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Division })); // pointer subtraction: see LocalRewriter.RewritePointerSubtraction()
                             break;
                     }
 #endif
