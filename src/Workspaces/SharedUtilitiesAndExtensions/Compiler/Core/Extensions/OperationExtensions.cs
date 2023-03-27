@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Retursn true if the given operation is a regular compound assignment,
+        /// Returns true if the given operation is a regular compound assignment,
         /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
-        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// or a special null coalescing compound assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)

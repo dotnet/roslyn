@@ -7846,7 +7846,7 @@ class C
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
-        public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
+        public async Task CompoundAssignmentWithControlFlowInValue(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class A
@@ -8879,9 +8879,8 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
-        public async Task TestImplicitObjectCreationInAssignement()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignment()
         {
             var source =
 @"class C

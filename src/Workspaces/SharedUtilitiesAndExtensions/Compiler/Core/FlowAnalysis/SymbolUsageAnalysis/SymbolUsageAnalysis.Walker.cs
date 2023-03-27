@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    var isUsedCompountAssignment = operation.IsAnyCompoundAssignment() &&
+                    var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
                         operation.Parent?.Kind != OperationKind.ExpressionStatement;
 
                     foreach (var (symbolOpt, write) in pendingWrites)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             Debug.Assert(symbolOpt != null);
                             OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
-                            if (isUsedCompountAssignment)
+                            if (isUsedCompoundAssignment)
                             {
                                 OnReadReferenceFound(symbolOpt);
                             }
