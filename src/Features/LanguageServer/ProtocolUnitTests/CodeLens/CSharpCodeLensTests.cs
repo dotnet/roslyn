@@ -18,8 +18,8 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     {
     }
 
-    [Fact]
-    public async Task TestNoReferenceAsync()
+    [Theory, CombinatorialData]
+    public async Task TestNoReferenceAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -28,12 +28,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     {
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestOneReferenceAsync()
+    [Theory, CombinatorialData]
+    public async Task TestOneReferenceAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -47,12 +47,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         M();
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 1);
     }
 
-    [Fact]
-    public async Task TestMultipleReferencesAsync()
+    [Theory, CombinatorialData]
+    public async Task TestMultipleReferencesAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -67,12 +67,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         M();
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 2);
     }
 
-    [Fact]
-    public async Task TestMultipleReferencesCappedAsync()
+    [Theory, CombinatorialData]
+    public async Task TestMultipleReferencesCappedAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"class A
@@ -90,12 +90,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 100, isCapped: true);
     }
 
-    [Fact]
-    public async Task TestClassDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestClassDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"class {|codeLens:A|}
@@ -104,47 +104,47 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     {
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 1);
     }
 
-    [Fact]
-    public async Task TestInterfaceDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestInterfaceDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"interface {|codeLens:A|}
 {
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestEnumDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestEnumDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"enum {|codeLens:A|}
 {
     One
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestPropertyDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestPropertyDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"class A
 {
     public int {|codeLens:I|} { get; set; }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestMethodDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestMethodDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"class A
@@ -153,23 +153,23 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     {
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestStructDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestStructDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"struct {|codeLens:A|}
 {
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestConstructorDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestConstructorDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"class A
@@ -178,16 +178,16 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     {
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 
-    [Fact]
-    public async Task TestRecordDeclarationAsync()
+    [Theory, CombinatorialData]
+    public async Task TestRecordDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
 @"record {|codeLens:A|}(int SomeInt)";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
 }
