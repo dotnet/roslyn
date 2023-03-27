@@ -254,38 +254,43 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+ # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-
-  MSBuild $toolsetBuildProj `
-    $bl `
-    /p:Configuration=$configuration `
-    /p:Projects=$projects `
-    /p:RepoRoot=$RepoRoot `
-    /p:Restore=$restore `
-    /p:Build=$build `
-    /p:Rebuild=$rebuild `
-    /p:Pack=$pack `
-    /p:Sign=$sign `
-    /p:Publish=$publish `
-    /p:ContinuousIntegrationBuild=$ci `
-    /p:OfficialBuildId=$officialBuildId `
-    /p:RunAnalyzersDuringBuild=$runAnalyzers `
-    /p:BootstrapBuildPath=$bootstrapDir `
-    /p:TreatWarningsAsErrors=$warnAsError `
-    /p:EnableNgenOptimization=$applyOptimizationData `
-    /p:IbcOptimizationDataDir=$ibcDir `
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
-    /p:VisualStudioIbcDrop=$ibcDropName `
-    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-    $suppressExtensionDeployment `
-    $msbuildWarnAsError `
-    $buildFromSource `
-    $generateDocumentationFile `
-    $roslynUseHardLinks `
-    @properties
+  
+  try {
+    MSBuild $toolsetBuildProj `
+      $bl `
+      /p:Configuration=$configuration `
+      /p:Projects=$projects `
+      /p:RepoRoot=$RepoRoot `
+      /p:Restore=$restore `
+      /p:Build=$build `
+      /p:Rebuild=$rebuild `
+      /p:Pack=$pack `
+      /p:Sign=$sign `
+      /p:Publish=$publish `
+      /p:ContinuousIntegrationBuild=$ci `
+      /p:OfficialBuildId=$officialBuildId `
+      /p:RunAnalyzersDuringBuild=$runAnalyzers `
+      /p:BootstrapBuildPath=$bootstrapDir `
+      /p:TreatWarningsAsErrors=$warnAsError `
+      /p:EnableNgenOptimization=$applyOptimizationData `
+      /p:IbcOptimizationDataDir=$ibcDir `
+      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+      /p:VisualStudioIbcDrop=$ibcDropName `
+      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
+      @properties
+  }
+  finally {
+    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+  }
 }
 
 # Get the branch that produced the IBC data this build is going to consume.
