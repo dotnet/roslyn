@@ -664,7 +664,9 @@ namespace Microsoft.CodeAnalysis
                     {
                         var documentId = data.documentId;
 
+                        // forget any open document info
                         data.@this.ClearOpenDocument(documentId);
+
                         data.@this.OnDocumentClosing(documentId);
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
