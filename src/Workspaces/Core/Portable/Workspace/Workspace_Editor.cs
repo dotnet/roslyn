@@ -371,6 +371,7 @@ namespace Microsoft.CodeAnalysis
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
                     if (oldDocument is null)
                     {
+                        // Didn't have a document.  Throw if required.  Bail out gracefully if not.
                         if (requireDocumentPresentAndClosed)
                         {
                             throw new ArgumentException(string.Format(
@@ -383,8 +384,14 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (requireDocumentPresentAndClosed)
-                        @this.CheckDocumentIsClosed(documentId);
+                    if (@this.IsDocumentOpen(documentId))
+                    {
+                        // Document was already open.  Throw if required.  Bail out gracefully if not.
+                        if (requireDocumentPresentAndClosed)
+                            @this.CheckDocumentIsClosed(documentId);
+                        else
+                            return oldSolution;
+                    }
 
                     var oldDocumentState = oldDocument.State;
 
@@ -410,20 +417,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     var (@this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed) = data;
 
-                    // We only get here once we've actually mutated the solution.  That means the document is definitely
-                    // in the solution.  Now try to transition it to the open state if it is currently closed.  Note: we
-                    // already checked it was closed above if requireDocumentPresentAndClosed is true.  So the only way
-                    // for it to not be closed is if requireDocumentPresentAndClosed is false.
-
-                    if (!@this.IsDocumentOpen(documentId))
-                    {
-                        @this.AddToOpenDocumentMap(documentId);
-                        @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
-                    }
-                    else
-                    {
-                        Debug.Assert(!requireDocumentPresentAndClosed);
-                    }
+                    @this.AddToOpenDocumentMap(documentId);
+                    @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
 
                     var newDoc = newSolution.GetRequiredDocument(documentId);
                     @this.OnDocumentTextChanged(newDoc);
@@ -635,10 +630,12 @@ namespace Microsoft.CodeAnalysis
                     static (oldSolution, data) =>
                     {
                         var documentId = data.documentId;
+                        var @this = data.@this;
 
                         var document = oldSolution.GetDocument(documentId);
                         if (document is null)
                         {
+                            // Didn't have a document.  Throw if required.  Bail out gracefully if not.
                             if (data.requireDocumentPresentAndOpen)
                             {
                                 throw new ArgumentException(string.Format(
@@ -651,8 +648,14 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        if (data.requireDocumentPresentAndOpen)
-                            data.@this.CheckDocumentIsOpen(documentId);
+                        if (!@this.IsDocumentOpen(documentId))
+                        {
+                            // Document wasn't open.  Throw if required.  Bail out gracefull if not.
+                            if (data.requireDocumentPresentAndOpen)
+                                @this.CheckDocumentIsOpen(documentId);
+                            else
+                                return oldSolution;
+                        }
 
                         return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
                     },
@@ -661,20 +664,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         var documentId = data.documentId;
 
-                        // We only get here once we've actually mutated the solution.  That means the document is
-                        // definitely in the solution.  Now try to transition it to the closed state if it is currently
-                        // open.  Note: we already checked it was open above if requireDocumentPresentAndOpen is true.
-                        // So the only way for it to not be open is if requireDocumentPresentAndOpen is false.
-
-                        if (data.@this.IsDocumentOpen(documentId))
-                        {
-                            data.@this.ClearOpenDocument(documentId);
-                            data.@this.OnDocumentClosing(documentId);
-                        }
-                        else
-                        {
-                            Debug.Assert(!data.requireDocumentPresentAndOpen);
-                        }
+                        data.@this.ClearOpenDocument(documentId);
+                        data.@this.OnDocumentClosing(documentId);
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
                     {
