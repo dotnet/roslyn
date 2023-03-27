@@ -242,7 +242,6 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
-        {"dotnet_enable_document_outline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
 
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
@@ -408,6 +407,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"visual_studio_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
+        {"visual_studio_enable_document_outline", new RoamingProfileStorage(@"DocumentOutline.Enable")},
         {"dotnet_enable_asynchronous_suggestions", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
         {"dotnet_disable_asynchronous_quick_actions", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
@@ -427,8 +427,6 @@ internal abstract class VisualStudioOptionStorage
         {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"visual_studio_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"visual_studio_workspace_partial_load_mode", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
-        {"dotnet_disable_background_compilation", new FeatureFlagStorage(@"Roslyn.DisableBackgroundCompilation")},
-        {"dotnet_disable_reference_manager_recoverable_metadata", new FeatureFlagStorage(@"Roslyn.DisableReferenceManagerRecoverableMetadata")},
         {"dotnet_disable_shared_syntax_trees", new FeatureFlagStorage(@"Roslyn.DisableSharedSyntaxTrees")},
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},

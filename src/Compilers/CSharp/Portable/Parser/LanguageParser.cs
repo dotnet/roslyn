@@ -796,6 +796,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var staticToken = this.TryEatToken(SyntaxKind.StaticKeyword);
             var unsafeToken = this.TryEatToken(SyntaxKind.UnsafeKeyword);
 
+            // if the user wrote `using unsafe static` skip the `static` and tell them it needs to be `using static unsafe`.
+            if (staticToken is null && unsafeToken != null && this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+            {
+                // create a missing 'static' token so that later binding does recognize what the user wanted.
+                staticToken = SyntaxFactory.MissingToken(SyntaxKind.StaticKeyword);
+                unsafeToken = AddTrailingSkippedSyntax(unsafeToken, AddError(this.EatToken(), ErrorCode.ERR_BadStaticAfterUnsafe));
+            }
+
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
             TypeSyntax type;

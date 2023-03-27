@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var completionOptions = GetCompletionOptions(document) with { UpdateImportCompletionCacheInBackground = true };
+            var completionOptions = GetCompletionOptions(document);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -102,8 +102,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var lspVSClientCapability = clientCapabilities.HasVisualStudioLspCapability() == true;
-            var snippetsSupported = clientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-            var itemDefaultsSupported = clientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
+
+            var completionCapabilities = clientCapabilities.TextDocument?.Completion;
+            var supportedKinds = completionCapabilities?.CompletionItemKind?.ValueSet?.ToSet() ?? new HashSet<LSP.CompletionItemKind>();
+            var snippetsSupported = completionCapabilities?.CompletionItem?.SnippetSupport ?? false;
+            var itemDefaultsSupported = completionCapabilities?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
 
             // We use the first item in the completion list as our comparison point for span
             // and range for optimization when generating the TextEdits later on.
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspItem.SortText = item.SortText;
                 lspItem.FilterText = item.FilterText;
 
-                lspItem.Kind = GetCompletionKind(item.Tags);
+                lspItem.Kind = GetCompletionKind(item.Tags, supportedKinds);
                 lspItem.Preselect = ShouldItemBePreselected(item);
 
                 lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
@@ -190,12 +193,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return lspItem;
             }
 
-            static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
+            static LSP.CompletionItemKind GetCompletionKind(
+                ImmutableArray<string> tags,
+                ISet<LSP.CompletionItemKind> supportedClientKinds)
             {
                 foreach (var tag in tags)
                 {
-                    if (ProtocolConversions.RoslynTagToCompletionItemKind.TryGetValue(tag, out var completionItemKind))
-                        return completionItemKind;
+                    if (ProtocolConversions.RoslynTagToCompletionItemKinds.TryGetValue(tag, out var completionItemKinds))
+                    {
+                        // Always at least pick the core kind provided.
+                        var kind = completionItemKinds[0];
+
+                        // If better kinds are preferred, return them if the client supports them.
+                        for (var i = 1; i < completionItemKinds.Length; i++)
+                        {
+                            var preferredKind = completionItemKinds[i];
+                            if (supportedClientKinds.Contains(preferredKind))
+                                kind = preferredKind;
+                        }
+
+                        return kind;
+                    }
                 }
 
                 return LSP.CompletionItemKind.Text;
@@ -444,10 +462,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
             // 3.  LSP client should support completion filters / expanders
+            //
+            // Also don't trigger completion in argument list automatically, since LSP currently has no concept of soft selection.
+            // We want to avoid committing selected item with commit chars like `"` and `)`.
             return _globalOptions.GetCompletionOptions(document.Project.Language) with
             {
                 ShowItemsFromUnimportedNamespaces = false,
-                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
+                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
+                UpdateImportCompletionCacheInBackground = false,
+                TriggerInArgumentLists = false
             };
         }
 

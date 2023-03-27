@@ -920,14 +920,18 @@ namespace Microsoft.CodeAnalysis
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
+            => OnDocumentTextChanged(documentId, newText, mode, requireDocumentPresent: true);
+
+        private protected void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
         {
             OnAnyDocumentTextChanged(
                 documentId,
                 (newText, mode),
-                CheckDocumentIsInSolution,
+                static (solution, docId) => solution.GetDocument(docId),
                 (solution, docId, newTextAndMode) => solution.WithDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.DocumentChanged,
-                isCodeDocument: true);
+                isCodeDocument: true,
+                requireDocumentPresent);
         }
 
         /// <summary>
@@ -938,10 +942,11 @@ namespace Microsoft.CodeAnalysis
             OnAnyDocumentTextChanged(
                 documentId,
                 (newText, mode),
-                CheckAdditionalDocumentIsInSolution,
+                static (solution, docId) => solution.GetAdditionalDocument(docId),
                 (solution, docId, newTextAndMode) => solution.WithAdditionalDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
@@ -952,24 +957,32 @@ namespace Microsoft.CodeAnalysis
             OnAnyDocumentTextChanged(
                 documentId,
                 (newText, mode),
-                CheckAnalyzerConfigDocumentIsInSolution,
+                static (solution, docId) => solution.GetAnalyzerConfigDocument(docId),
                 (solution, docId, newTextAndMode) => solution.WithAnalyzerConfigDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
         /// Call this method when the text of a document is changed on disk.
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+            => OnDocumentTextLoaderChanged(documentId, loader, requireDocumentPresent: true);
+
+        /// <summary>
+        /// Call this method when the text of a document is changed on disk.
+        /// </summary>
+        private protected void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader, bool requireDocumentPresent)
         {
             OnAnyDocumentTextChanged(
                 documentId,
                 loader,
-                CheckDocumentIsInSolution,
+                static (solution, docId) => solution.GetDocument(docId),
                 (solution, docId, loader) => solution.WithDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.DocumentChanged,
-                isCodeDocument: true);
+                isCodeDocument: true,
+                requireDocumentPresent);
         }
 
         /// <summary>
@@ -980,10 +993,11 @@ namespace Microsoft.CodeAnalysis
             OnAnyDocumentTextChanged(
                 documentId,
                 loader,
-                CheckAdditionalDocumentIsInSolution,
+                static (solution, docId) => solution.GetAdditionalDocument(docId),
                 (solution, docId, loader) => solution.WithAdditionalDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
@@ -994,25 +1008,35 @@ namespace Microsoft.CodeAnalysis
             OnAnyDocumentTextChanged(
                 documentId,
                 loader,
-                CheckAnalyzerConfigDocumentIsInSolution,
+                static (solution, docId) => solution.GetAnalyzerConfigDocument(docId),
                 (solution, docId, loader) => solution.WithAnalyzerConfigDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
-        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
-        /// files also have their content updated in the new solution before applying it to the
-        /// workspace to avoid the workspace having solutions with linked files where the contents
-        /// do not match.
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked files also have their
+        /// content updated in the new solution before applying it to the workspace to avoid the workspace having
+        /// solutions with linked files where the contents do not match.
         /// </summary>
+        /// <param name="requireDocumentPresent">Allow caller to indicate behavior that should happen if this is a
+        /// request to update a document not currently in the workspace.  This should be used only in hosts where there
+        /// may be disparate sources of text change info, without an underlying agreed upon synchronization context to
+        /// ensure consistency between events.  For example, in an LSP server it might be the case that some events were
+        /// being posted by an attached lsp client, while another source of events reported information produced by a
+        /// self-hosted project system.  These systems might report events on entirely different cadences, leading to
+        /// scenarios where there might be disagreements as to the state of the workspace.  Clients in those cases must
+        /// be resilient to those disagreements (for example, by falling back to a misc-workspace if the lsp client
+        /// referred to a document no longer in the workspace populated by the project system).</param>
         private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
             TArg arg,
-            Action<Solution, DocumentId> checkIsInSolution,
+            Func<Solution, DocumentId, TextDocument?> getDocumentInSolution,
             Func<Solution, DocumentId, TArg, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
-            bool isCodeDocument)
+            bool isCodeDocument,
+            bool requireDocumentPresent)
         {
             // Data that is updated in the transformation, and read in in onAfterUpdate.  Because SetCurrentSolution may
             // loop, we have to make sure to always clear this each time we enter the loop.
@@ -1024,7 +1048,20 @@ namespace Microsoft.CodeAnalysis
                     var updatedDocumentIds = data.updatedDocumentIds;
                     updatedDocumentIds.Clear();
 
-                    data.checkIsInSolution(oldSolution, data.documentId);
+                    var document = data.getDocumentInSolution(oldSolution, data.documentId);
+                    if (document is null)
+                    {
+                        if (data.requireDocumentPresent)
+                        {
+                            throw new ArgumentException(string.Format(
+                                WorkspacesResources._0_is_not_part_of_the_workspace,
+                                oldSolution.Workspace.GetDocumentName(data.documentId)));
+                        }
+                        else
+                        {
+                            return oldSolution;
+                        }
+                    }
 
                     // First, just update the text for the document passed in.
                     var newSolution = oldSolution;
@@ -1067,7 +1104,7 @@ namespace Microsoft.CodeAnalysis
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, arg, checkIsInSolution, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
+                data: (@this: this, documentId, arg, getDocumentInSolution, updateSolutionWithText, changeKind, isCodeDocument, requireDocumentPresent, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)
