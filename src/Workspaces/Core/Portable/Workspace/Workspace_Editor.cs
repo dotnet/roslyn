@@ -121,11 +121,28 @@ namespace Microsoft.CodeAnalysis
         public virtual void OpenDocument(DocumentId documentId, bool activate = true)
             => this.CheckCanOpenDocuments();
 
+        //internal void TryOpenDocument(DocumentId documentId)
+        //{
+        //    using var _ = _serializationLock.DisposableWait();
+        //    if (this.CurrentSolution.GetDocument(documentId) != null &&
+        //        !this.IsDocumentOpen(documentId))
+        //    {
+
+        //    }
+        //}
+
         /// <summary>
         /// Close the specified document in the host environment.
         /// </summary>
         public virtual void CloseDocument(DocumentId documentId)
             => this.CheckCanOpenDocuments();
+
+        //internal void TryCloseDocument(DocumentId documentId)
+        //{
+        //    using var _ = _serializationLock.DisposableWait();
+        //    if (this.IsDocumentOpen(documentId))
+        //        this.CloseDocument(documentId);
+        //}
 
         /// <summary>
         /// Open the specified additional document in the host environment.
@@ -356,16 +373,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        internal void TryOnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext)
+            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+
+        internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             SetCurrentSolution(
                 static (oldSolution, data) =>
                 {
-                    var (@this, documentId, _, _) = data;
-
-                    CheckDocumentIsInSolution(oldSolution, documentId);
-                    @this.CheckDocumentIsClosed(documentId);
+                    var (@this, documentId, _, _, requireDocumentPresentAndClosed) = data;
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
+
+                    if (requireDocumentPresentAndClosed)
+                    {
+                        CheckDocumentIsInSolution(oldSolution, documentId);
+                        @this.CheckDocumentIsClosed(documentId);
+                    }
+                    else
+                    {
+                        if (oldDocument is null)
+                            return oldSolution;
+                    }
+
                     var oldDocumentState = oldDocument.State;
 
                     var newText = data.textContainer.CurrentText;
@@ -385,13 +417,25 @@ namespace Microsoft.CodeAnalysis
                         return oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                     }
                 },
-                data: (@this: this, documentId, textContainer, isCurrentContext),
+                data: (@this: this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
-                    var (@this, documentId, textContainer, isCurrentContext) = data;
+                    var (@this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed) = data;
 
-                    @this.AddToOpenDocumentMap(documentId);
-                    @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+                    // We only get here once we've actually mutated the solution.  That means the document is definitely
+                    // in the solution.  Now try to transition it to the open state if it is currently closed.  Note: we
+                    // already checked it was closed above if requireDocumentPresentAndClosed is true.  So the only way
+                    // for it to not be closed is if requireDocumentPresentAndClosed is false.
+
+                    if (!@this.IsDocumentOpen(documentId))
+                    {
+                        @this.AddToOpenDocumentMap(documentId);
+                        @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+                    }
+                    else
+                    {
+                        Debug.Assert(!requireDocumentPresentAndClosed);
+                    }
 
                     var newDoc = newSolution.GetRequiredDocument(documentId);
                     @this.OnDocumentTextChanged(newDoc);
@@ -571,9 +615,33 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+        /// <summary>
+        /// Tries to close the document identified by <paramref name="documentId"/>.  The contents of the closed
+        /// document will be set to whatever the contents of the document are in <see cref="CurrentSolution"/>.
+        /// Subclasses should override this if they want to have different behavior here (for example, reloading the
+        /// contents from disk).
+        /// </summary>
+        /// <param name="documentId"></param>
+        internal virtual void TryOnDocumentClosed(DocumentId documentId)
+        {
+            var doc = this.CurrentSolution.GetDocument(documentId);
+            if (doc != null)
+            {
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
+                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
+                this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
+            }
+        }
+
 #pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
 #pragma warning restore IDE0060 // Remove unused parameter
+        {
+            OnDocumentClosedEx(documentId, reloader, requireDocumentPresentAndOpen: true);
+        }
+
+        private protected void OnDocumentClosedEx(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
@@ -586,20 +654,40 @@ namespace Microsoft.CodeAnalysis
                     {
                         var documentId = data.documentId;
 
-                        CheckDocumentIsInSolution(oldSolution, documentId);
-                        data.@this.CheckDocumentIsOpen(documentId);
+                        var document = oldSolution.GetDocument(documentId);
+                        if (data.requireDocumentPresentAndOpen)
+                        {
+                            CheckDocumentIsInSolution(oldSolution, documentId);
+                            data.@this.CheckDocumentIsOpen(documentId);
+                        }
+                        else
+                        {
+                            // if the document isn't even here, nothing to do.
+                            if (document is null)
+                                return oldSolution;
+                        }
 
                         return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
                     },
-                    data: (@this: this, documentId, reloader),
+                    data: (@this: this, documentId, reloader, requireDocumentPresentAndOpen),
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
                         var documentId = data.documentId;
 
-                        // forget any open document info
-                        data.@this.ClearOpenDocument(documentId);
+                        // We only get here once we've actually mutated the solution.  That means the document is
+                        // definitely in the solution.  Now try to transition it to the closed state if it is currently
+                        // open.  Note: we already checked it was open above if requireDocumentPresentAndOpen is true.
+                        // So the only way for it to not be open is if requireDocumentPresentAndOpen is false.
 
-                        data.@this.OnDocumentClosing(documentId);
+                        if (data.@this.IsDocumentOpen(documentId))
+                        {
+                            data.@this.ClearOpenDocument(documentId);
+                            data.@this.OnDocumentClosing(documentId);
+                        }
+                        else
+                        {
+                            Debug.Assert(!data.requireDocumentPresentAndOpen);
+                        }
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
                     {
