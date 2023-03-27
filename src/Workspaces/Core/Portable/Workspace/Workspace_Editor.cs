@@ -121,28 +121,11 @@ namespace Microsoft.CodeAnalysis
         public virtual void OpenDocument(DocumentId documentId, bool activate = true)
             => this.CheckCanOpenDocuments();
 
-        //internal void TryOpenDocument(DocumentId documentId)
-        //{
-        //    using var _ = _serializationLock.DisposableWait();
-        //    if (this.CurrentSolution.GetDocument(documentId) != null &&
-        //        !this.IsDocumentOpen(documentId))
-        //    {
-
-        //    }
-        //}
-
         /// <summary>
         /// Close the specified document in the host environment.
         /// </summary>
         public virtual void CloseDocument(DocumentId documentId)
             => this.CheckCanOpenDocuments();
-
-        //internal void TryCloseDocument(DocumentId documentId)
-        //{
-        //    using var _ = _serializationLock.DisposableWait();
-        //    if (this.IsDocumentOpen(documentId))
-        //        this.CloseDocument(documentId);
-        //}
 
         /// <summary>
         /// Open the specified additional document in the host environment.
