@@ -1509,6 +1509,7 @@ public class C
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1540,8 +1541,9 @@ public class C1
     public void Method(){}
     public event System.Action Event;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext,
-                expectedOutput: "Property,Field,Method,Event,Property,Field,Method,Event,Invoke").VerifyDiagnostics();
+            var expectedOutput = "Property,Field,Method,Event,Property,Field,Method,Event,Invoke";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (8,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Property.Property) 
@@ -1582,6 +1584,7 @@ public class C
     public string S { get; } = nameof(S.Length);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (5,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string S { get; } = nameof(S.Length);
@@ -1599,10 +1602,14 @@ public class C
     public int P { get; }
     public string S { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (2,9): warning CS0618: 'C.P' is obsolete: 'Length'
                 // var p = new C().P; // 1
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (5,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [System.Obsolete(nameof(S.Length))]
@@ -1621,6 +1628,7 @@ public class C
     public string S { get; }
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public C() : this(nameof(S.Length)){}
@@ -1646,6 +1654,7 @@ public struct S
     }
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (12,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<string> func = () => nameof(P.Length);
@@ -1664,6 +1673,7 @@ public class C
     public string M() => nameof(Prop.StaticProp);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string M() => nameof(Prop.StaticProp);
@@ -1682,6 +1692,7 @@ public class C
     public static string M() => nameof(Prop.StaticProp);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Prop.StaticProp);
@@ -1702,6 +1713,7 @@ public class C
     public static string M() => nameof(Prop.M);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "M").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "M").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(Prop.M);
@@ -1720,6 +1732,7 @@ public class C
     public string M() => nameof(Prop.StaticMethod);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1832,6 +1845,7 @@ public class C
     public string M() => nameof(Prop.StaticMethod);
 }";
             CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1851,7 +1865,8 @@ public struct S
         Console.WriteLine(func());
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1872,8 +1887,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod")
-                .VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [Attr(nameof(Prop.StaticMethod))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1893,8 +1912,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop")
-                .VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [Attr(nameof(Prop.Prop))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1914,8 +1937,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop")
-                .VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,14): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // [Attr(nameof(C.Prop.Prop))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C.Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(5, 14));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1928,11 +1955,18 @@ class C
     T Method<T>() where T : C => default;
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
-                    // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                    //     [Attr(nameof(Method().Method))]
-                    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18));
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     [Attr(nameof(Method().Method))]
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     [Attr(nameof(Method().Method))]
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1945,11 +1979,18 @@ class C
     T Method<T>() where T : C => default;
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
-                    // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
-                    //     [Attr(nameof(Method<C>().Method))]
-                    Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18));
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18));
         }
     }
 }
