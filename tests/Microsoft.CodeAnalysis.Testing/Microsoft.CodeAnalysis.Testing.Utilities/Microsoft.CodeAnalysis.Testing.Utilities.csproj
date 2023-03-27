@@ -31,6 +31,11 @@
         <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
       </PropertyGroup>
     </When>
+    <When Condition="'$(TargetFramework)' == 'net6.0'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis4PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
   </Choose>
 
   <ItemGroup>
