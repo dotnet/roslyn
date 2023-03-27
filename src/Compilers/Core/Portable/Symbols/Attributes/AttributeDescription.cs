@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
         private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_String, s_signature_HasThis_Void_Boolean_SzArray_String };
         private static readonly byte[][] s_signaturesOfFixedBufferAttribute = { s_signature_HasThis_Void_Type_Int32 };
-        private static readonly byte[][] s_signaturesOfInterceptableAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfInterceptsLocationAttribute = { s_signature_HasThis_Void_String_Int32_Int32 };
         private static readonly byte[][] s_signaturesOfPrincipalPermissionAttribute = { s_signature_HasThis_Void_SecurityAction };
         private static readonly byte[][] s_signaturesOfPermissionSetAttribute = { s_signature_HasThis_Void_SecurityAction };
@@ -388,7 +387,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription StructLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "StructLayoutAttribute", s_signaturesOfStructLayoutAttribute);
         internal static readonly AttributeDescription FieldOffsetAttribute = new AttributeDescription("System.Runtime.InteropServices", "FieldOffsetAttribute", s_signaturesOfFieldOffsetAttribute);
         internal static readonly AttributeDescription FixedBufferAttribute = new AttributeDescription("System.Runtime.CompilerServices", "FixedBufferAttribute", s_signaturesOfFixedBufferAttribute);
-        internal static readonly AttributeDescription InterceptableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterceptableAttribute", s_signaturesOfInterceptableAttribute);
+        internal static readonly AttributeDescription InterceptableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterceptableAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterceptsLocationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterceptsLocationAttribute", s_signaturesOfInterceptsLocationAttribute);
         internal static readonly AttributeDescription AllowNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "AllowNullAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription DisallowNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DisallowNullAttribute", s_signatures_HasThis_Void_Only);

@@ -118,7 +118,7 @@ If an `[InterceptsLocation]` attribute is found in the compilation which does no
 
 ### Interceptor accessibility
 
-An interceptor can intercept a call at a given location even if the interceptor would not ordinarily be accessible at that location.
+An interceptor must be accessible at the location where interception is occurring.
 
 ### Editor experience
 

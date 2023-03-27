@@ -13,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -959,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             var attributeLocation = arguments.AttributeSyntaxOpt.Location;
-            if (Arity != 0 || ContainingType.VisitType(static (type, _, _) => type.GetArity() != 0, arg: (object?)null) is not null)
+            if (Arity != 0 || ContainingType.IsGenericType)
             {
                 // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
                 // eventually, we could consider doing a type argument inference, seeing if the interceptor's type constraints are met, etc...
@@ -1022,9 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
             }
 
-            // Did they actually refer to the start of the token, not the middle?
+            // Did they actually refer to the start of the token, not the middle, or in leading trivia?
             var tokenPositionDifference = referencedPosition - referencedToken.Span.Start;
-            Debug.Assert(tokenPositionDifference >= 0); // if the referenced position were smaller than the token's start position, we wouldn't have matched it.
             if (tokenPositionDifference != 0)
             {
                 // tokens don't span multiple lines, so we can apply the difference we found to the characterNumber within the line and figure out which character the user should have used.

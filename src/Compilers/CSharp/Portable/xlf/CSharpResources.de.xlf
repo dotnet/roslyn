@@ -888,8 +888,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
-        <source>The provided line and character number does not refer to an interceptable method, but rather to token '{0}'.</source>
-        <target state="new">The provided line and character number does not refer to an interceptable method, but rather to token '{0}'.</target>
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="new">The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorSignatureMismatch">

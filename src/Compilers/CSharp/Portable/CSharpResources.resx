@@ -7527,7 +7527,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</value>
   </data>
   <data name="ERR_InterceptorPositionBadToken" xml:space="preserve">
-    <value>The provided line and character number does not refer to an interceptable method, but rather to token '{0}'.</value>
+    <value>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</value>
   </data>
   <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
     <value>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</value>

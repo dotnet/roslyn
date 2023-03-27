@@ -18,7 +18,7 @@ public class InterceptorsTests : CSharpTestBase
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class InterceptableAttribute : Attribute { }
 
-        [AttributeUsage(AttributeTargets.Method)]
+        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
             public InterceptsLocationAttribute(string filePath, int line, int column)
@@ -209,6 +209,38 @@ public class InterceptorsTests : CSharpTestBase
             {
                 [InterceptsLocation("Program.cs", 14, 10)]
                 public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableStaticMethod_InterceptorExtensionMethod()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static C InterceptableMethod(C c, string param) { Console.Write("interceptable " + param); return c; }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    C.InterceptableMethod(c, "call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 10)]
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
@@ -819,6 +851,49 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptsLocationBadPosition_05()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C { }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.
+                        InterceptableMethod("call site");
+
+                    c.InterceptableMethod    ("call site");
+                }
+
+                [Interceptable]
+                public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
+
+                [InterceptsLocation("Program.cs", 11, 10)] // intercept spaces before 'InterceptableMethod' token
+                [InterceptsLocation("Program.cs", 13, 32)] // intercept spaces after 'InterceptableMethod' token
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
+            }
+
+            static class CExt
+            {
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(20,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '12' instead.
+            //     [InterceptsLocation("Program.cs", 11, 10)] // intercept spaces before 'InterceptableMethod' token
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 10)").WithArguments("InterceptableMethod", "12").WithLocation(20, 6),
+            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '10' instead.
+            //     [InterceptsLocation("Program.cs", 13, 32)] // intercept spaces after 'InterceptableMethod' token
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 13, 32)").WithArguments("InterceptableMethod", "10").WithLocation(21, 6)
+        );
+    }
+
+    [Fact]
     public void SignatureMismatch_01()
     {
         var source = """
@@ -930,5 +1005,109 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 14, 10)]
             Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
             );
+    }
+
+    [Fact]
+    public void InterpolatedStringHandler_01()
+    {
+        // Verify that interpolated string-related attributes on an intercepted call use the attributes from the interceptable method.
+        var code = """
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"");
+
+public struct S1
+{
+    public S1() { }
+    public int Field = 1;
+
+    [Interceptable]
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        Console.Write(0);
+    }
+}
+
+public static class S1Ext
+{
+    [InterceptsLocation("Program.cs", 4, 2)]
+    public static void M1(ref this S1 s1, CustomHandler c)
+    {
+        Console.Write(2);
+    }
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S1 s)
+    {
+        Console.Write(1);
+    }
+}
+""";
+        var verifier = CompileAndVerify(
+            new[]
+            {
+                (code, "Program.cs"),
+                (InterpolatedStringHandlerArgumentAttribute, "a.cs"),
+                (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
+                s_attributesSource
+            },
+            expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterpolatedStringHandler_02()
+    {
+        // Verify that interpolated string-related attributes are ignored on an interceptor in an intercepted call.
+        var code = """
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"");
+
+public struct S1
+{
+    public S1() { }
+    public int Field = 1;
+
+    [Interceptable]
+    public void M(CustomHandler c)
+    {
+        Console.Write(0);
+    }
+}
+
+public static class S1Ext
+{
+    [InterceptsLocation("Program.cs", 4, 2)]
+    public static void M1(ref this S1 s1, [InterpolatedStringHandlerArgument("s1")] CustomHandler c)
+    {
+        Console.Write(1);
+    }
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S1 s)
+    {
+        throw null!; // we don't expect this to be called
+    }
+}
+""";
+        var verifier = CompileAndVerify(
+            new[]
+            {
+                (code, "Program.cs"),
+                (InterpolatedStringHandlerArgumentAttribute, "a.cs"),
+                (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
+                s_attributesSource
+            },
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 }

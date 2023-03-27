@@ -244,19 +244,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.Syntax is not InvocationExpressionSyntax syntax)
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
                 {
                     return null;
                 }
 
-                if (syntax.Expression is MemberAccessExpressionSyntax memberAccess)
+                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+                // we probably want to treat it similarly to a MemberAccessExpression.
+                // However, we don't expect to encounter it.
+                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+                return syntax.Expression switch
                 {
-                    return memberAccess.Name.Location;
-                }
-                else
-                {
-                    return syntax.Expression.Location;
-                }
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
+                    SimpleNameSyntax name => name.Location,
+                    _ => null
+                };
             }
         }
     }

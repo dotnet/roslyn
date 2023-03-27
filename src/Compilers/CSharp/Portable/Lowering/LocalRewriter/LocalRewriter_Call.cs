@@ -133,27 +133,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public (
-            MethodSymbol method,
-            BoundExpression? receiverOpt,
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<int> argsToParamsOpt,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            bool invokedAsExtensionMethod
-            ) InterceptCallAndAdjustArguments(BoundCall node)
+        public void InterceptCallAndAdjustArguments(
+            ref MethodSymbol method,
+            ref BoundExpression? receiverOpt,
+            ref ImmutableArray<BoundExpression> arguments,
+            ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            ref bool invokedAsExtensionMethod,
+            Location? interceptableLocation)
         {
-            var method = node.Method;
-            var receiverOpt = node.ReceiverOpt;
-            var arguments = node.Arguments;
-            var argsToParamsOpt = node.ArgsToParamsOpt;
-            var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            var invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
-
-            var interceptableLocation = node.InterceptableLocation;
             if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
             {
                 // The call was not intercepted.
-                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+                return;
             }
 
             Debug.Assert(interceptableLocation != null);
@@ -171,15 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
-            var needToReduce = receiverOpt != null && interceptor.IsExtensionMethod;
+            Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
+            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
-            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare)) // PROTOTYPE(ic): also checked for 'scoped'/'[UnscopedRef]' differences
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
-                return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+                return;
             }
 
-            // PROTOTYPE(ic): should we also reduce 'method' when comparing, if it is being called as an extension method?
+            // PROTOTYPE(ic): should we also reduce both methods if 'method' is being called as an extension method?
 
             method.TryGetThisParameter(out var methodThisParameter);
             symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
@@ -200,46 +192,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needToReduce)
             {
-                Debug.Assert(!method.IsStatic);
+                Debug.Assert(methodThisParameter is not null);
                 arguments = arguments.Insert(0, receiverOpt!);
                 receiverOpt = null;
 
-                var thisParameter = method.ThisParameter;
-
-                if (!argsToParamsOpt.IsDefault)
+                // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
+                var thisRefKind = methodThisParameter.RefKind;
+                if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
                 {
-                    var argsToParamsBuilder = ImmutableArray.CreateBuilder<int>(argsToParamsOpt.Length + 1);
-                    argsToParamsBuilder.Add(0); // argument 0 always corresponds to parameter 0 (extension this)
-                    foreach (var paramOrdinal in argsToParamsOpt)
-                    {
-                        // the param that each argument *really* refers to is pushed forward by 1.
-                        // e.g. we're adapting:
-                        // void Type.Method(int param) { }
-                        // void Ext.Method(this Type type, int param) { }
-                        argsToParamsBuilder.Add(paramOrdinal + 1);
-                    }
-
-                    argsToParamsOpt = argsToParamsBuilder.MoveToImmutable();
+                    argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
                 }
 
                 if (!argumentRefKindsOpt.IsDefault)
                 {
-                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisParameter.RefKind);
+                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
                 }
 
+                // PROTOTYPE(ic): search for a scenario where propagating this value matters
                 invokedAsExtensionMethod = true;
             }
 
             method = interceptor;
 
-            return (method, receiverOpt, arguments, argsToParamsOpt, argumentRefKindsOpt, invokedAsExtensionMethod);
+            return;
         }
 
         public override BoundNode VisitCall(BoundCall node)
         {
             Debug.Assert(node != null);
 
-            var (method, receiverOpt, arguments, argsToParamsOpt, argRefKindsOpt, invokedAsExtensionMethod) = InterceptCallAndAdjustArguments(node);
+            // PROTOTYPE(ic): interception should occur after lowering
+            // so that we use the original method in all relevant situations such as interpolated string lowering.
+            var (method, receiverOpt, arguments, argsToParamsOpt, argRefKindsOpt, invokedAsExtensionMethod) = (node.Method, node.ReceiverOpt, node.Arguments, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, node.InvokedAsExtensionMethod);
 
             // Rewrite the receiver
             BoundExpression? rewrittenReceiver = VisitExpression(receiverOpt);
@@ -255,19 +239,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 storesOpt: null,
                 ref temps);
 
-            var rewrittenCall = MakeArgumentsAndCall(
-                syntax: node.Syntax,
-                rewrittenReceiver: rewrittenReceiver,
-                method: method,
-                arguments: rewrittenArguments,
-                argumentRefKindsOpt: argRefKindsOpt,
-                expanded: node.Expanded, // PROTOTYPE(ic): params differences shouldn't matter--maybe even make it an error--but we need to test
-                invokedAsExtensionMethod: invokedAsExtensionMethod,
-                argsToParamsOpt: argsToParamsOpt,
-                resultKind: node.ResultKind,
-                type: node.Type,
-                temps,
-                nodeOpt: node);
+            rewrittenArguments = MakeArguments(
+                node.Syntax,
+                rewrittenArguments,
+                method,
+                node.Expanded, // PROTOTYPE(ic): params differences shouldn't matter--maybe even make it an error--but we need to test
+                argsToParamsOpt,
+                ref argRefKindsOpt,
+                ref temps,
+                invokedAsExtensionMethod);
+
+            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref invokedAsExtensionMethod, node.InterceptableLocation);
+
+            // PROTOTYPE(ic): intercept with object.ReferenceEquals?
+            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, invokedAsExtensionMethod, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
             if (Instrument)
             {
