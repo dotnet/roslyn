@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     diagnosticInfoOpt ??= GetDiagnosticIfRefOrOutThisParameterCaptured();
-                    hasErrors = hasErrors || diagnosticInfoOpt is not null;
+                    hasErrors = diagnosticInfoOpt is not null;
 
                     if (hasErrors)
                     {
