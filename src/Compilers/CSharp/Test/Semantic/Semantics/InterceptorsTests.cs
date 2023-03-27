@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    private readonly static (string, string) s_attributesSource = ("""
+    private static readonly (string, string) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;
 
         [AttributeUsage(AttributeTargets.Method)]
