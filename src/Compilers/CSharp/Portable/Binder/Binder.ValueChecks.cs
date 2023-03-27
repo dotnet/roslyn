@@ -1708,7 +1708,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint scopeOfTheContainingExpression)
         {
             var data = expression.GetInterpolatedStringHandlerData();
+#if DEBUG
+            bool previousTrackVisited = _trackVisited;
+            _trackVisited = false;
+#endif
             uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+#if DEBUG
+            _trackVisited = previousTrackVisited;
+#endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
             GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
@@ -2085,12 +2092,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         stackLocalsOpt: null))
                     {
 #if DEBUG
-                        Debug.Assert(IsVisited(receiver));
+                        CheckVisited(receiver);
 #endif
                         // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                         receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
 #if DEBUG
-                        MarkedVisited(receiver);
+                        MarkVisited(receiver);
 #endif
                     }
                 }
@@ -2917,7 +2924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
 #if DEBUG
-            Debug.Assert(IsVisited(expr));
+            CheckVisited(expr);
 #endif
 
             // cannot infer anything from errors
@@ -3157,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
-            Debug.Assert(IsVisited(expr));
+            CheckVisited(expr);
 #endif
 
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
@@ -3483,7 +3490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
 #if DEBUG
-            Debug.Assert(IsVisited(expr));
+            CheckVisited(expr);
 #endif
 
             // cannot infer anything from errors
@@ -3886,7 +3893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
-            Debug.Assert(IsVisited(expr));
+            CheckVisited(expr);
 #endif
 
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
@@ -4507,8 +4514,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
             // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
             // escape, or does the opposite. In either case, we need to check.
-
+#if DEBUG
+            bool previousTrackVisited = _trackVisited;
+            _trackVisited = false;
+#endif
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+#if DEBUG
+            _trackVisited = previousTrackVisited;
+#endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
             GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);

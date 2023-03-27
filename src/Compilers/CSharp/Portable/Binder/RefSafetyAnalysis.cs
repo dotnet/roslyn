@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class RefSafetyAnalysis : BoundTreeWalkerWithStackGuard
+    internal sealed partial class RefSafetyAnalysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static void Analyze(CSharpCompilation compilation, Symbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
         {
@@ -85,8 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dictionary<BoundValuePlaceholderBase, uint>? _placeholderScopes;
         private uint _patternInputValEscape;
 #if DEBUG
-        private const int MaxVisited = 100; // Avoid tracking if too many expressions.
+        private const int MaxTrackVisited = 100; // Avoid tracking if too many expressions.
         private readonly HashSet<BoundExpression> _visited;
+        private bool _trackVisited;
 #endif
 
         private RefSafetyAnalysis(
@@ -95,11 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inUnsafeRegion,
             bool useUpdatedEscapeRules,
             BindingDiagnosticBag diagnostics,
-            Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? localEscapeScopes = null
-#if DEBUG
-            , HashSet<BoundExpression>? visited = null
-#endif
-            )
+            Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? localEscapeScopes = null)
         {
             _compilation = compilation;
             _symbol = symbol;
@@ -112,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _localScopeDepth = CurrentMethodScope - 1;
             _localEscapeScopes = localEscapeScopes;
 #if DEBUG
-            _visited = visited ?? new HashSet<BoundExpression>();
+            _visited = new HashSet<BoundExpression>();
 #endif
         }
 
@@ -221,11 +218,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
         {
+            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) != true);
+
             // Consider not adding the placeholder to the dictionary if the escape scope is
             // CallingMethod, and simply fallback to that value in GetPlaceholderScope().
 
             _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, uint>();
-            _placeholderScopes.Add(placeholder, valEscapeScope);
+            _placeholderScopes[placeholder] = valEscapeScope;
         }
 
 #pragma warning disable IDE0060
@@ -258,8 +257,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (placeholder)
             {
-                case BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter or BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter }:
-                    return true;
+                case BoundObjectOrCollectionValuePlaceholder:
+                    return true; // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
+                case BoundInterpolatedStringHandlerPlaceholder:
+                    return true; // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
                 case BoundImplicitIndexerValuePlaceholder:
                     return placeholder.Type?.SpecialType == SpecialType.System_Int32;
                 default:
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             if (node is BoundExpression expr)
             {
-                bool added = MarkedVisited(expr);
+                bool added = MarkVisited(expr);
                 if (!added)
                 {
                     Debug.Assert(expr is BoundValuePlaceholderBase);
@@ -295,19 +296,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private bool IsVisited(BoundExpression expr)
+        private void CheckVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder
                 && placeholder is not BoundCapturedReceiverPlaceholder)
             {
-                return ContainsPlaceholderScope(placeholder);
+                Debug.Assert(ContainsPlaceholderScope(placeholder));
             }
-            return _visited.Count > MaxVisited || _visited.Contains(expr);
+            else if (_trackVisited && _visited.Count <= MaxTrackVisited)
+            {
+                Debug.Assert(_visited.Contains(expr));
+            }
         }
 
-        private bool MarkedVisited(BoundExpression expr)
+        private bool MarkVisited(BoundExpression expr)
         {
-            if (_visited.Count > MaxVisited)
+            if (!_trackVisited)
+            {
+                return true;
+            }
+            if (_visited.Count > MaxTrackVisited)
             {
                 return true;
             }
@@ -651,70 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-        {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            if (node.InterpolationData is { } interpolationData)
-            {
-                VisitInterpolatedStringHandlerDataAndGetReceiverPlaceholder(placeholders, interpolationData);
-            }
-
-            using var _ = new PlaceholderRegion(this, placeholders);
-            return base.VisitInterpolatedString(node);
-        }
-
-        public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
-        {
-            if (node.InterpolatedStringHandlerData is { } interpolationData)
-            {
-                visitBinaryInterpolation(node, interpolationData);
-                return null;
-            }
-
-            var stack = ArrayBuilder<BoundExpression>.GetInstance();
-            stack.Push(node.Right);
-
-            BoundExpression current = node.Left;
-            while (current is BoundBinaryOperator { InterpolatedStringHandlerData: null } expr)
-            {
-                stack.Push(expr.Right);
-                current = expr.Left;
-            }
-
-            visitExpression(current);
-            while (stack.Count > 0)
-            {
-                current = stack.Pop();
-                visitExpression(current);
-            }
-
-            stack.Free();
-            return null;
-
-            void visitExpression(BoundExpression node)
-            {
-                if (node is BoundBinaryOperator { InterpolatedStringHandlerData: { } interpolationData } expr)
-                {
-                    visitBinaryInterpolation(expr, interpolationData);
-                }
-                else
-                {
-                    Visit(node);
-                }
-            }
-
-            void visitBinaryInterpolation(BoundBinaryOperator node, InterpolatedStringHandlerData interpolationData)
-            {
-                var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-                VisitInterpolatedStringHandlerDataAndGetReceiverPlaceholder(placeholders, interpolationData);
-
-                using var _ = new PlaceholderRegion(this, placeholders);
-                Visit(node.Left);
-                Visit(node.Right);
-            }
-        }
-
-        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, uint receiverEscapeScope = uint.MaxValue)
+        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
             Visit(receiverOpt);
 
@@ -725,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, receiverEscapeScope);
+                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments);
                     _ = new PlaceholderRegion(this, placeholders);
                 }
                 Visit(arg);
@@ -754,23 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitInterpolatedStringHandlerDataAndGetReceiverPlaceholder(
-            ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
-            InterpolatedStringHandlerData interpolationData)
-        {
-            Visit(interpolationData.Construction);
-            uint valEscapeScope = GetValEscape(interpolationData.Construction, _localScopeDepth);
-            placeholders.Add((interpolationData.ReceiverPlaceholder, valEscapeScope));
-        }
-
         private void GetInterpolatedStringPlaceholders(
             ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
             in InterpolatedStringHandlerData interpolationData,
             BoundExpression? receiver,
             int nArgumentsVisited,
-            ImmutableArray<BoundExpression> arguments,
-            uint receiverEscapeScope)
+            ImmutableArray<BoundExpression> arguments)
         {
+            placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
+
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)
             {
                 uint valEscapeScope;
@@ -778,10 +715,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                        Debug.Assert(receiver != null);
                         if (receiver is null)
                         {
-                            Debug.Assert(receiverEscapeScope != uint.MaxValue);
-                            valEscapeScope = receiverEscapeScope;
+                            valEscapeScope = CallingMethodScope;
                         }
                         else
                         {
@@ -837,66 +774,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitWithExpression(BoundWithExpression node)
-        {
-            this.Visit(node.Receiver);
-
-            uint receiverEscapeScope = GetValEscape(node.Receiver, _localScopeDepth);
-            VisitObjectCreationInitializer(node.InitializerExpression, receiverEscapeScope);
-
-            return null;
-        }
-
-        public override BoundNode? VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
-        {
-            // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            return null;
-        }
-
-        public override BoundNode? VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
-        {
-            // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            return null;
-        }
-
-        public override BoundNode? VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
-        {
-            // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            return null;
-        }
-
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-
-            var constructor = node.Constructor;
-            var initializer = node.InitializerExpressionOpt;
-
-            if (initializer is { })
-            {
-                uint objectCreationEscapeScope;
-                if (constructor is null)
-                {
-                    objectCreationEscapeScope = CallingMethodScope;
-                }
-                else
-                {
-                    objectCreationEscapeScope = GetInvocationEscapeScope(
-                        constructor,
-                        receiver: null,
-                        constructor.Parameters,
-                        node.Arguments,
-                        node.ArgumentRefKindsOpt,
-                        node.ArgsToParamsOpt,
-                        _localScopeDepth,
-                        isRefEscape: false);
-                }
-
-                VisitObjectCreationInitializer(initializer, objectCreationEscapeScope);
-            }
+            Visit(node.InitializerExpressionOpt);
 
             if (!node.HasErrors)
             {
+                var constructor = node.Constructor;
                 if (constructor is { })
                 {
                     CheckInvocationArgMixing(
@@ -910,68 +795,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _localScopeDepth,
                         _diagnostics);
                 }
-            }
-        }
-
-        private void VisitObjectCreationInitializer(BoundObjectInitializerExpressionBase node, uint receiverEscapeScope)
-        {
-#if DEBUG
-            bool added = MarkedVisited(node);
-            Debug.Assert(added);
-#endif
-
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            placeholders.Add((node.Placeholder, receiverEscapeScope));
-            using var _ = new PlaceholderRegion(this, placeholders);
-
-            switch (node)
-            {
-                case BoundObjectInitializerExpression objectInitializer:
-                    foreach (var initializer in objectInitializer.Initializers)
-                    {
-                        if (initializer is BoundAssignmentOperator assignment)
-                        {
-                            uint leftEscapeScope;
-                            var left = assignment.Left;
-                            if (left is BoundObjectInitializerMember leftMember)
-                            {
-                                VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, leftMember.Arguments, receiverEscapeScope);
-                                leftEscapeScope = Math.Max(receiverEscapeScope, GetValEscape(leftMember.Arguments, _localScopeDepth));
-                            }
-                            else
-                            {
-                                Visit(left);
-                                leftEscapeScope = receiverEscapeScope;
-                            }
-                            var right = assignment.Right;
-                            if (right is BoundObjectInitializerExpression rightInitializer)
-                            {
-                                VisitObjectCreationInitializer(rightInitializer, leftEscapeScope);
-                            }
-                            else
-                            {
-                                Visit(right);
-                            }
-                        }
-                        else
-                        {
-                            Visit(initializer);
-                        }
-                    }
-                    break;
-                case BoundCollectionInitializerExpression collectionInitializer:
-                    foreach (var initializer in collectionInitializer.Initializers)
-                    {
-                        if (initializer is BoundCollectionElementInitializer elementInitializer)
-                        {
-                            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, elementInitializer.Arguments, receiverEscapeScope);
-                        }
-                        else
-                        {
-                            Visit(initializer);
-                        }
-                    }
-                    break;
             }
         }
 
