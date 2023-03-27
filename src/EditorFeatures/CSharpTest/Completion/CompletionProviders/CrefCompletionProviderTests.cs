@@ -495,5 +495,37 @@ class C
 
             await VerifyItemExistsAsync(text, "MyMethod(in int)");
         }
+
+        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        public async Task ValueTuple1()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="M$$"/>
+                    /// </summary>
+                    public void M((string, int) stringAndInt) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
+        }
+
+        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        public async Task ValueTuple2()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="M$$"/>
+                    /// </summary>
+                    public void M((string s, int i) stringAndInt) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
+        }
     }
 }

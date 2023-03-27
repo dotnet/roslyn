@@ -43,751 +43,857 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         public async Task TestBaseCase()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => s_goo [|??|] (s_goo = new string('c', 42));
-}",
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => s_goo ??= new string('c', 42);
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => s_goo [|??|] (s_goo = new string('c', 42));
+                }
+                """,
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => s_goo ??= new string('c', 42);
+                }
+                """);
         }
 
         [Fact, WorkItem(44793, "https://github.com/dotnet/roslyn/issues/44793")]
         public async Task TestMissingBeforeCSharp8()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => s_goo ?? (s_goo = new string('c', 42));
-}", LanguageVersion.CSharp7_3);
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => s_goo ?? (s_goo = new string('c', 42));
+                }
+                """, LanguageVersion.CSharp7_3);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeParenthesized()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => {|CS0131:s_goo ?? s_goo|} = new string('c', 42);
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => {|CS0131:s_goo ?? s_goo|} = new string('c', 42);
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeAssignment()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => {|CS0019:s_goo ?? (s_goo == new string('c', 42))|};
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => {|CS0019:s_goo ?? (s_goo == new string('c', 42))|};
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeSimpleAssignment()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => s_goo ?? (s_goo ??= new string('c', 42));
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => s_goo ?? (s_goo ??= new string('c', 42));
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestShapesMustBeTheSame()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string s_goo2;
-    private static string Goo => s_goo ?? (s_goo2 = new string('c', 42));
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string s_goo2;
+                    private static string Goo => s_goo ?? (s_goo2 = new string('c', 42));
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNoSideEffects1()
         {
             await TestMissingAsync(
-@"class Program
-{
-    private static string s_goo;
-    private static string Goo => s_goo.GetType() ?? ({|CS0131:s_goo.GetType()|} = new string('c', 42));
-}");
+                """
+                class Program
+                {
+                    private static string s_goo;
+                    private static string Goo => s_goo.GetType() ?? ({|CS0131:s_goo.GetType()|} = new string('c', 42));
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNoSideEffects2()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
-{
-    private string goo;
-    private string Goo => this.goo [|??|] (this.goo = new string('c', 42));
-}",
-@"class Program
-{
-    private string goo;
-    private string Goo => this.goo ??= new string('c', 42);
-}");
+                """
+                class Program
+                {
+                    private string goo;
+                    private string Goo => this.goo [|??|] (this.goo = new string('c', 42));
+                }
+                """,
+                """
+                class Program
+                {
+                    private string goo;
+                    private string Goo => this.goo ??= new string('c', 42);
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNullableValueType()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Goo()
-    {
-        int? a = null;
-        var x = a [|??|] (a = 1);
-    }
-}",
-@"class Program
-{
-    void Goo()
-    {
-        int? a = null;
-        var x = (int?)(a ??= 1);
-    }
-}");
+                """
+                class Program
+                {
+                    void Goo()
+                    {
+                        int? a = null;
+                        var x = a [|??|] (a = 1);
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    void Goo()
+                    {
+                        int? a = null;
+                        var x = (int?)(a ??= 1);
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestCastIfWouldAffectSemantics()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void M(int a) { }
-    static void M(int? a) { }
+                """
+                using System;
+                class C
+                {
+                    static void M(int a) { }
+                    static void M(int? a) { }
 
-    static void Main()
-    {
-        int? a = null;
-        M(a [|??|] (a = 1));
-    }
-}",
-@"using System;
-class C
-{
-    static void M(int a) { }
-    static void M(int? a) { }
+                    static void Main()
+                    {
+                        int? a = null;
+                        M(a [|??|] (a = 1));
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void M(int a) { }
+                    static void M(int? a) { }
 
-    static void Main()
-    {
-        int? a = null;
-        M((int?)(a ??= 1));
-    }
-}");
+                    static void Main()
+                    {
+                        int? a = null;
+                        M((int?)(a ??= 1));
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestDoNotCastIfNotNecessary()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void M(int? a) { }
+                """
+                using System;
+                class C
+                {
+                    static void M(int? a) { }
 
-    static void Main()
-    {
-        int? a = null;
-        M(a [|??|] (a = 1));
-    }
-}",
-@"using System;
-class C
-{
-    static void M(int? a) { }
+                    static void Main()
+                    {
+                        int? a = null;
+                        M(a [|??|] (a = 1));
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void M(int? a) { }
 
-    static void Main()
-    {
-        int? a = null;
-        M(a ??= 1);
-    }
-}");
+                    static void Main()
+                    {
+                        int? a = null;
+                        M(a ??= 1);
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (o is null)
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (o is null)
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotBeforeCSharp8()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-            o = """";
-        }
-    }
-}", LanguageVersion.CSharp7_3);
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """, LanguageVersion.CSharp7_3);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotWithElseClause()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-            o = """";
-        }
-        else
-        {
-            Console.WriteLine();
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                            o = "";
+                        }
+                        else
+                        {
+                            Console.WriteLine();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (o is null)
-            o = """";
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (o is null)
+                            o = "";
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_WithEmptyBlock()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_WithMultipleStatements()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-            o = """";
-            o = """";
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                            o = "";
+                            o = "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_EqualsEqualsCheck()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (o == null)
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (o == null)
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (ReferenceEquals(o, null))
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (ReferenceEquals(o, null))
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (ReferenceEquals(null, o))
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (ReferenceEquals(null, o))
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck3()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (object.ReferenceEquals(null, o))
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (object.ReferenceEquals(null, o))
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck4()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (!object.ReferenceEquals(null, o))
-        {
-            o = """";
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (!object.ReferenceEquals(null, o))
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotSimpleAssignment()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-            o ??= """";
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                            o ??= "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_OverloadedEquals_OkForString()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(string o)
-    {
-        [|if|] (o == null)
-        {
-            o = """";
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(string o)
-    {
-        o ??= """";
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(string o)
+                    {
+                        [|if|] (o == null)
+                        {
+                            o = "";
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(string o)
+                    {
+                        o ??= "";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_OverloadedEquals()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class X
-{
-    public static bool operator ==(X x1, X x2) => true;
-    public static bool operator !=(X x1, X x2) => !(x1 == x2);
-}
+                class X
+                {
+                    public static bool operator ==(X x1, X x2) => true;
+                    public static bool operator !=(X x1, X x2) => !(x1 == x2);
+                }
 
-class C
-{
-    static void Main(X o)
-    {
-        if (o == null)
-        {
-            o = new X();
-        }
-    }
-}");
+                class C
+                {
+                    static void Main(X o)
+                    {
+                        if (o == null)
+                        {
+                            o = new X();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_AssignmentToDifferentValue()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    static void Main(object o1, object o2)
-    {
-        if (o1 is null)
-        {
-            o2 = """";
-        }
-    }
-}");
+                class C
+                {
+                    static void Main(object o1, object o2)
+                    {
+                        if (o1 is null)
+                        {
+                            o2 = "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_SideEffects1()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    private object o;
+                class C
+                {
+                    private object o;
 
-    static void Main()
-    {
-        if (new C().o is null)
-        {
-            new C().o = """";
-        }
-    }
-}");
+                    static void Main()
+                    {
+                        if (new C().o is null)
+                        {
+                            new C().o = "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_SideEffects2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (o is null)
-        {
-            o = new C();
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        o ??= new C();
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (o is null)
+                        {
+                            o = new C();
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        o ??= new C();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        // Before
-        [|if|] (o is null)
-        {
-            o = new C();
-        } // After
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        // Before
-        o ??= new C(); // After
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        // Before
+                        [|if|] (o is null)
+                        {
+                            o = new C();
+                        } // After
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        // Before
+                        o ??= new C(); // After
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        [|if|] (o is null)
-        {
-            // Before
-            o = new C(); // After
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        // Before
-        o ??= new C(); // After
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        [|if|] (o is null)
+                        {
+                            // Before
+                            o = new C(); // After
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        // Before
+                        o ??= new C(); // After
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia3()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        // Before1
-        [|if|] (o is null)
-        {
-            // Before2
-            o = new C(); // After
-        }
-    }
-}",
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        // Before1
-        // Before2
-        o ??= new C(); // After
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        // Before1
+                        [|if|] (o is null)
+                        {
+                            // Before2
+                            o = new C(); // After
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        // Before1
+                        // Before2
+                        o ??= new C(); // After
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock1()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if true
-            o = """";
-#endif
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if true
+                            o = "";
+                #endif
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock2()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if X
-            Console.WriteLine(""Only run if o is null"");
-#endif
-            o = """";
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if X
+                            Console.WriteLine("Only run if o is null");
+                #endif
+                            o = "";
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock3()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if X
-            Console.WriteLine(""Only run if o is null"");
-#else
-            o = """";
-#endif
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if X
+                            Console.WriteLine("Only run if o is null");
+                #else
+                            o = "";
+                #endif
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock4()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if X
-            Console.WriteLine(""Only run if o is null"");
-#elif true
-            o = """";
-#endif
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if X
+                            Console.WriteLine("Only run if o is null");
+                #elif true
+                            o = "";
+                #endif
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock5()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if true
-            o = """";
-#else
-            Console.WriteLine(""Only run if o is null"");
-#endif
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if true
+                            o = "";
+                #else
+                            Console.WriteLine("Only run if o is null");
+                #endif
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock6()
         {
             await TestMissingAsync(
-@"using System;
-class C
-{
-    static void Main(object o)
-    {
-        if (o is null)
-        {
-#if true
-            o = """";
-#elif X
-            Console.WriteLine(""Only run if o is null"");
-#endif
-        }
-    }
-}");
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                        {
+                #if true
+                            o = "";
+                #elif X
+                            Console.WriteLine("Only run if o is null");
+                #endif
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]

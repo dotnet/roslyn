@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCatchFilterContext;
         public readonly bool IsConstantExpressionContext;
         public readonly bool IsCrefContext;
-        public readonly bool IsDeclarationExpressionContext;
         public readonly bool IsDefiniteCastTypeContext;
         public readonly bool IsDelegateReturnTypeContext;
         public readonly bool IsDestructorTypeContext;
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isCatchFilterContext,
             bool isConstantExpressionContext,
             bool isCrefContext,
-            bool isDeclarationExpressionContext,
             bool isDefiniteCastTypeContext,
             bool isDelegateReturnTypeContext,
             bool isDestructorTypeContext,
@@ -145,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsCrefContext = isCrefContext;
-            this.IsDeclarationExpressionContext = isDeclarationExpressionContext;
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
             this.IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
@@ -209,11 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 : false;
 
             var isAnyExpressionContext = !isPreProcessorDirectiveContext
-                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel)
+                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
                 : false;
 
             var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext
-                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModelOpt: semanticModel)
+                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
                 : false;
 
             var isConstantExpressionContext = !isPreProcessorDirectiveContext
@@ -256,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isConstantExpressionContext: isConstantExpressionContext,
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
-                isDeclarationExpressionContext: syntaxTree.IsDeclarationExpressionContext(position, leftToken),
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,

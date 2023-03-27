@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class EndConstructCommandHandlerTests
         Private ReadOnly _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)(MockBehavior.Strict)
-        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
         Private ReadOnly _textViewMock As New Mock(Of ITextView)(MockBehavior.Strict)
         Private ReadOnly _textBufferMock As New Mock(Of ITextBuffer)(MockBehavior.Strict)
 
 #If False Then
+        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
+
         ' TODO(jasonmal): Figure out how to enable these tests.
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ServiceNotCompletingShouldCallNextHandler()

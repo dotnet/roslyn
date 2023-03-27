@@ -65,6 +65,7 @@
          Features="$(Features)"
          FileAlignment="$(FileAlignment)"
          GenerateDocumentation="$(GenerateDocumentation)"
+         GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          HighEntropyVA="$(HighEntropyVA)"
          Imports="@(Import)"
          Instrument="$(Instrument)"

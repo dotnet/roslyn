@@ -4596,12 +4596,9 @@ End Class
 
                 Dim options = New VisualBasicSyntaxFormattingOptions() With
                 {
-                    .Common = New SyntaxFormattingOptions.CommonOptions() With
+                    .LineFormatting = New LineFormattingOptions() With
                     {
-                        .LineFormatting = New LineFormattingOptions() With
-                        {
-                            .NewLine = vbLf
-                        }
+                        .NewLine = vbLf
                     }
                 }
 

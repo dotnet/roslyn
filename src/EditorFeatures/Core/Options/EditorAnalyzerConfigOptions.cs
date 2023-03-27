@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly IDictionary<string, object> _configOptions;
 
-        public EditorAnalyzerConfigOptions(IEditorOptions editorOptions)
+        internal EditorAnalyzerConfigOptions(IEditorOptions editorOptions)
         {
             _configOptions = (editorOptions.GetOptionValue(DefaultOptions.RawCodingConventionsSnapshotOptionName) as IDictionary<string, object>) ??
                 SpecializedCollections.EmptyDictionary<string, object>();
@@ -60,5 +61,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
         }
+    }
+
+    internal static partial class EditorOptionsExtensions
+    {
+        public static StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions(this IEditorOptions editorOptions)
+            => StructuredAnalyzerConfigOptions.Create(new EditorAnalyzerConfigOptions(editorOptions));
     }
 }

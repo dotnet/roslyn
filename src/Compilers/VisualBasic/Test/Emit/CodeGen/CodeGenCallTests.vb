@@ -2,16 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Reflection
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -7733,6 +7725,500 @@ Position set for item '-4'
   IL_0170:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
+        Public Sub InvokeAddedStructToStringOverrideOnReadOnlyField()
+            Dim libOrig_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Sub Report()
+        Throw New System.Exception()
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libOrig = CreateCompilation(libOrig_vb, assemblyName:="lib")
+            libOrig.AssertTheseDiagnostics()
+
+            Dim libChanged_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Overrides Function ToString() As String
+        Dim result = i.ToString()
+        i = i + 1
+        Return result
+    End Function
+
+    Public Sub Report()
+        System.Console.Write("RAN ")
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libChanged = CreateCompilation(libChanged_vb, assemblyName:="lib")
+            libChanged.AssertTheseDiagnostics()
+
+            Dim libUser_vb =
+<compilation>
+    <file>
+Public Class C
+    Public ReadOnly field As S
+
+    Public Sub New(s As S)
+        field = s
+    End Sub
+
+    Public Sub M()
+        System.Console.Write(field.ToString())
+        System.Console.Write(field.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim libUser = CreateCompilation(libUser_vb, references:={libOrig.EmitToImageReference()})
+            libUser.AssertTheseDiagnostics()
+
+            CompileAndVerify(libUser).VerifyIL("C.M", <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.field As S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_0014:  call       "Sub System.Console.Write(String)"
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      "C.field As S"
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  constrained. "S"
+  IL_0028:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_002d:  call       "Sub System.Console.Write(String)"
+  IL_0032:  ret
+}
+]]>)
+
+            Dim src =
+<compilation>
+    <file>
+Class D
+    Public Shared Sub Main()
+        Dim s = New S()
+        s.Report()
+        Dim c = New C(s)
+        c.M()
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilation(src, references:={libChanged.EmitToImageReference(), libUser.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="RAN 00")
+        End Sub
+
+        <Fact>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
+        Public Sub InvokeAddedStructToStringOverrideOnField()
+            Dim libOrig_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Sub Report()
+        Throw New System.Exception()
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libOrig = CreateCompilation(libOrig_vb, assemblyName:="lib")
+            libOrig.AssertTheseDiagnostics()
+
+            Dim libChanged_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Overrides Function ToString() As String
+        Dim result = i.ToString()
+        i = i + 1
+        Return result
+    End Function
+
+    Public Sub Report()
+        System.Console.Write("RAN ")
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libChanged = CreateCompilation(libChanged_vb, assemblyName:="lib")
+            libChanged.AssertTheseDiagnostics()
+
+            Dim libUser_vb =
+<compilation>
+    <file>
+Public Class C
+    Public field As S
+
+    Public Sub New(s As S)
+        field = s
+    End Sub
+
+    Public Sub M()
+        System.Console.Write(field.ToString())
+        System.Console.Write(field.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim libUser = CreateCompilation(libUser_vb, references:={libOrig.EmitToImageReference()})
+            libUser.AssertTheseDiagnostics()
+
+            CompileAndVerify(libUser).VerifyIL("C.M", <![CDATA[
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "C.field As S"
+  IL_0006:  constrained. "S"
+  IL_000c:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_0011:  call       "Sub System.Console.Write(String)"
+  IL_0016:  ldarg.0
+  IL_0017:  ldflda     "C.field As S"
+  IL_001c:  constrained. "S"
+  IL_0022:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_0027:  call       "Sub System.Console.Write(String)"
+  IL_002c:  ret
+}
+]]>)
+
+            Dim src =
+<compilation>
+    <file>
+Class D
+    Public Shared Sub Main()
+        Dim s = New S()
+        s.Report()
+        Dim c = New C(s)
+        c.M()
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilation(src, references:={libChanged.EmitToImageReference(), libUser.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="RAN 01")
+        End Sub
+
+        <Fact>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
+        Public Sub InvokeStructToAddedStringOverrideOnRefParameter()
+            Dim libOrig_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Sub Report()
+        Throw New System.Exception()
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libOrig = CreateCompilation(libOrig_vb, assemblyName:="lib")
+            libOrig.AssertTheseDiagnostics()
+
+            Dim libChanged_vb =
+<compilation>
+    <file>
+Public Structure S
+    Public i As Integer
+
+    Public Overrides Function ToString() As String
+        Dim result = i.ToString()
+        i = i + 1
+        Return result
+    End Function
+
+    Public Sub Report()
+        System.Console.Write("RAN ")
+    End Sub
+End Structure
+    </file>
+</compilation>
+            Dim libChanged = CreateCompilation(libChanged_vb, assemblyName:="lib")
+            libChanged.AssertTheseDiagnostics()
+
+            Dim libUser_vb =
+<compilation>
+    <file>
+Public Class C
+    Public Sub M(ByRef s As S)
+        System.Console.Write(s.ToString())
+        System.Console.Write(s.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim libUser = CreateCompilation(libUser_vb, references:={libOrig.EmitToImageReference()})
+            libUser.AssertTheseDiagnostics()
+
+            CompileAndVerify(libUser).VerifyIL("C.M", <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  constrained. "S"
+  IL_0007:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_000c:  call       "Sub System.Console.Write(String)"
+  IL_0011:  ldarg.1
+  IL_0012:  constrained. "S"
+  IL_0018:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_001d:  call       "Sub System.Console.Write(String)"
+  IL_0022:  ret
+}
+]]>)
+
+            Dim src =
+<compilation>
+    <file>
+Class D
+    Public Shared Sub Main()
+        Dim s = New S()
+        s.Report()
+        Dim c = New C()
+        c.M(s)
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilation(src, references:={libChanged.EmitToImageReference(), libUser.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="RAN 01")
+        End Sub
+
+        <Fact>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
+        Public Sub ForEachOnReadOnlyField()
+            Dim src =
+<compilation>
+    <file>
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class C
+    Public Shared Sub Main()
+        Dim d = New D()
+        d.M()
+        d.M()
+    End Sub
+End Class
+
+Class D
+    ReadOnly field As S
+
+    Public Sub M()
+        For Each x In field
+        Next
+
+        System.Console.Write(field.ToString())
+    End Sub
+End Class
+
+Structure S
+    Implements IEnumerable(Of Integer)
+
+    Public a As Integer
+
+    Public Overrides Function ToString() As String
+        Return a.ToString()
+    End Function
+
+    Private Iterator Function GetEnumerator() As IEnumerator(Of Integer) _
+        Implements IEnumerable(Of Integer).GetEnumerator
+
+        a = a + 1
+        Yield 1
+    End Function
+
+    Private Function GetEnumerator2() As IEnumerator _
+        Implements IEnumerable.GetEnumerator
+
+        Return GetEnumerator()
+    End Function
+End Structure
+    </file>
+</compilation>
+            Dim comp = CreateCompilation(src, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="00")
+
+            CompileAndVerify(comp).VerifyIL("D.M", <![CDATA[
+{
+  // Code size       83 (0x53)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator(Of Integer) V_0,
+                Integer V_1, //x
+                Boolean V_2,
+                S V_3)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      "D.field As S"
+    IL_0007:  box        "S"
+    IL_000c:  castclass  "System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0011:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0016:  stloc.0
+    IL_0017:  br.s       IL_0021
+    IL_0019:  ldloc.0
+    IL_001a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_001f:  stloc.1
+    IL_0020:  nop
+    IL_0021:  ldloc.0
+    IL_0022:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0027:  stloc.2
+    IL_0028:  ldloc.2
+    IL_0029:  brtrue.s   IL_0019
+    IL_002b:  leave.s    IL_0038
+  }
+  finally
+  {
+    IL_002d:  ldloc.0
+    IL_002e:  brfalse.s  IL_0037
+    IL_0030:  ldloc.0
+    IL_0031:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0036:  nop
+    IL_0037:  endfinally
+  }
+  IL_0038:  ldarg.0
+  IL_0039:  ldfld      "D.field As S"
+  IL_003e:  stloc.3
+  IL_003f:  ldloca.s   V_3
+  IL_0041:  constrained. "S"
+  IL_0047:  callvirt   "Function Object.ToString() As String"
+  IL_004c:  call       "Sub System.Console.Write(String)"
+  IL_0051:  nop
+  IL_0052:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
+        Public Sub ForEachOnField()
+            Dim src =
+<compilation>
+    <file>
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class C
+    Public Shared Sub Main()
+        Dim d = New D()
+        d.M()
+        d.M()
+    End Sub
+End Class
+
+Class D
+    Dim field As S
+
+    Public Sub M()
+        For Each x In field
+        Next
+
+        System.Console.Write(field.ToString())
+    End Sub
+End Class
+
+Structure S
+    Implements IEnumerable(Of Integer)
+
+    Public a As Integer
+
+    Public Overrides Function ToString() As String
+        Return a.ToString()
+    End Function
+
+    Private Iterator Function GetEnumerator() As IEnumerator(Of Integer) _
+        Implements IEnumerable(Of Integer).GetEnumerator
+
+        a = a + 1
+        Yield 1
+    End Function
+
+    Private Function GetEnumerator2() As IEnumerator _
+        Implements IEnumerable.GetEnumerator
+
+        Return GetEnumerator()
+    End Function
+End Structure
+    </file>
+</compilation>
+            Dim comp = CreateCompilation(src, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="00")
+
+            CompileAndVerify(comp).VerifyIL("D.M", <![CDATA[
+{
+  // Code size       80 (0x50)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator(Of Integer) V_0,
+                Integer V_1, //x
+                Boolean V_2)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      "D.field As S"
+    IL_0007:  box        "S"
+    IL_000c:  castclass  "System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0011:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0016:  stloc.0
+    IL_0017:  br.s       IL_0021
+    IL_0019:  ldloc.0
+    IL_001a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_001f:  stloc.1
+    IL_0020:  nop
+    IL_0021:  ldloc.0
+    IL_0022:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0027:  stloc.2
+    IL_0028:  ldloc.2
+    IL_0029:  brtrue.s   IL_0019
+    IL_002b:  leave.s    IL_0038
+  }
+  finally
+  {
+    IL_002d:  ldloc.0
+    IL_002e:  brfalse.s  IL_0037
+    IL_0030:  ldloc.0
+    IL_0031:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0036:  nop
+    IL_0037:  endfinally
+  }
+  IL_0038:  ldarg.0
+  IL_0039:  ldflda     "D.field As S"
+  IL_003e:  constrained. "S"
+  IL_0044:  callvirt   "Function Object.ToString() As String"
+  IL_0049:  call       "Sub System.Console.Write(String)"
+  IL_004e:  nop
+  IL_004f:  ret
+}
+]]>)
+
         End Sub
 
     End Class

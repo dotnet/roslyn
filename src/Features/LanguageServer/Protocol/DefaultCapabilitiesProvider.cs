@@ -68,7 +68,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
             capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
-            capabilities.ReferencesProvider = true;
+            capabilities.ReferencesProvider = new ReferenceOptions
+            {
+                WorkDoneProgress = true,
+            };
+
             capabilities.FoldingRangeProvider = true;
             capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
@@ -92,6 +96,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
+            };
+
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = true,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
             };
 
             if (!supportsVsExtensions)

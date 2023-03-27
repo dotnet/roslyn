@@ -552,10 +552,10 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), renameOverloads)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), renameInStrings)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), renameInComments)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameFile), renameFile)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -694,7 +694,7 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameUIOptions.CollapseUI), False)
+                globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, False)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)

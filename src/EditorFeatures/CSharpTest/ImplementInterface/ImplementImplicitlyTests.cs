@@ -225,5 +225,25 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestPreserveReadOnly()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { void Goo1(); }
+
+class C : IGoo
+{
+    readonly void IGoo.[||]Goo1() { }
+}",
+@"
+interface IGoo { void Goo1(); }
+
+class C : IGoo
+{
+    public readonly void Goo1() { }
+}");
+        }
     }
 }

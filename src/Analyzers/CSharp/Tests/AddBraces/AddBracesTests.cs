@@ -34,16 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForIfWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|if|] (true)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if|] (true)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -54,20 +56,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForElseWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            return;
-        }
-        [|else|]
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                        [|else|]
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -78,16 +82,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForElseWithChildIf(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        if (true)
-            return;
-        [|else|] if (false)
-            return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                            return;
+                        [|else|] if (false)
+                            return;
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -98,16 +104,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForForWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|for|] (var i = 0; i < 5; i++)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|for|] (var i = 0; i < 5; i++)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -118,16 +126,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForForEachWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|foreach|] (var c in ""test"")
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|foreach|] (var c in "test")
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -138,16 +148,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|while|] (true)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|while|] (true)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -158,17 +170,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForDoWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|do|]
-        {
-            return;
-        }
-        while (true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|do|]
+                        {
+                            return;
+                        }
+                        while (true);
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -179,24 +193,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForUsingWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|using|] (var f = new Fizz())
-        {
-            return;
-        }
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|using|] (var f = new Fizz())
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -207,31 +223,33 @@ class Fizz : IDisposable
         public async Task DoNotFireForUsingWithChildUsing(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        [|using|] (var f = new Fizz())
-        using (var b = new Buzz())
-            return;
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|using|] (var f = new Fizz())
+                        using (var b = new Buzz())
+                            return;
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -242,17 +260,19 @@ class Buzz : IDisposable
         public async Task DoNotFireForLockWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        var str = ""test"";
-        [|lock|] (str)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str = "test";
+                        [|lock|] (str)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -263,17 +283,19 @@ class Buzz : IDisposable
         public async Task DoNotFireForLockWithChildLock(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    static void Main()
-    {
-        var str1 = ""test"";
-        var str2 = ""test"";
-        [|lock|] (str1)
-            lock (str2)
-                return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str1 = "test";
+                        var str2 = "test";
+                        [|lock|] (str1)
+                            lock (str2)
+                                return;
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -284,16 +306,18 @@ class Buzz : IDisposable
         public async Task DoNotFireForFixedWithChildFixed(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    unsafe static void Main()
-    {
-        [|fixed|] (int* p = null)
-        fixed (int* q = null)
-        {
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        [|fixed|] (int* p = null)
+                        fixed (int* q = null)
+                        {
+                        }
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -304,26 +328,30 @@ class Buzz : IDisposable
         public async Task FireForFixedWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-@"class Program
-{
-    unsafe static void Main()
-    {
-        fixed (int* p = null)
-        [|fixed|] (int* q = null)
-            return;
-    }
-}",
-@"class Program
-{
-    unsafe static void Main()
-    {
-        fixed (int* p = null)
-        fixed (int* q = null)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        fixed (int* p = null)
+                        [|fixed|] (int* q = null)
+                            return;
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        fixed (int* p = null)
+                        fixed (int* q = null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -335,26 +363,28 @@ class Buzz : IDisposable
         public async Task FireForIfWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-class Program
-{
-    static void Main()
-    {
-        [|if|] (true) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if|] (true) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -366,14 +396,15 @@ class Program
         public async Task FireForIfWithoutBracesTopLevel(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-@"
-[|if|] (true) return;
-",
-@"
-if (true)
-{
-    return;
-}",
+                """
+                [|if|] (true) return;
+                """,
+                """
+                if (true)
+                {
+                    return;
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -385,28 +416,30 @@ if (true)
         public async Task FireForElseWithoutBracesButHasContextBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true) { return; }
-        [|else|] return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) { return; }
+                        [|else|] return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true) { return; }
-        else
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) { return; }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -418,28 +451,30 @@ class Program
         public async Task FireForElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true) return;
-        [|else|] return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) return;
+                        [|else|] return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true) return;
-        else
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) return;
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -451,27 +486,29 @@ class Program
         public async Task FireForStandaloneElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|else|]
-            return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|else|]
+                            return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        else
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -483,28 +520,30 @@ class Program
         public async Task FireForIfNestedInElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true) return;
-        else [|if|] (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) return;
+                        else [|if|] (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true) return;
-        else if (false)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true) return;
+                        else if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -516,36 +555,38 @@ class Program
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext1(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-            if (true)   // This multiline statement does not directly impact the other nested statement
-                return;
-            else
-                return;
-        else [|if|] (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                            if (true)   // This multiline statement does not directly impact the other nested statement
+                                return;
+                            else
+                                return;
+                        else [|if|] (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-            if (true)   // This multiline statement does not directly impact the other nested statement
-                return;
-            else
-                return;
-        else if (false)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                            if (true)   // This multiline statement does not directly impact the other nested statement
+                                return;
+                            else
+                                return;
+                        else if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -557,40 +598,42 @@ class Program
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext2(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                return;
-            else
-                return;
-        }
-        else [|if|] (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                return;
+                            else
+                                return;
+                        }
+                        else [|if|] (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                return;
-            else
-                return;
-        }
-        else if (false)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                return;
+                            else
+                                return;
+                        }
+                        else if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -602,39 +645,41 @@ class Program
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext3(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            [|if|] (true)
-                return;
-            else
-                return;
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            [|if|] (true)
+                                return;
+                            else
+                                return;
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-            {
-                return;
-            }
-            else
-                return;
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                            {
+                                return;
+                            }
+                            else
+                                return;
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -646,39 +691,41 @@ class Program
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext4(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                return;
-            [|else|]
-                return;
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                return;
+                            [|else|]
+                                return;
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                return;
-            else
-            {
-                return;
-            }
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                return;
+                            else
+                            {
+                                return;
+                            }
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -698,39 +745,41 @@ class Program
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext5(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                if (true) { return; } else { return; }
-            [|else|]
-                return;
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                if (true) { return; } else { return; }
+                            [|else|]
+                                return;
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
-                if (true) { return; } else { return; }
-            else
-            {
-                return;
-            }
-        }
-        else if (false) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                                if (true) { return; } else { return; }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                        else if (false) return;
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -742,26 +791,28 @@ class Program
         public async Task FireForForWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|for|] (var i = 0; i < 5; i++) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|for|] (var i = 0; i < 5; i++) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        for (var i = 0; i < 5; i++)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        for (var i = 0; i < 5; i++)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -773,30 +824,32 @@ class Program
         public async Task FireForMultilineForWithoutBraces1(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|for|] (var i = 0;
-            i < 5;
-            i++) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|for|] (var i = 0;
+                            i < 5;
+                            i++) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        for (var i = 0;
-            i < 5;
-            i++)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        for (var i = 0;
+                            i < 5;
+                            i++)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -808,28 +861,30 @@ class Program
         public async Task FireForMultilineForWithoutBraces2(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|for|] (var i = 0; i < 5; i++) if (true)
-            return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|for|] (var i = 0; i < 5; i++) if (true)
+                            return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        for (var i = 0; i < 5; i++)
-        {
-            if (true)
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        for (var i = 0; i < 5; i++)
+                        {
+                            if (true)
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -841,29 +896,31 @@ class Program
         public async Task FireForMultilineForWithoutBraces3(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|for|] (var i = 0; i < 5; i++)
-            if (true)
-                return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|for|] (var i = 0; i < 5; i++)
+                            if (true)
+                                return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        for (var i = 0; i < 5; i++)
-        {
-            if (true)
-                return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        for (var i = 0; i < 5; i++)
+                        {
+                            if (true)
+                                return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -875,26 +932,28 @@ class Program
         public async Task FireForForEachWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|foreach|] (var c in ""test"") return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|foreach|] (var c in "test") return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        foreach (var c in ""test"")
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var c in "test")
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -906,26 +965,28 @@ class Program
         public async Task FireForWhileWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|while|] (true) return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|while|] (true) return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        while (true)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        while (true)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -937,27 +998,29 @@ class Program
         public async Task FireForDoWhileWithoutBraces1(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|do|] return; while (true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|do|] return; while (true);
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        do
-        {
-            return;
-        }
-        while (true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        do
+                        {
+                            return;
+                        }
+                        while (true);
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -969,29 +1032,31 @@ class Program
         public async Task FireForDoWhileWithoutBraces2(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|do|]
-            return;
-        while (true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|do|]
+                            return;
+                        while (true);
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        do
-        {
-            return;
-        }
-        while (true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        do
+                        {
+                            return;
+                        }
+                        while (true);
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1003,29 +1068,31 @@ class Program
         public async Task FireForMultilineDoWhileWithoutBraces1(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|do|] return; while (true ||
-            true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|do|] return; while (true ||
+                            true);
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        do
-        {
-            return;
-        }
-        while (true ||
-            true);
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        do
+                        {
+                            return;
+                        }
+                        while (true ||
+                            true);
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1037,43 +1104,45 @@ class Program
         public async Task FireForUsingWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        [|using|] (var f = new Fizz())
-            return;
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|using|] (var f = new Fizz())
+                            return;
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        using (var f = new Fizz())
-        {
-            return;
-        }
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f = new Fizz())
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1085,61 +1154,63 @@ class Fizz : IDisposable
         public async Task FireForUsingWithoutBracesNestedInUsing(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        using (var f = new Fizz())
-        [|using|] (var b = new Buzz())
-            return;
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f = new Fizz())
+                        [|using|] (var b = new Buzz())
+                            return;
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        using (var f = new Fizz())
-        using (var b = new Buzz())
-        {
-            return;
-        }
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f = new Fizz())
+                        using (var b = new Buzz())
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1151,63 +1222,65 @@ class Buzz : IDisposable
         public async Task FireForMultilineUsingWithoutBracesNestedInUsing1(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
-            = new Fizz())
-        [|using|] (var b = new Buzz())
-            return;
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
+                            = new Fizz())
+                        [|using|] (var b = new Buzz())
+                            return;
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
-            = new Fizz())
-        using (var b = new Buzz())
-        {
-            return;
-        }
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
+                            = new Fizz())
+                        using (var b = new Buzz())
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1219,63 +1292,65 @@ class Buzz : IDisposable
         public async Task FireForMultilineUsingWithoutBracesNestedInUsing2(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        using (var f = new Fizz())
-        [|using|] (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
-            = new Buzz())
-            return;
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f = new Fizz())
+                        [|using|] (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
+                            = new Buzz())
+                            return;
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        using (var f = new Fizz())
-        using (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
-            = new Buzz())
-        {
-            return;
-        }
-    }
-}
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (var f = new Fizz())
+                        using (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
+                            = new Buzz())
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class Fizz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}
+                class Fizz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-class Buzz : IDisposable
-{
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                class Buzz : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1287,29 +1362,31 @@ class Buzz : IDisposable
         public async Task FireForLockWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        var str = ""test"";
-        [|lock|] (str)
-            return;
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str = "test";
+                        [|lock|] (str)
+                            return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        var str = ""test"";
-        lock (str)
-        {
-            return;
-        }
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str = "test";
+                        lock (str)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1321,35 +1398,37 @@ class Program
         public async Task FireForLockWithoutBracesNestedInLock(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-            @"
-class Program
-{
-    static void Main()
-    {
-        var str1 = ""test"";
-        var str2 = ""test"";
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str1 = "test";
+                        var str2 = "test";
 
-        lock (str1)
-        [|lock|] (str2) // VS thinks this should be indented one more level
-            return;
-    }
-}",
+                        lock (str1)
+                        [|lock|] (str2) // VS thinks this should be indented one more level
+                            return;
+                    }
+                }
+                """,
 
-   @"
-class Program
-{
-    static void Main()
-    {
-        var str1 = ""test"";
-        var str2 = ""test"";
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var str1 = "test";
+                        var str2 = "test";
 
-        lock (str1)
-        lock (str2) // VS thinks this should be indented one more level
-            {
-                return;
-            }
-    }
-}",
+                        lock (str1)
+                        lock (str2) // VS thinks this should be indented one more level
+                            {
+                                return;
+                            }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1362,18 +1441,19 @@ class Program
         public async Task DoNotFireForIfWhenIntercedingDirectiveBefore(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        [|if (true)|]
-#endif
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        [|if (true)|]
+                #endif
+                            return;
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -1385,18 +1465,19 @@ class Program
         public async Task DoNotFireForIfWithIntercedingDirectiveAfter(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)|]
-#if test
-            return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)|]
+                #if test
+                            return;
+                #endif
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -1408,20 +1489,21 @@ class Program
         public async Task DoNotFireForIfElseWithIntercedingDirectiveInBoth(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)
-#if test
-            return;
-        else|]
-#endif
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)
+                #if test
+                            return;
+                        else|]
+                #endif
+                            return;
+                    }
+                }
+                """,
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
@@ -1433,37 +1515,39 @@ class Program
         public async Task OnlyFireForIfWithIntercedingDirectiveInElseAroundIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        [|if (true)
-            return;
-        else|]
-#endif
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        [|if (true)
+                            return;
+                        else|]
+                #endif
+                            return;
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        if (true)
-        {
-            return;
-        }
-        else
-#endif
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        if (true)
+                        {
+                            return;
+                        }
+                        else
+                #endif
+                            return;
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1476,37 +1560,39 @@ class Program
         public async Task OnlyFireForElseWithIntercedingDirectiveInIfAroundElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)
-#if test
-            return;
-        else|]
-            return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)
+                #if test
+                            return;
+                        else|]
+                            return;
+                #endif
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        if (true)
-#if test
-            return;
-        else
-        {
-            return;
-        }
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                #if test
+                            return;
+                        else
+                        {
+                            return;
+                        }
+                #endif
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1519,37 +1605,39 @@ class Program
         public async Task OnlyFireForElseWithIntercedingDirectiveInIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        [|if (true)
-#endif
-            return;
-        else|]
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        [|if (true)
+                #endif
+                            return;
+                        else|]
+                            return;
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        if (true)
-#endif
-            return;
-        else
-        {
-            return;
-        }
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        if (true)
+                #endif
+                            return;
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1562,37 +1650,39 @@ class Program
         public async Task OnlyFireForIfWithIntercedingDirectiveInElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)
-            return;
-        else|]
-#if test
-            return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)
+                            return;
+                        else|]
+                #if test
+                            return;
+                #endif
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            return;
-        }
-        else
-#if test
-            return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                        else
+                #if test
+                            return;
+                #endif
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1605,41 +1695,43 @@ class Program
         public async Task FireForIfElseWithDirectiveAroundIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        [|if (true)
-            return;
-#endif
-        else|]
-        {
-            return;
-        }
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        [|if (true)
+                            return;
+                #endif
+                        else|]
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-        if (true)
-        {
-            return;
-        }
-#endif
-        else
-        {
-            return;
-        }
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                        if (true)
+                        {
+                            return;
+                        }
+                #endif
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1652,41 +1744,43 @@ class Program
         public async Task FireForIfElseWithDirectiveAroundElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)
-        {
-            return;
-        }
-#if test
-        else|]
-            return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)
+                        {
+                            return;
+                        }
+                #if test
+                        else|]
+                            return;
+                #endif
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            return;
-        }
-#if test
-        else
-        {
-            return;
-        }
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                #if test
+                        else
+                        {
+                            return;
+                        }
+                #endif
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1699,33 +1793,35 @@ class Program
         public async Task FireForIfWithoutIntercedingDirective(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-#endif
-        [|if (true)|]
-            return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                #endif
+                        [|if (true)|]
+                            return;
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-#if test
-#endif
-        if (true)
-        {
-            return;
-        }
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                #if test
+                #endif
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1738,33 +1834,35 @@ class Program
         public async Task FireForIfWithDirectiveAfterEmbeddedStatement(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|if (true)|]
-            return;
-#if test
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|if (true)|]
+                            return;
+                #if test
+                #endif
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        if (true)
-        {
-            return;
-        }
-#if test
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                #if test
+                #endif
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1777,35 +1875,37 @@ class Program
         public async Task FireForInnerNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|while (true)
-#if test
-            if (true)|]
-                return;
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|while (true)
+                #if test
+                            if (true)|]
+                                return;
+                #endif
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        while (true)
-#if test
-            if (true)
-            {
-                return;
-            }
-#endif
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        while (true)
+                #if test
+                            if (true)
+                            {
+                                return;
+                            }
+                #endif
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
@@ -1818,35 +1918,37 @@ class Program
         public async Task FireForOuterNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        [|while (true)
-#if test
-            if (true)|]
-#endif
-                return;
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        [|while (true)
+                #if test
+                            if (true)|]
+                #endif
+                                return;
+                    }
+                }
+                """,
 
-   @"
-#define test
-class Program
-{
-    static void Main()
-    {
-        while (true)
-        {
-#if test
-            if (true)
-#endif
-                return;
-        }
-    }
-}",
+                """
+                #define test
+                class Program
+                {
+                    static void Main()
+                    {
+                        while (true)
+                        {
+                #if test
+                            if (true)
+                #endif
+                                return;
+                        }
+                    }
+                }
+                """,
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }

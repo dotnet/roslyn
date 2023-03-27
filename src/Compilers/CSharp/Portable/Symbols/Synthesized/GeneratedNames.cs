@@ -319,6 +319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
+        internal static string MakeStateMachineStateIdFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.StateMachineStateIdField == 'I');
+            return "<>I";
+        }
+
         internal static string ThisProxyFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.ThisProxyField == '4');

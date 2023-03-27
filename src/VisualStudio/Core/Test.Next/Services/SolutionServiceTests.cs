@@ -469,8 +469,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ? FormattingOptions2.NewLine.DefaultValue
                 : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
             solution = solution.WithOptions(solution.Options
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, newOptionValue)
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, newOptionValue));
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, newOptionValue)
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);

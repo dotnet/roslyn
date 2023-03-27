@@ -237,16 +237,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsOrdinaryMethod([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
 
-        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            if (symbol is not IMethodSymbol method)
-            {
-                return false;
-            }
-
-            return method.MethodKind is MethodKind.Ordinary
-                or MethodKind.LocalFunction;
-        }
+        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction };
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
@@ -359,11 +351,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters[^1].IsParams;
-        }
+        public static bool IsParams([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol.GetParameters() is [.., { IsParams: true }];
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
             => symbol switch
@@ -641,10 +630,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // void OnCompleted(Action) 
             // Actions are delegates, so we'll just check for delegates.
-            if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters.Length == 1 && x.Parameters.First().Type.TypeKind == TypeKind.Delegate))
-            {
+            if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters is [{ Type.TypeKind: TypeKind.Delegate }]))
                 return false;
-            }
 
             // void GetResult() || T GetResult()
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());

@@ -952,12 +952,48 @@ GetIndentionColumn(30),
         }
 
         [Fact]
+        public async Task TestClass_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"class R([||]int I, string S);",
+@"class R(int I,
+        string S);");
+        }
+
+        [Fact]
+        public async Task TestInterface_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"interface R([||]int I, string S);",
+@"interface R(int I,
+            string S);");
+        }
+
+        [Fact]
         public async Task TestRecord_Braces()
         {
             await TestInRegularAndScript1Async(
 "record R([||]int I, string S) { }",
 @"record R(int I,
          string S) { }");
+        }
+
+        [Fact]
+        public async Task TestClass_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"class R([||]int I, string S) { }",
+@"class R(int I,
+        string S) { }");
+        }
+
+        [Fact]
+        public async Task TestInterface_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"interface R([||]int I, string S) { }",
+@"interface R(int I,
+            string S) { }");
         }
 
         [Fact]
@@ -970,12 +1006,30 @@ GetIndentionColumn(30),
         }
 
         [Fact]
+        public async Task TestStruct_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"struct R([||]int I, string S);",
+@"struct R(int I,
+         string S);", new TestParameters(TestOptions.RegularPreview));
+        }
+
+        [Fact]
         public async Task TestRecordStruct_Braces()
         {
             await TestInRegularAndScript1Async(
 "record struct R([||]int I, string S) { }",
 @"record struct R(int I,
                 string S) { }", new TestParameters(TestOptions.RegularPreview));
+        }
+
+        [Fact]
+        public async Task TestStruct_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"struct R([||]int I, string S) { }",
+@"struct R(int I,
+         string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
 
         [Fact, WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]

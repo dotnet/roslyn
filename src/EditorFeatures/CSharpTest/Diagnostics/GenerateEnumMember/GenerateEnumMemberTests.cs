@@ -1780,5 +1780,83 @@ enum Color : ulong
     Blue = 1UL << 1
 }");
         }
+
+        [Fact, WorkItem(5468, "https://github.com/dotnet/roslyn/issues/5468")]
+        public async Task TestWithColorColorConflict1()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum Color
+{
+    Blue,
+    Green
+}
+
+class Sample1
+{
+    Color Color => Color.[|Red|];
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+",
+@"enum Color
+{
+    Blue,
+    Green,
+    Red
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(5468, "https://github.com/dotnet/roslyn/issues/5468")]
+        public async Task TestWithColorColorConflict2()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum Color
+{
+    Blue,
+    Green
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.[|Red|]) { } 
+    }
+}
+",
+@"enum Color
+{
+    Blue,
+    Green,
+    Red
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+");
+        }
     }
 }

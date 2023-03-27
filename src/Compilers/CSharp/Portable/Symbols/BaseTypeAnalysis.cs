@@ -271,10 +271,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_Double:
                 case SpecialType.System_IntPtr:
                 case SpecialType.System_UIntPtr:
-                case SpecialType.System_TypedReference:
                 case SpecialType.System_ArgIterator:
                 case SpecialType.System_RuntimeArgumentHandle:
                     return (ThreeState.False, false);
+                case SpecialType.System_TypedReference:
+                    return (ThreeState.True, false);
                 case SpecialType.None:
                 default:
                     // CONSIDER: could provide cases for other common special types.

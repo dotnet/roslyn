@@ -59,6 +59,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
         [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
         [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
+        [InlineData("public class C(int X, $$int Y)", "public class C(int X, int Y)")]
+        [InlineData("public class C(int X, int$$ Y)", "public class C(int X, int Y)")]
+        [InlineData("public class C(int X, int Y$$)", "public class C(int X, int Y)")]
+        [InlineData("public struct C(int X, $$int Y)", "public struct C(int X, int Y)")]
+        [InlineData("public struct C(int X, int$$ Y)", "public struct C(int X, int Y)")]
+        [InlineData("public struct C(int X, int Y$$)", "public struct C(int X, int Y)")]
+        [InlineData("public interface C(int X, $$int Y)", "public interface C(int X, int Y)")]
+        [InlineData("public interface C(int X, int$$ Y)", "public interface C(int X, int Y)")]
+        [InlineData("public interface C(int X, int Y$$)", "public interface C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
@@ -4240,7 +4249,7 @@ public class ClassC
                 setOptionsOpt: workspace =>
                 {
                     var globalOptions = workspace.GetService<IGlobalOptionService>();
-                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
+                    globalOptions.SetGlobalOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, false);
                 });
         }
 

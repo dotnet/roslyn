@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             {
                 newSolution = document.Project.Solution;
             }
-            else if (operations.Length == 1 && operations[0] is ApplyChangesOperation applyChangesOperation)
+            else if (operations is [ApplyChangesOperation applyChangesOperation])
             {
                 newSolution = applyChangesOperation.ChangedSolution;
             }

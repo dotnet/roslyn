@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (expr)
             {
-                case { ConstantValue: { } }:
+                case { ConstantValueOpt: { } }:
                     return VisitExpression(expr);
                 case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
                     // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool boolValue = operatorKind == BinaryOperatorKind.Equal; // true/false
 
-            if (rightHasValue.ConstantValue == ConstantValue.False)
+            if (rightHasValue.ConstantValueOpt == ConstantValue.False)
             {
                 // The outer sequence degenerates when we known that `rightHasValue` is false
                 // Produce: !leftHasValue (or leftHasValue for inequality comparison)
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result: boolValue ? _factory.Not(leftHasValue) : leftHasValue);
             }
 
-            if (leftHasValue.ConstantValue == ConstantValue.False)
+            if (leftHasValue.ConstantValueOpt == ConstantValue.False)
             {
                 // The outer sequence degenerates when we known that `leftHasValue` is false
                 // Produce: !rightHasValue (or rightHasValue for inequality comparison)
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? MakeConversionNode(
                     oldNodeOpt: conv, syntax: conv.Syntax, rewrittenOperand: LowerConversions(conv.Operand),
                     conversion: conv.Conversion, @checked: conv.Checked, explicitCastInCode: conv.ExplicitCastInCode,
-                    constantValueOpt: conv.ConstantValue, rewrittenType: conv.Type)
+                    constantValueOpt: conv.ConstantValueOpt, rewrittenType: conv.Type)
                 : expr;
         }
     }

@@ -1352,6 +1352,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
+            BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
+
+            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensionMethods) != 0);
+
+            if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out ParameterSymbol parameter))
+            {
+                bool haveInstanceCandidates, haveStaticCandidates;
+                LookupResult tempLookupResult = null;
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                CheckWhatCandidatesWeHave(members, parameter.Type, plainName,
+                                          typeArguments.IsDefault ? 0 : typeArguments.Length,
+                                          ref tempLookupResult, ref useSiteInfo,
+                                          out haveInstanceCandidates, out haveStaticCandidates);
+                tempLookupResult?.Free();
+                diagnostics.Add(colorColorValueReceiver.Syntax, useSiteInfo);
+
+                if (haveInstanceCandidates)
+                {
+                    BindingDiagnosticBag discarded = null;
+                    if (haveStaticCandidates)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, colorColorValueReceiver.Syntax, parameter.Name, parameter.Type, parameter);
+                        discarded = BindingDiagnosticBag.GetInstance(diagnostics);
+                    }
+
+                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, discarded ?? diagnostics);
+                    discarded?.Free();
+
+                    if (haveStaticCandidates)
+                    {
+                        // Wrap into bad expression with HasErrors in an attempt to suppress cascading diagnostics
+                        receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Ambiguous, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                    }
+                }
+                else
+                {
+                    Debug.Assert(haveStaticCandidates);
+                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: true, diagnostics);
+                }
+            }
+
             switch (members[0].Kind)
             {
                 case SymbolKind.Method:
@@ -1376,6 +1418,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(members[0].Kind);
+            }
+        }
+
+        private bool IsPossiblyCapturingPrimaryConstructorParameterReference(BoundExpression colorColorValueReceiver, out ParameterSymbol parameterSymbol)
+        {
+            if (colorColorValueReceiver is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter } &&
+                IsInDeclaringTypeInstanceMember(primaryConstructor) &&
+                !InFieldInitializer &&
+                this.ContainingMember() != (object)primaryConstructor &&
+                !IsInsideNameof)
+            {
+                parameterSymbol = parameter;
+                return true;
+            }
+
+            parameterSymbol = null;
+            return false;
+        }
+
+        private void CheckWhatCandidatesWeHave(
+            ArrayBuilder<Symbol> members, TypeSymbol receiverType,
+            string plainName, int arity,
+            ref LookupResult lookupResult,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool haveInstanceCandidates, out bool haveStaticCandidates)
+        {
+            Debug.Assert(lookupResult?.IsClear != false);
+            haveInstanceCandidates = members.Any(m => !m.IsStatic);
+            haveStaticCandidates = members.Any(m => m.IsStatic);
+            Debug.Assert(haveStaticCandidates || haveInstanceCandidates);
+
+            if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
+            {
+                // See if there could be extension methods in scope
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    lookupResult ??= LookupResult.GetInstance();
+                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        var conversions = Conversions;
+
+                        foreach (var symbol in lookupResult.Symbols)
+                        {
+                            var method = (MethodSymbol)symbol;
+                            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
+                            if (conversion.Exists)
+                            {
+                                haveInstanceCandidates = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    lookupResult.Clear();
+
+                    if (haveInstanceCandidates)
+                    {
+                        break;
+                    }
+                }
             }
         }
 

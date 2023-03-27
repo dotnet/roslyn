@@ -2268,7 +2268,6 @@ using System.B;
         }
 
         [WpfFact, WorkItem(58157, "https://github.com/dotnet/roslyn/issues/58157")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatImplicitObjectCollection()
         {
             var code = @"class Program

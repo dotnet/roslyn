@@ -1509,5 +1509,61 @@ End Class
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestVisualBasicGoToDefOnUsing1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+using System
+
+class Program
+    sub Goo()
+        $$using disposableObject = new DisposableObject()
+        end using
+    end sub
+end class
+
+class DisposableObject
+    implements IDisposable
+
+    public sub [|Dispose|]() implements IDisposable.Dispose
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestVisualBasicGoToDefOnUsing2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+using System
+
+class Program
+    sub Goo()
+        $$using new DisposableObject()
+        end using
+    end sub
+end class
+
+class DisposableObject
+    implements IDisposable
+
+    public sub [|Dispose|]() implements IDisposable.Dispose
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

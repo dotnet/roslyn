@@ -911,6 +911,93 @@ record Y(int x)
         }
 
         [Fact]
+        public async Task TestRecord2()
+        {
+            await TestAsync(
+@"
+record X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestRecord3()
+        {
+            await TestAsync(
+@"
+record struct X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass1()
+        {
+            await TestAsync(
+@"
+class X(int [|x|]) : Y([|x|]++)
+{
+}
+
+class Y(int x)
+{
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass2()
+        {
+            await TestAsync(
+@"
+class X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass3()
+        {
+            await TestAsync(
+@"
+class X(int [|x|])
+{
+    int Y() => [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestStruct2()
+        {
+            await TestAsync(
+@"
+struct X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestStruct3()
+        {
+            await TestAsync(
+@"
+struct X(int [|x|])
+{
+    int Y() => [|x|]++;
+}
+");
+        }
+
+        [Fact]
         public async Task TestExceptionVariableReassignment()
         {
             // Note: this is a bug.  But the test currently tracks the current behavior.  Fixing this

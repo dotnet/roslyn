@@ -11431,17 +11431,734 @@ class C<T> {}
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario. Currently, we don't know how to
             // encode these in metadata, and may need to work with the runtime team to define a new format.
-            comp.VerifyDiagnostics(
-                // (4,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+            comp.VerifyEmitDiagnostics(
+                // (4,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(delegate*<void>))]
-                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>)").WithLocation(4, 7),
-                // (5,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "Attr(typeof(delegate*<void>))").WithLocation(4, 2),
+                // (5,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(delegate*<void>[]))]
-                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>[])").WithLocation(5, 7),
-                // (6,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "Attr(typeof(delegate*<void>[]))").WithLocation(5, 2),
+                // (6,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(C<delegate*<void>[]>))]
-                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "Attr(typeof(C<delegate*<void>[]>))").WithLocation(6, 2)
             );
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_GenericObjectDefault_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A<object>(default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Enum_ConstructorArgument_ParamsArray([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(params object[] o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(null, "abc", default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(null, "abc", default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, @"A(null, ""abc"", default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public object P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(P = default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.Empty(attr.ConstructorArguments);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_GenericTypedDefault_Enum_Implicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A<B<delegate*<void>[]>.E>(default)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.Empty(attr.ConstructorArguments);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public B<delegate*<void>[]>.E P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(P = default)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = default)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Explicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.Empty(attr.ConstructorArguments);
+                Assert.Empty(attr.NamedArguments);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Explicit_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public B<delegate*<void>[]>.E P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(P = default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+        }
+
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_GenericArgument()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(arg.Value is null);
+
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+
+                class B<T> { }
+
+                [A(default(B<delegate*<void>[]>))]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "True", symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                var arg = attr.ConstructorArguments.Single();
+                Assert.True(arg.IsNull);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Array()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(arg.Value is null);
+
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+
+                [A(default(delegate*<void>[]))]
+                unsafe class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "True",
+                symbolValidator: static module =>
+                {
+                    var c = module.GlobalNamespace.GetTypeMember("C");
+                    var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                    var arg = attr.ConstructorArguments.Single();
+                    Assert.True(arg.IsNull);
+                });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Standalone()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(object value) { }
+                }
+
+                [A(default(delegate*<void>))]
+                unsafe class C { }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,4): error CS1503: Argument 1: cannot convert from 'delegate*<void>' to 'object'
+                // [A(default(delegate*<void>))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(delegate*<void>)").WithArguments("1", "delegate*<void>", "object").WithLocation(6, 4));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(B<delegate*<void>[]>.C)").WithLocation(12, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectConstant_EnumArray_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new B<delegate*<void>[]>.E[]{})]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(new B<delegate*<void>[]>.E[]{})]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectArrayConstant_EnumArray_ConstructorArgument_01(
+            [CombinatorialValues("class", "struct")] string kind,
+            [CombinatorialValues("object", "object[]")] string parameterType)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A({{parameterType}} a) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new object[] { new B<delegate*<void>[]>.E() })]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(new object[] { new B<delegate*<void>[]>.E() })]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectArrayConstant_EnumArray_ConstructorArgument_02([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object[] a) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new B<delegate*<void>[]>.E[]{})]
+                class C { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,4): error CS1503: Argument 1: cannot convert from 'B<delegate*<void>[]>.E[]' to 'object[]'
+                // [A(new B<delegate*<void>[]>.E[]{})]
+                Diagnostic(ErrorCode.ERR_BadArgType, "new B<delegate*<void>[]>.E[]{}").WithArguments("1", "B<delegate*<void>[]>.E[]", "object[]").WithLocation(11, 4));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectParamsConstant_EnumArray_ConstructorArgument(
+            [CombinatorialValues("class", "struct")] string kind,
+            [CombinatorialValues("[]{}", "()")] string initializer)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(params object[] a) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new B<delegate*<void>[]>.E{{initializer}})]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(new B<delegate*<void>[]>.E())]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, $"A(new B<delegate*<void>[]>.E{initializer})").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<object>(B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(B<delegate*<void>[]>.C)").WithLocation(12, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_GenericTypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<delegate*<void>[]>.E>(B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectConstant_Enum_ConstructorNamedArguments([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object x, int y) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(y: 1, x: B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(y: 1, x: B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(y: 1, x: B<delegate*<void>[]>.C)").WithLocation(12, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectConstant_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public object P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(P = B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectConstant_EnumArray_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public object P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(P = new B<delegate*<void>[]>.E[]{})]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = new B<delegate*<void>[]>.E[]{})]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectArrayConstant_EnumArray_NamedArgument(
+            [CombinatorialValues("class", "struct")] string kind,
+            [CombinatorialValues("object", "object[]")] string parameterType)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public {{parameterType}} P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(P = new object[] { new B<delegate*<void>[]>.E() })]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = new object[] { new B<delegate*<void>[]>.E() })]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(B<delegate*<void>[]>.E o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedConstant_EnumArray_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(B<delegate*<void>[]>.E[] a) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new B<delegate*<void>[]>.E[]{})]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
+            [CombinatorialValues("class", "struct")] string kind,
+            [CombinatorialValues("[]{}", "()")] string initializer)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(params B<delegate*<void>[]>.E[] a) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(new B<delegate*<void>[]>.E{{initializer}})]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedConstant_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public B<delegate*<void>[]>.E P { get; set; }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(P = B<delegate*<void>[]>.C)]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(P = B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]

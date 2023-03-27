@@ -758,6 +758,60 @@ class P
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameter1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:$$y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameter1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:$$y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRecordParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -786,6 +840,60 @@ class P
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameter2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameter2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRecordParameterWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -796,6 +904,64 @@ using System;
 record Goo(int x, int {|Definition:$$y|})
 {
     public int y { get; } = [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:$$y|})
+{
+    public int y { get; } = [|y|];
+    public int z => y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:$$y|})
+{
+    public int y { get; } = [|y|];
+    public int z => y;
 }
 
 class P
@@ -842,6 +1008,64 @@ class P
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|$$y|];
+    public int z => y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|$$y|];
+    public int z => y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRecordParameterWithExplicitProperty3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -870,6 +1094,232 @@ class P
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|y|];
+    public int z => y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|y|];
+    public int z => y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:$$y|})
+{
+    public int Y => [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:$$y|})
+{
+    public int Y => [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:y|})
+{
+    public int Y => [|$$y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:y|})
+{
+    public int Y => [|$$y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithExplicitProperty6(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int {|Definition:y|})
+{
+    public int Y => [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithExplicitProperty6(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int {|Definition:y|})
+{
+    public int Y => [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRecordParameterWithNotPrimaryConstructor(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -878,6 +1328,62 @@ class P
 using System;
 
 record Goo(int x, int y)
+{
+    public Goo(int {|Definition:$$y|}) { }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo([|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestClassParameterWithNotPrimaryConstructor(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Goo(int x, int y)
+{
+    public Goo(int {|Definition:$$y|}) { }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo([|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStructParameterWithNotPrimaryConstructor(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct Goo(int x, int y)
 {
     public Goo(int {|Definition:$$y|}) { }
 }

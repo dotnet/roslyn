@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1039,7 +1037,9 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
         }
 
-        [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact]
+        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [WorkItem(30208, "https://github.com/dotnet/roslyn/issues/30208")]
         public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
         {
             var text = @"
@@ -1051,9 +1051,9 @@ class stranger
             var expected = @"
 class stranger
 {
-    private int stranger;
+    private int stranger1;
 
-    public int Stranger { get => stranger; set => stranger = value; }
+    public int Stranger { get => stranger1; set => stranger1 = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected);
@@ -1143,17 +1143,17 @@ struct goo
             var expected = @"
 struct goo
 {
-    private int goo;
+    private int goo1;
 
     public int Goo
     {
         get
         {
-            return goo;
+            return goo1;
         }
         set
         {
-            goo = value;
+            goo1 = value;
         }
     }
 }
@@ -1307,6 +1307,35 @@ class Program
     private string? name;
 
     string? Name { get => name; set => name = value; }
+}");
+        }
+
+        [Fact, WorkItem(29021, "https://github.com/dotnet/roslyn/issues/29021")]
+        public async Task ConstructorInitializerIndentation()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal class EvaluationCommandLineHandler
+{
+    public EvaluationCommandLineHandler(UnconfiguredProject project)
+        : base(project)
+    {
+    }
+
+    public Dictionary<string, IImmutableDictionary<string, string>> [||]Files
+    {
+        get;
+    }
+}",
+@"internal class EvaluationCommandLineHandler
+{
+    private readonly Dictionary<string, IImmutableDictionary<string, string>> files;
+
+    public EvaluationCommandLineHandler(UnconfiguredProject project)
+        : base(project)
+    {
+    }
+
+    public Dictionary<string, IImmutableDictionary<string, string>> Files => files;
 }");
         }
     }

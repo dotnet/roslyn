@@ -1095,5 +1095,245 @@ class C4_2 : I4<C4_2>
 </Workspace>
             Await TestStreamingFeature(input, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalAndOperator1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [|$$&|] p2)
+        {
+        }
+        else if (p1 [|&&|] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:&|}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalAndOperator2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [|&|] p2)
+        {
+        }
+        else if (p1 [|$$&&|] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:&|}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalAndOperator3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [|&|] p2)
+        {
+        }
+        else if (p1 [|&&|] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:$$&|}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalOrOperator1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [|$$||] p2)
+        {
+        }
+        else if (p1 [||||] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:||}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalOrOperator2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [|||] p2)
+        {
+        }
+        else if (p1 [|$$|||] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:||}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        Public Async Function TestCSharpBitwiseLogicalOrOperator3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+struct Program
+{
+    bool b;
+    static void Main(string[] args)
+    {
+        Program p1 = new Program();
+        Program p2 = new Program();
+        if (p1 [||||] p2)
+        {
+        }
+        else if (p1 [||||] p2)
+        {
+        }
+    }
+    public static Program operator {|Definition:$$||}(Program p1, Program p2)
+    {
+        return new Program() { b = p1.b & p2.b };
+    }
+    public static bool operator true(Program p)
+    {
+        return p.b;
+    }
+    public static bool operator false(Program p)
+    {
+        return !p.b;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

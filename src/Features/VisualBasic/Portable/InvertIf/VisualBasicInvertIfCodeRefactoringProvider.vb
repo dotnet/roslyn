@@ -105,7 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         End Function
 
         Protected NotOverridable Overrides Function AsEmbeddedStatement(statements As IEnumerable(Of StatementSyntax), original As SyntaxList(Of StatementSyntax)) As SyntaxList(Of StatementSyntax)
-            Return SyntaxFactory.List(statements)
+            Dim newStatements = statements.ToArray()
+            If newStatements.Length > 0 Then
+                newStatements(0) = newStatements(0).GetNodeWithoutLeadingBlankLines()
+            End If
+            Return SyntaxFactory.List(newStatements)
         End Function
 
         Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of StatementSyntax)) As SyntaxNode

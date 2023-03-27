@@ -142,7 +142,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var invokeTask = connection.TryInvokeAsync(
                 solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument: null, cancellationToken),
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                    callbackId, checksum, priorityDocument: null, useFrozenSnapshots: true, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;

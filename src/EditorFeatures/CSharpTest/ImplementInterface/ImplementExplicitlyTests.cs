@@ -712,5 +712,35 @@ class Repro : IRepro
     }
 }");
         }
+
+        [Fact]
+        public async Task TestPreserveReadOnly()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A();
+}
+
+class Repro : IRepro
+{
+    public readonly void [||]A()
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A();
+}
+
+class Repro : IRepro
+{
+    readonly void IRepro.A()
+    {
+    }
+}");
+        }
     }
 }

@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
@@ -30,28 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             var syntaxTree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
             if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree.Options.LanguageVersion()))
-            {
                 return;
-            }
 
             var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
             if (localFunction == null)
-            {
                 return;
-            }
 
             if (localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
                 return;
-            }
 
-            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
             {
                 context.RegisterRefactoring(CodeAction.Create(
                     CSharpAnalyzersResources.Make_local_function_static,
-                    c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.Options, c),
+                    cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.Options, cancellationToken),
                     nameof(CSharpAnalyzersResources.Make_local_function_static)));
             }
         }

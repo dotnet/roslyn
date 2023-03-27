@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,249 +49,290 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         public async Task TestArithmeticRequiredForClarity2()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or $$(b and c);
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or b and c;
-    }
-}", parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or $$(b and c);
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or b and c;
+                    }
+                }
+                """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
         [Fact]
         public async Task TestLogicalRequiredForClarity1()
         {
             await TestMissingAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or $$(b and c);
-    }
-}", new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or $$(b and c);
+                    }
+                }
+                """, new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
         }
 
         [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or $$(b or c);
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or b or c;
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or $$(b or c);
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or b or c;
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is $$(a or b) or c;
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or b or c;
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is $$(a or b) or c;
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or b or c;
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestAlwaysUnnecessaryForIsPattern()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is $$(a or b);
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or b;
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is $$(a or b);
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or b;
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestAlwaysUnnecessaryForCasePattern()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        switch (o)
-        {
-            case $$(a or b):
-                return;
-        }
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        switch (o)
-        {
-            case a or b:
-                return;
-        }
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case $$(a or b):
+                                return;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case a or b:
+                                return;
+                        }
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestAlwaysUnnecessaryForSwitchArmPattern()
         {
             await TestAsync(
-@"class C
-{
-    int M(object o)
-    {
-        return o switch
-        {
-            $$(a or b) => 0,
-        };
-    }
-}",
-@"class C
-{
-    int M(object o)
-    {
-        return o switch
-        {
-            a or b => 0,
-        };
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    int M(object o)
+                    {
+                        return o switch
+                        {
+                            $$(a or b) => 0,
+                        };
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M(object o)
+                    {
+                        return o switch
+                        {
+                            a or b => 0,
+                        };
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestAlwaysUnnecessaryForSubPattern()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is { X: $$(a or b) };
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is { X: a or b };
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is { X: $$(a or b) };
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is { X: a or b };
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact]
         public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or $$(not b);
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is a or not b;
-    }
-}", offeredWhenRequireForClarityIsEnabled: false);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or $$(not b);
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is a or not b;
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact]
         public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
         {
             await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is $$(not a) or b;
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is not a or b;
-    }
-}", offeredWhenRequireForClarityIsEnabled: false);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is $$(not a) or b;
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        bool x = o is not a or b;
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, WorkItem(52589, "https://github.com/dotnet/roslyn/issues/52589")]
         public async Task TestAlwaysNecessaryForDiscard()
         {
             await TestDiagnosticMissingAsync(
-@"
-class C
-{
-    void M(object o)
-    {
-        if (o is $$(_))
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if (o is $$(_))
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestUnnecessaryForDiscardInSubpattern()
         {
             await TestAsync(
-@"
-class C
-{
-    void M(object o)
-    {
-        if (o is string { Length: $$(_) })
-        {
-        }
-    }
-}",
-@"
-class C
-{
-    void M(object o)
-    {
-        if (o is string { Length: _ })
-        {
-        }
-    }
-}", offeredWhenRequireForClarityIsEnabled: true);
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if (o is string { Length: $$(_) })
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if (o is string { Length: _ })
+                        {
+                        }
+                    }
+                }
+                """, offeredWhenRequireForClarityIsEnabled: true);
         }
     }
 }

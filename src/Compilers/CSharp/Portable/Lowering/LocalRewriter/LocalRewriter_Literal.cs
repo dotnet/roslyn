@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitLiteral(BoundLiteral node)
         {
-            Debug.Assert(node.ConstantValue is { });
-            return MakeLiteral(node.Syntax, node.ConstantValue, node.Type, oldNodeOpt: node);
+            Debug.Assert(node.ConstantValueOpt is { });
+            return MakeLiteral(node.Syntax, node.ConstantValueOpt, node.Type, oldNodeOpt: node);
         }
 
         private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol? type, BoundLiteral? oldNodeOpt = null)

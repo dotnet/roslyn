@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
 
+        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+            => ImmutableArray<SnippetPlaceholder>.Empty;
+
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);

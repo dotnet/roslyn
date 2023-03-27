@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
@@ -48,6 +49,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Protected Overrides Function IsCallStatement(expressionStatement As IExpressionStatementOperation) As Boolean
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
+        End Function
+
+        Protected Overrides Function ReturnsThrow(node As SyntaxNode) As Boolean
+            Dim methodStatementSyntax = TryCast(node, MethodBaseSyntax)
+            If methodStatementSyntax IsNot Nothing Then
+                Dim methodSyntax = TryCast(node.Parent, MethodBlockBaseSyntax)
+                If methodSyntax.BlockStatement Is Nothing Then
+                    Return False
+                End If
+
+                If methodSyntax.Statements.Count = 1 Then
+                    Return TryCast(methodSyntax.Statements.First(), ThrowStatementSyntax) IsNot Nothing
+                End If
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function IsExpressionOfExpressionBody(expressionStatementOperation As IExpressionStatementOperation) As Boolean

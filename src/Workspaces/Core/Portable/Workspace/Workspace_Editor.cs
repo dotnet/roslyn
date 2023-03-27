@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
 
-        private protected void ClearOpenDocuments()
+        internal void ClearOpenDocuments()
         {
             List<DocumentId> docIds;
             using (_stateLock.DisposableWait())

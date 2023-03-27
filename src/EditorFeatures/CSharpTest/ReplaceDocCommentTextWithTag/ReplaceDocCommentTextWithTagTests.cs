@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag;
@@ -414,12 +412,19 @@ class C
 }");
         }
 
-        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        public async Task TestNonApplicableKeyword()
+        [Fact]
+        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestApplicableKeyword()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"
 /// Testing keyword interfa[||]ce.
+class C<TKey>
+{
+}",
+@"
+/// Testing keyword <see langword=""interface""/>.
 class C<TKey>
 {
 }");
@@ -478,6 +483,40 @@ class C<TKey>
 
 @"
 /// Testing keyword <see langword=""this""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestArbitraryKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]delegate.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""delegate""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestContextualKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]yield.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""yield""/>.
 class C<TKey>
 {
 }");

@@ -1277,5 +1277,46 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ToolTipAssert.EqualContent(expected, container)
         End Function
+
+        <WpfFact, WorkItem(16353, "https://github.com/dotnet/roslyn/issues/16353")>
+        Public Async Function QuickInfoForAlias1() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using MyTask = System.Threading.Tasks.Task;
+
+class C
+{
+    void M(MyTask m)
+    {
+        MyTask $$m2;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.LocalVariable)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "local variable"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyTask", navigationAction:=Sub() Return, "MyTask=Task"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.LocalName, "m2", navigationAction:=Sub() Return, "Task m2"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
     End Class
 End Namespace

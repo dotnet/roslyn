@@ -1608,5 +1608,21 @@ Public Class MyAttribute
     Inherits System.Attribute
 End Class")
         End Function
+
+        <Fact, WorkItem(30884, "https://github.com/dotnet/roslyn/issues/30884")>
+        Public Async Function TestMessageForSubNew() As Task
+            Await TestDiagnosticInfoAsync(
+"Class C
+    Private Sub [|New|](i As Integer)
+    End Sub
+End Class",
+parseOptions:=Nothing,
+compilationOptions:=Nothing,
+options:=Nothing,
+globalOptions:=Nothing,
+"IDE0051",
+DiagnosticSeverity.Info,
+diagnosticMessage:=String.Format(AnalyzersResources.Private_member_0_is_unused, "C.New"))
+        End Function
     End Class
 End Namespace

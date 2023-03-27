@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1608,6 +1606,45 @@ class C
         {
             first.list[i].Value = second.list[i].Value;
         }
+    }
+}");
+        }
+
+        [Fact, WorkItem(36305, "https://github.com/dotnet/roslyn/issues/36305")]
+        public async Task TestOnElementAt1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class V
+{
+    void M(ICollection<V> collection)
+    {
+        [||]for (int i = 0; i < collection.Count; ++i)
+            collection.ElementAt(i).M();
+    }
+
+    private void M()
+    {
+    }
+}",
+
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class V
+{
+    void M(ICollection<V> collection)
+    {
+        foreach (V {|Rename:v|} in collection)
+            v.M();
+    }
+
+    private void M()
+    {
     }
 }");
         }

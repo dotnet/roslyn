@@ -1872,7 +1872,7 @@ class C
     List<int> M(IEnumerable<int> nums)
     {
         List<int> list0 = new List<int>();
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
     }
 }
 ";
@@ -2042,7 +2042,7 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
     }
 }
 ";
@@ -2155,7 +2155,7 @@ class C
 {
     List<int> M(IEnumerable<int> nums, List<int> list)
     {
-        list = (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        list = nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
         return list;
     }
 }
@@ -2257,7 +2257,7 @@ class C
 {
     void M(IEnumerable<int> nums, List<int>[] lists)
     {
-        lists[0] = (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        lists[0] = nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
     }
 }
 ";
@@ -2331,7 +2331,7 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
     }
 }
 ";
@@ -2388,7 +2388,7 @@ class C
     List<int> M(IEnumerable<int> nums)
     {
         List<int> list;
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
     }
 }
 ";
@@ -2445,7 +2445,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         List<int> list;
-        list = (nums.SelectMany(n1 => nums.Select(n2 => n1))).ToList();
+        list = nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
         return list.Count;
     }
 }
@@ -2669,7 +2669,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        c.A = (nums.Select(x => x + 1)).ToList();
+        c.A = nums.Select(x => x + 1).ToList();
     }
 
     class C
@@ -2867,7 +2867,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int i = 0, cnt = (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        int i = 0, cnt = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -2921,7 +2921,7 @@ class C
     void M(IEnumerable<int> nums)
     {
         int cnt = 0, i = 0;
-        cnt += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -2971,7 +2971,7 @@ class C
 {
     void M(IEnumerable<int> nums, int c)
     {
-        c += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        c += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3023,7 +3023,7 @@ class C
 {
     void M(IEnumerable<int> nums, int c)
     {
-        c = (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        c = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3077,7 +3077,7 @@ class C
     void M(IEnumerable<int> nums, int c)
     {
         c = 5;
-        c += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        c += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3131,7 +3131,7 @@ class C
 {
     int M(IEnumerable<int> nums)
     {
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3185,7 +3185,7 @@ class C
 {
     double M(IEnumerable<int> nums)
     {
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3241,7 +3241,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         int c = 0;
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3298,7 +3298,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         int c = 0, cnt = 5;
-        cnt += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
         return cnt;
     }
 }
@@ -3356,7 +3356,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         int cnt = 0, c = 0;
-        cnt += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
         return cnt;
     }
 }
@@ -3414,7 +3414,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         int cnt = 5, c = 0;
-        cnt += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
         return cnt;
     }
 }
@@ -3472,7 +3472,7 @@ class C
     int M(IEnumerable<int> nums)
     {
         int cnt;
-        return (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3532,7 +3532,7 @@ class C
     {
         int cnt;
         cnt = 5;
-        cnt += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
         return cnt;
     }
 }
@@ -3587,7 +3587,7 @@ class C
 {
     int M(IEnumerable<int> nums, int c)
     {
-        c = (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        c = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
         return c;
     }
 }
@@ -3642,7 +3642,7 @@ class C
     void M(IEnumerable<int> nums)
     {
         var count = 5;
-        count += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        count += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3697,7 +3697,7 @@ class C
     void M(IEnumerable<int> nums)
     {
         int count = 1;
-        count = (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        count = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3754,7 +3754,7 @@ class C
     {
         var count = 0;
         count = 4;
-        count += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        count += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3809,7 +3809,7 @@ class C
 {
     void M(IEnumerable<int> nums, A a)
     {
-        a.B = (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        a.B = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3866,7 +3866,7 @@ class C
     void M(IEnumerable<int> nums, A a)
     {
         a.B = 5;
-        a.B += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        a.B += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3920,7 +3920,7 @@ class C
 {
     void M(IEnumerable<int> nums, A a)
     {
-        a.B += (nums.SelectMany(n1 => nums.Select(n2 => n1))).Count();
+        a.B += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
     }
 }
 ";
@@ -3969,7 +3969,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int c = (nums.AsQueryable()).Count();
+        int c = nums.AsQueryable().Count();
     }
 }";
 
@@ -4100,14 +4100,13 @@ class C
     {
         /*29*/
         return /*30*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-/*31*/
-(
-/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+       /*31*//* 6 */
+       (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
                   /* 14 */// 15
                   /* 16 *//* 17 */
               let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
-              select y/* 24 *//*27*///28
-).ToList()/* 22 *//* 23 *//* 25 *///26
+              select y)/* 24 *//*27*///28
+.ToList()/* 22 *//* 23 *//* 25 *///26
 ; //32
     }
 }";
@@ -4147,12 +4146,11 @@ class C
     {
         /*23*/
         return /*24*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-/*25*/
-(
-/* 14 */// 15
-/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-       select x + 1/* 18 *//*21*///22
-).ToList()/* 16 *//* 17 *//* 19 *///20
+ /*25*//* 14 */// 15
+ /* 6 */
+ (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+        select x + 1)/* 18 *//*21*///22
+.ToList()/* 16 *//* 17 *//* 19 *///20
 ; //26
     }
 }";
@@ -4168,12 +4166,11 @@ class C
     {
         /*23*/
         return /*24*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-/*25*/
-(nums /* 12 */.Select(
+/*25*/nums /* 12 */.Select(
 /* 6 *//* 7 *//* 14 */// 15
 /* 9 */x /* 10 */ => x + 1/* 18 *//*21*///22
 /* 8 *//* 11 */// 13
-)).ToList()/* 16 *//* 17 *//* 19 *///20
+).ToList()/* 16 *//* 17 *//* 19 *///20
 ; //26
     }
 }";
@@ -4209,12 +4206,11 @@ class C
     {
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-/*23*/
-(
-/* 14 */// 15
-/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-       select x/* 10 *//*19*///20
-).Count()/* 16 *//* 17 *///18
+ /*23*//* 14 */// 15
+ /* 6 */
+ (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+        select x)/* 10 *//*19*///20
+.Count()/* 16 *//* 17 *///18
 ; //24
     }
 }";
@@ -4230,11 +4226,10 @@ class C
     {
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-/*23*/
-(nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
+/*23*/nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
 /* 9 *//* 10 *//* 10 *//*19*///20
 /* 8 *//* 11 */// 13
-).Count()/* 16 *//* 17 *///18
+.Count()/* 16 *//* 17 *///18
 ; //24
     }
 }";

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +61,11 @@ namespace Microsoft.CodeAnalysis.Classification
             var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
             var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
 
-            return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
+            // Get the span of the line from the first non-whitespace character to the end of it. Note: the reference
+            // span might actually start in the leading whitespace of the line (nothing prevents any of our
+            // languages/providers from doing that), so ensure that the line snap we clip out at least starts at that
+            // position so that our span math will be correct.
+            return TextSpan.FromBounds(Math.Min(firstNonWhitespacePosition, referenceSpan.Start), sourceLine.End);
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(

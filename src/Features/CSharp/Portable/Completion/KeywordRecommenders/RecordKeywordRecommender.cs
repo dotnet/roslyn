@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.StaticKeyword,
                 SyntaxKind.UnsafeKeyword,
                 SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.FileKeyword,
             };
 
         public RecordKeywordRecommender()

@@ -616,6 +616,31 @@ record Derived(int Other) : Base(Alice: 2, Bob: 2);
             Await VerifyParamHints(input, output)
         End Function
 
+        <WpfFact>
+        Public Async Function TestClassBaseType_01() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Base(int Alice, int Bob);
+class Derived(int Other) : Base({|Alice:|}2, {|Bob:|}2);
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Base(int Alice, int Bob);
+class Derived(int Other) : Base(Alice: 2, Bob: 2);
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
         <WpfFact, WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestClassBaseType() As Task
             Dim input =

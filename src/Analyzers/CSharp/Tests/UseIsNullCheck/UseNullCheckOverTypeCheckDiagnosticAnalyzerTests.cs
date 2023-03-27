@@ -36,193 +36,193 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         [Fact]
         public async Task TestIsObjectCSharp8()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is object;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is object;
+                    }
+                }
+                """;
             await VerifyCSharp8Async(source, source);
         }
 
         [Fact]
         public async Task TestIsObject()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return [|value is object|]/*comment*/;
-    }
-}
-";
-            var fixedSource = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is not null/*comment*/;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return [|value is object|]/*comment*/;
+                    }
+                }
+                """;
+            var fixedSource = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is not null/*comment*/;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, fixedSource);
         }
 
         [Fact]
         public async Task TestIsObject2()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is object x;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is object x;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, source);
         }
 
         [Fact]
         public async Task TestIsNotObject()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is [|not object|];
-    }
-}
-";
-            var fixedSource = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is null;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is [|not object|];
+                    }
+                }
+                """;
+            var fixedSource = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is null;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, fixedSource);
         }
 
         [Fact]
         public async Task TestIsNotObject2()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is not object o;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is not object o;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, source);
         }
 
         [Fact]
         public async Task TestIsStringAgainstObject_NoDiagnostic()
         {
-            var source = @"
-public class C
-{
-    public bool M(object value)
-    {
-        return value is string;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(object value)
+                    {
+                        return value is string;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, source);
         }
 
         [Fact]
         public async Task TestIsStringAgainstString()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return [|value is string|];
-    }
-}
-";
-            var fixedSource = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is not null;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return [|value is string|];
+                    }
+                }
+                """;
+            var fixedSource = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is not null;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, fixedSource);
         }
 
         [Fact]
         public async Task TestIsNotStringAgainstObject_NoDiagnostic()
         {
-            var source = @"
-public class C
-{
-    public bool M(object value)
-    {
-        return value is string;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(object value)
+                    {
+                        return value is string;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, source);
         }
 
         [Fact]
         public async Task TestIsNotStringAgainstString()
         {
-            var source = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is [|not string|];
-    }
-}
-";
-            var fixedSource = @"
-public class C
-{
-    public bool M(string value)
-    {
-        return value is null;
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is [|not string|];
+                    }
+                }
+                """;
+            var fixedSource = """
+                public class C
+                {
+                    public bool M(string value)
+                    {
+                        return value is null;
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, fixedSource);
         }
 
         [Fact, WorkItem(58377, "https://github.com/dotnet/roslyn/issues/58377")]
         public async Task TestNotInExpressionTree()
         {
-            var source = @"
-using System;
-using System.Linq.Expressions;
+            var source = """
+                using System;
+                using System.Linq.Expressions;
 
-class SomeClass
-{
-    void M()
-    {
-        Bar(s => s is object ? 0 : 1);
-    }
+                class SomeClass
+                {
+                    void M()
+                    {
+                        Bar(s => s is object ? 0 : 1);
+                    }
 
-    private void Bar(Expression<Func<object, int>> p)
-    {
-    }
-}
-";
+                    private void Bar(Expression<Func<object, int>> p)
+                    {
+                    }
+                }
+                """;
             await VerifyCSharp9Async(source, source);
         }
     }

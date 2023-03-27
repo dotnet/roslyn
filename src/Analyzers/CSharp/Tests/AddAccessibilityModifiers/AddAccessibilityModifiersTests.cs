@@ -28,166 +28,174 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         public async Task TestAllConstructs()
         {
             await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
-namespace Outer
-{
-    namespace Inner1.Inner2
-    {
-        partial class [|C|] : I
-        {
-            class [|NestedClass|] { }
+                """
+                using System;
+                namespace Outer
+                {
+                    namespace Inner1.Inner2
+                    {
+                        partial class [|C|] : I
+                        {
+                            class [|NestedClass|] { }
 
-            struct [|NestedStruct|] { }
+                            struct [|NestedStruct|] { }
 
-            int [|f1|];
-            int [|f2|], f3;
-            public int f4;
+                            int [|f1|];
+                            int [|f2|], f3;
+                            public int f4;
 
-            event Action [|e1|], e2;
-            public event Action e3;
+                            event Action [|e1|], e2;
+                            public event Action e3;
 
-            event Action [|e4|] { add { } remove { } }
-            public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remove { } }
+                            event Action [|e4|] { add { } remove { } }
+                            public event Action e5 { add { } remove { } }
+                            event Action I.e6 { add { } remove { } }
 
-            static C() { }
-            [|C|]() { }
-            public C(int i) { }
+                            static C() { }
+                            [|C|]() { }
+                            public C(int i) { }
 
-            ~C() { }
+                            ~C() { }
 
-            void [|M1|]() { }
-            public void M2() { }
-            void I.M3() { }
-            partial void M4();
-            partial void M4() { }
+                            void [|M1|]() { }
+                            public void M2() { }
+                            void I.M3() { }
+                            partial void M4();
+                            partial void M4() { }
 
-            int [|P1|] { get; }
-            public int P2 { get; }
-            int I.P3 { get; }
+                            int [|P1|] { get; }
+                            public int P2 { get; }
+                            int I.P3 { get; }
 
-            int [|this|][int i] => throw null;
-            public int this[string s] => throw null;
-            int I.this[bool b] => throw null;
-        }
+                            int [|this|][int i] => throw null;
+                            public int this[string s] => throw null;
+                            int I.this[bool b] => throw null;
+                        }
 
-        interface [|I|]
-        {
-            event Action e6;
-            void M3();
-            int P3 { get; }
-            int this[bool b] { get; }
-        }
+                        interface [|I|]
+                        {
+                            event Action e6;
+                            void M3();
+                            int P3 { get; }
+                            int this[bool b] { get; }
+                        }
 
-        delegate void [|D|]();
+                        delegate void [|D|]();
 
-        enum [|E|]
-        {
-            EMember
-        }
-    }
-}",
-                @"using System;
-namespace Outer
-{
-    namespace Inner1.Inner2
-    {
-        internal partial class C : I
-        {
-            private class NestedClass { }
+                        enum [|E|]
+                        {
+                            EMember
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
+                namespace Outer
+                {
+                    namespace Inner1.Inner2
+                    {
+                        internal partial class C : I
+                        {
+                            private class NestedClass { }
 
-            private struct NestedStruct { }
+                            private struct NestedStruct { }
 
-            private int f1;
-            private int f2, f3;
-            public int f4;
+                            private int f1;
+                            private int f2, f3;
+                            public int f4;
 
-            private event Action e1, e2;
-            public event Action e3;
+                            private event Action e1, e2;
+                            public event Action e3;
 
-            private event Action e4 { add { } remove { } }
-            public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remove { } }
+                            private event Action e4 { add { } remove { } }
+                            public event Action e5 { add { } remove { } }
+                            event Action I.e6 { add { } remove { } }
 
-            static C() { }
+                            static C() { }
 
-            private C() { }
-            public C(int i) { }
+                            private C() { }
+                            public C(int i) { }
 
-            ~C() { }
+                            ~C() { }
 
-            private void M1() { }
-            public void M2() { }
-            void I.M3() { }
-            partial void M4();
-            partial void M4() { }
+                            private void M1() { }
+                            public void M2() { }
+                            void I.M3() { }
+                            partial void M4();
+                            partial void M4() { }
 
-            private int P1 { get; }
-            public int P2 { get; }
-            int I.P3 { get; }
+                            private int P1 { get; }
+                            public int P2 { get; }
+                            int I.P3 { get; }
 
-            private int this[int i] => throw null;
-            public int this[string s] => throw null;
-            int I.this[bool b] => throw null;
-        }
+                            private int this[int i] => throw null;
+                            public int this[string s] => throw null;
+                            int I.this[bool b] => throw null;
+                        }
 
-        internal interface I
-        {
-            event Action e6;
-            void M3();
-            int P3 { get; }
-            int this[bool b] { get; }
-        }
+                        internal interface I
+                        {
+                            event Action e6;
+                            void M3();
+                            int P3 { get; }
+                            int this[bool b] { get; }
+                        }
 
-        internal delegate void D();
+                        internal delegate void D();
 
-        internal enum E
-        {
-            EMember
-        }
-    }
-}");
+                        internal enum E
+                        {
+                            EMember
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestRefStructs()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-namespace Test
-{
-    ref struct [|S1|] { }
-}", @"
-namespace Test
-{
-    internal ref struct S1 { }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                namespace Test
+                {
+                    ref struct [|S1|] { }
+                }
+                """, """
+                namespace Test
+                {
+                    internal ref struct S1 { }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestRecords()
         {
-            var source = @"
-record [|Record|]
-{
-    int [|field|];
-}
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
-}";
-            var fixedSource = @"
-internal record Record
-{
-    private int field;
-}
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
-}";
+            var source = """
+                record [|Record|]
+                {
+                    int [|field|];
+                }
+                namespace System.Runtime.CompilerServices
+                {
+                    public sealed class IsExternalInit
+                    {
+                    }
+                }
+                """;
+            var fixedSource = """
+                internal record Record
+                {
+                    private int field;
+                }
+                namespace System.Runtime.CompilerServices
+                {
+                    public sealed class IsExternalInit
+                    {
+                    }
+                }
+                """;
 
             var test = new VerifyCS.Test
             {
@@ -202,18 +210,18 @@ namespace System.Runtime.CompilerServices
         [Fact]
         public async Task TestRecordStructs()
         {
-            var source = @"
-record struct [|Record|]
-{
-    int [|field|];
-}
-";
-            var fixedSource = @"
-internal record struct Record
-{
-    private int field;
-}
-";
+            var source = """
+                record struct [|Record|]
+                {
+                    int [|field|];
+                }
+                """;
+            var fixedSource = """
+                internal record struct Record
+                {
+                    private int field;
+                }
+                """;
 
             var test = new VerifyCS.Test
             {
@@ -228,15 +236,17 @@ internal record struct Record
         [Fact]
         public async Task TestReadOnlyStructs()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-namespace Test
-{
-    readonly struct [|S1|] { }
-}", @"
-namespace Test
-{
-    internal readonly struct S1 { }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                namespace Test
+                {
+                    readonly struct [|S1|] { }
+                }
+                """, """
+                namespace Test
+                {
+                    internal readonly struct S1 { }
+                }
+                """);
         }
 
         [Fact]
@@ -248,132 +258,136 @@ namespace Test
                 {
                     Sources =
                     {
-                        @"using System;
-namespace Outer
-{
-    namespace Inner1.Inner2
-    {
-        internal partial class [|C|] : I
-        {
-            private class [|NestedClass|] { }
+                        """
+                        using System;
+                        namespace Outer
+                        {
+                            namespace Inner1.Inner2
+                            {
+                                internal partial class [|C|] : I
+                                {
+                                    private class [|NestedClass|] { }
 
-            private struct [|NestedStruct|] { }
+                                    private struct [|NestedStruct|] { }
 
-            private int [|f1|];
-            private int [|f2|], f3;
-            public int f4;
+                                    private int [|f1|];
+                                    private int [|f2|], f3;
+                                    public int f4;
 
-            private event Action [|e1|], e2;
-            public event Action e3;
+                                    private event Action [|e1|], e2;
+                                    public event Action e3;
 
-            private event Action [|e4|] { add { } remove { } }
-            public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remove { } }
+                                    private event Action [|e4|] { add { } remove { } }
+                                    public event Action e5 { add { } remove { } }
+                                    event Action I.e6 { add { } remove { } }
 
-            static C() { }
+                                    static C() { }
 
-            private [|C|]() { }
-            public C(int i) { }
+                                    private [|C|]() { }
+                                    public C(int i) { }
 
-            ~C() { }
+                                    ~C() { }
 
-            private void [|M1|]() { }
-            public void M2() { }
-            void I.M3() { }
-            partial void M4();
-            partial void M4() { }
+                                    private void [|M1|]() { }
+                                    public void M2() { }
+                                    void I.M3() { }
+                                    partial void M4();
+                                    partial void M4() { }
 
-            private int [|P1|] { get; }
-            public int P2 { get; }
-            int I.P3 { get; }
+                                    private int [|P1|] { get; }
+                                    public int P2 { get; }
+                                    int I.P3 { get; }
 
-            private int [|this|][int i] => throw null;
-            public int this[string s] => throw null;
-            int I.this[bool b] => throw null;
-        }
+                                    private int [|this|][int i] => throw null;
+                                    public int this[string s] => throw null;
+                                    int I.this[bool b] => throw null;
+                                }
 
-        internal interface [|I|]
-        {
-            event Action e6;
-            void M3();
-            int P3 { get; }
-            int this[bool b] { get; }
-        }
+                                internal interface [|I|]
+                                {
+                                    event Action e6;
+                                    void M3();
+                                    int P3 { get; }
+                                    int this[bool b] { get; }
+                                }
 
-        internal delegate void [|D|]();
+                                internal delegate void [|D|]();
 
-        internal enum [|E|]
-        {
-            EMember
-        }
-    }
-}",
+                                internal enum [|E|]
+                                {
+                                    EMember
+                                }
+                            }
+                        }
+                        """,
                     },
                 },
                 FixedState =
                 {
                     Sources =
                     {
-                        @"using System;
-namespace Outer
-{
-    namespace Inner1.Inner2
-    {
-        partial class C : I
-        {
-            class NestedClass { }
+                        """
+                        using System;
+                        namespace Outer
+                        {
+                            namespace Inner1.Inner2
+                            {
+                                partial class C : I
+                                {
+                                    class NestedClass { }
 
-            struct NestedStruct { }
+                                    struct NestedStruct { }
 
-            int f1;
-            int f2, f3;
-            public int f4;
+                                    int f1;
+                                    int f2, f3;
+                                    public int f4;
 
-            event Action e1, e2;
-            public event Action e3;
+                                    event Action e1, e2;
+                                    public event Action e3;
 
-            event Action e4 { add { } remove { } }
-            public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remove { } }
+                                    event Action e4 { add { } remove { } }
+                                    public event Action e5 { add { } remove { } }
+                                    event Action I.e6 { add { } remove { } }
 
-            static C() { }
+                                    static C() { }
 
-            C() { }
-            public C(int i) { }
+                                    C() { }
+                                    public C(int i) { }
 
-            ~C() { }
+                                    ~C() { }
 
-            void M1() { }
-            public void M2() { }
-            void I.M3() { }
-            partial void M4();
-            partial void M4() { }
+                                    void M1() { }
+                                    public void M2() { }
+                                    void I.M3() { }
+                                    partial void M4();
+                                    partial void M4() { }
 
-            int P1 { get; }
-            public int P2 { get; }
-            int I.P3 { get; }
+                                    int P1 { get; }
+                                    public int P2 { get; }
+                                    int I.P3 { get; }
 
-            int this[int i] => throw null;
-            public int this[string s] => throw null;
-            int I.this[bool b] => throw null;
-        }
+                                    int this[int i] => throw null;
+                                    public int this[string s] => throw null;
+                                    int I.this[bool b] => throw null;
+                                }
 
-        interface I
-        {
-            event Action e6;
-            void M3();
-            int P3 { get; }
-            int this[bool b] { get; }
-        }
+                                interface I
+                                {
+                                    event Action e6;
+                                    void M3();
+                                    int P3 { get; }
+                                    int this[bool b] { get; }
+                                }
 
-        delegate void D();
+                                delegate void D();
 
-        enum E
-        {
-            EMember
-        }
-    }
-}",
+                                enum E
+                                {
+                                    EMember
+                                }
+                            }
+                        }
+                        """,
                     },
                 },
                 Options =
@@ -388,16 +402,18 @@ namespace Outer
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-namespace Test
-{
-    internal ref struct [|S1|] { }
-}",
-                FixedCode = @"
-namespace Test
-{
-    ref struct S1 { }
-}",
+                TestCode = """
+                namespace Test
+                {
+                    internal ref struct [|S1|] { }
+                }
+                """,
+                FixedCode = """
+                namespace Test
+                {
+                    ref struct S1 { }
+                }
+                """,
                 Options =
                 {
                     { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
@@ -410,16 +426,18 @@ namespace Test
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-namespace Test
-{
-    internal readonly struct [|S1|] { }
-}",
-                FixedCode = @"
-namespace Test
-{
-    readonly struct S1 { }
-}",
+                TestCode = """
+                namespace Test
+                {
+                    internal readonly struct [|S1|] { }
+                }
+                """,
+                FixedCode = """
+                namespace Test
+                {
+                    readonly struct S1 { }
+                }
+                """,
                 Options =
                 {
                     { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
@@ -432,10 +450,12 @@ namespace Test
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-internal class [|C1|] { }",
-                FixedCode = @"
-class C1 { }",
+                TestCode = """
+                internal class [|C1|] { }
+                """,
+                FixedCode = """
+                class C1 { }
+                """,
                 Options =
                 {
                     { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
@@ -446,87 +466,87 @@ class C1 { }",
         [Fact]
         public async Task TestExternMethod()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-using System.Runtime.InteropServices;
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+                using System.Runtime.InteropServices;
 
-internal class Program
-{
-    [DllImport(""User32.dll"", CharSet = CharSet.Unicode)]
-    static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
-}
-",
-@"
-using System;
-using System.Runtime.InteropServices;
+                internal class Program
+                {
+                    [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+                    static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
+                }
+                """,
+                """
+                using System;
+                using System.Runtime.InteropServices;
 
-internal class Program
-{
-    [DllImport(""User32.dll"", CharSet = CharSet.Unicode)]
-    private static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
-}
-");
+                internal class Program
+                {
+                    [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+                    private static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
+                }
+                """);
         }
 
         [Fact]
         public async Task TestVolatile()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-internal class Program
-{
-    volatile int [|x|];
-}
-",
-@"
-internal class Program
-{
-    private volatile int x;
-}
-");
+            await VerifyCS.VerifyCodeFixAsync("""
+                internal class Program
+                {
+                    volatile int [|x|];
+                }
+                """,
+                """
+                internal class Program
+                {
+                    private volatile int x;
+                }
+                """);
         }
 
         [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestAbstractMethod()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-public abstract class TestClass
-{
-    abstract string {|CS0621:[|Test|]|} { get; }
-}
-",
-@"
-public abstract class TestClass
-{
-    protected abstract string Test { get; }
-}
-");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public abstract class TestClass
+                {
+                    abstract string {|CS0621:[|Test|]|} { get; }
+                }
+                """,
+                """
+                public abstract class TestClass
+                {
+                    protected abstract string Test { get; }
+                }
+                """);
         }
 
         [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestOverriddenMethod()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-public abstract class TestClass
-{
-    public abstract string Test { get; }
-}
+            await VerifyCS.VerifyCodeFixAsync("""
+                public abstract class TestClass
+                {
+                    public abstract string Test { get; }
+                }
 
-public class Derived : TestClass
-{
-    override string {|CS0507:{|CS0621:[|Test|]|}|} { get; }
-}
-",
-@"
-public abstract class TestClass
-{
-    public abstract string Test { get; }
-}
+                public class Derived : TestClass
+                {
+                    override string {|CS0507:{|CS0621:[|Test|]|}|} { get; }
+                }
+                """,
+                """
+                public abstract class TestClass
+                {
+                    public abstract string Test { get; }
+                }
 
-public class Derived : TestClass
-{
-    public override string Test { get; }
-}
-");
+                public class Derived : TestClass
+                {
+                    public override string Test { get; }
+                }
+                """);
         }
 
         [Fact]
@@ -534,16 +554,16 @@ public class Derived : TestClass
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-namespace Test;
+                TestCode = """
+                namespace Test;
 
-struct [|S1|] { }
-",
-                FixedCode = @"
-namespace Test;
+                struct [|S1|] { }
+                """,
+                FixedCode = """
+                namespace Test;
 
-internal struct S1 { }
-",
+                internal struct S1 { }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -551,24 +571,24 @@ internal struct S1 { }
         [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestPartial_WithExistingModifier()
         {
-            var source = @"
-partial class [|C|]
-{
-}
+            var source = """
+                partial class [|C|]
+                {
+                }
 
-public partial class C
-{
-}
-";
-            var fixedSource = @"
-public partial class C
-{
-}
+                public partial class C
+                {
+                }
+                """;
+            var fixedSource = """
+                public partial class C
+                {
+                }
 
-public partial class C
-{
-}
-";
+                public partial class C
+                {
+                }
+                """;
 
             var test = new VerifyCS.Test
             {
@@ -583,20 +603,20 @@ public partial class C
         [Fact, WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
         public async Task TestStaticOperatorInInterface()
         {
-            var source = @"
-internal interface I<T> where T : I<T>
-{
-    abstract static int operator +(T x);
-}
+            var source = """
+                internal interface I<T> where T : I<T>
+                {
+                    abstract static int operator +(T x);
+                }
 
-internal class C : I<C>
-{
-    static int I<C>.operator +(C x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-";
+                internal class C : I<C>
+                {
+                    static int I<C>.operator +(C x)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """;
 
             var test = new VerifyCS.Test
             {
@@ -677,18 +697,18 @@ internal class C : I<C>
         [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle1()
         {
-            var source = @"
-internal class C
-{
-    int [|field|];
-}
-";
-            var fixedSource = @"
-internal class C
-{
-    private int field;
-}
-";
+            var source = """
+                internal class C
+                {
+                    int [|field|];
+                }
+                """;
+            var fixedSource = """
+                internal class C
+                {
+                    private int field;
+                }
+                """;
 
             var test = new VerifyCS.Test
             {
@@ -704,18 +724,18 @@ internal class C
         [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle2()
         {
-            var source = @"
-class C
-{
-    private int [|field|];
-}
-";
-            var fixedSource = @"
-class C
-{
-    int field;
-}
-";
+            var source = """
+                class C
+                {
+                    private int [|field|];
+                }
+                """;
+            var fixedSource = """
+                class C
+                {
+                    int field;
+                }
+                """;
 
             var test = new VerifyCS.Test
             {

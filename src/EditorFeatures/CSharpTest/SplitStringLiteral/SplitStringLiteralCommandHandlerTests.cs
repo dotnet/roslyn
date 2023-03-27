@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,13 +40,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// </summary>
         private static void TestWorker(
             string inputMarkup,
-            string expectedOutputMarkup,
+            string? expectedOutputMarkup,
             Action callback,
             bool verifyUndo = true,
             IndentStyle indentStyle = IndentStyle.Smart,
-            bool useTabs = false)
+            bool useTabs = false,
+            string? endOfLine = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+            var workspaceXml = $"""
+                <Workspace>
+                    <Project Language="C#">
+                        <Document Normalize="{endOfLine is null}">{(endOfLine is null ? inputMarkup : inputMarkup.ReplaceLineEndings(endOfLine))}</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            using var workspace = TestWorkspace.Create(workspaceXml);
 
             if (useTabs && expectedOutputMarkup != null)
             {
@@ -65,9 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
             options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
             options.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
+            if (endOfLine != null)
+                options.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, endOfLine);
 
             // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+            workspace.GlobalOptions.SetGlobalOption(IndentationOptionsStorage.SmartIndent, document.Project.Language, indentStyle);
 
             var originalSnapshot = textBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
@@ -117,9 +126,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// failure.
         /// </summary>
         private static void TestHandled(
-            string inputMarkup, string expectedOutputMarkup,
-            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
-            bool useTabs = false)
+            string inputMarkup,
+            string expectedOutputMarkup,
+            bool verifyUndo = true,
+            IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false,
+            string? endOfLine = null)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -127,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo, indentStyle, useTabs);
+                verifyUndo, indentStyle, useTabs, endOfLine);
         }
 
         private static void TestNotHandled(string inputMarkup)
@@ -414,6 +426,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             verifyUndo: false);
         }
 
+        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        public void TestInEmptyString_LF()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+"class C\n{\n    void M()\n    {\n        var v = \"[||]\";\n    }\n}",
+"class C\n{\n    void M()\n    {\n        var v = \"\" +\n            \"[||]\";\n    }\n}",
+            verifyUndo: false,
+            endOfLine: "\n");
+        }
+
         [WpfFact]
         public void TestInEmptyString_BlockIndent()
         {
@@ -483,6 +507,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""[||]"";
     }
 }");
+        }
+
+        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        public void TestInEmptyInterpolatedString_LF()
+        {
+            TestHandled(
+"class C\n{\n    void M()\n    {\n        var v = $\"[||]\";\n    }\n}",
+"class C\n{\n    void M()\n    {\n        var v = $\"\" +\n            $\"[||]\";\n    }\n}",
+endOfLine: "\n");
         }
 
         [WpfFact]

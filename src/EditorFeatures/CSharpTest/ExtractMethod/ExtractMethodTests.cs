@@ -10117,7 +10117,6 @@ namespace ClassLibrary9
         [InlineData("add", "remove")]
         [InlineData("remove", "add")]
         [WorkItem(17474, "https://github.com/dotnet/roslyn/issues/17474")]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractMethodEventAccessorUnresolvedName(string testedAccessor, string untestedAccessor)
         {
             // This code intentionally omits a 'using System;'
@@ -10286,7 +10285,6 @@ namespace ClassLibrary9
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
@@ -10500,7 +10498,6 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunction1(string usageSyntax)
         {
@@ -10546,7 +10543,6 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunction2(string usageSyntax)
         {
@@ -10596,7 +10592,6 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunctionWithUnassignedLocal(string usageSyntax)
         {
@@ -11162,7 +11157,6 @@ static string NewMethod()
         [InlineData("unsafe")]
         [InlineData("checked")]
         [InlineData("unchecked")]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
         public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
         {

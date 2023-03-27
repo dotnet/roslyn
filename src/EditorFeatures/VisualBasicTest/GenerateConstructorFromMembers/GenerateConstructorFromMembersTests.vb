@@ -365,7 +365,7 @@ End Class", chosenSymbols:={"i"})
         <Fact>
         Public Async Function TestWithDialog1WithNullCheck() As Task
             Dim options = New OptionsCollection(LanguageNames.VisualBasic)
-            options.Add(LegacyGlobalOptionsWorkspaceService.AddNullChecksToConstructorsGeneratedFromMembers, True)
+            options.Add(LegacyGlobalOptionsWorkspaceService.s_addNullChecks, True)
 
             Dim parameters = New TestParameters()
             parameters = parameters.WithGlobalOptions(options)

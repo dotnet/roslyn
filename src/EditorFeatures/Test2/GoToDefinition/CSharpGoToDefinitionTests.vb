@@ -3329,5 +3329,206 @@ $$
 
             Await TestAsync(workspace, expectedResult:=False)
         End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Program
+{
+    static void Goo()
+    {
+        $$using (IDisposable disposableObject = new DisposableObject())
+        {
+            //...
+        }
+    }
+}
+
+class DisposableObject : IDisposable
+{
+    public void [|Dispose|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Program
+{
+    static void Goo()
+    {
+        $$using (new DisposableObject())
+        {
+            //...
+        }
+    }
+}
+
+class DisposableObject : IDisposable
+{
+    public void [|Dispose|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing3() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Program
+{
+    static void Goo()
+    {
+        $$using IDisposable disposableObject = new DisposableObject();
+    }
+}
+
+class DisposableObject : IDisposable
+{
+    public void [|Dispose|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing4() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet6Name="true">
+        <Document>
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Goo()
+    {
+        await $$using (IAsyncDisposable disposableObject = new DisposableObject())
+        {
+            //...
+        }
+    }
+}
+
+class DisposableObject : IAsyncDisposable
+{
+    public ValueTask [|DisposeAsync|]() { }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing5() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet6Name="true">
+        <Document>
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Goo()
+    {
+        await $$using (new DisposableObject())
+        {
+            //...
+        }
+    }
+}
+
+class DisposableObject : IAsyncDisposable
+{
+    public ValueTask [|DisposeAsync|]() { }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestCSharpGoToDefOnUsing6() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet6Name="true">
+        <Document>
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Goo()
+    {
+        await $$using IAsyncDisposable disposableObject = new DisposableObject();
+    }
+}
+
+class DisposableObject : IAsyncDisposable
+{
+    public ValueTask [|DisposeAsync|]() { }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

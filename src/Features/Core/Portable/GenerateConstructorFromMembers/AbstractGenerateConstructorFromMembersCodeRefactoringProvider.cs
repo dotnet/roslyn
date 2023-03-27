@@ -57,13 +57,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
         protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract IFieldSymbol? TryMapToWritableInstanceField(IPropertySymbol property, CancellationToken cancellationToken);
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            return ComputeRefactoringsAsync(context.Document, context.Span,
+            return ComputeRefactoringsAsync(
+                context.Document,
+                context.Span,
                 context.RegisterRefactoring,
-                (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null,
-                context.Options, context.CancellationToken);
+                actions => context.RegisterRefactorings(actions),
+                desiredAccessibility: null,
+                context.Options,
+                context.CancellationToken);
         }
 
         public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
@@ -246,9 +251,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
-                    {
                         return GetCodeActions(document, state, addNullChecks, fallbackOptions);
-                    }
                 }
 
                 return default;

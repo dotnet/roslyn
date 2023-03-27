@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -1011,6 +1009,125 @@ class C
     }
 }";
             await VerifyItemExistsAsync(markup, "FileAttributes");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression1()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression2()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { $$
+                    }
+                }
+                """;
+            await VerifyItemExistsAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression3()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression4()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression5()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0 $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression6()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0, $$
+                    }
+                }
+                """;
+            await VerifyItemExistsAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem(39240, "https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression7()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0 } $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
         }
 
         #region enum members

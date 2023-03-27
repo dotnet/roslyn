@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
             internal override bool SynthesizesLoweredBoundBody => true;
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {

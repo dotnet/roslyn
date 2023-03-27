@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -339,5 +341,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static TypeSyntax GetOutermostType(TypeSyntax type)
             => type.GetAncestorsOrThis<TypeSyntax>().Last();
+
+        /// <summary>
+        /// Given an expression node, tries to generate an appropriate name that can be used for
+        /// that expression. 
+        /// </summary>
+        public static string GenerateNameForExpression(
+            this SemanticModel semanticModel, ExpressionSyntax expression,
+            bool capitalize, CancellationToken cancellationToken)
+        {
+            // Try to find a usable name node that we can use to name the
+            // parameter.  If we have an expression that has a name as part of it
+            // then we try to use that part.
+            var current = expression;
+            while (true)
+            {
+                current = current.WalkDownParentheses();
+
+                if (current is IdentifierNameSyntax identifierName)
+                {
+                    return identifierName.Identifier.ValueText.ToCamelCase();
+                }
+                else if (current is MemberAccessExpressionSyntax memberAccess)
+                {
+                    return memberAccess.Name.Identifier.ValueText.ToCamelCase();
+                }
+                else if (current is MemberBindingExpressionSyntax memberBinding)
+                {
+                    return memberBinding.Name.Identifier.ValueText.ToCamelCase();
+                }
+                else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
+                {
+                    current = conditionalAccess.WhenNotNull;
+                }
+                else if (current is CastExpressionSyntax castExpression)
+                {
+                    current = castExpression.Expression;
+                }
+                else if (current is DeclarationExpressionSyntax decl)
+                {
+                    if (decl.Designation is not SingleVariableDesignationSyntax name)
+                    {
+                        break;
+                    }
+
+                    return name.Identifier.ValueText.ToCamelCase();
+                }
+                else if (current.Parent is ForEachStatementSyntax foreachStatement &&
+                         foreachStatement.Expression == expression)
+                {
+                    var word = foreachStatement.Identifier.ValueText.ToCamelCase();
+                    return CodeAnalysis.Shared.Extensions.SemanticModelExtensions.Pluralize(word);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // there was nothing in the expression to signify a name.  If we're in an argument
+            // location, then try to choose a name based on the argument name.
+            var argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken);
+            if (argumentName != null)
+            {
+                return capitalize ? argumentName.ToPascalCase() : argumentName.ToCamelCase();
+            }
+
+            // Otherwise, figure out the type of the expression and generate a name from that
+            // instead.
+            var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (info.Type == null)
+            {
+                return CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName;
+            }
+
+            return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
+        }
+
+        private static string TryGenerateNameForArgumentExpression(
+            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var topExpression = expression.WalkUpParentheses();
+            if (topExpression?.Parent is ArgumentSyntax argument)
+            {
+                if (argument.NameColon != null)
+                {
+                    return argument.NameColon.Name.Identifier.ValueText;
+                }
+
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
+                {
+                    var index = argumentList.Arguments.IndexOf(argument);
+                    if (semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol is IMethodSymbol member && index < member.Parameters.Length)
+                    {
+                        var parameter = member.Parameters[index];
+                        if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
+                        {
+                            if (SyntaxFacts.GetContextualKeywordKind(parameter.Name) is not SyntaxKind.UnderscoreToken)
+                            {
+                                return parameter.Name;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
     }
 }

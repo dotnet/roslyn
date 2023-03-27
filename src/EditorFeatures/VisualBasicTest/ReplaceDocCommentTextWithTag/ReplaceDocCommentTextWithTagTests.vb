@@ -319,11 +319,17 @@ interface I
 end interface")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        Public Async Function TestNotApplicableKeyword() As Task
-            Await TestMissingAsync(
+        <Fact>
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")>
+        Public Async Function TestApplicableKeyword() As Task
+            Await TestInRegularAndScript1Async(
 "
 ''' Testing keyword interf[||]ace
+class C(Of TKey)
+end class",
+"
+''' Testing keyword <see langword=""interface""/>
 class C(Of TKey)
 end class")
         End Function

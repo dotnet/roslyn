@@ -244,7 +244,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 1
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, String)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, String)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -286,7 +286,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 3
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, String)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, String)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -558,7 +558,7 @@ End Class"
             test.TestCode = source
             test.FixedCode = fixedSource
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -602,7 +602,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 1
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, Integer)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -646,7 +646,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 2
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer, Integer)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, Integer, Integer)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -700,7 +700,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 1
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, Double)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, Double)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -750,7 +750,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 3
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Double)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Double)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -793,7 +793,7 @@ End Class"
             test.TestCode = source
             test.FixedCode = fixedSource
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 
@@ -837,7 +837,7 @@ End Class"
             test.FixedCode = fixedSource
             test.CodeActionIndex = 2
             test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
-                                          verifier.Equal(String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer, Integer)"), codeAction.Title)
+                                          verifier.Equal(String.Format(CodeFixesResources.Add_to_0, "Program(Integer, Integer, Integer)"), codeAction.Title)
                                       End Sub
             Await test.RunAsync()
 

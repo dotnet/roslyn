@@ -162,7 +162,7 @@ class A
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceWithinExpressionParentheses, spaceWithinExpressionParentheses },
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
             };
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }
@@ -309,7 +309,7 @@ class A
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceWithinExpressionParentheses, spaceWithinExpressionParentheses },
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
             };
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }

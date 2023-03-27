@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             _lexer = lexer;
         }
 
-        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
+        private readonly StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 

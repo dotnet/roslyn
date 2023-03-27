@@ -44,10 +44,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/30599")]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override async Task RenamingOpenFilesViaDTE()
+        public override async Task RenamingOpenFiles()
         {
             await InitializeWithDefaultSolution();
-            await base.RenamingOpenFilesViaDTE();
+            await base.RenamingOpenFiles();
         }
     }
 }

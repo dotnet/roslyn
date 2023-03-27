@@ -591,6 +591,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
                         state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -915,8 +916,7 @@ namespace Microsoft.CodeAnalysis
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                ProjectState.LanguageServices,
-                                                solution.Services));
+                                                ProjectState.LanguageServices));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                                         // was added, and an equal number must have been removed. Rather than trying to incrementally update

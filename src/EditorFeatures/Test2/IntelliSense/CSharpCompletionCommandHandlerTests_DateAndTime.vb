@@ -625,5 +625,35 @@ class c
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function TestDescriptionOfFullMonthName() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString("$$");
+    }
+}
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                state.SendTypeChars("MMMM")
+                Await state.AssertSelectedCompletionItem("MMMM", inlineDescription:=FeaturesResources.month_full)
+
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Dim text = description.Text
+
+                If CultureInfo.CurrentCulture.Name <> "en-US" Then
+                    Assert.Contains($"MMMM (en-US) → June", text)
+                    Assert.Contains($"MMMM ({CultureInfo.CurrentCulture.Name}) → {CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(6)}", text)
+                Else
+                    Assert.Contains("MMMM → June", text)
+                End If
+            End Using
+        End Function
     End Class
 End Namespace

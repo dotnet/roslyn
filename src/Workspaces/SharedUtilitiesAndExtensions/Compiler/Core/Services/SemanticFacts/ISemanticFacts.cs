@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken);
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
+        SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
 
@@ -104,5 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken);
 
         bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken);
+
+        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
     }
 }
