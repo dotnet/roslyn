@@ -370,16 +370,22 @@ namespace Microsoft.CodeAnalysis
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
 
-                    if (requireDocumentPresentAndClosed)
+                    if (oldDocument is null)
                     {
-                        CheckDocumentIsInSolution(oldSolution, documentId);
-                        @this.CheckDocumentIsClosed(documentId);
-                    }
-                    else
-                    {
-                        if (oldDocument is null)
+                        if (requireDocumentPresentAndClosed)
+                        {
+                            throw new ArgumentException(string.Format(
+                                WorkspacesResources._0_is_not_part_of_the_workspace,
+                                oldSolution.Workspace.GetDocumentName(documentId)));
+                        }
+                        else
+                        {
                             return oldSolution;
+                        }
                     }
+
+                    if (requireDocumentPresentAndClosed)
+                        @this.CheckDocumentIsClosed(documentId);
 
                     var oldDocumentState = oldDocument.State;
 
@@ -638,17 +644,22 @@ namespace Microsoft.CodeAnalysis
                         var documentId = data.documentId;
 
                         var document = oldSolution.GetDocument(documentId);
-                        if (data.requireDocumentPresentAndOpen)
+                        if (document is null)
                         {
-                            CheckDocumentIsInSolution(oldSolution, documentId);
-                            data.@this.CheckDocumentIsOpen(documentId);
-                        }
-                        else
-                        {
-                            // if the document isn't even here, nothing to do.
-                            if (document is null)
+                            if (data.requireDocumentPresentAndOpen)
+                            {
+                                throw new ArgumentException(string.Format(
+                                    WorkspacesResources._0_is_not_part_of_the_workspace,
+                                    oldSolution.Workspace.GetDocumentName(documentId)));
+                            }
+                            else
+                            {
                                 return oldSolution;
+                            }
                         }
+
+                        if (data.requireDocumentPresentAndOpen)
+                            data.@this.CheckDocumentIsOpen(documentId);
 
                         return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
                     },
