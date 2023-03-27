@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
@@ -94,15 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
         {
-            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
-                && parent is DeclarationPatternSyntax declarationPattern
-                && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation))
             {
-                var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
-                    .AddRange(newNameNode.GetLeadingTrivia())
-                    .AddRange(newNameNode.GetTrailingTrivia());
+                var triviaToAppend = newNameNode.GetLeadingTrivia().AddRange(newNameNode.GetTrailingTrivia());
 
-                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                if (parent is DeclarationPatternSyntax declarationPattern &&
+                    parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+                {
+                    var trailingTrivia = declarationPattern.Type.GetTrailingTrivia().AddRange(triviaToAppend);
+                    return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                }
+
+                if (parent is RecursivePatternSyntax recursivePattern)
+                {
+                    var withoutDesignation = recursivePattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
             }
             else if (parent is AssignmentExpressionSyntax assignment &&
                 assignment.Right is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&

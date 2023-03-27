@@ -289,6 +289,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
+            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+            {
+                base.VisitRecursivePattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
             public override void VisitInvocation(IInvocationOperation operation)
             {
                 base.VisitInvocation(operation);
