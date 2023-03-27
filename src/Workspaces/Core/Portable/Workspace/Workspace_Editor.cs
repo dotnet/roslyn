@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis
             SetCurrentSolution(
                 static (oldSolution, data) =>
                 {
-                    var (@this, documentId, _, _, requireDocumentPresentAndClosed) = data;
+                    var (@this, documentId, textContainer, _, requireDocumentPresentAndClosed) = data;
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
                     if (oldDocument is null)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis
 
                     var oldDocumentState = oldDocument.State;
 
-                    var newText = data.textContainer.CurrentText;
+                    var newText = textContainer.CurrentText;
                     if (oldDocument.TryGetText(out var oldText) &&
                         oldDocument.TryGetTextVersion(out var version))
                     {
