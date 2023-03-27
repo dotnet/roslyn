@@ -72,10 +72,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IdeAnalyzerOptions IdeOptions;
 
         /// <summary>
-        /// Indicates a high priority request, such as a user-invoked Ctrl + Dot operation to bring up the light bulb.
+        /// Indicates diagnostic computation for an explicit user-invoked request,
+        /// such as a user-invoked Ctrl + Dot operation to bring up the light bulb.
         /// </summary>
         [DataMember(Order = 9)]
-        public bool HighPriority;
+        public bool IsExplicit;
 
         public DiagnosticArguments(
             bool reportSuppressedDiagnostics,
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ProjectId projectId,
             string[] analyzerIds,
             IdeAnalyzerOptions ideOptions,
-            bool highPriority)
+            bool isExplicit)
         {
             Debug.Assert(documentId != null || documentSpan == null);
             Debug.Assert(documentId != null || documentAnalysisKind == null);
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ProjectId = projectId;
             AnalyzerIds = analyzerIds;
             IdeOptions = ideOptions;
-            HighPriority = highPriority;
+            IsExplicit = isExplicit;
         }
     }
 }

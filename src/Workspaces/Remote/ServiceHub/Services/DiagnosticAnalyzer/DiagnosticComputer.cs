@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             HostWorkspaceServices hostWorkspaceServices,
-            bool highPriority,
+            bool isExplicit,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
@@ -144,8 +144,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
+            // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
+            // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
             var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
-            return highPriority
+            return isExplicit
                 ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
                 : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
         }
@@ -161,9 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // Step 1:
             //  - Create the core 'computeTask' for computing diagnostics.
-            var computeTask = Task.Run(
-                () => GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken),
-                cancellationToken);
+            var computeTask = GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
             // Step 2:
             //  - Add this computeTask to the list of currently executing high priority tasks.
@@ -297,24 +297,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            throw ExceptionUtilities.Unreachable();
-
             Task<SerializableDiagnosticAnalysisResults> CreateComputeTask(CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
             {
                 return Task.Run(async () =>
                 {
                     // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
-                    var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
-                    cancellationToken = linkedCancellationTokenSource.Token;
-
-                    try
-                    {
-                        return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        linkedCancellationTokenSource.Dispose();
-                    }
+                    using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, linkedCancellationTokenSource.Token).ConfigureAwait(false);
                 }, cancellationToken);
             }
 
@@ -338,14 +327,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        try
-                        {
-                            await task.ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // Gracefully ignore cancellations for high priority tasks.
-                        }
+                        // Wait for the high priority task, ignoring all exceptions from it.
+                        await task.NoThrowAwaitable(false);
                     }
                 }
             }

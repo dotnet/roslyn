@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriority priority, bool blockForData,
-            Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, CancellationToken cancellationToken)
+            Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
                 this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priority, shouldIncludeDiagnostic, diagnosticKinds, cancellationToken).ConfigureAwait(false);
+                priority, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
@@ -43,12 +43,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
+            bool isExplicit,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(
                 document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priority, blockForData, addOperationScope, diagnosticKinds, cancellationToken).ConfigureAwait(false);
+                priority, blockForData, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutable();
         }
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
-            private readonly bool _isBlockingRequestForSubSpanInDocument;
+            private readonly bool _isExplicit;
+            private readonly bool _logPerformanceInfo;
             private readonly bool _incrementalAnalysis;
             private readonly DiagnosticKind _diagnosticKind;
 
@@ -95,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  CodeActionRequestPriority priority,
                  Func<string, bool>? shouldIncludeDiagnostic,
                  DiagnosticKind diagnosticKinds,
+                 bool isExplicit,
                  CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -109,11 +112,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // updating the error list simultaneously.
                 var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsLspPullDiagnostics();
 
-                // Flag indicating if we are computing diagnostics for a sub-span in the document
+                // We log performance info when we are computing diagnostics for a span
                 // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span,
                 // so we also check that the range length is lesser then the document text length.
-                var isBlockingRequestForSubSpanInDocument = range.HasValue && blockForData && range.Value.Length < text.Length;
+                var logPerformanceInfo = range.HasValue && blockForData && range.Value.Length < text.Length;
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
                     range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics,
-                    isBlockingRequestForSubSpanInDocument, incrementalAnalysis, diagnosticKinds);
+                    isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -169,7 +172,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CodeActionRequestPriority priority,
                 bool cacheFullDocumentDiagnostics,
-                bool isBlockingRequestForSubSpanInDocument,
+                bool isExplicit,
+                bool logPerformanceInfo,
                 bool incrementalAnalysis,
                 DiagnosticKind diagnosticKind)
             {
@@ -186,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
                 _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
-                _isBlockingRequestForSubSpanInDocument = isBlockingRequestForSubSpanInDocument;
+                _isExplicit = isExplicit;
+                _logPerformanceInfo = logPerformanceInfo;
                 _incrementalAnalysis = incrementalAnalysis;
                 _diagnosticKind = diagnosticKind;
             }
@@ -376,11 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
-
-                // We log performance info and mark the request as high priority when we have a blocking request for a sub-span
-                // in document, i.e. for lightbulb code path for Ctr + Dot invocation.
-                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner,
-                    highPriority: _isBlockingRequestForSubSpanInDocument, logPerformanceInfo: _isBlockingRequestForSubSpanInDocument);
+                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
