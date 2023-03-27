@@ -31,12 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         public CSharpExtractInterfaceService()
         {
         }
+
         protected override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
             var span = new TextSpan(position, 0);
-            var nodes = await document.GetRelevantNodesAsync<SyntaxNode>(span, cancellationToken).ConfigureAwait(false);
+            var typeDeclaration = await document.TryGetRelevantNodeAsync<SyntaxNode>(span, cancellationToken).ConfigureAwait(false);
 
-            var typeDeclaration = nodes.Where(n => n is TypeDeclarationSyntax).FirstOrDefault() ?? nodes.FirstOrDefault();
+            //var typeDeclaration = nodes.Where(n => n is TypeDeclarationSyntax).FirstOrDefault() ?? nodes.FirstOrDefault();
 
             if (typeDeclaration == null)
             {
