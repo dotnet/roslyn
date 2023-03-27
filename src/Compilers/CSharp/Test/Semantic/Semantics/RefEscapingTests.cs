@@ -7092,6 +7092,7 @@ public struct Vec4
             comp.VerifyDiagnostics();
         }
 
+        [WorkItem(67493, "https://github.com/dotnet/roslyn/issues/67493")]
         [Fact]
         public void Local_SwitchStatementExpression()
         {
@@ -7127,6 +7128,7 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "z").WithArguments("z").WithLocation(20, 24));
         }
 
+        [WorkItem(67493, "https://github.com/dotnet/roslyn/issues/67493")]
         [Fact]
         public void Local_ForEachExpression()
         {
