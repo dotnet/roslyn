@@ -11406,14 +11406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void EnsureCapacity(int capacity)
             {
-                int previousCapacity = _state.Capacity;
-                int newCapacity = capacity * 2;
-                _state.EnsureCapacity(newCapacity);
-
-                for (int i = previousCapacity; i < newCapacity; i++)
-                {
-                    _state[i] = true; // (true, true) means NotNull
-                }
+                _state.EnsureCapacity(capacity * 2);
             }
 
             public bool HasVariable(int slot)
@@ -11619,7 +11612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 1; i < Capacity; i++)
                 {
-                    var oldValue = GetValue(i);
+                    // An unreachable state may contain uninitialized `(false, false)` values,
+                    // but it can be turned into a reachable state during a join (see above).
+                    // During that process we can't call GetValue on it.
+                    var oldValue = oldReachable ? GetValue(i) : NullableFlowState.NotNull;
                     var newValue = oldValue.Join(other.GetValue(i));
                     SetValue(i, newValue);
                     hasChanged |= (oldValue != newValue);
