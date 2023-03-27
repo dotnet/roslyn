@@ -629,14 +629,13 @@ namespace Microsoft.CodeAnalysis
                 this.SetCurrentSolution(
                     static (oldSolution, data) =>
                     {
-                        var documentId = data.documentId;
-                        var @this = data.@this;
+                        var (@this, documentId, reloader, requireDocumentPresentAndOpen) = data;
 
                         var document = oldSolution.GetDocument(documentId);
                         if (document is null)
                         {
                             // Didn't have a document.  Throw if required.  Bail out gracefully if not.
-                            if (data.requireDocumentPresentAndOpen)
+                            if (requireDocumentPresentAndOpen)
                             {
                                 throw new ArgumentException(string.Format(
                                     WorkspacesResources._0_is_not_part_of_the_workspace,
@@ -651,36 +650,36 @@ namespace Microsoft.CodeAnalysis
                         if (!@this.IsDocumentOpen(documentId))
                         {
                             // Document wasn't open.  Throw if required.  Bail out gracefull if not.
-                            if (data.requireDocumentPresentAndOpen)
+                            if (requireDocumentPresentAndOpen)
                                 @this.CheckDocumentIsOpen(documentId);
                             else
                                 return oldSolution;
                         }
 
-                        return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
+                        return oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
                     },
                     data: (@this: this, documentId, reloader, requireDocumentPresentAndOpen),
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var documentId = data.documentId;
+                        var (@this, documentId, _, _) = data;
 
                         // forget any open document info
-                        data.@this.ClearOpenDocument(documentId);
+                        @this.ClearOpenDocument(documentId);
 
-                        data.@this.OnDocumentClosing(documentId);
+                        @this.OnDocumentClosing(documentId);
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var documentId = data.documentId;
+                        var (@this, documentId, _, _) = data;
 
                         var newDoc = newSolution.GetRequiredDocument(documentId);
-                        data.@this.OnDocumentTextChanged(newDoc);
+                        @this.OnDocumentTextChanged(newDoc);
 
-                        data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+                        @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
 
                         // We fire and forget 2 events on source document closed.
-                        data.@this.RaiseDocumentClosedEventAsync(newDoc);
-                        data.@this.RaiseTextDocumentClosedEventAsync(newDoc);
+                        @this.RaiseDocumentClosedEventAsync(newDoc);
+                        @this.RaiseTextDocumentClosedEventAsync(newDoc);
                     });
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
