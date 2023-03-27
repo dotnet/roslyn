@@ -33,12 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         // NOTE: If you add new state, you should probably add it to ResetPoint as well.
 
-#if FALSE
-        // NOTE: If you add new state, you should probably add it to ResetPoint as well.
-#else
-        // NOTE: If you add new state, you should probably add it to ResetPoint as well.
-#endif
-
         internal LanguageParser(
             Lexer lexer,
             CSharp.CSharpSyntaxNode? oldTree,
