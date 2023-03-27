@@ -6,8 +6,6 @@ namespace Metalama.Compiler;
 
 public class TransformedFileMapping
 {
-    public static string FileName => "filemap.json";
-
     public string OldPath { get; }
     public string NewPath { get; }
 

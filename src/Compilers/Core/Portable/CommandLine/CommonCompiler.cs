@@ -1699,14 +1699,14 @@ namespace Microsoft.CodeAnalysis
 
                         if (shouldSaveTransformedCode && pathMap.Any())
                         {
-                            var path = Path.Combine(transformedOutputPath, TransformedFileMapping.FileName);
+                            var path = Path.Combine(transformedOutputPath, TransformedFilesMap.FileName);
                             var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                             if (fileStream is not null)
                             {
                                 using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
                                 using var writer = new StreamWriter(fileStream);
 
-                                new JsonSerializer().Serialize(writer, pathMap);
+                                new JsonSerializer().Serialize(writer, new TransformedFilesMap(pathMap));
                             }
                         }
 
