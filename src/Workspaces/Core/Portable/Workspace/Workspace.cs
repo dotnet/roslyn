@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
         /// accordingly.</param>
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
-            Func<Solution, TData, Solution> transformation,
             TData data,
+            Func<Solution, TData, Solution> transformation,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
@@ -456,8 +456,8 @@ namespace Microsoft.CodeAnalysis
         private void ClearSolution(bool reportChangeEvent)
         {
             this.SetCurrentSolution(
-                (oldSolution, _) => this.CreateSolution(oldSolution.Id),
                 data: /*unused*/ 0,
+                (oldSolution, _) => this.CreateSolution(oldSolution.Id),
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
                 {
@@ -827,8 +827,8 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
             this.SetCurrentSolution(
-                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
                 data: (@this: this, documentInfos),
+                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
@@ -1042,6 +1042,7 @@ namespace Microsoft.CodeAnalysis
             // loop, we have to make sure to always clear this each time we enter the loop.
             var updatedDocumentIds = new List<DocumentId>();
             SetCurrentSolution(
+                data: (@this: this, documentId, arg, getDocumentInSolution, updateSolutionWithText, changeKind, isCodeDocument, requireDocumentPresent, updatedDocumentIds),
                 static (oldSolution, data) =>
                 {
                     // Ensure this closure data is always clean if we had to restart the the operation.
@@ -1104,7 +1105,6 @@ namespace Microsoft.CodeAnalysis
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, arg, getDocumentInSolution, updateSolutionWithText, changeKind, isCodeDocument, requireDocumentPresent, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)

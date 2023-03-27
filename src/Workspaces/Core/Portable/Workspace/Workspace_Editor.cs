@@ -358,9 +358,10 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
             SetCurrentSolution(
+                data: (@this: this, documentId, textContainer, isCurrentContext),
                 static (oldSolution, data) =>
                 {
-                    var (@this, documentId, _, _) = data;
+                    var (@this, documentId, textContainer, _) = data;
 
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     @this.CheckDocumentIsClosed(documentId);
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
                     var oldDocumentState = oldDocument.State;
 
-                    var newText = data.textContainer.CurrentText;
+                    var newText = textContainer.CurrentText;
                     if (oldDocument.TryGetText(out var oldText) &&
                         oldDocument.TryGetTextVersion(out var version))
                     {
@@ -385,7 +386,6 @@ namespace Microsoft.CodeAnalysis
                         return oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                     }
                 },
-                data: (@this: this, documentId, textContainer, isCurrentContext),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     var (@this, documentId, textContainer, isCurrentContext) = data;
@@ -525,6 +525,7 @@ namespace Microsoft.CodeAnalysis
             Action<Workspace, DocumentId, SourceText, PreservationMode> onDocumentTextChanged)
         {
             SetCurrentSolution(
+                data: (@this: this, documentId, textContainer, isCurrentContext, workspaceChangeKind, checkTextDocumentIsInSolution, withDocumentText, withDocumentTextAndVersion, onDocumentTextChanged),
                 static (oldSolution, data) =>
                 {
                     var documentId = data.documentId;
@@ -552,7 +553,6 @@ namespace Microsoft.CodeAnalysis
                         return data.withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
                     }
                 },
-                data: (@this: this, documentId, textContainer, isCurrentContext, workspaceChangeKind, checkTextDocumentIsInSolution, withDocumentText, withDocumentTextAndVersion, onDocumentTextChanged),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     var documentId = data.documentId;
@@ -582,37 +582,37 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 this.SetCurrentSolution(
+                    data: (@this: this, documentId, reloader),
                     static (oldSolution, data) =>
                     {
-                        var documentId = data.documentId;
+                        var (@this, documentId, reloader) = data;
 
                         CheckDocumentIsInSolution(oldSolution, documentId);
-                        data.@this.CheckDocumentIsOpen(documentId);
+                        @this.CheckDocumentIsOpen(documentId);
 
-                        return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
+                        return oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
                     },
-                    data: (@this: this, documentId, reloader),
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var documentId = data.documentId;
+                        var (@this, documentId, _) = data;
 
                         // forget any open document info
-                        data.@this.ClearOpenDocument(documentId);
+                        @this.ClearOpenDocument(documentId);
 
-                        data.@this.OnDocumentClosing(documentId);
+                        @this.OnDocumentClosing(documentId);
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var documentId = data.documentId;
+                        var (@this, documentId, _) = data;
 
                         var newDoc = newSolution.GetRequiredDocument(documentId);
-                        data.@this.OnDocumentTextChanged(newDoc);
+                        @this.OnDocumentTextChanged(newDoc);
 
-                        data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+                        @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
 
                         // We fire and forget 2 events on source document closed.
-                        data.@this.RaiseDocumentClosedEventAsync(newDoc);
-                        data.@this.RaiseTextDocumentClosedEventAsync(newDoc);
+                        @this.RaiseDocumentClosedEventAsync(newDoc);
+                        @this.RaiseTextDocumentClosedEventAsync(newDoc);
                     });
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
@@ -652,6 +652,7 @@ namespace Microsoft.CodeAnalysis
             Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
         {
             this.SetCurrentSolution(
+                data: (@this: this, documentId, reloader, workspaceChangeKind, checkTextDocumentIsInSolution, withTextDocumentTextLoader),
                 static (oldSolution, data) =>
                 {
                     var documentId = data.documentId;
@@ -662,7 +663,6 @@ namespace Microsoft.CodeAnalysis
 
                     return data.withTextDocumentTextLoader(oldSolution, documentId, data.reloader, PreservationMode.PreserveValue);
                 },
-                data: (@this: this, documentId, reloader, workspaceChangeKind, checkTextDocumentIsInSolution, withTextDocumentTextLoader),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // forget any open document info
