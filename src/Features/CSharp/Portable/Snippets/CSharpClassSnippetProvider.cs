@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public CSharpClassSnippetProvider()
         {
         }
+
         public override string Identifier => "class";
 
         public override string Description => FeaturesResources.class_;

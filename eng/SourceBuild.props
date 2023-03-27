@@ -3,6 +3,7 @@
   <PropertyGroup>
     <GitHubRepositoryName>roslyn</GitHubRepositoryName>
     <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
+    <SourceBuildTrimNetFrameworkTargets>true</SourceBuildTrimNetFrameworkTargets>
   </PropertyGroup>
 
   <!--

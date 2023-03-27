@@ -432,6 +432,11 @@
         <target state="translated">Abilita tutte le funzionalità nei file aperti dai generatori di origine (sperimentale)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Abilita la registrazione dei file a scopo di diagnostica (nella cartella '%Temp%\Roslyn')</target>

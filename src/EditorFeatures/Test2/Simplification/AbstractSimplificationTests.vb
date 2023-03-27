@@ -18,18 +18,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public MustInherit Class AbstractSimplificationTests
 
         Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As OptionsCollection = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
-            Using workspace = CreateTestWorkspace(definition, csharpParseOptions)
+            Using workspace = Await CreateTestWorkspaceAsync(definition, csharpParseOptions)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
                 Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
 
-        Protected Shared Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As TestWorkspace
+        Protected Shared Async Function CreateTestWorkspaceAsync(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As Task(Of TestWorkspace)
             Dim workspace = TestWorkspace.Create(definition)
 
             If csharpParseOptions IsNot Nothing Then
                 For Each project In workspace.CurrentSolution.Projects
-                    workspace.ChangeSolution(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
+                    Await workspace.ChangeSolutionAsync(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
                 Next
             End If
 
