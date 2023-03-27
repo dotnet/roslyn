@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Sets the input source file for analyzer or code fix testing.
         /// </summary>
         /// <seealso cref="TestState"/>
-        public string TestCode
+        public string? TestCode
         {
             set
             {
@@ -497,6 +497,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
+            if (LightupCompilationWithAnalyzers.IsTestingDiagnosticSuppressors(analyzers))
+            {
+                // Actually the way suppressed diagnostics are reported in CA framework 4.x conflicts with the way VerifySuppressionDiagnosticsAsync is implemented, so this will always fail.
+                // Anyhow if we test diagnostic suppressors, this check is not required, since it tests suppressing issues via source code by adding #pragma warning disable
+                return;
+            }
+
             if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
             {
                 return;
@@ -1306,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
         protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            => compilation.WithAnalyzers(analyzers, options, cancellationToken);
+            => LightupCompilationWithAnalyzers.Create(compilation, analyzers, options, cancellationToken);
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the
