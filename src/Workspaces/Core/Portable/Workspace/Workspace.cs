@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis
                     // Ensure this closure data is always clean if we had to restart the the operation.
                     var updatedDocumentIds = data.updatedDocumentIds;
                     updatedDocumentIds.Clear();
-                    
+
                     var @this = data.@this;
                     var documentId = data.documentId;
 
