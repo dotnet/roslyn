@@ -285,10 +285,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
                 else
                 {
+                    // Kicking off the task for expanded items, so it runs in parallel with regular providers.
+                    // Otherwise, the computation of unimported items won't start until we return those regular items to editor,
+                    // which combined with our behavior of not showing expanded items until ready (and only adding them during
+                    // completion list refresh) means increased chance that users won't see those items for the first few characters typed.
+                    // This does mean we might do unnecessary work if any regular provider is `exclusive`, but such cases are relatively infrequent
+                    // and we'd like to have expanded items available when they are needed.
                     var expandedItemsTaskCancellationToken = _expandedItemsTaskCancellationSeries.CreateNext(cancellationToken);
-                    var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
+                    var expandedItemsTask = Task.Run(() => GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                                                                         options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly },
-                                                                        expandedItemsTaskCancellationToken).ConfigureAwait(false),
+                                                                        expandedItemsTaskCancellationToken),
                                                      expandedItemsTaskCancellationToken);
 
                     // Now trigger and wait for core providers to return;
@@ -297,10 +303,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     UpdateSessionData(session, sessionData, nonExpandedCompletionList, triggerLocation);
 
-                    // If the core items are exclusive, we don't include expanded items.
-                    // This would cancel expandedItemsTask.
                     if (sessionData.IsExclusive)
                     {
+                        // If the core items are exclusive, we won't ever include expanded items.
+                        // This would cancel expandedItemsTask.
                         _ = _expandedItemsTaskCancellationSeries.CreateNext(CancellationToken.None);
                     }
                     else

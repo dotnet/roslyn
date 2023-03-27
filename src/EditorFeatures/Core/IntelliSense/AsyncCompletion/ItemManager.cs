@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// The threshold for us to consider exclude (potentially large amount of) expanded items from completion list.
         /// Showing a large amount of expanded items to user would introduce noise and render the list too long to browse.
         /// Not processing those expanded items also has perf benefit (e.g. matching and highlighting could be expensive.)
-        /// We set it to 2 because it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuiler`.
+        /// We set it to 2 because it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuilder`.
         /// </summary>
-        internal const int FilterTextLengthToExcludeExpandedItemsExclusive = 2;
+        public const int FilterTextLengthToExcludeExpandedItemsExclusive = 2;
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly EditorOptionsService _editorOptionsService;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
-                else if (!ShouldHideExpandedItems() && sessionData.ExpandedItemsTask is not null)
+                else if (ShouldShowExpandedItems() && sessionData.ExpandedItemsTask is not null)
                 {
                     var task = sessionData.ExpandedItemsTask;
 
@@ -143,14 +143,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
             }
 
-            // Don't hide expanded items if all these conditions are met:
-            // 1. filter text length >= 2 (it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuiler`)
+            // Show expanded items if any of these conditions is true:
+            // 1. filter text length >= 2 (it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuilder`)
             // 2. the completion is triggered in the context of listing members (it usually has much fewer items and more often used for browsing purpose)
-            // 3. defaults is not empty (it might suggests an expanded item)
-            bool ShouldHideExpandedItems()
-                => session.ApplicableToSpan.GetText(data.Snapshot).Length < FilterTextLengthToExcludeExpandedItemsExclusive
-                    && !IsAfterDot(data.Snapshot, session.ApplicableToSpan)
-                    && data.Defaults.IsEmpty;
+            // 3. defaults is not empty, since they might suggest expanded items (Defaults are the mechanism whole-line-completion uses to communicate with
+            //    completion and make our selection consistent with their suggestion)
+            bool ShouldShowExpandedItems()
+                => session.ApplicableToSpan.GetText(data.Snapshot).Length >= FilterTextLengthToExcludeExpandedItemsExclusive
+                    || IsAfterDot(data.Snapshot, session.ApplicableToSpan)
+                    || !data.Defaults.IsEmpty;
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
