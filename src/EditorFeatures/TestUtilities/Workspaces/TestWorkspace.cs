@@ -671,7 +671,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// workspace was loaded, throwing away any changes made to the open version.
         /// </summary>
         internal override void TryOnDocumentClosed(DocumentId documentId)
-            => CloseDocument(documentId);
+        {
+            Contract.ThrowIfFalse(this._supportsLspMutation);
+            CloseDocument(documentId);
+        }
 
         public override void CloseDocument(DocumentId documentId)
         {
