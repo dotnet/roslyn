@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             throw new ArgumentException(string.Format(
                                 WorkspacesResources._0_is_not_part_of_the_workspace,
-                                oldSolution.Workspace.GetDocumentName(documentId)));
+                                @this.GetDocumentName(documentId)));
                         }
                         else
                         {
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 throw new ArgumentException(string.Format(
                                     WorkspacesResources._0_is_not_part_of_the_workspace,
-                                    oldSolution.Workspace.GetDocumentName(documentId)));
+                                    @this.GetDocumentName(documentId)));
                             }
                             else
                             {
