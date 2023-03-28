@@ -8443,7 +8443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            Debug.Assert(!IsConditionalState);
+            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
+            // Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
@@ -11612,7 +11613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 1; i < Capacity; i++)
                 {
-                    var oldValue = GetValue(i);
+                    // An unreachable state may contain uninitialized `(false, false)` values,
+                    // but it can be turned into a reachable state during a join (see above).
+                    // During that process we can't call GetValue on it.
+                    var oldValue = oldReachable ? GetValue(i) : NullableFlowState.NotNull;
                     var newValue = oldValue.Join(other.GetValue(i));
                     SetValue(i, newValue);
                     hasChanged |= (oldValue != newValue);
