@@ -202,8 +202,8 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void StartTracking(Uri uri, SourceText initialText)
-        => _documentChangeTracker.StartTracking(uri, initialText);
+    public ValueTask StartTrackingAsync(Uri uri, SourceText initialText)
+        => _documentChangeTracker.StartTrackingAsync(uri, initialText);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
@@ -222,8 +222,8 @@ internal readonly struct RequestContext
     /// Allows a mutating request to close a document and stop it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void StopTracking(Uri uri)
-        => _documentChangeTracker.StopTracking(uri);
+    public ValueTask StopTrackingAsync(Uri uri)
+        => _documentChangeTracker.StopTrackingAsync(uri);
 
     public bool IsTracking(Uri documentUri)
         => _trackedDocuments.ContainsKey(documentUri);
