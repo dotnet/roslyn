@@ -9036,7 +9036,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67499"), WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
         public async Task TestPropertyPatternAssignment4()
         {
             var source = """
@@ -9162,7 +9162,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact(Skip = "TODO"), WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
         public async Task TestListPatternAssignment3()
         {
             var source = """

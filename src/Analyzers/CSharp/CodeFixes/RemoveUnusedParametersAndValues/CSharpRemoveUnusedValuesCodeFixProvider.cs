@@ -137,6 +137,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             return null;
         }
 
+        protected override SyntaxNode ComputeReplacementNode(SyntaxNode originalOldNode, SyntaxNode changedOldNode, SyntaxNode proposedReplacementNode)
+        {
+            // Check for the following change: `{ ... } variable` -> `{ ... }`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is RecursivePatternSyntax originalOldRecursivePattern &&
+                proposedReplacementNode is RecursivePatternSyntax proposedReplacementRecursivePattern &&
+                proposedReplacementRecursivePattern.IsEquivalentTo(originalOldRecursivePattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((RecursivePatternSyntax)changedOldNode).WithDesignation(null)
+                                                                                  .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            // Check for the following change: `[...] variable` -> `[...]`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is ListPatternSyntax originalOldListPattern &&
+                proposedReplacementNode is ListPatternSyntax proposedReplacementListPattern &&
+                proposedReplacementListPattern.IsEquivalentTo(originalOldListPattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((ListPatternSyntax)changedOldNode).WithDesignation(null)
+                                                                             .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            return proposedReplacementNode.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
         protected override void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)
         {
             var firstStatement = switchCaseBlock.Statements.FirstOrDefault();
@@ -223,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
 
             // Otherwise just return new node as a replacement.
-            // This would be the default behaviour if there was no special case described above
+            // This would be the default behavior if there was no special case described above
             return newNameNode;
         }
     }

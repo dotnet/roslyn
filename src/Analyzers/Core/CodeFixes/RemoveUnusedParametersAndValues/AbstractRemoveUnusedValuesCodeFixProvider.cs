@@ -122,6 +122,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
         protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel) => null;
 
+        /// <summary>
+        /// Computes correct replacement node, including cases with recursive changes (e.g. recursive pattern node rewrite in fix-all scenario)
+        /// </summary>
+        /// <param name="originalOldNode">The original node for replacement</param>
+        /// <param name="changedOldNode">Node for replacement transformed by previous replacements</param>
+        /// <param name="proposedReplacementNode">Proposed replacement node with changes relative to <paramref name="originalOldNode"/></param>
+        /// <returns>The final replacement for the node</returns>
+        protected abstract SyntaxNode ComputeReplacementNode(SyntaxNode originalOldNode, SyntaxNode changedOldNode, SyntaxNode proposedReplacementNode);
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
@@ -659,7 +668,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             foreach (var (node, replacement) in nodeReplacementMap)
-                editor.ReplaceNode(node, replacement.WithAdditionalAnnotations(Formatter.Annotation));
+                editor.ReplaceNode(node, (oldNode, _) => ComputeReplacementNode(node, oldNode, replacement));
 
             return;
 
