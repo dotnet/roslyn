@@ -356,17 +356,44 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        internal void TryOnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext)
+            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+
+        internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             SetCurrentSolution(
-                data: (@this: this, documentId, textContainer, isCurrentContext),
+                data: (@this: this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed),
                 static (oldSolution, data) =>
                 {
-                    var (@this, documentId, textContainer, _) = data;
-
-                    CheckDocumentIsInSolution(oldSolution, documentId);
-                    @this.CheckDocumentIsClosed(documentId);
+                    var (@this, documentId, textContainer, _, requireDocumentPresentAndClosed) = data;
 
                     var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                    if (oldDocument is null)
+                    {
+                        // Didn't have a document.  Throw if required.  Bail out gracefully if not.
+                        if (requireDocumentPresentAndClosed)
+                        {
+                            throw new ArgumentException(string.Format(
+                                WorkspacesResources._0_is_not_part_of_the_workspace,
+                                @this.GetDocumentName(documentId)));
+                        }
+                        else
+                        {
+                            return oldSolution;
+                        }
+                    }
+
+                    if (@this.IsDocumentOpen(documentId))
+                    {
+                        // Document was already open.  Throw if required.  Bail out gracefully if not.
+                        if (requireDocumentPresentAndClosed)
+                            @this.CheckDocumentIsClosed(documentId);
+                        else
+                            return oldSolution;
+                    }
+
                     var oldDocumentState = oldDocument.State;
 
                     var newText = textContainer.CurrentText;
@@ -388,7 +415,7 @@ namespace Microsoft.CodeAnalysis
                 },
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
-                    var (@this, documentId, textContainer, isCurrentContext) = data;
+                    var (@this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed) = data;
 
                     @this.AddToOpenDocumentMap(documentId);
                     @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
@@ -571,9 +598,27 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+        /// <summary>
+        /// Tries to close the document identified by <paramref name="documentId"/>.  This is only needed by
+        /// implementations of ILspWorkspace to indicate that the workspace should try to transition to the closed state
+        /// for this document, but can bail out gracefully if they don't know about it (for example if they haven't
+        /// heard about the file from the project system).  Subclasses should determine what file contents they should
+        /// transition to if the file is within the workspace.
+        /// </summary>
+        /// <param name="documentId"></param>
+        internal virtual void TryOnDocumentClosed(DocumentId documentId)
+        {
+            throw new NotImplementedException();
+        }
+
 #pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
 #pragma warning restore IDE0060 // Remove unused parameter
+        {
+            OnDocumentClosedEx(documentId, reloader, requireDocumentPresentAndOpen: true);
+        }
+
+        private protected void OnDocumentClosedEx(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
@@ -582,19 +627,41 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 this.SetCurrentSolution(
-                    data: (@this: this, documentId, reloader),
+                    data: (@this: this, documentId, reloader, requireDocumentPresentAndOpen),
                     static (oldSolution, data) =>
                     {
-                        var (@this, documentId, reloader) = data;
+                        var (@this, documentId, reloader, requireDocumentPresentAndOpen) = data;
 
-                        CheckDocumentIsInSolution(oldSolution, documentId);
-                        @this.CheckDocumentIsOpen(documentId);
+                        var document = oldSolution.GetDocument(documentId);
+                        if (document is null)
+                        {
+                            // Didn't have a document.  Throw if required.  Bail out gracefully if not.
+                            if (requireDocumentPresentAndOpen)
+                            {
+                                throw new ArgumentException(string.Format(
+                                    WorkspacesResources._0_is_not_part_of_the_workspace,
+                                    @this.GetDocumentName(documentId)));
+                            }
+                            else
+                            {
+                                return oldSolution;
+                            }
+                        }
+
+                        if (!@this.IsDocumentOpen(documentId))
+                        {
+                            // Document wasn't open.  Throw if required.  Bail out gracefull if not.
+                            if (requireDocumentPresentAndOpen)
+                                @this.CheckDocumentIsOpen(documentId);
+                            else
+                                return oldSolution;
+                        }
 
                         return oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
                     },
                     onBeforeUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var (@this, documentId, _) = data;
+                        var (@this, documentId, _, _) = data;
 
                         // forget any open document info
                         @this.ClearOpenDocument(documentId);
@@ -603,7 +670,7 @@ namespace Microsoft.CodeAnalysis
                     },
                     onAfterUpdate: static (oldSolution, newSolution, data) =>
                     {
-                        var (@this, documentId, _) = data;
+                        var (@this, documentId, _, _) = data;
 
                         var newDoc = newSolution.GetRequiredDocument(documentId);
                         @this.OnDocumentTextChanged(newDoc);

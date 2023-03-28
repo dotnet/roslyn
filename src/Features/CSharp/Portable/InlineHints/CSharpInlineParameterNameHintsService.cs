@@ -4,14 +4,12 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
@@ -102,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
         protected override string GetReplacementText(string parameterName)
         {
-            return parameterName + ": ";
+            var keywordKind = SyntaxFacts.GetKeywordKind(parameterName);
+            var isReservedKeyword = SyntaxFacts.IsReservedKeyword(keywordKind);
+            return (isReservedKeyword ? "@" : string.Empty) + parameterName + ": ";
         }
     }
 }
