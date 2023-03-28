@@ -253,27 +253,22 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Add(cancellationTokenSource);
                 }
 
-                // Step 3:
-                //  - Create the core 'computeTask' for computing diagnostics.
-                var computeTask = GetDiagnosticsAsync(
-                    analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
-                    cancellationTokenSource.Token);
-
                 try
                 {
-                    // Step 4:
-                    //  - Execute the core 'computeTask' for diagnostic computation.
-                    return await computeTask.ConfigureAwait(false);
+                    // Step 3:
+                    //  - Execute the core compute task for diagnostic computation.
+                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
+                        cancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationTokenSource.Token)
                 {
-                    // Step 5:
+                    // Step 4:
                     //  - Attempt to re-execute this cancelled normal priority task by running the loop again.
                     continue;
                 }
                 finally
                 {
-                    // Step 6:
+                    // Step 5:
                     //  - Remove the 'cancellationTokenSource' for completed or cancelled task.
                     //    For the case where the computeTask was cancelled, we will create a new
                     //    'cancellationTokenSource' for the retry.
@@ -301,13 +296,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         return;
                     }
 
-                    foreach (var task in highPriorityTasksToAwait)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // Wait for the high priority task, ignoring all exceptions from it.
-                        await task.NoThrowAwaitable(false);
-                    }
+                    // Wait for all the high priority tasks, ignoring all exceptions from it.
+                    await Task.WhenAll(highPriorityTasksToAwait).WithCancellation(cancellationToken).NoThrowAwaitable(false);
                 }
             }
         }
