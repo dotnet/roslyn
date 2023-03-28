@@ -13,6 +13,12 @@
       "commands": [
         "dotnet-format"
       ]
+    },
+    "dotnet-coverage": {
+      "version": "17.6.11",
+      "commands": [
+        "dotnet-coverage"
+      ]
     }
   }
 }
