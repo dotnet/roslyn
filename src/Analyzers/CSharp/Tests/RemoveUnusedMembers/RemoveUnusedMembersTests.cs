@@ -3138,7 +3138,7 @@ class MyClass
     VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
         }
 
-        [Fact, WorkItem(62856, "https://github.com/dotnet/roslyn/issues/62856")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
         public async Task DontWarnForAwaiterMethods()
         {
             const string code = @"using System;
