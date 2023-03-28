@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
             context.TraceInformation($"didClose for {request.TextDocument.Uri}");
 
-            await context.StopTrackingAsync(request.TextDocument.Uri).ConfigureAwait(false);
+            await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
     }
 }

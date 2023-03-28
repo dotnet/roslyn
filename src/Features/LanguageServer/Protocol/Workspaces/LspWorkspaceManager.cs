@@ -99,7 +99,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText)
+    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText, CancellationToken cancellationToken)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -123,10 +123,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             foreach (var workspace in registeredWorkspaces)
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
-                {
-                    workspace.TryOnDocumentOpened(documentId, documentText.Container, isCurrentContext: false);
-                    return ValueTaskFactory.CompletedTask;
-                }).ConfigureAwait(false);
+                    workspace.TryOnDocumentOpenedAsync(documentId, documentText.Container, isCurrentContext: false, cancellationToken)).ConfigureAwait(false);
             }
         }
     }
@@ -136,7 +133,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public async ValueTask StopTrackingAsync(Uri uri)
+    public async ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
     {
         // First, stop tracking this URI and source text as it is no longer owned by LSP.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
@@ -161,10 +158,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             foreach (var workspace in registeredWorkspaces)
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
-                {
-                    workspace.TryOnDocumentClosed(documentId);
-                    return ValueTaskFactory.CompletedTask;
-                }).ConfigureAwait(false);
+                    workspace.TryOnDocumentClosedAsync(documentId, cancellationToken)).ConfigureAwait(false);
             }
         }
     }
@@ -363,7 +357,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     //
                     // TODO(cyrusn): Do we need to pass a correct value for isCurrentContext?  Or will that fall out from
                     // something else in lsp.
-                    workspace.TryOnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
+                    await workspace.TryOnDocumentOpenedAsync(
+                        documentId, sourceText.Container, isCurrentContext: false, cancellationToken).ConfigureAwait(false);
 
                     // Note: there is a race here in that we might see/change/return here based on the
                     // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
@@ -371,7 +366,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     // though.  The caller will always grab the 'current solution' again off of the workspace
                     // and check the checksums of all documents against the ones this workspace manager is
                     // tracking.  If there are any differences, it will fork and use that fork.
-                    await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText).ConfigureAwait(false);
+                    await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
         }

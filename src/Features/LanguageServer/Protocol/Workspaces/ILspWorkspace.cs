@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -36,5 +37,5 @@ internal interface ILspWorkspace
     /// name="sourceText"/>.  Does nothing if the document is not present in the workspace (for example if something
     /// else removed it).
     /// </summary>
-    ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText);
+    ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken);
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
@@ -15,19 +16,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal interface IDocumentChangeTracker
 {
-    ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText);
+    ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, CancellationToken cancellationToken);
     void UpdateTrackedDocument(Uri documentUri, SourceText text);
-    ValueTask StopTrackingAsync(Uri documentUri);
+    ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken);
 }
 
 internal class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
-    public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText)
+    public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
 
-    public ValueTask StopTrackingAsync(Uri documentUri)
+    public ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
