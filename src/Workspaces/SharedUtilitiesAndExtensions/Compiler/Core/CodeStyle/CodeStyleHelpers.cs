@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return true;
             }
 
-            int secondColonIndex = arg.IndexOf(':', firstColonIndex + 1);
+            var secondColonIndex = arg.IndexOf(':', firstColonIndex + 1);
             if (secondColonIndex == -1)
             {
                 // If we have two args, then the second must be a notification option.  If 
                 // it isn't, then this isn't a valid code style option at all.
-                string secondValue = arg.Substring(firstColonIndex + 1);
+                var secondValue = arg.Substring(firstColonIndex + 1);
                 if (TryParseNotification(secondValue, out var localNotification))
                 {
                     var firstValue = arg.Substring(0, firstColonIndex);
