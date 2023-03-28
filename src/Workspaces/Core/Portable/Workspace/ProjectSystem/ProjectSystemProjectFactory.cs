@@ -199,45 +199,32 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
         public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
         {
+            // We need the data from the accumulator across the lambda callbacks to SetCurrentSolutionAsync, so declare
+            // it here. It will be assigned in `transformation:` below (which may happen multiple times if the
+            // transformation needs to rerun).  Once the transformation succeeds and is applied, the
+            // 'onBeforeUpdate/onAfterUpdate' callbacks will be called, and can use the last assigned value in
+            // `transformation`.
             SolutionChangeAccumulator solutionChanges = null!;
 
-
-
-            Workspace.SetCurrentSolution(
-                oldSolution =>
+            await Workspace.SetCurrentSolutionAsync(
+                useAsync,
+                transformation: oldSolution =>
                 {
-                    
+                    solutionChanges = new SolutionChangeAccumulator(oldSolution);
+                    mutation(solutionChanges);
+
+                    return solutionChanges.HasChange ? solutionChanges.Solution : oldSolution;
                 },
-                )
-
-            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
-            {
-                var solutionChanges = new SolutionChangeAccumulator(Workspace.CurrentSolution);
-                mutation(solutionChanges);
-
-                ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
-            }
-        }
-
-        private void ApplyBatchChangeToWorkspace_NoLock(SolutionChangeAccumulator solutionChanges)
-        {
-            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
-
-            if (!solutionChanges.HasChange)
-                return;
-
-            Workspace.SetCurrentSolution(
-                _ => solutionChanges.Solution,
-                solutionChanges.WorkspaceChangeKind,
-                solutionChanges.WorkspaceChangeProjectId,
-                solutionChanges.WorkspaceChangeDocumentId,
+                changeKind: (_, _) => (solutionChanges.WorkspaceChangeKind, solutionChanges.WorkspaceChangeProjectId, solutionChanges.WorkspaceChangeDocumentId),
                 onBeforeUpdate: (_, _) =>
                 {
                     // Clear out mutable state not associated with the solution snapshot (for example, which documents are
                     // currently open).
                     foreach (var documentId in solutionChanges.DocumentIdsRemoved)
                         Workspace.ClearDocumentData(documentId);
-                });
+                },
+                onAfterUpdate: null,
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -275,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 _projectReferenceInfoMap.Remove(projectId);
             }
 
-            ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
+            ImmutableInterlocked.TryRemove(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
             ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
 
             _onProjectRemoved?.Invoke(project);

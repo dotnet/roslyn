@@ -244,7 +244,31 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            var (oldSolution, newSolution) = SetCurrentSolution(
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                transformation,
+                changeKind,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+#pragma warning restore CA2012 // Use ValueTasks correctly
+
+            Contract.ThrowIfFalse(valueTask.IsCompleted, "Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+            return valueTask.GetAwaiter().GetResult();
+        }
+
+        internal async ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
+            bool useAsync,
+            Func<Solution, Solution> transformation,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
+            Action<Solution, Solution>? onBeforeUpdate,
+            Action<Solution, Solution>? onAfterUpdate,
+            CancellationToken cancellationToken)
+        {
+            var (oldSolution, newSolution) = await SetCurrentSolutionAsync(
+                useAsync,
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind),
                 transformation: static (oldSolution, data) =>
                 {
                     var newSolution = data.transformation(oldSolution);
@@ -256,7 +280,6 @@ namespace Microsoft.CodeAnalysis
 
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
-                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -270,7 +293,8 @@ namespace Microsoft.CodeAnalysis
                     // as the order of the changes made to the solution.
                     var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
                     data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
-                });
+                },
+                cancellationToken).ConfigureAwait(false);
 
             return (oldSolution != newSolution, newSolution);
 
@@ -360,6 +384,29 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                data,
+                transformation,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+#pragma warning restore CA2012 // Use ValueTasks correctly
+
+            Contract.ThrowIfFalse(valueTask.IsCompleted, "Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+            return valueTask.GetAwaiter().GetResult();
+        }
+
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
+            bool useAsync,
+            TData data,
+            Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData>? onBeforeUpdate,
+            Action<Solution, Solution, TData>? onAfterUpdate,
+            CancellationToken cancellationToken)
+        {
             Contract.ThrowIfNull(transformation);
 
             var oldSolution = Volatile.Read(ref _latestSolution);
@@ -378,7 +425,7 @@ namespace Microsoft.CodeAnalysis
                     return (oldSolution, newSolution);
 
                 // Now, take the lock and try to update our internal state.
-                using (_serializationLock.DisposableWait())
+                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
                 {
                     if (_latestSolution != oldSolution)
                     {
