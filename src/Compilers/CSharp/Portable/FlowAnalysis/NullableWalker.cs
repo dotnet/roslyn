@@ -8443,7 +8443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            Debug.Assert(!IsConditionalState);
+            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
+            // Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
@@ -11522,15 +11523,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return NullableFlowState.NotNull;
                 }
+
                 Debug.Assert(index < Capacity);
                 index *= 2;
+                Debug.Assert((_state[index], _state[index + 1]) != (false, false));
+
                 var result = (_state[index], _state[index + 1]) switch
                 {
-                    (false, false) => throw ExceptionUtilities.Unreachable(),
+                    (false, false) => NullableFlowState.NotNull, // Should not be reachable
                     (true, false) => NullableFlowState.MaybeNull,
                     (false, true) => NullableFlowState.MaybeDefault,
                     (true, true) => NullableFlowState.NotNull
                 };
+
                 return result;
             }
 

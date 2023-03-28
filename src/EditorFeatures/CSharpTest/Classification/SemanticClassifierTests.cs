@@ -5474,5 +5474,60 @@ int m(Delegate d) { }",
                 Method("staticLocalFunction"),
                 Static("staticLocalFunction"));
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestEscapeFourBytesCharacter(TestHost testHost)
+        {
+            await TestAsync(@"
+class C
+{
+        void M()
+        {
+            var x = ""𠀀𠀁𠣶𤆐𥽠𪛕"";
+        }
+}", testHost,
+Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestEscapeCharacter(TestHost testHost)
+        {
+            await TestAsync(@"
+class C
+{
+    string x1 = ""\xabcd"";
+    string x2 = ""\uabcd"";
+    string x3 = ""\U00009F99"";
+    string x4 = ""\'"";
+    string x5 = ""\"""";
+    string x6 = ""\\"";
+    string x7 = ""\0"";
+    string x8 = ""\a"";
+    string x9 = ""\b"";
+    string x10 = ""\f"";
+    string x11 = ""\n"";
+    string x12 = ""\r"";
+    string x13 = ""\t"";
+    string x14 = ""\v"";
+    string x15 = @"""""""";
+}", testHost,
+Escape("\\xabcd"),
+Escape("\\uabcd"),
+Escape("\\U00009F99"),
+Escape("\\\'"),
+Escape("\\\""),
+Escape("\\\\"),
+Escape("\\0"),
+Escape("\\a"),
+Escape("\\b"),
+Escape("\\f"),
+Escape("\\n"),
+Escape("\\r"),
+Escape("\\t"),
+Escape("\\v"),
+Escape("\"\"")
+);
+
+        }
     }
 }
