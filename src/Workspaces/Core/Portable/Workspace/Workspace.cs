@@ -100,6 +100,21 @@ namespace Microsoft.CodeAnalysis
         internal bool IsCurrentlyHoldingSerializationLock => _serializationLock.CurrentCount == 0;
 
         /// <summary>
+        /// Runs the provided callback while holding <see cref="_serializationLock"/>.  This function is <em>very</em>
+        /// dangerous and should only be used sparingly by clients of the workspace that need to mutate it and must
+        /// ensure that their operations act atomically with respect to all other workspace mutations.  This function,
+        /// by design, holds a lock and makes a call out to externally provided code.  As such, it is the responsibility
+        /// of the caller to make sure this is 100% safe (no lock inversions for example).
+        /// </summary>
+        internal async ValueTask RunCodeUnderSerializationLockAsync(bool useAsync, Action<Workspace> action, CancellationToken cancellationToken)
+        {
+            using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+            {
+                action(this);
+            }
+        }
+
+        /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
@@ -193,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
+        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, ValueTuple{WorkspaceChangeKind, ProjectId?, DocumentId?}}, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
         internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind changeKind,
@@ -204,9 +219,7 @@ namespace Microsoft.CodeAnalysis
         {
             var (updated, _) = SetCurrentSolution(
                 transformation,
-                (_, _) => changeKind,
-                projectId,
-                documentId,
+                (_, _) => (changeKind, projectId, documentId),
                 onBeforeUpdate,
                 onAfterUpdate);
             return updated;
@@ -220,18 +233,14 @@ namespace Microsoft.CodeAnalysis
         /// allowing that memory to be shared.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
-        /// <param name="changeKind">The kind of workspace change event to raise.</param>
-        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to
-        /// the workspace change event.</param>
-        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to
-        /// the workspace change event.</param>
+        /// <param name="changeKind">The kind of workspace change event to raise. The id of the project updated by
+        /// <paramref name="transformation"/> to be passed to the workspace change event.  And the id of the document
+        /// updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
         private protected (bool updated, Solution newSolution) SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            Func<Solution, Solution, WorkspaceChangeKind> changeKind,
-            ProjectId? projectId = null,
-            DocumentId? documentId = null,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
@@ -247,7 +256,7 @@ namespace Microsoft.CodeAnalysis
 
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
-                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind, projectId, documentId),
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -259,8 +268,8 @@ namespace Microsoft.CodeAnalysis
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    var kind = data.changeKind(oldSolution, newSolution);
-                    data.@this.RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, data.projectId, data.documentId);
+                    var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
+                    data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
                 });
 
             return (oldSolution != newSolution, newSolution);
@@ -351,31 +360,6 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
-            // Fine to suppress this warning as we do pass useAsync: false here, and we also contract throw below if the
-            // ValueTask isn't completed.
-#pragma warning disable CA2012 // Use ValueTasks correctly.
-            var valueTask = SetCurrentSolutionAsync(
-                useAsync: false,
-                data,
-                transformation,
-                onBeforeUpdate,
-                onAfterUpdate,
-                CancellationToken.None);
-
-            Contract.ThrowIfFalse(valueTask.IsCompleted, "We passed 'useAsync: false' to SetCurrentSolutionAsync.  So it must always complete synchronously");
-            return valueTask.GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
-        }
-
-        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
-        private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
-            bool useAsync,
-            TData data,
-            Func<Solution, TData, Solution> transformation,
-            Action<Solution, Solution, TData>? onBeforeUpdate,
-            Action<Solution, Solution, TData>? onAfterUpdate,
-            CancellationToken cancellationToken)
-        {
             Contract.ThrowIfNull(transformation);
 
             var oldSolution = Volatile.Read(ref _latestSolution);
@@ -394,7 +378,7 @@ namespace Microsoft.CodeAnalysis
                     return (oldSolution, newSolution);
 
                 // Now, take the lock and try to update our internal state.
-                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                using (_serializationLock.DisposableWait())
                 {
                     if (_latestSolution != oldSolution)
                     {

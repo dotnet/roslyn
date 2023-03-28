@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
     /// A little helper type to hold onto the <see cref="Solution"/> being updated in a batch, which also
     /// keeps track of the right <see cref="CodeAnalysis.WorkspaceChangeKind"/> to raise when we are done.
     /// </summary>
-    internal class SolutionChangeAccumulator
+    internal sealed class SolutionChangeAccumulator
     {
         /// <summary>
         /// The kind that encompasses all the changes we've made. It's null if no changes have been made,

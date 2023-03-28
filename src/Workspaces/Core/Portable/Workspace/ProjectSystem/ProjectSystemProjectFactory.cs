@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -153,44 +154,30 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// </summary>
         public void ApplyChangeToWorkspace(Action<Workspace> action)
         {
-            using (_gate.DisposableWait())
-            {
-                action(Workspace);
-            }
+            var result = this.Workspace.RunCodeUnderSerializationLockAsync(useAsync: false, action, CancellationToken.None);
+            Contract.ThrowIfFalse(result.IsCompleted, "Result should always be completed as we passed useAsync: false to RunCodeUnderSerializationLockAsync");
         }
 
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
-        {
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-            {
-                action(Workspace);
-            }
-        }
+        public ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
+            => this.Workspace.RunCodeUnderSerializationLockAsync(useAsync: true, action, CancellationToken.None);
 
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
-        {
-            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
-            {
-                action(Workspace);
-            }
-        }
+        public ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
+            => this.Workspace.RunCodeUnderSerializationLockAsync(useAsync, action, CancellationToken.None);
 
         /// <summary>
         /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
         /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
         /// </summary>
-        public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
+        public void ApplyChangeToWorkspace(ProjectId projectId, Func<Solution, Solution> solutionTransformation)
         {
-            using (_gate.DisposableWait())
-            {
-                Workspace.SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
-            }
+            // Workspace.SetCurrentSolution already takes Workspace._serializationLock.  So no need to run this under that lock as well.
+            Workspace.SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <inheritdoc cref="ApplyBatchChangeToWorkspaceMaybeAsync(bool, Action{SolutionChangeAccumulator})"/>
@@ -212,6 +199,17 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
         public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
         {
+            SolutionChangeAccumulator solutionChanges = null!;
+
+
+
+            Workspace.SetCurrentSolution(
+                oldSolution =>
+                {
+                    
+                },
+                )
+
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 var solutionChanges = new SolutionChangeAccumulator(Workspace.CurrentSolution);
