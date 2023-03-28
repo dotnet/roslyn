@@ -3334,5 +3334,27 @@ class C
 }
 """);
         }
+
+        [Theory]
+        [InlineData("object", "new {}")]
+        [InlineData("dynamic", "new {}")]
+        [InlineData("System.ValueType", "((int)x0)/2")]
+        public void ConstantsExpectedInPatternExpression(string type, string expression)
+        {
+            var source = @$"
+class Outer
+{{
+    bool M0({type} x0)
+    {{
+        return x0 is {expression};
+    }}
+}}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,22): error CS0150: A constant value is expected
+                //         return x0 is {expression};
+                Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
+            );
+        }
     }
 }
