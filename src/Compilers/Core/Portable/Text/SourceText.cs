@@ -615,25 +615,20 @@ namespace Microsoft.CodeAnalysis.Text
             var builder = PooledStringBuilder.GetInstance();
             var buffer = s_charArrayPool.Allocate();
 
-            try
-            {
-                int position = Math.Max(Math.Min(span.Start, this.Length), 0);
-                int length = Math.Min(span.End, this.Length) - position;
-                builder.Builder.EnsureCapacity(length);
+            int position = Math.Max(Math.Min(span.Start, this.Length), 0);
+            int length = Math.Min(span.End, this.Length) - position;
+            builder.Builder.EnsureCapacity(length);
 
-                while (position < this.Length && length > 0)
-                {
-                    int copyLength = Math.Min(buffer.Length, length);
-                    this.CopyTo(position, buffer, 0, copyLength);
-                    builder.Builder.Append(buffer, 0, copyLength);
-                    length -= copyLength;
-                    position += copyLength;
-                }
-            }
-            finally
+            while (position < this.Length && length > 0)
             {
-                s_charArrayPool.Free(buffer);
+                int copyLength = Math.Min(buffer.Length, length);
+                this.CopyTo(position, buffer, 0, copyLength);
+                builder.Builder.Append(buffer, 0, copyLength);
+                length -= copyLength;
+                position += copyLength;
             }
+
+            s_charArrayPool.Free(buffer);
 
             return builder.ToStringAndFree();
         }
