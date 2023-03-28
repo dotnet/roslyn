@@ -721,14 +721,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            var flags = BinderFlags.SuppressConstraintChecks;
                             if (usingDirective.UnsafeKeyword != default)
-                                diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                            {
+                                var unsafeKeywordLocation = usingDirective.UnsafeKeyword.GetLocation();
+                                if (usingDirective.StaticKeyword == default)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, unsafeKeywordLocation);
+                                }
+                                else
+                                {
+                                    MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, unsafeKeywordLocation);
+                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
+                                }
+
+                                flags |= BinderFlags.UnsafeRegion;
+                            }
+                            else
+                            {
+                                // Prior to C#12, allow the using static type to be an unsafe region.  This allows us to
+                                // maintain compat with prior versions of the compiler that allowed `using static
+                                // List<int*[]>;` to be written.  In 12.0 and onwards though, we require the code to
+                                // explicitly contain the `unsafe` keyword.
+                                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias))
+                                    flags |= BinderFlags.UnsafeRegion;
+                            }
 
                             var directiveDiagnostics = BindingDiagnosticBag.GetInstance();
                             Debug.Assert(directiveDiagnostics.DiagnosticBag is object);
                             Debug.Assert(directiveDiagnostics.DependenciesBag is object);
 
-                            declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+                            declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(flags);
                             var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.NamespaceOrType, directiveDiagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
 
                             if (imported.Kind == SymbolKind.Namespace)

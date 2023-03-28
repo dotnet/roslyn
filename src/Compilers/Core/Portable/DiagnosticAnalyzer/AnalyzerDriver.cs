@@ -1673,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (!skipSymbolAnalysis)
             {
-                ExecuteSymbolActions(symbolEvent, analysisScope, isGeneratedCodeSymbol);
+                ExecuteSymbolActions(symbolEvent, analysisScope, isGeneratedCodeSymbol, cancellationToken);
             }
 
             if (!skipDeclarationAnalysis)
@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             if (hasPerSymbolActions &&
-                !TryExecuteSymbolEndActions(perSymbolActions.AnalyzerActions, symbolEvent, analysisScope, isGeneratedCodeSymbol, out var subsetProcessedAnalyzers))
+                !TryExecuteSymbolEndActions(perSymbolActions.AnalyzerActions, symbolEvent, analysisScope, isGeneratedCodeSymbol, cancellationToken, out var subsetProcessedAnalyzers))
             {
                 Debug.Assert(!subsetProcessedAnalyzers.IsDefault);
                 return subsetProcessedAnalyzers.IsEmpty ? EventProcessedState.NotProcessed : EventProcessedState.CreatePartiallyProcessed(subsetProcessedAnalyzers);
@@ -1691,10 +1691,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return EventProcessedState.Processed;
         }
 
-        private void ExecuteSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, bool isGeneratedCodeSymbol)
+        private void ExecuteSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, bool isGeneratedCodeSymbol, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            if (!analysisScope.ShouldAnalyze(symbol))
+            if (!analysisScope.ShouldAnalyze(symbolEvent, s_getTopmostNodeForAnalysis, cancellationToken))
             {
                 return;
             }
@@ -1719,13 +1719,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SymbolDeclaredCompilationEvent symbolEvent,
             AnalysisScope analysisScope,
             bool isGeneratedCodeSymbol,
+            CancellationToken cancellationToken,
             out ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
         {
             Debug.Assert(AnalyzerActions.SymbolStartActionsCount > 0);
 
             var symbol = symbolEvent.Symbol;
             var symbolEndActions = perSymbolActions.SymbolEndActions;
-            if (!analysisScope.ShouldAnalyze(symbol) || symbolEndActions.IsEmpty)
+            if (symbolEndActions.IsEmpty || !analysisScope.ShouldAnalyze(symbolEvent, s_getTopmostNodeForAnalysis, cancellationToken))
             {
                 subsetProcessedAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
                 return true;
@@ -1827,14 +1828,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                // Only compiler analyzer supports span-based semantic model action callbacks.
-                if (completedEvent.FilterSpan.HasValue && !IsCompilerAnalyzer(analyzer))
-                {
-                    continue;
-                }
-
                 // Execute actions for a given analyzer sequentially.
-                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, completedEvent, analysisScope, isGeneratedCode);
+                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, analysisScope, isGeneratedCode);
             }
         }
 
@@ -2451,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, AnalyzerExecutor);
+            ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, AnalyzerExecutor);
             return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
@@ -2506,12 +2501,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (shouldExecuteSyntaxNodeActions)
                 {
                     var nodesToAnalyze = declarationAnalysisData.DescendantNodesToAnalyze;
-                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, coreActions);
-                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, additionalPerSymbolActions);
+                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, coreActions, arePerSymbolActions: false);
+                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
                 }
             }
 
-            void executeNodeActionsByKind(AnalysisScope analysisScope, ImmutableArray<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions)
+            void executeNodeActionsByKind(AnalysisScope analysisScope, ImmutableArray<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
@@ -2521,9 +2516,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    AnalyzerExecutor.ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind,
+                    // We further filter out the nodes to analyze based on analysis scope if we are performing
+                    // partial analysis of the declaration, i.e. analyzing a sub-span within the declaration span,
+                    // and additionally the analyzer has not registered any code block start actions. In case
+                    // the analyzer has registered code block start actions, we need to make callbacks for all nodes
+                    // in the code block to ensure the analyzer can correctly report code block end diagnostics.
+                    var filteredNodesToAnalyze = declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions
+                        ? nodesToAnalyze.WhereAsArray(analysisScope.ShouldAnalyze)
+                        : nodesToAnalyze;
+
+                    AnalyzerExecutor.ExecuteSyntaxNodeActions(filteredNodesToAnalyze, nodeActionsByKind,
                         analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
-                        symbol, isInGeneratedCode);
+                        symbol, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions);
                 }
             }
 
@@ -2605,12 +2609,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (shouldExecuteOperationActions)
                 {
-                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, coreActions);
-                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, additionalPerSymbolActions);
+                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, coreActions, arePerSymbolActions: false);
+                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
                 }
             }
 
-            void executeOperationsActionsByKind(AnalysisScope analysisScope, ImmutableArray<IOperation> operationsToAnalyze, GroupedAnalyzerActions groupedActions)
+            void executeOperationsActionsByKind(AnalysisScope analysisScope, ImmutableArray<IOperation> operationsToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
@@ -2620,9 +2624,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    AnalyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
+                    // We further filter out the operation to analyze based on analysis scope if we are performing
+                    // partial analysis of the declaration, i.e. analyzing a sub-span within the declaration span,
+                    // and additionally the analyzer has not registered any operation block start actions. In case the
+                    // analyzer has registered operation block start actions, we need to make callbacks for all operations
+                    // in the operation block to ensure the analyzer can correctly report operation block end diagnostics.
+                    var filteredOperationsToAnalyze = declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasOperationBlockStartActions
+                        ? operationsToAnalyze.WhereAsArray(operation => analysisScope.ShouldAnalyze(operation.Syntax))
+                        : operationsToAnalyze;
+
+                    AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyze, operationActionsByKind,
                         analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
-                        symbol, isInGeneratedCode);
+                        symbol, isInGeneratedCode, hasOperationBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasOperationBlockStartActions || arePerSymbolActions);
                 }
             }
 
@@ -2702,8 +2715,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<DeclarationInfo> declarationsInNode,
-            AnalysisScope analysisScope,
-            bool isPartialDeclAnalysis,
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
@@ -2753,8 +2764,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
-                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol) &&
-                    (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
+                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol))
                 {
                     nodeBuilder.Add(node);
                 }

@@ -356,5 +356,11 @@ Call();");
             await VerifyKeywordAsync("scoped $$");
             await VerifyKeywordAsync(AddInsideMethod("scoped $$"));
         }
+
+        [Fact]
+        public async Task TestInEnumBaseList()
+        {
+            await VerifyKeywordAsync("enum E : $$");
+        }
     }
 }

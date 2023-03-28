@@ -38,48 +38,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
-        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
-        // which can confuse users
-        public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
+        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
+        // way which can confuse users
+
+        /// <summary>
+        /// Mapping from tags to lsp completion item kinds.  The value lists the potential lsp kinds from
+        /// least-preferred to most preferred.  More preferred kinds will be chosen if the client states they support
+        /// it.  This mapping allows values including extensions to the kinds defined by VS (but not in the core LSP
+        /// spec).
+        /// </summary>
+        public static readonly ImmutableDictionary<string, ImmutableArray<LSP.CompletionItemKind>> RoslynTagToCompletionItemKinds = new Dictionary<string, ImmutableArray<LSP.CompletionItemKind>>()
         {
-            { WellKnownTags.Public, LSP.CompletionItemKind.Keyword },
-            { WellKnownTags.Protected, LSP.CompletionItemKind.Keyword },
-            { WellKnownTags.Private, LSP.CompletionItemKind.Keyword },
-            { WellKnownTags.Internal, LSP.CompletionItemKind.Keyword },
-            { WellKnownTags.File, LSP.CompletionItemKind.File },
-            { WellKnownTags.Project, LSP.CompletionItemKind.File },
-            { WellKnownTags.Folder, LSP.CompletionItemKind.Folder },
-            { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
-            { WellKnownTags.Class, LSP.CompletionItemKind.Class },
-            { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Delegate },
-            { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
-            { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
-            { WellKnownTags.Event, LSP.CompletionItemKind.Event },
-            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.ExtensionMethod },
-            { WellKnownTags.Field, LSP.CompletionItemKind.Field },
-            { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
-            { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
-            { WellKnownTags.Keyword, LSP.CompletionItemKind.Keyword },
-            { WellKnownTags.Label, LSP.CompletionItemKind.Text },
-            { WellKnownTags.Local, LSP.CompletionItemKind.Variable },
-            { WellKnownTags.Namespace, LSP.CompletionItemKind.Namespace },
-            { WellKnownTags.Method, LSP.CompletionItemKind.Method },
-            { WellKnownTags.Module, LSP.CompletionItemKind.Module },
-            { WellKnownTags.Operator, LSP.CompletionItemKind.Operator },
-            { WellKnownTags.Parameter, LSP.CompletionItemKind.Value },
-            { WellKnownTags.Property, LSP.CompletionItemKind.Property },
-            { WellKnownTags.RangeVariable, LSP.CompletionItemKind.Variable },
-            { WellKnownTags.Reference, LSP.CompletionItemKind.Reference },
-            { WellKnownTags.Structure, LSP.CompletionItemKind.Struct },
-            { WellKnownTags.TypeParameter, LSP.CompletionItemKind.TypeParameter },
-            { WellKnownTags.Snippet, LSP.CompletionItemKind.Snippet },
-            { WellKnownTags.Error, LSP.CompletionItemKind.Text },
-            { WellKnownTags.Warning, LSP.CompletionItemKind.Text },
-            { WellKnownTags.StatusInformation, LSP.CompletionItemKind.Text },
-            { WellKnownTags.AddReference, LSP.CompletionItemKind.Text },
-            { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
-        };
+            { WellKnownTags.Public, ImmutableArray.Create(LSP.CompletionItemKind.Keyword) },
+            { WellKnownTags.Protected, ImmutableArray.Create(LSP.CompletionItemKind.Keyword) },
+            { WellKnownTags.Private, ImmutableArray.Create(LSP.CompletionItemKind.Keyword) },
+            { WellKnownTags.Internal, ImmutableArray.Create(LSP.CompletionItemKind.Keyword) },
+            { WellKnownTags.File, ImmutableArray.Create(LSP.CompletionItemKind.File) },
+            { WellKnownTags.Project, ImmutableArray.Create(LSP.CompletionItemKind.File) },
+            { WellKnownTags.Folder, ImmutableArray.Create(LSP.CompletionItemKind.Folder) },
+            { WellKnownTags.Assembly, ImmutableArray.Create(LSP.CompletionItemKind.File) },
+            { WellKnownTags.Class, ImmutableArray.Create(LSP.CompletionItemKind.Class) },
+            { WellKnownTags.Constant, ImmutableArray.Create(LSP.CompletionItemKind.Constant) },
+            { WellKnownTags.Delegate, ImmutableArray.Create(LSP.CompletionItemKind.Class, LSP.CompletionItemKind.Delegate) },
+            { WellKnownTags.Enum, ImmutableArray.Create(LSP.CompletionItemKind.Enum) },
+            { WellKnownTags.EnumMember, ImmutableArray.Create(LSP.CompletionItemKind.EnumMember) },
+            { WellKnownTags.Event, ImmutableArray.Create(LSP.CompletionItemKind.Event) },
+            { WellKnownTags.ExtensionMethod, ImmutableArray.Create(LSP.CompletionItemKind.Method, LSP.CompletionItemKind.ExtensionMethod) },
+            { WellKnownTags.Field, ImmutableArray.Create(LSP.CompletionItemKind.Field) },
+            { WellKnownTags.Interface, ImmutableArray.Create(LSP.CompletionItemKind.Interface) },
+            { WellKnownTags.Intrinsic, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.Keyword, ImmutableArray.Create(LSP.CompletionItemKind.Keyword) },
+            { WellKnownTags.Label, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.Local, ImmutableArray.Create(LSP.CompletionItemKind.Variable) },
+            { WellKnownTags.Namespace, ImmutableArray.Create(LSP.CompletionItemKind.Module, LSP.CompletionItemKind.Namespace) },
+            { WellKnownTags.Method, ImmutableArray.Create(LSP.CompletionItemKind.Method) },
+            { WellKnownTags.Module, ImmutableArray.Create(LSP.CompletionItemKind.Module) },
+            { WellKnownTags.Operator, ImmutableArray.Create(LSP.CompletionItemKind.Operator) },
+            { WellKnownTags.Parameter, ImmutableArray.Create(LSP.CompletionItemKind.Value) },
+            { WellKnownTags.Property, ImmutableArray.Create(LSP.CompletionItemKind.Property) },
+            { WellKnownTags.RangeVariable, ImmutableArray.Create(LSP.CompletionItemKind.Variable) },
+            { WellKnownTags.Reference, ImmutableArray.Create(LSP.CompletionItemKind.Reference) },
+            { WellKnownTags.Structure, ImmutableArray.Create(LSP.CompletionItemKind.Struct) },
+            { WellKnownTags.TypeParameter, ImmutableArray.Create(LSP.CompletionItemKind.TypeParameter) },
+            { WellKnownTags.Snippet, ImmutableArray.Create(LSP.CompletionItemKind.Snippet) },
+            { WellKnownTags.Error, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.Warning, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.StatusInformation, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.AddReference, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
+            { WellKnownTags.NuGet, ImmutableArray.Create(LSP.CompletionItemKind.Text) }
+        }.ToImmutableDictionary();
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
