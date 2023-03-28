@@ -174,13 +174,13 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // 0.cs(7,18): error CS0150: A constant value is expected
+                // (7,18): error CS0150: A constant value is expected
                 //         if (x is nonConstant)
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
-                // 0.cs(9,13): warning CS8602: Dereference of a possibly null reference.
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
-            );
+                );
         }
 
         [Fact]
