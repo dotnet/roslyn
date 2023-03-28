@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsDefiniteCastTypeContext;
         public readonly bool IsDelegateReturnTypeContext;
         public readonly bool IsDestructorTypeContext;
-        public readonly bool IsEnumBaseListContext;
         public readonly bool IsFixedVariableDeclarationContext;
         public readonly bool IsFunctionPointerTypeArgumentContext;
         public readonly bool IsGenericTypeArgumentContext;
@@ -119,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isAtStartOfPattern: isAtStartOfPattern,
                   isAttributeNameContext: isAttributeNameContext,
                   isAwaitKeywordContext: isAwaitKeywordContext,
+                  isEnumBaseListContext: isEnumBaseListContext,
                   isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
                   isGenericConstraintContext: isGenericConstraintContext,
                   isGlobalStatementContext: isGlobalStatementContext,
@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
             this.IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
-            this.IsEnumBaseListContext = isEnumBaseListContext;
             this.IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
             this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
             this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,
-                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(position, leftToken),
+                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(targetToken),
                 isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
