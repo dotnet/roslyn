@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             arguments.IdeOptions, documentSpan,
                             arguments.AnalyzerIds, documentAnalysisKind,
                             _analyzerInfoCache, hostWorkspaceServices,
+                            isExplicit: arguments.IsExplicit,
                             reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                             logPerformanceInfo: arguments.LogPerformanceInfo,
                             getTelemetryInfo: arguments.GetTelemetryInfo,

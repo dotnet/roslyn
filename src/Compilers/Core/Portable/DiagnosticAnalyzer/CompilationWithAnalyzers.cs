@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            if (analyzers.Distinct().Length != analyzers.Length)
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }
 
-            if (analyzers.Distinct().Length != analyzers.Length)
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         Debug.Assert(compilationEvents.Count(e => e is CompilationUnitCompletedEvent c && !c.FilterSpan.HasValue) == 1);
 
                         // We shouldn't have any duplicate events.
-                        Debug.Assert(compilationEvents.Distinct().Length == compilationEvents.Length);
+                        Debug.Assert(!compilationEvents.HasDuplicates());
                     }
 
                     scopeAndEvents = (analysisScope, compilationEvents);
