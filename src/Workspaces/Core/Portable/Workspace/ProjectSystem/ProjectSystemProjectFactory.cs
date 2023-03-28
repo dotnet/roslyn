@@ -329,9 +329,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             Contract.ThrowIfFalse(_projectToMaxSupportedLangVersionMap.Count == 0);
             Contract.ThrowIfFalse(_projectToDependencyNodeTargetIdentifier.Count == 0);
 
-            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
-            // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
-            Workspace.ClearOpenDocuments();
+            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components
+            // still may have persistence information they still need to look up by that location; we also keep the
+            // existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
 
             Workspace.SetCurrentSolution(
                 solution => Workspace.CreateSolution(
@@ -339,7 +339,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                         SolutionId.CreateNewId(),
                         VersionStamp.Create(),
                         analyzerReferences: solution.AnalyzerReferences)),
-                WorkspaceChangeKind.SolutionRemoved);
+                WorkspaceChangeKind.SolutionRemoved,
+                onBeforeUpdate: (_, _) =>
+                {
+                    Workspace.ClearOpenDocuments();
+                });
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]
