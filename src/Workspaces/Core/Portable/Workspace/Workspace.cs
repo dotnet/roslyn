@@ -90,31 +90,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Helper only for the purpose of writing asserts.  Useful when code wants to assert that it is being run while
-        /// the serialization lock is being held.  Note: this function is both racey (could change immediately after
-        /// calling), and ambiguous (it just says that some thread of execution is holding the lock, not that the
-        /// current one is).  So, having this return an expected value is not a guarantee that things are working
-        /// properly.  However, if it returns an unexpected value (for example, 'false' when some thread expects to be
-        /// holding the lock) then it definitely indicates a bug.
-        /// </summary>
-        internal bool IsCurrentlyHoldingSerializationLock => _serializationLock.CurrentCount == 0;
-
-        /// <summary>
-        /// Runs the provided callback while holding <see cref="_serializationLock"/>.  This function is <em>very</em>
-        /// dangerous and should only be used sparingly by clients of the workspace that need to mutate it and must
-        /// ensure that their operations act atomically with respect to all other workspace mutations.  This function,
-        /// by design, holds a lock and makes a call out to externally provided code.  As such, it is the responsibility
-        /// of the caller to make sure this is 100% safe (no lock inversions for example).
-        /// </summary>
-        internal async ValueTask RunCodeUnderSerializationLockAsync(bool useAsync, Action<Workspace> action, CancellationToken cancellationToken)
-        {
-            using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
-            {
-                action(this);
-            }
-        }
-
-        /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
