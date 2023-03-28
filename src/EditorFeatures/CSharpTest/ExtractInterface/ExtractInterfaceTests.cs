@@ -1374,6 +1374,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 {
                 $$    class Program
                     {
+                        public void Goo() { }
                     }
                 }
                 """;
