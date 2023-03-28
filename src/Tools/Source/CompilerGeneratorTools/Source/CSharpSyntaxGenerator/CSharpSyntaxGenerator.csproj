@@ -5,7 +5,8 @@
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
     <!-- We build this against net7.0 to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
-    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' != 'true'">net7.0;$(TargetFrameworks)</TargetFrameworks>
     <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
