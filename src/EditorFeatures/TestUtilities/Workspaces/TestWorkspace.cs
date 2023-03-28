@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
-        private readonly BackgroundCompiler _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
@@ -116,10 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 };
             }
 
-            _backgroundCompiler = new BackgroundCompiler(this);
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
-
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
@@ -135,23 +129,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return composition.GetHostServices();
         }
 
-        protected internal override bool PartialSemanticsEnabled
-        {
-            get { return _backgroundCompiler != null; }
-        }
+        protected internal override bool PartialSemanticsEnabled => true;
 
         public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
-
-        protected override void OnDocumentTextChanged(Document document)
-        {
-            _backgroundParser?.Parse(document);
-        }
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            _backgroundParser?.CancelParse(documentId);
-        }
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
@@ -179,8 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 document.CloseTextView();
             }
-
-            _backgroundParser?.CancelAllParses();
 
             base.Dispose(finalize);
         }
@@ -685,6 +664,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
             testDocument.GetOpenTextContainer();
+        }
+
+        /// <summary>
+        /// Overriding base impl so that when we close a document it goes back to the initial state when the test
+        /// workspace was loaded, throwing away any changes made to the open version.
+        /// </summary>
+        internal override void TryOnDocumentClosed(DocumentId documentId)
+        {
+            Contract.ThrowIfFalse(this._supportsLspMutation);
+
+            var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
         }
 
         public override void CloseDocument(DocumentId documentId)

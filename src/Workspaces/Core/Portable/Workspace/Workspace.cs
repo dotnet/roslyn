@@ -1048,14 +1048,17 @@ namespace Microsoft.CodeAnalysis
                     var updatedDocumentIds = data.updatedDocumentIds;
                     updatedDocumentIds.Clear();
 
-                    var document = data.getDocumentInSolution(oldSolution, data.documentId);
+                    var @this = data.@this;
+                    var documentId = data.documentId;
+
+                    var document = data.getDocumentInSolution(oldSolution, documentId);
                     if (document is null)
                     {
                         if (data.requireDocumentPresent)
                         {
                             throw new ArgumentException(string.Format(
                                 WorkspacesResources._0_is_not_part_of_the_workspace,
-                                oldSolution.Workspace.GetDocumentName(data.documentId)));
+                                data.@this.GetDocumentName(documentId)));
                         }
                         else
                         {
@@ -1066,14 +1069,14 @@ namespace Microsoft.CodeAnalysis
                     // First, just update the text for the document passed in.
                     var newSolution = oldSolution;
                     var previousSolution = newSolution;
-                    newSolution = data.updateSolutionWithText(newSolution, data.documentId, data.arg);
+                    newSolution = data.updateSolutionWithText(newSolution, documentId, data.arg);
 
                     if (previousSolution != newSolution)
                     {
-                        updatedDocumentIds.Add(data.documentId);
+                        updatedDocumentIds.Add(documentId);
 
                         // Now go update the linked docs to have the same doc contents.
-                        var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(data.documentId);
+                        var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
                         if (linkedDocumentIds.Length > 0)
                         {
                             // Two options for updating linked docs (legacy and new).
@@ -1088,7 +1091,7 @@ namespace Microsoft.CodeAnalysis
                             var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
                             var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
 
-                            var newDocument = newSolution.GetRequiredDocument(data.documentId);
+                            var newDocument = newSolution.GetRequiredDocument(documentId);
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
