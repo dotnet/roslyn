@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
                 solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
-                workspace.ChangeSolution(solution)
+                Await workspace.ChangeSolutionAsync(solution)
 
                 Dim project = solution.Projects.Single()
                 Dim document = project.Documents.Single()
@@ -926,7 +926,7 @@ class AnonymousFunctions
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
                 solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
-                workspace.ChangeSolution(solution)
+                Await workspace.ChangeSolutionAsync(solution)
 
                 Dim project = solution.Projects.Single()
                 Dim document = project.Documents.Single()
@@ -2228,14 +2228,18 @@ class C
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify diagnostics for span
-                Dim t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
-                Dim diagnostic = Assert.Single(t.diagnostics)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriority.None,
+                    addOperationScope:=Nothing, DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
+                Dim diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
-                Assert.Empty(t.diagnostics)
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriority.None,
+                    addOperationScope:=Nothing, DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
+                Assert.Empty(diagnostics)
             End Using
         End Function
 
@@ -2327,8 +2331,8 @@ class MyClass
                 ' Try get diagnostics for span
                 Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
 
-                ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
-                Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
+                ' Verify only existing cached diagnostics are returned with TryAppendDiagnosticsForSpanAsync, with no analyzer callbacks being made.
+                Assert.False(analyzer.ReceivedOperationCallback)
             End Using
         End Function
 

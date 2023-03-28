@@ -756,16 +756,16 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
                     var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
-                    workspace.ChangeSolution(updatedSolution);
+                    await workspace.ChangeSolutionAsync(updatedSolution);
 
-                    return base.GetCodeActionsAsync(workspace, parameters);
+                    return await base.GetCodeActionsAsync(workspace, parameters);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -998,16 +998,16 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
                     var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
-                    workspace.ChangeSolution(updatedSolution);
+                    await workspace.ChangeSolutionAsync(updatedSolution);
 
-                    return base.GetCodeActionsAsync(workspace, parameters);
+                    return await base.GetCodeActionsAsync(workspace, parameters);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
