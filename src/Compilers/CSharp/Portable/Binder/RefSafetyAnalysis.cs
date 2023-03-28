@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint _patternInputValEscape;
 #if DEBUG
         private const int MaxTrackVisited = 100; // Avoid tracking if too many expressions.
-        private readonly HashSet<BoundExpression> _visited = new HashSet<BoundExpression>();
-        private bool _trackVisited = true;
+        private HashSet<BoundExpression>? _visited = new HashSet<BoundExpression>();
 #endif
 
         private RefSafetyAnalysis(
@@ -286,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node is BoundExpression expr)
             {
-                if (_trackVisited && _visited.Count <= MaxTrackVisited)
+                if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
                     Debug.Assert(added);
@@ -303,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
             }
-            else if (_trackVisited && _visited.Count <= MaxTrackVisited)
+            else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
                 Debug.Assert(_visited.Contains(expr));
             }

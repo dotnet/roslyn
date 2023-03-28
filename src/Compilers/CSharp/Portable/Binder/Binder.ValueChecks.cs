@@ -1712,12 +1712,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
             // since that expression does not introduce locals or placeholders that are needed
             // by GetValEscape() or CheckValEscape(), so we disable tracking here.
-            bool previousTrackVisited = _trackVisited;
-            _trackVisited = false;
+            var previousVisited = _visited;
+            _visited = null;
 #endif
             uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
 #if DEBUG
-            _trackVisited = previousTrackVisited;
+            _visited = previousVisited;
 #endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
@@ -4519,12 +4519,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
             // since that expression does not introduce locals or placeholders that are needed
             // by GetValEscape() or CheckValEscape(), so we disable tracking here.
-            bool previousTrackVisited = _trackVisited;
-            _trackVisited = false;
+            var previousVisited = _visited;
+            _visited = null;
 #endif
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 #if DEBUG
-            _trackVisited = previousTrackVisited;
+            _visited = previousVisited;
 #endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
