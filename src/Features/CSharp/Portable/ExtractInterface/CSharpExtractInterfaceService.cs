@@ -35,21 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         protected override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
             var span = new TextSpan(position, 0);
-            var relevantNode = await document.TryGetRelevantNodeAsync<SyntaxNode>(span, cancellationToken).ConfigureAwait(false);
-
-            if (relevantNode is TypeDeclarationSyntax)
-            {
-                return relevantNode;
-            }
+            var typeDeclarationNode = await document.TryGetRelevantNodeAsync<TypeDeclarationSyntax>(span, cancellationToken).ConfigureAwait(false);
 
             // If TypeDiscoverRule is set to TypeDeclaration, a position anywhere inside of the
-            // declaration is valid. In this case check to see if there is a type declaration ancestor.
-            if (relevantNode != null && typeDiscoveryRule == TypeDiscoveryRule.TypeDeclaration)
+            // declaration enclosure is valid. In this case check to see if there is a type declaration ancestor
+            // of the focused node.
+            if (typeDeclarationNode == null && typeDiscoveryRule == TypeDiscoveryRule.TypeDeclaration)
             {
+                var relevantNode = await document.TryGetRelevantNodeAsync<SyntaxNode>(span, cancellationToken).ConfigureAwait(false);
                 return relevantNode.GetAncestor<TypeDeclarationSyntax>();
             }
 
-            return relevantNode;
+            return typeDeclarationNode;
+
         }
 
         internal override string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions)

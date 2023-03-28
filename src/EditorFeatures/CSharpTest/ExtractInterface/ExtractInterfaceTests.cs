@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 }$$
                 """;
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
