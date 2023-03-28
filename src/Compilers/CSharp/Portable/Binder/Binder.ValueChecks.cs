@@ -1709,6 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var data = expression.GetInterpolatedStringHandlerData();
 #if DEBUG
+            // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
+            // since that expression does not introduce locals or placeholders that are needed
+            // by GetValEscape() or CheckValEscape(), so we disable tracking here.
             bool previousTrackVisited = _trackVisited;
             _trackVisited = false;
 #endif
@@ -2092,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         stackLocalsOpt: null))
                     {
 #if DEBUG
-                        CheckVisited(receiver);
+                        AssertVisited(receiver);
 #endif
                         // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                         receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
@@ -2924,7 +2927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
 #if DEBUG
-            CheckVisited(expr);
+            AssertVisited(expr);
 #endif
 
             // cannot infer anything from errors
@@ -3164,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
-            CheckVisited(expr);
+            AssertVisited(expr);
 #endif
 
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
@@ -3490,7 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
 #if DEBUG
-            CheckVisited(expr);
+            AssertVisited(expr);
 #endif
 
             // cannot infer anything from errors
@@ -3893,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
-            CheckVisited(expr);
+            AssertVisited(expr);
 #endif
 
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
@@ -4514,7 +4517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
             // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
             // escape, or does the opposite. In either case, we need to check.
+
 #if DEBUG
+            // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
+            // since that expression does not introduce locals or placeholders that are needed
+            // by GetValEscape() or CheckValEscape(), so we disable tracking here.
             bool previousTrackVisited = _trackVisited;
             _trackVisited = false;
 #endif

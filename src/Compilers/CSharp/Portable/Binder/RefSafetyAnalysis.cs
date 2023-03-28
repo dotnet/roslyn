@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint _patternInputValEscape;
 #if DEBUG
         private const int MaxTrackVisited = 100; // Avoid tracking if too many expressions.
-        private readonly HashSet<BoundExpression> _visited;
-        private bool _trackVisited;
+        private readonly HashSet<BoundExpression> _visited = new HashSet<BoundExpression>();
+        private bool _trackVisited = true;
 #endif
 
         private RefSafetyAnalysis(
@@ -108,9 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the same depth as parameters, _localScopeDepth is initialized to one less.
             _localScopeDepth = CurrentMethodScope - 1;
             _localEscapeScopes = localEscapeScopes;
-#if DEBUG
-            _visited = new HashSet<BoundExpression>();
-#endif
         }
 
         private ref struct LocalScope
@@ -255,6 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // _placeholderScopes should contain all placeholders that may be used by GetValEscape() or CheckValEscape().
+            // The following placeholders are not needed by those methods and can be ignored, however.
             switch (placeholder)
             {
                 case BoundObjectOrCollectionValuePlaceholder:
@@ -296,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private void CheckVisited(BoundExpression expr)
+        private void AssertVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder
                 && placeholder is not BoundCapturedReceiverPlaceholder)
