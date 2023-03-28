@@ -192,14 +192,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
-        {
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-            {
-                action(Workspace);
-            }
-        }
-
         public async ValueTask ApplyChangeToWorkspaceAsync(Func<Workspace, ValueTask> action)
         {
             using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
