@@ -47,8 +47,10 @@ internal sealed class LanguageServerProjectSystem
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        Workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
+        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
+        Workspace = workspace;
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, new FileChangeWatcher(), static (_, _) => Task.CompletedTask, _ => { });
+        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
 
         analyzerLoader.InitializeDiagnosticsServices(Workspace);
 

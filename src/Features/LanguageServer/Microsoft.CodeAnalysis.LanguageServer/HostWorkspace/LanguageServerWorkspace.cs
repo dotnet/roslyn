@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -38,6 +39,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// </summary>
 internal class LanguageServerWorkspace : Workspace, ILspWorkspace
 {
+    /// <summary>
+    /// Will be set by LanguageServerProjectSystem immediately after creating this instance.  Can't be passed into the
+    /// constructor as the factory needs a reference to this type.
+    /// </summary>
+    public ProjectSystemProjectFactory ProjectSystemProjectFactory { private get; set; } = null!;
+
     public LanguageServerWorkspace(
         HostServices host)
         : base(host, WorkspaceKind.Host)
@@ -48,9 +55,18 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
 
     bool ILspWorkspace.SupportsMutation => true;
 
-    void ILspWorkspace.UpdateTextIfPresent(DocumentId documentId, SourceText sourceText)
-        => OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
-
-    void ILspWorkspace.UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader)
-        => OnDocumentTextLoaderChanged(documentId, textLoader, requireDocumentPresent: false);
+    ValueTask ILspWorkspace.UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
+    {
+        // We need to ensure that our changes, and the changes made by the ProjectSystemProjectFactory don't interleave.
+        // Specifically, ProjectSystemProjectFactory often makes several changes in a row that it thinks cannot be
+        // interrupted.  To ensure this, we call into ProjectSystemProjectFactory to synchronize on the same lock that
+        // it has when making workspace changes.
+        //
+        // https://github.com/dotnet/roslyn/issues/67510 tracks cleaning up ProjectSystemProjectFactory so that it
+        // shares the same sync/lock/application code with the core workspace code.  Once that happens, we won't need
+        // to do special coordination here.
+        return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
+            _ => this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false),
+            cancellationToken);
+    }
 }
