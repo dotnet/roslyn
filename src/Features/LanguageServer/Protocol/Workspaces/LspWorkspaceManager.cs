@@ -85,13 +85,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region Implementation of IDocumentChangeTracker
 
-    private static void ApplyChangeToMutatingWorkspace(Workspace workspace, Uri uri, Action<ILspWorkspace, DocumentId> change)
+    private static async ValueTask ApplyChangeToMutatingWorkspaceAsync(Workspace workspace, Uri uri, Func<ILspWorkspace, DocumentId, ValueTask> change)
     {
         if (workspace is not ILspWorkspace { SupportsMutation: true } mutatingWorkspace)
             return;
 
         foreach (var documentId in workspace.CurrentSolution.GetDocumentIds(uri))
-            change(mutatingWorkspace, documentId);
+            await change(mutatingWorkspace, documentId).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StartTracking(Uri uri, SourceText documentText)
+    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText, CancellationToken cancellationToken)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -113,17 +113,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Attempt to open the doc if we find it in a workspace.  Note: if we don't (because we've heard from lsp about
         // the doc before we've heard from the project system), that's ok.  We'll still attempt to open it later in
         // GetLspSolutionForWorkspaceAsync
-        TryOpenDocumentsInMutatingWorkspace(uri);
+        await TryOpenDocumentsInMutatingWorkspaceAsync(uri).ConfigureAwait(false);
 
         return;
 
-        void TryOpenDocumentsInMutatingWorkspace(Uri uri)
+        async ValueTask TryOpenDocumentsInMutatingWorkspaceAsync(Uri uri)
         {
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                ApplyChangeToMutatingWorkspace(workspace, uri, (_, documentId) =>
-                    workspace.TryOnDocumentOpened(documentId, documentText.Container, isCurrentContext: false));
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
+                    workspace.TryOnDocumentOpenedAsync(documentId, documentText.Container, isCurrentContext: false, cancellationToken)).ConfigureAwait(false);
             }
         }
     }
@@ -133,7 +133,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StopTracking(Uri uri)
+    public async ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
     {
         // First, stop tracking this URI and source text as it is no longer owned by LSP.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
@@ -148,17 +148,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
         // Attempt to close the doc, if it is currently open in a workspace.
-        TryCloseDocumentsInMutatingWorkspace(uri);
+        await TryCloseDocumentsInMutatingWorkspaceAsync(uri).ConfigureAwait(false);
 
         return;
 
-        void TryCloseDocumentsInMutatingWorkspace(Uri uri)
+        async ValueTask TryCloseDocumentsInMutatingWorkspaceAsync(Uri uri)
         {
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                ApplyChangeToMutatingWorkspace(workspace, uri, (_, documentId) =>
-                    workspace.TryOnDocumentClosed(documentId));
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
+                    workspace.TryOnDocumentClosedAsync(documentId, cancellationToken)).ConfigureAwait(false);
             }
         }
     }
@@ -317,7 +317,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 return (workspaceCurrentSolution, IsForked: false);
 
             // Step 2: Push through any changes to the underlying workspace if it's a mutating workspace.
-            TryOpenAndEditDocumentsInMutatingWorkspace(workspace);
+            await TryOpenAndEditDocumentsInMutatingWorkspaceAsync(workspace).ConfigureAwait(false);
 
             // Because the workspace may have been mutated, go back and retrieve its current snapshot so we're operating
             // against that view.
@@ -346,18 +346,19 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             return (lspSolution, IsForked: true);
         }
 
-        void TryOpenAndEditDocumentsInMutatingWorkspace(Workspace workspace)
+        async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
         {
             foreach (var (uri, sourceText) in _trackedDocuments)
             {
-                ApplyChangeToMutatingWorkspace(workspace, uri, (mutatingWorkspace, documentId) =>
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
                 {
                     // This may be the first time this workspace is hearing that this document is open from LSP's
                     // perspective. Attempt to open it there.
                     //
                     // TODO(cyrusn): Do we need to pass a correct value for isCurrentContext?  Or will that fall out from
                     // something else in lsp.
-                    workspace.TryOnDocumentOpened(documentId, sourceText.Container, isCurrentContext: false);
+                    await workspace.TryOnDocumentOpenedAsync(
+                        documentId, sourceText.Container, isCurrentContext: false, cancellationToken).ConfigureAwait(false);
 
                     // Note: there is a race here in that we might see/change/return here based on the
                     // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
@@ -365,8 +366,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     // though.  The caller will always grab the 'current solution' again off of the workspace
                     // and check the checksums of all documents against the ones this workspace manager is
                     // tracking.  If there are any differences, it will fork and use that fork.
-                    mutatingWorkspace.UpdateTextIfPresent(documentId, sourceText);
-                });
+                    await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
     }

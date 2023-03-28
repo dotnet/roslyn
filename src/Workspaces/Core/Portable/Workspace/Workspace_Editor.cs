@@ -358,8 +358,11 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
             => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
 
-        internal void TryOnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext)
-            => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+        internal virtual ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
+        {
+            OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+            return ValueTaskFactory.CompletedTask;
+        }
 
         internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
@@ -606,7 +609,7 @@ namespace Microsoft.CodeAnalysis
         /// transition to if the file is within the workspace.
         /// </summary>
         /// <param name="documentId"></param>
-        internal virtual void TryOnDocumentClosed(DocumentId documentId)
+        internal virtual ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
