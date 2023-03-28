@@ -322,22 +322,49 @@ namespace Microsoft.CodeAnalysis
         /// the new value and performs a requested callback immediately before and after that update.  The callbacks
         /// will be invoked atomically while while <see cref="_serializationLock"/> is being held.
         /// </summary>
-        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="transformation">Solution transformation. This may be run multiple times.  As such it should be
+        /// a purely functional transformation on the solution instance passed to it.  It should not make stateful
+        /// changes elsewhere.</param>
         /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
         /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
         /// it will be replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
         /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
             TData data,
             Func<Solution, TData, Solution> transformation,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
+        {
+            // Fine to suppress this warning as we do pass useAsync: false here, and we also contract throw below if the
+            // ValueTask isn't completed.
+#pragma warning disable CA2012 // Use ValueTasks correctly.
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                data,
+                transformation,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+
+            Contract.ThrowIfFalse(valueTask.IsCompleted, "We passed 'useAsync: false' to SetCurrentSolutionAsync.  So it must always complete synchronously");
+            return valueTask.GetAwaiter().GetResult();
+#pragma warning restore CA2012 // Use ValueTasks correctly
+        }
+
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
+            bool useAsync,
+            TData data,
+            Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData>? onBeforeUpdate,
+            Action<Solution, Solution, TData>? onAfterUpdate,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -357,7 +384,7 @@ namespace Microsoft.CodeAnalysis
                     return (oldSolution, newSolution);
 
                 // Now, take the lock and try to update our internal state.
-                using (_serializationLock.DisposableWait())
+                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
                 {
                     if (_latestSolution != oldSolution)
                     {
