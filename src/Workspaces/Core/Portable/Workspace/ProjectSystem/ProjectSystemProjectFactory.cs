@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 projectId,
                 displayName: projectSystemName,
                 language,
-                assemblyName: assemblyName,
-                compilationOptions: creationInfo.CompilationOptions,
-                filePath: creationInfo.FilePath,
-                parseOptions: creationInfo.ParseOptions);
+                assemblyName,
+                creationInfo.CompilationOptions,
+                creationInfo.FilePath,
+                creationInfo.ParseOptions);
 
             var versionStamp = creationInfo.FilePath != null
                 ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                     projectId,
                     versionStamp,
                     name: projectSystemName,
-                    assemblyName: assemblyName,
-                    language: language,
-                    checksumAlgorithm: SourceHashAlgorithms.Default, // will be updated when command line is set
+                    assemblyName,
+                    language,
                     compilationOutputFilePaths: default, // will be updated when command line is set
+                    SourceHashAlgorithms.Default, // will be updated when command line is set
                     filePath: creationInfo.FilePath,
                     telemetryId: creationInfo.TelemetryId),
                 compilationOptions: creationInfo.CompilationOptions,
