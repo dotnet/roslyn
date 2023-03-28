@@ -37,10 +37,4 @@ internal interface ILspWorkspace
     /// else removed it).
     /// </summary>
     ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText);
-    ///// <summary>
-    ///// If <paramref name="documentId"/> is currently within this workspace, then its text is updated to <paramref
-    ///// name="textLoader"/>.  Does nothing if the document is not present in the workspace (for example if something
-    ///// else removed it).
-    ///// </summary>
-    //Task UpdateTextIfPresentAsync(DocumentId documentId, TextLoader textLoader);
 }
