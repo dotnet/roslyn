@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
-        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <target state="translated">El identificador '{0}' es ambiguo entre el tipo '{1}' y el parámetro '{2}' en este contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseRefLike">
         <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="new">Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</target>
+        <target state="translated">No se puede usar el parámetro '{0}' que tiene un tipo de tipo ref dentro de un método anónimo, una expresión lambda, una expresión de consulta o una función local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</target>
+        <target state="translated">Los métodos anónimos, las expresiones lambda, las expresiones de consulta y las funciones locales dentro de una estructura no pueden tener acceso al parámetro de constructor principal que también se usa dentro de un miembro de instancia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</target>
+        <target state="translated">Los métodos anónimos, las expresiones lambda, las expresiones de consulta y las funciones locales dentro de un miembro de instancia de un struct no pueden tener acceso al parámetro del constructor principal</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">No se puede asignar un parámetro de constructor principal de un tipo de solo lectura (excepto en el establecedor de solo inicialización del tipo o un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Los miembros del parámetro de constructor principal '{0}' de un tipo de solo lectura no se pueden modificar (excepto en el establecedor de solo inicialización del tipo o un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">Un recurso de instrucción using de tipo '{0}' no se puede usar en métodos asincrónicos ni expresiones lambda asincrónicas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -699,7 +699,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in this context is not supported.</source>
-        <target state="needs-review-translation">No se admite el uso de un tipo de puntero de función como valor "typeof" de un atributo.</target>
+        <target state="translated">No se admite el uso de un tipo de puntero de función en este contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -899,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
         <source>Cannot use primary constructor parameter '{0}' in this context.</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <target state="translated">No se puede usar el parámetro de constructor principal '{0}' en este contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1054,7 +1054,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
-        <target state="needs-review-translation">Solo una declaración parcial de un registro puede tener una lista de parámetros</target>
+        <target state="translated">Solo una declaración de tipo parcial puede tener una lista de parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1329,7 +1329,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="needs-review-translation">Un constructor declarado en un 'record struct' con lista de parámetros debe tener un inicializador 'this' que llame al constructor principal o a un constructor declarado explícitamente.</target>
+        <target state="translated">Un constructor declarado en una `struct' con una lista de parámetros debe tener un inicializador `this' que llame al constructor primario, o a un constructor declarado explícitamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1364,12 +1364,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Un parámetro de constructor principal de un tipo de solo lectura no se puede usar como valor ref o out (excepto en el establecedor de solo inicialización del tipo o un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Los miembros del parámetro de constructor principal '{0}' de un tipo de solo lectura no se pueden usar como valor ref o out (excepto en el establecedor de solo inicialización del tipo o un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
@@ -1384,17 +1384,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
         <source>Cannot return primary constructor parameter '{0}' by reference.</source>
-        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <target state="translated">No se puede devolver el parámetro de constructor principal '{0}' por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">Una referencia grabable no puede devolver un parámetro de constructor principal de un tipo de solo lectura</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">Los miembros del parámetro de constructor principal '{0}' de un tipo de solo lectura no se pueden devolver mediante una referencia grabable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1614,7 +1614,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
-        <target state="new">Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</target>
+        <target state="translated">El parámetro de constructor principal de struct '{0}' de tipo '{1}' provoca un ciclo en el diseño de struct</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1699,7 +1699,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
-        <target state="new">Unexpected parameter list.</target>
+        <target state="translated">Lista de parámetros inesperada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1714,7 +1714,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <target state="translated">'{0}' se define en un módulo con una versión refSafetyRulesAttribute no reconocida, que espera '11'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -1744,12 +1744,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
         <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
-        <target state="new">Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</target>
+        <target state="translated">No se puede usar ref, out o en el parámetro de constructor principal '{0}' dentro de un miembro de instancia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</target>
+        <target state="translated">No se puede usar el parámetro de constructor principal '{0}' que tiene un tipo ref-like dentro de un miembro de instancia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1914,7 +1914,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePrimaryConstructors">
         <source>primary constructors</source>
-        <target state="new">primary constructors</target>
+        <target state="translated">constructores principales</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -2094,12 +2094,12 @@
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">El parámetro '{0}' se captura en el estado del tipo envolvente y su valor también se pasa al constructor base. La clase base también puede capturar el valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">El parámetro se captura en el estado del tipo envolvente y su valor también se pasa al constructor base. La clase base también puede capturar el valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2504,7 +2504,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
-        <target state="needs-review-translation">Un constructor declarado en un registro con una lista de parámetros debe tener el inicializador de constructor "this".</target>
+        <target state="translated">Un constructor declarado en un tipo con lista de parámetros debe tener un inicializador de constructor ''this''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4388,12 +4388,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
         <source>Parameter '{0}' is unread.</source>
-        <target state="new">Parameter '{0}' is unread.</target>
+        <target state="translated">El parámetro '{0}' no está leído.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
         <source>Parameter is unread.</source>
-        <target state="new">Parameter is unread.</target>
+        <target state="translated">El parámetro no está leído.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">

@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct_member">
         <source>Prefer read-only struct member</source>
-        <target state="new">Prefer read-only struct member</target>
+        <target state="translated">Preferir miembro de estructura de solo lectura</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
