@@ -11522,15 +11522,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return NullableFlowState.NotNull;
                 }
+
                 Debug.Assert(index < Capacity);
                 index *= 2;
+                Debug.Assert((_state[index], _state[index + 1]) != (false, false));
+
                 var result = (_state[index], _state[index + 1]) switch
                 {
-                    (false, false) => throw ExceptionUtilities.Unreachable(),
+                    (false, false) => NullableFlowState.NotNull, // Should not be reachable
                     (true, false) => NullableFlowState.MaybeNull,
                     (false, true) => NullableFlowState.MaybeDefault,
                     (true, true) => NullableFlowState.NotNull
                 };
+
                 return result;
             }
 
