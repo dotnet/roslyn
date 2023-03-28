@@ -1813,7 +1813,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // (8,18): error CS9135: A constant value of type 'int?' is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case other:
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
@@ -3220,7 +3220,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (8,18): error CS9135: A constant value of type 'int?' is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case 1+(input is int x1 ? x1 : 0):
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(input is int x1 ? x1 : 0)").WithArguments("int").WithLocation(8, 18)
             };
