@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                if (operation.DeclaredSymbol != null)
+                if (operation.DeclaredSymbol is not null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);
                 }
@@ -292,6 +292,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public override void VisitRecursivePattern(IRecursivePatternOperation operation)
             {
                 base.VisitRecursivePattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitListPattern(IListPatternOperation operation)
+            {
+                base.VisitListPattern(operation);
 
                 if (operation.DeclaredSymbol is not null)
                 {

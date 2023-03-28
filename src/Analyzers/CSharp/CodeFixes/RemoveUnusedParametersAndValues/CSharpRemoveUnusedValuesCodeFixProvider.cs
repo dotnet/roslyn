@@ -111,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     var withoutDesignation = recursivePattern.WithDesignation(null);
                     return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
                 }
+
+                if (parent is ListPatternSyntax listPattern)
+                {
+                    var withoutDesignation = listPattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
             }
             else if (parent is AssignmentExpressionSyntax assignment &&
                 assignment.Right is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&

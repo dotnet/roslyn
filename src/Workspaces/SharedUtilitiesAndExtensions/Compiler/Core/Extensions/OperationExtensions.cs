@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis
             | out var x                |      |  ✔️   |             |             |                 | ️
             | case X x:                |      |  ✔️   |             |             |                 | ️
             | obj is X x               |      |  ✔️   |             |             |                 |
-            | obj is X { } x           |      |  ✔️   |             |             |                 |
+            | obj is { } x             |      |  ✔️   |             |             |                 |
+            | obj is [] x              |      |  ✔️   |             |             |                 |
             | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
             | ref readonly var x =     |      |       |     ✔️      |             |                 |
 
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                         return ValueUsageInfo.ReadWrite;
                 }
             }
-            else if (operation is IRecursivePatternOperation)
+            else if (operation is IRecursivePatternOperation or IListPatternOperation)
             {
                 return ValueUsageInfo.Write;
             }

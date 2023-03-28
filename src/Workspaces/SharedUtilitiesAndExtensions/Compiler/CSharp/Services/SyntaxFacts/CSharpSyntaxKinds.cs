@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? AndPattern => (int)SyntaxKind.AndPattern;
         public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;
         public int? DeclarationPattern => (int)SyntaxKind.DeclarationPattern;
+        public int? ListPattern => (int)SyntaxKind.ListPattern;
         public int? NotPattern => (int)SyntaxKind.NotPattern;
         public int? OrPattern => (int)SyntaxKind.OrPattern;
         public int? ParenthesizedPattern => (int)SyntaxKind.ParenthesizedPattern;

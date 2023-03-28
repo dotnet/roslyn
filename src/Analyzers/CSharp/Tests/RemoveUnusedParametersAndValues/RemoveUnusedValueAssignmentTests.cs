@@ -9076,5 +9076,133 @@ class C
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment1()
+        {
+            var source = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [] {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment2()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ []])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "TODO"), WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment3()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}] {|IDE0059:strings|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ []])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
     }
 }

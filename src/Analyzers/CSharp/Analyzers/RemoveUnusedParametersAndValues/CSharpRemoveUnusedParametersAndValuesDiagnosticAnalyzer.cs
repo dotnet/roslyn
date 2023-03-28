@@ -63,15 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // So, we conservatively bail out from removable assignment analysis for such cases.
 
             var statementAncestor = unusedSymbolWriteOperation.Syntax.FirstAncestorOrSelf<StatementSyntax>()?.Parent;
-            switch (statementAncestor)
+            return statementAncestor switch
             {
-                case BlockSyntax _:
-                case SwitchSectionSyntax _:
-                    return false;
-
-                default:
-                    return true;
-            }
+                BlockSyntax or SwitchSectionSyntax => false,
+                _ => true,
+            };
         }
 
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
@@ -95,6 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 case RecursivePatternSyntax recursivePattern:
                     Debug.Assert(recursivePattern.Designation is not null, "If we got to this point variable designation cannot be null");
                     return recursivePattern.Designation!.GetLocation();
+
+                case ListPatternSyntax listPattern:
+                    Debug.Assert(listPattern.Designation is not null, "If we got to this point variable designation cannot be null");
+                    return listPattern.Designation!.GetLocation();
 
                 default:
                     // C# syntax node for foreach statement has no syntax node for the loop control variable declaration,
