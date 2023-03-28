@@ -3210,7 +3210,7 @@ namespace ClassLibrary7
             var reference = MetadataReference.CreateFromImage(compilation.EmitToArray());
             var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
             var updatedP1 = p1.AddMetadataReference(reference);
-            workspace.ChangeSolution(updatedP1.Solution);
+            await workspace.ChangeSolutionAsync(updatedP1.Solution);
 
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
@@ -3264,7 +3264,7 @@ public class SomeClass : Base
 
             var project = workspace.CurrentSolution.Projects.Single();
             var updatedProject = project.AddMetadataReference(libRef);
-            workspace.ChangeSolution(updatedProject.Solution);
+            await workspace.ChangeSolutionAsync(updatedProject.Solution);
 
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");

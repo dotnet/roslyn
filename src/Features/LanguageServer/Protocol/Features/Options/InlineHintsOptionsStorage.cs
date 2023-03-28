@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
               ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
           };
 
-        private static readonly OptionGroup s_inlineHintOptionGroup = new(name: "inline_hint", description: "");
+        private static readonly OptionGroup s_inlineHintOptionGroup = new(name: "inline_hints", description: "");
 
         //  Parameter hints
 
