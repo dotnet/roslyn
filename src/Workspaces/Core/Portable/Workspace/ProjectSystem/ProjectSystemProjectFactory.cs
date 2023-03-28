@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -21,16 +19,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     internal sealed class ProjectSystemProjectFactory
     {
-        /// <summary>
-        /// The main gate to synchronize updates to this solution.
-        /// </summary>
-        /// <remarks>
-        /// See the Readme.md in this directory for further comments about threading in this area.
-        /// </remarks>
-        // TODO: we should be able to get rid of this gate in favor of just calling the various workspace methods that acquire the Workspace's
-        // serialization lock and then allow us to update our own state under that lock.
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
         public Workspace Workspace { get; }
         public IAsynchronousOperationListener WorkspaceListener { get; }
         public IFileChangeWatcher FileChangeWatcher { get; }
@@ -150,14 +138,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             DocumentsNotFromFiles = DocumentsNotFromFiles.Add(documentId);
         }
 
         internal void RemoveDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
             DocumentsNotFromFiles = DocumentsNotFromFiles.Remove(documentId);
         }
         /// <summary>
@@ -235,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private void ApplyBatchChangeToWorkspace_NoLock(SolutionChangeAccumulator solutionChanges)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             if (!solutionChanges.HasChange)
                 return;
@@ -258,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
@@ -269,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// </summary>
         internal void RemoveProjectFromTrackingMaps_NoLock(ProjectId projectId)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             var project = Workspace.CurrentSolution.GetRequiredProject(projectId);
 
@@ -297,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         internal void RemoveSolution_NoLock()
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             // At this point, we should have had RemoveProjectFromTrackingMaps_NoLock called for everything else, so it's just the solution itself
             // to clean up
@@ -352,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         public void AddProjectOutputPath_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
 
@@ -398,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectIdToReference, string outputPath)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
             {
@@ -482,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
             {
@@ -523,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
@@ -555,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
             foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
@@ -574,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         public void RemoveProjectOutputPath_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(this.Workspace.IsCurrentlyHoldingSerializationLock);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
             if (!projectReferenceInformation.OutputPaths.Contains(outputPath))

@@ -90,6 +90,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Helper only for the purpose of writing asserts.  Useful when code wants to assert that it is being run while
+        /// the serialization lock is being held.  Note: this function is both racey (could change immediately after
+        /// calling), and ambiguous (it just says that some thread of execution is holding the lock, not that the
+        /// current one is).  So, having this return an expected value is not a guarantee that things are working
+        /// properly.  However, if it returns an unexpected value (for example, 'false' when some thread expects to be
+        /// holding the lock) then it definitely indicates a bug.
+        /// </summary>
+        internal bool IsCurrentlyHoldingSerializationLock => _serializationLock.CurrentCount == 0;
+
+        /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
