@@ -2099,9 +2099,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                         // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                         receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
-#if DEBUG
-                        MarkVisited(receiver);
-#endif
                     }
                 }
 

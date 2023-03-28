@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true; // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
                 case BoundImplicitIndexerValuePlaceholder:
                     return placeholder.Type?.SpecialType == SpecialType.System_Int32;
+                case BoundCapturedReceiverPlaceholder:
+                    return true; // BoundCapturedReceiverPlaceholder is created in GetInvocationArgumentsForEscape(), and was not part of the BoundNode tree.
                 default:
                     return false;
             }
@@ -278,17 +280,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
-            if (node is BoundExpression expr)
-            {
-                bool added = MarkVisited(expr);
-                if (!added)
-                {
-                    Debug.Assert(expr is BoundValuePlaceholderBase);
-                }
-            }
             if (node is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
+            }
+            else if (node is BoundExpression expr)
+            {
+                if (_trackVisited && _visited.Count <= MaxTrackVisited)
+                {
+                    bool added = _visited.Add(expr);
+                    Debug.Assert(added);
+                }
             }
 #endif
             return base.Visit(node);
@@ -297,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         private void AssertVisited(BoundExpression expr)
         {
-            if (expr is BoundValuePlaceholderBase placeholder
-                && placeholder is not BoundCapturedReceiverPlaceholder)
+            if (expr is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
             }
@@ -306,19 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_visited.Contains(expr));
             }
-        }
-
-        private bool MarkVisited(BoundExpression expr)
-        {
-            if (!_trackVisited)
-            {
-                return true;
-            }
-            if (_visited.Count > MaxTrackVisited)
-            {
-                return true;
-            }
-            return _visited.Add(expr);
         }
 #endif
 
