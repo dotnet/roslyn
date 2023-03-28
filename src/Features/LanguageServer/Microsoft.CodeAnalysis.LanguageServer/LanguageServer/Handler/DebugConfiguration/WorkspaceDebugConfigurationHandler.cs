@@ -45,11 +45,7 @@ internal class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<Wo
 
     private static bool IsProjectInWorkspace(Uri workspacePath, Project project)
     {
-        var relativePath = Path.GetRelativePath(workspacePath.LocalPath, project.FilePath!);
-        // The project is in contained in the workspace path if the relative path is not above the workspace path and the relative path is not rooted.
-        return relativePath != ".." &&
-            !(relativePath.StartsWith("../") || relativePath.StartsWith(@"..\")) &&
-            !Path.IsPathRooted(relativePath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.LocalPath);
     }
 
     private ProjectDebugConfiguration GetProjectDebugConfiguration(Project project)

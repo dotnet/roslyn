@@ -105,8 +105,6 @@ internal sealed class LanguageServerProjectSystem
 
         var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
 
-        ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
-
         foreach (var project in solutionFile.ProjectsInOrder)
         {
             if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
