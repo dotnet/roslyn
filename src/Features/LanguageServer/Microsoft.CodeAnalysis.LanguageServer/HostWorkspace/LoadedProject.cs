@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -19,6 +20,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly ProjectSystemProject _projectSystemProject;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _fileChangeContext;
+    private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
     /// <summary>
     /// The most recent version of the project design time build information; held onto so the next reload we can diff against this.
@@ -26,12 +28,13 @@ internal sealed class LoadedProject : IDisposable
     private ProjectFileInfo? _mostRecentFileInfo;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
 
-    public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher)
+    public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
         Contract.ThrowIfNull(projectSystemProject.FilePath);
 
         _projectSystemProject = projectSystemProject;
         _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, solutionServices);
+        _targetFrameworkManager = targetFrameworkManager;
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
@@ -83,6 +86,11 @@ internal sealed class LoadedProject : IDisposable
 
         _projectSystemProject.OutputFilePath = newProjectInfo.OutputFilePath;
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
+
+        if (newProjectInfo.TargetFrameworkIdentifier != null)
+        {
+            _targetFrameworkManager.UpdateIdentifierForProject(_projectSystemProject.Id, newProjectInfo.TargetFrameworkIdentifier);
+        }
 
         _optionsProcessor.SetCommandLine(newProjectInfo.CommandLineArgs);
 
