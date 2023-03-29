@@ -132,7 +132,7 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile).Distinct(DocumentFileInfoComparer.Instance),
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
-            document => _projectSystemProject.RemoveAdditionalFile(document.FilePath));
+            document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath));
 
         _mostRecentFileInfo = newProjectInfo;
 
