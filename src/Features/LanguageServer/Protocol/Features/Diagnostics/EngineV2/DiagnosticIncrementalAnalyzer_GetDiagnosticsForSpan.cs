@@ -112,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // updating the error list simultaneously.
                 var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsLspPullDiagnostics();
 
+                // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
+                // We clear out range for such cases as we are computing full document diagnostics.
                 if (range.HasValue && range.Value.Length == text.Length)
                     range = null;
 
                 // We log performance info when we are computing diagnostics for a span
                 // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
-                // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span,
-                // so we also check that the range length is lesser then the document text length.
                 var logPerformanceInfo = range.HasValue && blockForData;
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
