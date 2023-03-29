@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
         private readonly Guid _registrationId;
 
+        // We use workspace/configuration request to get configurations.
+        // This indicate if the client support the request. If not, the handler won't send request to the client.
+        private bool _clientSupportWorkspaceConfiguration;
+
         /// <summary>
         /// All the <see cref="ConfigurationItem.Section"/> needs to be refreshed from the client. 
         /// </summary>
@@ -66,6 +70,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
+            if (!_clientSupportWorkspaceConfiguration)
+            {
+                _lspLogger.LogInformation($"Client doesn't support workspace/configuration.");
+                return;
+            }
+
             var configurationsFromClient = await GetConfigurationsAsync(cancellationToken).ConfigureAwait(false);
             if (configurationsFromClient.IsEmpty)
             {
