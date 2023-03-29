@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructMemberReadOnly;
@@ -1378,6 +1379,27 @@ public sealed class MakeStructMemberReadOnlyTests
                     var v = from y in x
                             select y;
                 }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67531")]
+    public async Task TestWithFixedSizeBufferField1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct Repro
+            {
+                private unsafe fixed byte bytes[16];
+
+                public unsafe void AsSpan()
+                {
+                    M(ref bytes[0]);
+                }
+
+                private readonly void M(ref byte b) { }
             }
             """,
         }.RunAsync();
