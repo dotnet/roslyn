@@ -502,7 +502,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                     }
 
-                    _priorityProvider.TrackDeprioritizedAnalyzer(analyzer);
+                    // 'LightbulbSkipExecutingLowPriorityAnalyzers' option determines if we want to execute this analyzer
+                    // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
+                    // analyzer to be executed in low priority bucket.
+                    if (!_owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingLowPriorityAnalyzers))
+                        _priorityProvider.TrackDeprioritizedAnalyzer(analyzer);
+
                     return true;
                 }
             }
