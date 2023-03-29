@@ -23,30 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
         Public Sub New()
         End Sub
 
-        Protected Async Function GetTypeDeclarationAsync2(
-            document As Document, position As Integer,
-            typeDiscoveryRule As TypeDiscoveryRule,
-            cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-
-            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = root.FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
-            Dim typeDeclaration = token.GetAncestor(Of TypeBlockSyntax)()
-
-            If typeDeclaration Is Nothing OrElse
-               typeDeclaration.Kind = SyntaxKind.ModuleStatement Then
-                Return Nothing
-            ElseIf typeDiscoveryRule = TypeDiscoveryRule.TypeDeclaration Then
-                Return typeDeclaration
-            End If
-
-            Dim spanStart = typeDeclaration.BlockStatement.Identifier.SpanStart
-            Dim spanEnd = If(typeDeclaration.BlockStatement.TypeParameterList IsNot Nothing, typeDeclaration.BlockStatement.TypeParameterList.Span.End, typeDeclaration.BlockStatement.Identifier.Span.End)
-            Dim span = New TextSpan(spanStart, spanEnd - spanStart)
-
-            Return If(span.IntersectsWith(position), typeDeclaration, Nothing)
-        End Function
-
         Protected Overrides Async Function GetTypeDeclarationAsync(
             document As Document, position As Integer,
             typeDiscoveryRule As TypeDiscoveryRule,
