@@ -432,6 +432,11 @@
         <target state="translated">从源生成器在打开的文件中启用所有功能(实验性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">为诊断启用文件日志记录(记录在“%Temp%\Roslyn”文件夹中)</target>
@@ -776,11 +781,6 @@
         <source>Namespace declarations</source>
         <target state="translated">命名空间声明</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">命名空间已更新。</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1496,6 +1496,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">同步命名空间</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="new">Sync namespaces changes</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

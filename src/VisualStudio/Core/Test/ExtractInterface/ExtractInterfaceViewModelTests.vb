@@ -35,7 +35,7 @@ class $$MyClass
             Assert.True(viewModel.MemberContainers.Single().IsChecked)
         End Function
 
-        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function TestExtractInterface_InterfaceNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -49,7 +49,7 @@ public class C$$
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function TestExtractInterface_FileNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -238,7 +238,7 @@ class $$MyClass
             Assert.Equal("this[int?, [string]]", viewModel.MemberContainers.Where(Function(c) c.Symbol.IsKind(SymbolKind.Property)).Single().SymbolName)
         End Function
 
-        <Fact, WorkItem(37176, "https://github.com/dotnet/roslyn/issues/37176")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37176")>
         Public Async Function TestExtractInterface_MemberDisplay_NullableReferenceType() As Task
             Dim markup = <Text><![CDATA[
 #nullable enable

@@ -30,6 +30,15 @@ internal partial class CSharpRecommendationService
         {
         }
 
+        protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
+            => lambdaSyntax switch
+            {
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
+                SimpleLambdaExpressionSyntax => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
+            };
+
         public override RecommendedSymbols GetRecommendedSymbols()
         {
             if (_context.IsInNonUserCode ||
@@ -102,6 +111,10 @@ internal partial class CSharpRecommendationService
             {
                 return GetSymbolsForNamespaceDeclarationNameContext<BaseNamespaceDeclarationSyntax>();
             }
+            else if (_context.IsEnumBaseListContext)
+            {
+                return GetSymbolsForEnumBaseList(container: null);
+            }
 
             return ImmutableArray<ISymbol>.Empty;
         }
@@ -110,6 +123,19 @@ internal partial class CSharpRecommendationService
         {
             // Ensure that we have the correct token in A.B| case
             var node = _context.TargetToken.GetRequiredParent();
+
+            if (node.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+            {
+                // We are in enum's base list. Valid nodes here are:
+                // 1) QualifiedNameSyntax, e.g. `enum E : System.$$`
+                // 2) AliasQualifiedNameSyntax, e.g. `enum E : global::$$`
+                // If there is anything else then this is not valid syntax, so just return empty recommendations
+                if (node is not (QualifiedNameSyntax or AliasQualifiedNameSyntax))
+                {
+                    return default;
+                }
+            }
+
             return node switch
             {
                 MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
@@ -117,11 +143,11 @@ internal partial class CSharpRecommendationService
                 MemberAccessExpressionSyntax(SyntaxKind.PointerMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
-                // This code should be executing only if the cursor is between two dots in a dotdot token.
+                // This code should be executing only if the cursor is between two dots in a `..` token.
                 RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
                 AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
-                MemberBindingExpressionSyntax _ => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
+                MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
         }
@@ -215,6 +241,10 @@ internal partial class CSharpRecommendationService
             var aliasSymbol = _context.SemanticModel.GetAliasInfo(alias, _cancellationToken);
             if (aliasSymbol == null)
                 return default;
+
+            // If we are in case like `enum E : global::$$` we need to show only `System` namespace
+            if (alias.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+                return new(GetSymbolsForEnumBaseList(aliasSymbol.Target));
 
             return new RecommendedSymbols(_context.SemanticModel.LookupNamespacesAndTypes(
                 alias.SpanStart,
@@ -317,6 +347,9 @@ internal partial class CSharpRecommendationService
 
             if (_context.IsNameOfContext)
                 return new RecommendedSymbols(_context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol));
+
+            if (name.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+                return new(GetSymbolsForEnumBaseList(symbol));
 
             var symbols = _context.SemanticModel.LookupNamespacesAndTypes(
                 position: name.SpanStart,

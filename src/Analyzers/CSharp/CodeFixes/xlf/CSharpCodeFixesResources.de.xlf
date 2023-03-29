@@ -97,6 +97,11 @@
         <target state="translated">"{0}" in Rückgabeaufgabe umwandeln, statt leer zu lassen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="new">Make field 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
         <target state="translated">Methode als asynchron definieren</target>
@@ -106,6 +111,11 @@
         <source>Make method async (stay void)</source>
         <target state="translated">Methode als asynchron definieren ("void" beibehalten)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="new">Make property 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>

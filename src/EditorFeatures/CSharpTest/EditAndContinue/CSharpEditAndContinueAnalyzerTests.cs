@@ -553,7 +553,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             var source1 = @"
@@ -594,7 +594,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
             var source1 = @"

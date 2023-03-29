@@ -817,6 +817,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
+            }
+
             // Local constants are never variables. Local variables are sometimes
             // not to be treated as variables, if they are fixed, declared in a using, 
             // or declared in a foreach.
@@ -906,6 +911,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!RequiresAssignableVariable(BindValueKind.AddressOf));
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
+            }
 
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
@@ -1050,7 +1059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(escapeTo is CallingMethodScope or ReturnOnlyScope);
             if (_useUpdatedEscapeRules)
             {
                 if (GetParameterValEscape(parameter) > escapeTo)

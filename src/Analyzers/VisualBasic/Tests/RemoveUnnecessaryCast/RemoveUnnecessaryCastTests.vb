@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryC
                     New VisualBasicRemoveUnnecessaryCastCodeFixProvider())
         End Function
 
-        <Fact, WorkItem(545979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")>
         Public Async Function TestDontRemoveCastToErrorType() As Task
             Dim markup =
 <File>
@@ -65,7 +65,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545148")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545148")>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
 <File>
@@ -94,7 +94,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(530762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530762")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530762")>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
 <File>
@@ -117,7 +117,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(530762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530762")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530762")>
         Public Async Function TestParenthesizeToKeepParseTheSame3() As Task
             Dim markup =
 <File>
@@ -140,7 +140,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545149")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545149")>
         Public Async Function TestInsertCallKeywordIfNecessary1() As Task
             Dim markup =
 <File>
@@ -163,7 +163,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545150")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545150")>
         Public Async Function TestInsertCallKeywordIfNecessary2() As Task
             Dim markup =
 <File>
@@ -191,7 +191,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
-        <WorkItem(545229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545229")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545229")>
         Public Async Function TestInsertCallKeywordIfNecessary3() As Task
             Dim code =
 <File>
@@ -220,7 +220,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(545528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545528")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545528")>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
         Public Async Function TestAddExplicitArgumentListIfNecessary1() As Task
             Dim markup =
@@ -248,7 +248,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545134")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545134")>
         Public Async Function TestDontRemoveConversionFromNullableLongToIComparable() As Task
             Dim markup =
 <File>
@@ -264,7 +264,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545151")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545151")>
         Public Async Function TestDontRemoveArrayLiteralConversion() As Task
             Dim markup =
 <File>
@@ -279,7 +279,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545152")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545152")>
         Public Async Function TestDontRemoveAddressOfCastToDelegate() As Task
             Dim markup =
 <File>
@@ -295,7 +295,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
         Public Async Function TestRemoveUnneededCastInLambda1() As Task
             Dim markup =
 <File>
@@ -318,7 +318,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
         Public Async Function TestRemoveUnneededCastInLambda2() As Task
             Dim markup =
 <File>
@@ -345,7 +345,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
         Public Async Function TestRemoveUnneededCastInLambda3() As Task
             Dim markup =
 <File>
@@ -378,7 +378,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
         Public Async Function TestRemoveUnneededCastInFunctionStatement() As Task
             Dim markup =
 <File>
@@ -401,7 +401,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545311")>
         Public Async Function TestRemoveUnneededCastInFunctionVariableAssignment() As Task
             Dim markup =
 <File>
@@ -424,7 +424,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545312")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545312")>
         Public Async Function TestRemoveUnneededCastInBinaryExpression() As Task
             Dim markup =
 <File>
@@ -451,7 +451,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545423")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545423")>
         Public Async Function TestRemoveUnneededCastInsideCaseLabel() As Task
             Dim markup =
 <File>
@@ -478,7 +478,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545421")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545421")>
         Public Async Function TestRemoveUnneededCastInOptionalParameterValue() As Task
             Dim markup =
 <File>
@@ -501,7 +501,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545579")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545579")>
         Public Async Function TestRemoveUnneededCastInRangeCaseClause1() As Task
             Dim markup =
 <File>
@@ -530,7 +530,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545579")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545579")>
         Public Async Function TestRemoveUnneededCastInRangeCaseClause2() As Task
             Dim markup =
 <File>
@@ -559,7 +559,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
         Public Async Function TestRemoveUnneededCastForLoop1() As Task
             Dim markup =
 <File>
@@ -584,7 +584,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
         Public Async Function TestRemoveUnneededCastForLoop2() As Task
             Dim markup =
 <File>
@@ -609,7 +609,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545580")>
         Public Async Function TestRemoveUnneededCastForLoop3() As Task
             Dim markup =
 <File>
@@ -634,7 +634,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545599")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545599")>
         Public Async Function TestDontRemoveNeededCastWithUserDefinedConversionsAndOptionStrictOff() As Task
             Dim markup =
 <File>
@@ -656,7 +656,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(529535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529535")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529535")>
         Public Async Function TestDontRemoveNeededCastWhenResultIsAmbiguous() As Task
             Dim markup =
 <File>
@@ -703,7 +703,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545261")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545261")>
         Public Async Function TestRemoveUnnecessaryCastToNothingInArrayInitializer() As Task
             Dim markup =
 <File>
@@ -726,7 +726,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545526")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545526")>
         Public Async Function TestDontRemoveCastThatResultsInDifferentStringRepresentations() As Task
             Dim markup =
 <File>
@@ -746,7 +746,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")>
         Public Async Function TestDontRemoveCastThatChangesArrayLiteralTypeAndBreaksOverloadResolution() As Task
             Dim markup =
 <File>
@@ -764,7 +764,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545456")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545456")>
         Public Async Function TestRemoveCastInAttribute() As Task
             Dim markup =
 <File>
@@ -801,7 +801,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
         Public Async Function TestAddParenthesesIfCopyBackAffected1() As Task
             Dim markup =
 <File>
@@ -834,7 +834,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
         Public Async Function TestAddParenthesesIfCopyBackAffected2() As Task
             Dim markup =
 <File>
@@ -867,7 +867,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545701")>
         Public Async Function TestAddParenthesesIfCopyBackAffected3() As Task
             Dim markup =
 <File>
@@ -900,7 +900,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestDontRemoveNecessaryCastPassedToParamArray1() As Task
             Dim markup =
 <File>
@@ -917,7 +917,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestDontRemoveNecessaryCastPassedToParamArray2() As Task
             Dim markup =
 <File>
@@ -934,7 +934,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray1() As Task
             Dim markup =
 <File>
@@ -963,7 +963,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray2() As Task
             Dim markup =
 <File>
@@ -992,7 +992,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray3() As Task
             Dim markup =
 <File>
@@ -1023,7 +1023,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray4() As Task
             Dim markup =
 <File>
@@ -1054,7 +1054,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray5() As Task
             Dim markup =
 <File>
@@ -1140,7 +1140,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545972")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545972")>
         Public Async Function TestRemoveUnnecessaryCastInBinaryIf1() As Task
             Dim markup =
 <File>
@@ -1163,7 +1163,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545972")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545972")>
         Public Async Function TestRemoveUnnecessaryCastInBinaryIf2() As Task
             Dim markup =
 <File>
@@ -1186,7 +1186,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545974")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545974")>
         Public Async Function TestRemoveUnnecessaryCastInObjectCreationExpression() As Task
             Dim markup =
 <File>
@@ -1211,7 +1211,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545973")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545973")>
         Public Async Function TestRemoveUnnecessaryCastInSelectCase() As Task
             Dim markup =
 <File>
@@ -1242,7 +1242,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545526")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545526")>
         Public Async Function TestDontRemoveCastToDoubleInOptionStrictOff() As Task
             Dim markup =
 <File>
@@ -1262,7 +1262,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545828")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545828")>
         Public Async Function TestDontRemoveCStrInCharToStringToObjectChain() As Task
             Dim markup =
 <File>
@@ -1278,7 +1278,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545808")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545808")>
         Public Async Function TestDontRemoveNecessaryCastWithMultipleUserDefinedConversionsAndOptionStrictOff() As Task
             Dim markup =
 <File>
@@ -1303,7 +1303,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545998")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545998")>
         Public Async Function TestDontRemoveCastWhichWouldChangeAttributeOverloadResolution() As Task
             Dim markup =
 <File>
@@ -1351,7 +1351,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryStringPredefinedCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1365,7 +1365,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryWideningPredefinedCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1379,7 +1379,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryNarrowingPredefinedCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1393,7 +1393,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryStringCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1407,7 +1407,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryWideningCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1421,7 +1421,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryNarrowingCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1435,7 +1435,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryUserDefinedCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1462,7 +1462,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestRemoveUnnecessaryCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1485,7 +1485,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestRemoveUnnecessaryInheritedCTypeCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1522,7 +1522,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestRemoveUnnecessaryDirectCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1545,7 +1545,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestRemoveUnnecessaryTryCastWithGetType() As Task
             Dim markup =
 <File>
@@ -1568,7 +1568,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32399")>
         Public Async Function TestDontRemoveNecessaryPredefinedCastWithToString() As Task
             Dim markup =
 <File>
@@ -1582,7 +1582,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestDontRemoveNecessaryPredefinedCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1599,7 +1599,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestDontRemoveNecessaryDirectCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1616,7 +1616,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestDontRemoveNecessaryCTypeCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1633,7 +1633,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestDontRemoveNecessaryTryCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1650,7 +1650,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestRemoveUnnecessaryPredefinedCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1678,7 +1678,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestRemoveUnnecessaryDirectCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1706,7 +1706,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestRemoveUnnecessaryCTypeCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1734,7 +1734,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestRemoveUnnecessaryTryCastInWithStatement() As Task
             Dim markup =
 <File>
@@ -1822,7 +1822,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(531479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531479")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531479")>
         Public Async Function TestEscapeNextStatementIfNeeded() As Task
             Dim markup =
 <File>
@@ -1857,7 +1857,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(607749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607749")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607749")>
         Public Async Function TestBugfix_607749() As Task
             Dim markup =
 <File>
@@ -1888,7 +1888,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(609477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609477")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609477")>
         Public Async Function TestBugfix_609477() As Task
             Dim markup =
 <File>
@@ -1915,7 +1915,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(552813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552813")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552813")>
         Public Async Function TestDontRemoveCastWhileNarrowingWithOptionOn() As Task
             Dim markup =
 <File>
@@ -1931,7 +1931,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(577929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577929")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577929")>
         Public Async Function TestDontRemoveCastWhileDefaultingNullables() As Task
             Dim markup =
 <File>
@@ -1975,7 +1975,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(578016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578016")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578016")>
         Public Async Function TestDontRemoveCStr() As Task
             Dim markup =
 <File>Option Strict On
@@ -1992,7 +1992,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(530105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530105")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530105")>
         Public Async Function TestDontRemoveNumericCast() As Task
             Dim markup =
 <File>
@@ -2003,7 +2003,7 @@ End Interface
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(530104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530104")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530104")>
         Public Async Function TestDontRemoveCTypeFromNumberToEnum() As Task
             Dim markup =
 <File>
@@ -2016,7 +2016,7 @@ End Interface
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(530077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530077")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530077")>
         Public Async Function TestDontRemoveCastForLambdaToDelegateConversionWithOptionStrictOn() As Task
             Dim markup =
  <File>
@@ -2034,7 +2034,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(529966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529966")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529966")>
         Public Async Function TestDontRemoveForNarrowingConversionFromObjectWithOptionStrictOnInsideQueryExpression() As Task
             Dim markup =
 <File>
@@ -2052,7 +2052,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(530650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530650")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530650")>
         Public Async Function TestRemoveUnnecessaryCastFromLambdaToDelegateParenthesizeLambda() As Task
             Dim markup =
 <File>
@@ -2078,7 +2078,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(707189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
         Public Async Function TestRemoveUnnecessaryCastFromInvocationStatement() As Task
             Dim markup =
 <File>
@@ -2110,7 +2110,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(707189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
         Public Async Function DoNotRemoveUnnecessaryCastFromInvocationStatement2() As Task
             Dim markup =
 <File>
@@ -2130,7 +2130,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(768895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768895")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768895")>
         Public Async Function TestRemoveUnnecessaryCastInTernary() As Task
             Dim markup =
 <File>
@@ -2154,7 +2154,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(770187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
         <WpfFact(Skip:="770187")>
         Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
@@ -2199,7 +2199,7 @@ End Namespace]]>
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(770187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
         <WpfFact(Skip:="770187")>
         Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression2() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
@@ -2244,7 +2244,7 @@ End Namespace]]>
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(770187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
         <WpfFact(Skip:="770187")>
         Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression3() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
@@ -2291,7 +2291,7 @@ End Namespace]]>
 
 #Region "Interface Casts"
 
-        <Fact, WorkItem(545889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")>
         Public Async Function TestDontRemoveCastToInterfaceForUnsealedType() As Task
             Dim markup =
 <File>
@@ -2320,7 +2320,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         Public Async Function DoNotRemoveCastToInterfaceForSealedType1() As Task
             Dim markup =
 <File>
@@ -2344,7 +2344,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         Public Async Function DoNotRemoveCastToInterfaceForSealedType2() As Task
             Dim markup =
 <File>
@@ -2370,7 +2370,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         Public Async Function DoNotRemoveCastToInterfaceForSealedType3() As Task
             Dim markup =
 <File>
@@ -2402,7 +2402,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         Public Async Function TestDontRemoveCastToInterfaceForSealedType4() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the unspecified optional parameter default values differ.
@@ -2430,7 +2430,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         Public Async Function TestDontRemoveCastToInterfaceForSealedType5() As Task
             ' Note: The cast below cannot be removed (even though C is sealed)
             ' because default values differ for optional parameters and
@@ -2459,7 +2459,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
         Public Async Function TestDontRemoveCastToInterfaceForSealedType6() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the specified named arguments refer to parameters that
@@ -2488,7 +2488,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
         Public Async Function DoNotRemoveCastToInterfaceForSealedType7() As Task
             Dim markup =
 <File>
@@ -2512,7 +2512,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
         Public Async Function TestDontRemoveCastToInterfaceForSealedType9() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because it would result in binding to a Dispose method that doesn't
@@ -2539,7 +2539,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545887")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545887")>
         Public Async Function TestDontRemoveCastToInterfaceForStruct1() As Task
             ' Note: The cast below can't be removed because the cast boxes 's' and
             ' unboxing would change program behavior.
@@ -2579,7 +2579,7 @@ End Structure
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(545834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834"), WorkItem(530073, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530073")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530073")>
         Public Async Function TestRemoveCastToInterfaceForStruct2() As Task
             ' Note: The cast below can be removed because we are sure to have
             ' a fresh copy of the struct from the GetEnumerator() method.
@@ -2620,7 +2620,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(544655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")>
         Public Async Function TestRemoveCastToICloneableForDelegate() As Task
             ' Note: The cast below can be removed because delegates are implicitly sealed.
 
@@ -2652,7 +2652,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(545926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")>
         Public Async Function TestRemoveCastToICloneableForArray() As Task
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
@@ -2682,7 +2682,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(529937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529937")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529937")>
         Public Async Function TestRemoveCastToICloneableForArray2() As Task
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
@@ -2710,7 +2710,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")>
         Public Async Function TestRemoveCastToIConvertibleForEnum() As Task
             ' Note: The cast below can be removed because enums are implicitly sealed.
 
@@ -2741,8 +2741,8 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")>
-        <WorkItem(1031406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1031406")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1031406")>
         Public Async Function TestDoNotRemoveCastFromDerivedToBaseWithImplicitReference() As Task
             ' Cast removal changes the runtime behavior of the program.
             Dim markup =
@@ -2764,7 +2764,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(995908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995908")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995908")>
         Public Async Function TestRemoveCastIntroducesDuplicateAnnotations() As Task
             Dim markup =
 <File>
@@ -2830,7 +2830,7 @@ End Module
 
 #End Region
 
-        <Fact, WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/739")>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation1() As Task
             Dim markup =
 <File>
@@ -2849,7 +2849,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/739")>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation2() As Task
             Dim markup =
 <File>
@@ -2868,7 +2868,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/739")>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation3() As Task
             Dim markup =
 <File>
@@ -2887,7 +2887,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2761")>
         Public Async Function TestDontRemoveCastFromBaseToDerivedWithNarrowingReference() As Task
             Dim markup =
 <File>
@@ -2909,7 +2909,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")>
         Public Async Function TestDontRemoveCastToTypeParameterWithExceptionConstraint() As Task
             Dim markup =
 <File>
@@ -2926,7 +2926,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")>
         Public Async Function TestDontRemoveCastToTypeParameterWithExceptionSubTypeConstraint() As Task
             Dim markup =
 <File>
@@ -2943,7 +2943,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3163")>
         Public Async Function TestDoNotRemoveCastInUserDefinedNarrowingConversionStrictOn() As Task
             Dim markup =
 <File>
@@ -2981,7 +2981,7 @@ End Structure
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3163")>
         Public Async Function TestDoNotRemoveCastInUserDefinedNarrowingConversionStrictOff() As Task
             Dim markup =
 <File>
@@ -3019,7 +3019,7 @@ End Structure
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
         Public Async Function DontOfferToRemoveCastWhenAccessingHiddenProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 <Code>

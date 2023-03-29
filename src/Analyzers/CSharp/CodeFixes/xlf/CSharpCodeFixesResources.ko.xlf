@@ -97,6 +97,11 @@
         <target state="translated">{0}에서 void 대신 Task를 반환하도록 설정합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="new">Make field 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
         <target state="translated">메서드를 비동기로 설정</target>
@@ -106,6 +111,11 @@
         <source>Make method async (stay void)</source>
         <target state="translated">메서드를 비동기로 설정(void 유지)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="new">Make property 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>

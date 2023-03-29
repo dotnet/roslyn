@@ -139,26 +139,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
-            try
-            {
-                return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
-                // https://github.com/dotnet/roslyn/issues/67084 tracks removing this try/catch logic.
-                lock (s_gate)
-                {
-                    if (s_compilationWithAnalyzersCache?.SolutionChecksum == _solutionChecksum &&
-                        s_compilationWithAnalyzersCache.Project == _project)
-                    {
-                        s_compilationWithAnalyzersCache = null;
-                    }
-                }
-
-                throw;
-            }
+            return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
+                reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(

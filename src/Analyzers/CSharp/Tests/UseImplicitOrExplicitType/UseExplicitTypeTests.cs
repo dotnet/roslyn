@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task NotIfRefTypeAlreadyExplicitlyTyped()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
         [WpfFact]
         public async Task NotOnErrorConvertedType_ForEachVariableStatement()
         {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
         [WpfFact]
         public async Task NotOnErrorConvertedType_AssignmentExpressionStatement()
         {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         #endregion
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InArrayType()
         {
             var before = """
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InArrayTypeWithIntrinsicType()
         {
             var before = """
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent()); // preference for builtin types dominates
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InNullableIntrinsicType()
         {
             var before = """
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
         public async Task InNativeIntIntrinsicType()
         {
             var before = """
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
         public async Task InNativeUnsignedIntIntrinsicType()
         {
             var before = """
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task WithRefIntrinsicType()
         {
             var before = """
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task WithRefIntrinsicTypeInForeach()
         {
             var before = """
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InArrayOfNullableIntrinsicType()
         {
             var before = """
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InNullableCustomType()
         {
             var before = """
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NullableType()
         {
             var before = """
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task ObliviousType()
         {
             var before = """
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType()
         {
             var before = """
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NullableType_OutVar()
         {
             var before = """
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_OutVar()
         {
             var before = """
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task ObliviousType_OutVar()
         {
             var before = """
@@ -786,8 +786,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40925")]
-        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
-        [WorkItem(40925, "https://github.com/dotnet/roslyn/issues/40925")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40925")]
         public async Task NullableTypeAndNotNullableType_VarDeconstruction()
         {
             var before = """
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task ObliviousType_VarDeconstruction()
         {
             var before = """
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task ObliviousType_Deconstruction()
         {
             var before = """
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_Deconstruction()
         {
             var before = """
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NullableType_Deconstruction()
         {
             var before = """
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task ObliviousType_Foreach()
         {
             var before = """
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_Foreach()
         {
             var before = """
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NullableType_Foreach()
         {
             var before = """
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/37491")]
-        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_ForeachVarDeconstruction()
         {
             // Semantic model doesn't yet handle var deconstruction foreach
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_ForeachDeconstruction()
         {
             var before = """
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InPointerTypeWithIntrinsicType()
         {
             var before = """
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent()); // preference for builtin types dominates
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InPointerTypeWithCustomType()
         {
             var before = """
@@ -1165,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
         public async Task InOutParameter()
         {
             var before = """
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnDeconstructionVarParens()
         {
             await TestInRegularAndScriptAsync(
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnNestedDeconstructionVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnBadlyFormattedNestedDeconstructionVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1339,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnForeachNestedDeconstructionVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnNestedDeconstructionVarWithTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnDeconstructionVarWithDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnDeconstructionVarWithErrorType()
         {
             await TestInRegularAndScriptAsync(
@@ -2388,7 +2388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task SuggestExplicitTypeNotificationLevelWarning()
         {
             var source =
@@ -2503,7 +2503,7 @@ options: ExplicitTypeEverywhere());
 options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(20437, "https://github.com/dotnet/roslyn/issues/20437")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
         public async Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
         {
             await TestInRegularAndScriptAsync(
@@ -2532,7 +2532,7 @@ options: ExplicitTypeEverywhere());
 options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2549,7 +2549,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2568,7 +2568,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2585,7 +2585,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2606,7 +2606,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2624,7 +2624,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2642,7 +2642,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2660,7 +2660,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2683,7 +2683,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames9()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2701,7 +2701,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2720,7 +2720,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames11()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2738,7 +2738,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
         public async Task NoSuggestionOnForeachCollectionExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2775,7 +2775,7 @@ options: ExplicitTypeEverywhere());
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task WithNormalFuncSynthesizedLambdaType()
         {
             var before = """
@@ -2802,7 +2802,7 @@ options: ExplicitTypeEverywhere());
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
         public async Task WithAnonymousSynthesizedLambdaType()
         {
             var before = """

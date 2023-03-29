@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
-               usingDirective.Name == node;
+               usingDirective.NamespaceOrType == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
             alias = usingDirective.Alias!.Name.Identifier;
-            name = usingDirective.Name;
+            name = usingDirective.NamespaceOrType;
         }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)

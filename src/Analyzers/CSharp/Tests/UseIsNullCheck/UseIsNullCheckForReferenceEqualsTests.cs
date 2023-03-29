@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
                 """);
         }
 
-        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNullTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 new[] { CSharpAnalyzersResources.Use_is_null_check });
         }
 
-        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsObjectTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -99,7 +99,7 @@ new[] { CSharpAnalyzersResources.Use_is_object_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNotNullTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -239,7 +239,7 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 """, new TestParameters(parseOptions: CSharp7));
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestNegated_CSharp9()
         {
             await TestInRegularAndScript1Async(
@@ -351,7 +351,7 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 """);
         }
 
-        [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
         {
             await TestInRegularAndScript1Async(
@@ -472,7 +472,7 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 """, new TestParameters(parseOptions: CSharp9));
         }
 
-        [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsRefConstraintGeneric()
         {
             await TestInRegularAndScript1Async(
@@ -562,7 +562,7 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 """, new TestParameters(parseOptions: CSharp9));
         }
 
-        [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsValueConstraintGeneric()
         {
             await TestMissingAsync(

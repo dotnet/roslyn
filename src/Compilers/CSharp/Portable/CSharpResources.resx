@@ -4095,16 +4095,16 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Delay signing was specified and requires a public key, but no public key was specified</value>
   </data>
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
+    <value>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
   <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
-    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+    <value>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
+    <value>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</value>
   </data>
   <data name="WRN_InvalidVersionFormat_Title" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -6847,6 +6847,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
     <value>Do not compare function pointer values</value>
   </data>
+  <data name="IDS_FeatureUsingTypeAlias" xml:space="preserve">
+    <value>using type alias</value>
+  </data>
+  <data name="ERR_BadRefInUsingAlias" xml:space="preserve">
+    <value>Using alias cannot be a 'ref' type.</value>
+  </data>
+  <data name="ERR_BadUnsafeInUsingDirective" xml:space="preserve">
+    <value>Only a 'using static' or 'using alias' can be 'unsafe'.</value>
+  </data>
+  <data name="ERR_BadNullableReferenceTypeInUsingAlias" xml:space="preserve">
+    <value>Using alias cannot be a nullable reference type.</value>
+  </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in this context is not supported.</value>
   </data>
@@ -7480,5 +7492,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnexpectedParameterList" xml:space="preserve">
     <value>Unexpected parameter list.</value>
+  </data>
+  <data name="WRN_AddressOfInAsync" xml:space="preserve">
+    <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
+  </data>
+  <data name="WRN_AddressOfInAsync_Title" xml:space="preserve">
+    <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
+  </data>
+  <data name="ERR_BadStaticAfterUnsafe" xml:space="preserve">
+    <value>'static' modifier must precede 'unsafe' modifier.</value>
+  </data>
+  <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
+    <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
 </root>

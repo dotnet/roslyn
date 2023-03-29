@@ -481,7 +481,7 @@ public sealed class MakeStructMemberReadOnlyTests
             TestCode = """
             struct S
             {
-                int [|P|] => 0;
+                int P [|=>|] 0;
             }
             """,
             FixedCode = """

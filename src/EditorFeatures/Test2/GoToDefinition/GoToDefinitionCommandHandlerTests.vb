@@ -114,7 +114,7 @@ int y = x$$</Document>
             End Using
         End Function
 
-        <WpfTheory, WorkItem(43183, "https://github.com/dotnet/roslyn/issues/43183")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/43183")>
         <CombinatorialData>
         Public Async Function TestWithSelection(reversedSelection As Boolean) As Task
             Dim definition =
