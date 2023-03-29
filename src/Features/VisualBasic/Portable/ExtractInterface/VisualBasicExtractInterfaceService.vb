@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function GetTypeDeclarationAsync(
+        Protected Async Function GetTypeDeclarationAsync2(
             document As Document, position As Integer,
             typeDiscoveryRule As TypeDiscoveryRule,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
@@ -44,6 +45,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Dim span = New TextSpan(spanStart, spanEnd - spanStart)
 
             Return If(span.IntersectsWith(position), typeDeclaration, Nothing)
+        End Function
+
+        Protected Overrides Async Function GetTypeDeclarationAsync(
+            document As Document, position As Integer,
+            typeDiscoveryRule As TypeDiscoveryRule,
+            cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+
+            Dim span = New TextSpan(position, 0)
+            Dim typeBlock = Await document.TryGetRelevantNodeAsync(Of TypeBlockSyntax)(span, cancellationToken).ConfigureAwait(False)
+
+            ' If TypeDiscoverRule Is set to TypeDeclaration, a position anywhere inside of the
+            ' declaration enclosure Is valid. In this case check to see if there Is a type declaration ancestor
+            ' of the focused node.
+            If typeBlock Is Nothing And typeDiscoveryRule = TypeDiscoveryRule.TypeDeclaration Then
+                Dim relevantNode = Await document.TryGetRelevantNodeAsync(Of SyntaxNode)(span, cancellationToken).ConfigureAwait(False)
+                Return relevantNode.GetAncestor(Of TypeBlockSyntax)
+            End If
+
+            Return typeBlock
         End Function
 
         Friend Overrides Function GetContainingNamespaceDisplay(typeSymbol As INamedTypeSymbol, compilationOptions As CompilationOptions) As String
