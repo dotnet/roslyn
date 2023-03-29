@@ -487,8 +487,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Note that we only perform this analysis if the prior document, whose existingData is cached, had same number
                     // of source lines as the current document snapshot. Otherwise, the start/end lines comparison across
                     // snapshots is not meaningful.
-                    if (existingData.Version != VersionStamp.Default &&
-                        existingData.LineCount == _text.Lines.Count &&
+                    if (existingData.LineCount == _text.Lines.Count &&
                         !existingData.Items.IsEmpty)
                     {
                         _text.GetLinesAndOffsets(span.Value, out var startLineNumber, out var _, out var endLineNumber, out var _);
