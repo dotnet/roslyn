@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         /// Takes potentially multiple <see cref="ApiData"/> instances, corresponding to different additional text
         /// files, and flattens them into the final instance we will use when analyzing the compilation.
         /// </summary>
-        private static ApiData Flatten(List<ApiData> allData)
+        private static ApiData Flatten(ArrayBuilder<ApiData> allData)
         {
             Debug.Assert(allData.Count > 0);
 
@@ -223,8 +223,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
             var maxNullableRank = -1;
 
-            foreach (var data in allData)
+            for (int i = 0, n = allData.Count; i < n; i++)
             {
+                var data = allData[i];
                 apiBuilder.AddRange(data.ApiList);
                 removedBuilder.AddRange(data.RemovedApiList);
                 maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
@@ -242,8 +243,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             [NotNullWhen(true)] out ApiData? shippedData,
             [NotNullWhen(true)] out ApiData? unshippedData)
         {
-            var allShippedData = new List<ApiData>();
-            var allUnshippedData = new List<ApiData>();
+            using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
+            using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
+
             AddApiTexts(
                 analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
 
@@ -362,8 +364,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private static void AddApiTexts(
             ImmutableArray<AdditionalText> additionalTexts,
             bool isPublic,
-            List<ApiData> allShippedData,
-            List<ApiData> allUnshippedData,
+            ArrayBuilder<ApiData> allShippedData,
+            ArrayBuilder<ApiData> allUnshippedData,
             CancellationToken cancellationToken)
         {
             foreach (var additionalText in additionalTexts)
