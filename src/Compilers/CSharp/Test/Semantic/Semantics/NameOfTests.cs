@@ -1963,10 +1963,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             };
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //     [Attr(nameof(Method().Method))]
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18));
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1987,10 +1984,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             };
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
-                //     [Attr(nameof(Method<C>().Method))]
-                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18));
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
         }
     }
 }
