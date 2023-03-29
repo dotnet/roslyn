@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
-        public void String_DontCompleteVerbatim()
+        public void String_DoNotCompleteVerbatim()
         {
             var code = @"class C
 {

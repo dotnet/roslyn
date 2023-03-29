@@ -764,7 +764,7 @@ End Module]]></Text>.NormalizedValue,
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541960")>
-        Public Async Function TestDontRemoveAttributeSuffixAndProduceInvalidIdentifier1() As Task
+        Public Async Function TestDoNotRemoveAttributeSuffixAndProduceInvalidIdentifier1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
 Class _Attribute
@@ -776,7 +776,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541960")>
-        Public Async Function TestDontRemoveAttributeSuffixAndProduceInvalidIdentifier2() As Task
+        Public Async Function TestDoNotRemoveAttributeSuffixAndProduceInvalidIdentifier2() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
 Class ClassAttribute
@@ -788,7 +788,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541960")>
-        Public Async Function TestDontRemoveAttributeSuffix1() As Task
+        Public Async Function TestDoNotRemoveAttributeSuffix1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
 Class Class1Attribute
