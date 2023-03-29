@@ -3161,5 +3161,33 @@ class C : ICriticalNotifyCompletion
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
+        public async Task WarnForAwaiterMethodsNotImplementingInterface()
+        {
+            const string code = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{
+    private C [|GetAwaiter|]() => this;
+    private bool [|IsCompleted|] => false;
+    private void [|GetResult|]() { }
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+            const string fixedCode = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
     }
 }
