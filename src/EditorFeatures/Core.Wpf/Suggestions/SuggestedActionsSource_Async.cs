@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                     return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                        workspace, owner._codeRefactoringService, document, selection.Value, priority, options, isBlocking: false,
+                        workspace, owner._codeRefactoringService, document, selection.Value, priority, options,
                         addOperationScope, filterOutsideSelection, cancellationToken);
                 }
 
