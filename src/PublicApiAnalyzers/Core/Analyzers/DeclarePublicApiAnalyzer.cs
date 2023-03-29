@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
+        /// <summary>
+        /// Cache from additional text instance to the api data we have read out for that specific file.  We only store
+        /// data for additional texts that explicitly match the public/internal api file names we expect.
+        /// </summary>
         private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToApiData = new();
 
         internal const string Extension = ".txt";
@@ -165,43 +169,57 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-        private static ApiData ReadApiData(List<(string path, SourceText sourceText)> data, bool isShippedApi)
+        private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
         {
             var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
             var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
             var maxNullableRank = -1;
+            var rank = -1;
 
-            foreach (var (path, sourceText) in data)
+            foreach (var line in sourceText.Lines)
             {
-                int rank = -1;
+                string text = line.ToString();
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
 
-                foreach (TextLine line in sourceText.Lines)
+                rank++;
+
+                if (text == NullableEnable)
                 {
-                    string text = line.ToString();
-                    if (string.IsNullOrWhiteSpace(text))
-                    {
-                        continue;
-                    }
-
-                    rank++;
-
-                    if (text == NullableEnable)
-                    {
-                        maxNullableRank = Math.Max(rank, maxNullableRank);
-                        continue;
-                    }
-
-                    var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
-                    if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
-                    {
-                        string removedtext = text[RemovedApiPrefix.Length..];
-                        removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
-                    }
-                    else
-                    {
-                        apiBuilder.Add(apiLine);
-                    }
+                    maxNullableRank = rank;
+                    continue;
                 }
+
+                var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
+                if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
+                {
+                    string removedText = text[RemovedApiPrefix.Length..];
+                    removedBuilder.Add(new RemovedApiLine(removedText, apiLine));
+                }
+                else
+                {
+                    apiBuilder.Add(apiLine);
+                }
+            }
+
+            return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
+        }
+
+        private static ApiData Flatten(List<ApiData> allData)
+        {
+            Debug.Assert(allData.Count > 0);
+            if (allData.Count == 1)
+                return allData[0];
+
+            var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
+            var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
+            var maxNullableRank = -1;
+
+            foreach (var data in allData)
+            {
+                apiBuilder.AddRange(data.ApiList);
+                removedBuilder.AddRange(data.RemovedApiList);
+                maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
             }
 
             return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
@@ -216,10 +234,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             [NotNullWhen(true)] out ApiData? shippedData,
             [NotNullWhen(true)] out ApiData? unshippedData)
         {
-            GetApiText(
-                analyzerOptions.AdditionalFiles, isPublic, cancellationToken, out shippedData, out unshippedData);
+            var allShippedData = new List<ApiData>();
+            var allUnshippedData = new List<ApiData>();
+            AddApiTexts(
+                analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
 
-            if (shippedData == null && unshippedData == null)
+            if (allShippedData.Count == 0 && allUnshippedData.Count == 0)
             {
                 if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
                     silentlyBailOutOnMissingApiFiles)
@@ -234,16 +254,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return true;
             }
 
-            if (shippedData != null && unshippedData != null)
-                return true;
-
-            var missingFileName = (shippedData, isPublic) switch
+            if (allShippedData.Count > 0 && allUnshippedData.Count > 0)
             {
-                (null, isPublic: true) => PublicShippedFileName,
-                (null, isPublic: false) => InternalShippedFileName,
-                (not null, isPublic: true) => PublicUnshippedFileName,
-                (not null, isPublic: false) => InternalUnshippedFileName
+                shippedData = Flatten(allShippedData);
+                unshippedData = Flatten(allUnshippedData);
+                return true;
+            }
+
+            var missingFileName = (allShippedData.Count == 0, isPublic) switch
+            {
+                (true, isPublic: true) => PublicShippedFileName,
+                (true, isPublic: false) => InternalShippedFileName,
+                (false, isPublic: true) => PublicUnshippedFileName,
+                (false, isPublic: false) => InternalUnshippedFileName
             };
+
             errors.Add(Diagnostic.Create(isPublic ? PublicApiFileMissing : InternalApiFileMissing, Location.None, missingFileName));
             shippedData = null;
             unshippedData = null;
@@ -326,27 +351,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private static GetApiText(
+        private static void AddApiTexts(
             ImmutableArray<AdditionalText> additionalTexts,
             bool isPublic,
-            CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out ApiData? shippedData,
-            [NotNullWhen(returnValue: true)] out ApiData? unshippedData)
+            List<ApiData> allShippedData,
+            List<ApiData> allUnshippedData,
+            CancellationToken cancellationToken)
         {
-            //shippedData = ReadApiData(shippedText, isShippedApi: true);
-            //unshippedData = ReadApiData(unshippedText, isShippedApi: false);
-            //return true;
-
-            shippedData = null;
-            unshippedData = null;
-
             foreach (var additionalText in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // Can stop once we find the shipped and unshipped files.
-                if (shippedData != null && unshippedData != null)
-                    break;
 
                 var file = new PublicApiFile(additionalText.Path, isPublic);
 
@@ -360,13 +374,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     apiData = s_additionalTextToApiData.GetValue(additionalText, _ => apiData);
                 }
 
-                if (file.IsShipping)
-                    shippedData = apiData;
-                else
-                    unshippedData = apiData;
+                var resultList = file.IsShipping ? allShippedData : allUnshippedData;
+                resultList.Add(apiData);
             }
-
-            return shippedData != null && unshippedData != null;
         }
 
         private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, bool isPublic, List<Diagnostic> errors)
