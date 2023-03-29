@@ -20,21 +20,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     public partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
+        private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
+
         private sealed class ApiLine
         {
             public string Text { get; }
             public TextSpan Span { get; }
-            public SourceText SourceText { get; }
-            public string Path { get; }
-            public bool IsShippedApi { get; }
 
-            internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
+            private readonly AdditionalFileInfo _fileInfo;
+
+            public SourceText SourceText => _fileInfo.SourceText;
+            public string Path => _fileInfo.Path;
+            public bool IsShippedApi => _fileInfo.IsShippedApi;
+
+            public ApiLine(string text, TextSpan span, AdditionalFileInfo fileInfo)
             {
                 Text = text;
                 Span = span;
-                SourceText = sourceText;
-                Path = path;
-                IsShippedApi = isShippedApi;
+                _fileInfo = fileInfo;
             }
         }
 

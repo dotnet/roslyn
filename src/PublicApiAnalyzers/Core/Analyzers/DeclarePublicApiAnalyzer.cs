@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             var maxNullableRank = -1;
             var rank = -1;
 
+            var additionalFileInfo = new AdditionalFileInfo(path, sourceText, isShippedApi);
+
             foreach (var line in sourceText.Lines)
             {
                 string text = line.ToString();
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     continue;
                 }
 
-                var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
+                var apiLine = new ApiLine(text, line.Span, additionalFileInfo);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
                     string removedText = text[RemovedApiPrefix.Length..];
