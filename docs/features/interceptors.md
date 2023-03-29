@@ -105,9 +105,8 @@ When a call is intercepted, the interceptor and interceptable methods must meet 
 - When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the 'this' modifier is compared to the instance method 'this' parameter.
 - The returns and parameters, including the 'this' parameter, must have the same ref kinds and types, except that reference types with oblivious nullability can match either annotated or unannotated reference types.
 - Method names and parameter names are not required to match.
-- Parameter default values are not required to match.
+- Parameter default values are not required to match. When intercepting, default values on the interceptor method are ignored.
 - 'scoped' modifiers and `[UnscopedRefAttribute]` must be equivalent.
-
 
 Arity does not need to match between intercepted and interceptor methods. In other words, it is permitted to intercept a generic method with a non-generic interceptor.
 
