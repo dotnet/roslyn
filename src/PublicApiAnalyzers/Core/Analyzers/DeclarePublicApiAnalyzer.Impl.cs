@@ -66,23 +66,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiData
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
-
-            public ImmutableArray<ApiLine> ApiList { get; }
-            public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
+        private sealed record ApiData(
+            ImmutableArray<ApiLine> ApiList,
+            ImmutableArray<RemovedApiLine> RemovedApiList,
             // Number for the max line where #nullable enable was found (-1 otherwise)
-            public int NullableRank { get; }
-
-            internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList, int nullableRank)
-            {
-                ApiList = apiList;
-                RemovedApiList = removedApiList;
-                NullableRank = nullableRank;
-            }
+            int NullableRank)
+        {
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableRank: -1);
         }
 
         private sealed class Impl

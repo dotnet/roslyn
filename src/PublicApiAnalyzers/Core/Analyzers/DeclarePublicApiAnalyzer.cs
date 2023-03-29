@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -16,6 +17,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
+        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToPublicShippedApiData = new();
+        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToPublicUnshippedApiData = new();
+        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToInternalShippedApiData = new();
+        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToInternalUnshippedApiData = new();
+
         internal const string Extension = ".txt";
         internal const string PublicShippedFileNamePrefix = "PublicAPI.Shipped";
         internal const string PublicShippedFileName = PublicShippedFileNamePrefix + Extension;
@@ -108,7 +114,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var errors = new List<Diagnostic>();
                 // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
-                if (!TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic, compilationContext.CancellationToken, errors, out ApiData shippedData, out ApiData unshippedData))
+                if (!TryGetAndValidateApiFiles(
+                        compilationContext.Options,
+                        compilationContext.Compilation,
+                        isPublic,
+                        compilationContext.CancellationToken,
+                        errors,
+                        out var shippedData,
+                        out var unshippedData))
                 {
                     compilationContext.RegisterCompilationEndAction(context =>
                     {
@@ -124,8 +137,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 Debug.Assert(errors.Count == 0);
 
                 RegisterImplActions(compilationContext, new Impl(compilationContext.Compilation, shippedData, unshippedData, isPublic, compilationContext.Options));
+                return;
 
-                static bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, out ApiData shippedData, out ApiData unshippedData)
+                static bool TryGetAndValidateApiFiles(
+                    AnalyzerOptions options,
+                    Compilation compilation,
+                    bool isPublic,
+                    CancellationToken cancellationToken,
+                    List<Diagnostic> errors,
+                    [NotNullWhen(true)] out ApiData? shippedData,
+                    [NotNullWhen(true)] out ApiData? unshippedData)
                 {
                     return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
                            && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
@@ -189,41 +210,47 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
         }
 
-        private static bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
+        private static bool TryGetApiData(
+            AnalyzerOptions analyzerOptions,
+            Compilation compilation,
+            bool isPublic,
+            List<Diagnostic> errors,
+            CancellationToken cancellationToken,
+            [NotNullWhen(true)] out ApiData? shippedData,
+            [NotNullWhen(true)] out ApiData? unshippedData)
         {
-            if (!TryGetApiText(analyzerOptions.AdditionalFiles, isPublic, cancellationToken, out var shippedText, out var unshippedText))
-            {
-                if (shippedText == null && unshippedText == null)
-                {
-                    if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
-                        silentlyBailOutOnMissingApiFiles)
-                    {
-                        shippedData = default;
-                        unshippedData = default;
-                        return false;
-                    }
+            GetApiText(
+                analyzerOptions.AdditionalFiles, isPublic, cancellationToken, out shippedData, out unshippedData);
 
-                    // Bootstrapping public API files.
-                    (shippedData, unshippedData) = (ApiData.Empty, ApiData.Empty);
-                    return true;
+            if (shippedData == null && unshippedData == null)
+            {
+                if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
+                    silentlyBailOutOnMissingApiFiles)
+                {
+                    shippedData = null;
+                    unshippedData = null;
+                    return false;
                 }
 
-                var missingFileName = (shippedText, isPublic) switch
-                {
-                    (shippedText: null, isPublic: true) => PublicShippedFileName,
-                    (shippedText: null, isPublic: false) => InternalShippedFileName,
-                    (shippedText: not null, isPublic: true) => PublicUnshippedFileName,
-                    (shippedText: not null, isPublic: false) => InternalUnshippedFileName
-                };
-                errors.Add(Diagnostic.Create(isPublic ? PublicApiFileMissing : InternalApiFileMissing, Location.None, missingFileName));
-                shippedData = default;
-                unshippedData = default;
-                return false;
+                // Bootstrapping public API files.
+                (shippedData, unshippedData) = (ApiData.Empty, ApiData.Empty);
+                return true;
             }
 
-            shippedData = ReadApiData(shippedText, isShippedApi: true);
-            unshippedData = ReadApiData(unshippedText, isShippedApi: false);
-            return true;
+            if (shippedData != null && unshippedData != null)
+                return true;
+
+            var missingFileName = (shippedData, isPublic) switch
+            {
+                (null, isPublic: true) => PublicShippedFileName,
+                (null, isPublic: false) => InternalShippedFileName,
+                (not null, isPublic: true) => PublicUnshippedFileName,
+                (not null, isPublic: false) => InternalUnshippedFileName
+            };
+            errors.Add(Diagnostic.Create(isPublic ? PublicApiFileMissing : InternalApiFileMissing, Location.None, missingFileName));
+            shippedData = null;
+            unshippedData = null;
+            return false;
         }
 
         private static bool TryGetEditorConfigOption(AnalyzerOptions analyzerOptions, SyntaxTree tree, string optionName, out string optionValue)
@@ -302,23 +329,43 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private static bool TryGetApiText(
+        private static GetApiText(
             ImmutableArray<AdditionalText> additionalTexts,
             bool isPublic,
             CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out List<(string path, SourceText text)>? shippedText,
-            [NotNullWhen(returnValue: true)] out List<(string path, SourceText text)>? unshippedText)
+            [NotNullWhen(returnValue: true)] out ApiData? shippedData,
+            [NotNullWhen(returnValue: true)] out ApiData? unshippedData)
         {
-            shippedText = null;
-            unshippedText = null;
+            //shippedData = ReadApiData(shippedText, isShippedApi: true);
+            //unshippedData = ReadApiData(unshippedText, isShippedApi: false);
+            //return true;
 
-            foreach (AdditionalText additionalText in additionalTexts)
+            shippedData = null;
+            unshippedData = null;
+
+            foreach (var additionalText in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var file = new PublicApiFile(additionalText.Path, isPublic);
+                // Can stop once we find the shipped and unshipped files.
+                if (shippedData != null && unshippedData != null)
+                    break;
 
-                if (file.IsApiFile)
+                var file = new PublicApiFile(additionalText.Path, isPublic);
+                if (!file.IsApiFile)
+                    continue;
+
+                var table = (isPublic, file.IsShipping) switch
+                {
+                    (false, false) => s_additionalTextToInternalUnshippedApiData,
+                    (false, true) => s_additionalTextToInternalShippedApiData,
+                    (true, false) => s_additionalTextToPublicUnshippedApiData,
+                    (true, true) => s_additionalTextToPublicShippedApiData,
+                };
+
+                var apiData = s_a
+
+
                 {
                     SourceText text = additionalText.GetText(cancellationToken);
 
@@ -344,7 +391,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            return shippedText != null && unshippedText != null;
+            return shippedData != null && unshippedData != null;
         }
 
         private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, bool isPublic, List<Diagnostic> errors)
