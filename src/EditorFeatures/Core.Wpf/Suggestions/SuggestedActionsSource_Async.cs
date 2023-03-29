@@ -29,23 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
+        private partial class SuggestedActionsSource : IAsyncSuggestedActionsSource
         {
-            private readonly IAsynchronousOperationListener _listener;
-
-            public AsyncSuggestedActionsSource(
-                IThreadingContext threadingContext,
-                IGlobalOptionService globalOptions,
-                SuggestedActionsSourceProvider owner,
-                ITextView textView,
-                ITextBuffer textBuffer,
-                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
-                IAsynchronousOperationListener listener)
-                : base(threadingContext, globalOptions, owner, textView, textBuffer, suggestedActionCategoryRegistry)
-            {
-                _listener = listener;
-            }
-
             public async Task GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,

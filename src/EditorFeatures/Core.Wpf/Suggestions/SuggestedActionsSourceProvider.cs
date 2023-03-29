@@ -9,7 +9,6 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            return new AsyncSuggestedActionsSource(
+            return new SuggestedActionsSource(
                 _threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener);
         }
 
