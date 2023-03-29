@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// Annotation used to mark imports that we move over, so that we can remove these imports if they are unnecessary
         /// (and so we don't remove any other unnecessary imports)
         /// </summary>
-        private static readonly SyntaxAnnotation s_removableImportAnnotation = new("PullMemberRemovableImport");
-        private static readonly SyntaxAnnotation s_destinationNodeAnnotation = new("DestinationNode");
+        private static readonly SyntaxAnnotation s_annotation = new("PullMemberRemovableImport");
 
         public static CodeAction TryComputeCodeAction(
             Document document,
@@ -313,9 +312,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var info = codeGenerationService.GetInfo(context, options.GenerationOptions, destinationEditor.OriginalDocument.Project.ParseOptions);
 
-            var newDestination = codeGenerationService
-                .AddMembers(destinationSyntaxNode, pullUpMembersSymbols, info, cancellationToken)
-                .WithAdditionalAnnotations(s_destinationNodeAnnotation);
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, info, cancellationToken);
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
 
             var syntaxFacts = destinationEditor.OriginalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -332,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     sourceImports.Add(
                         destinationEditor.Generator.NamespaceImportDeclaration(
                             resultNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
-                        .WithAdditionalAnnotations(s_removableImportAnnotation));
+                        .WithAdditionalAnnotations(s_annotation));
                 }
 
                 foreach (var syntax in symbolToDeclarations[analysisResult.Member])
@@ -345,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         .Select(import => import
                             .WithoutLeadingTrivia()
                             .WithTrailingTrivia(originalMemberEditor.Generator.ElasticCarriageReturnLineFeed)
-                            .WithAdditionalAnnotations(s_removableImportAnnotation)));
+                            .WithAdditionalAnnotations(s_annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -381,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
                 destinationEditor.SemanticModel.Compilation,
                 node,
-                node.GetAnnotatedNodes(s_destinationNodeAnnotation).FirstOrDefault(),
+                node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
                 options.CleanupOptions.AddImportOptions,
@@ -390,12 +387,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
-                node => node.HasAnnotation(s_removableImportAnnotation),
+                node => node.HasAnnotation(s_annotation),
                 options.CleanupOptions.FormattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Format whitespace trivia within the import statements we pull up
-            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_removableImportAnnotation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             var destinationRoot = AddLeadingTriviaBeforeFirstMember(
                 await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
