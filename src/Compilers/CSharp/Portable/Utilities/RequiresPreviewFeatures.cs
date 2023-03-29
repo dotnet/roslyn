@@ -7,6 +7,8 @@
 
 namespace System.Runtime.Versioning
 {
+#if !NETCOREAPP
+
     [AttributeUsage(AttributeTargets.Assembly |
                 AttributeTargets.Module |
                 AttributeTargets.Class |
@@ -45,4 +47,6 @@ namespace System.Runtime.Versioning
         /// </summary>
         public string? Url { get; set; }
     }
+
+#endif
 }
