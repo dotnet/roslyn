@@ -55,13 +55,11 @@
 
   <PropertyGroup>
     <SourceBuildTargetFrameworks>net6.0</SourceBuildTargetFrameworks>
-    <SourceBuildTargetFrameworksNetStandard>$(SourceBuildTargetFrameworks);netstandard2.0</SourceBuildTargetFrameworksNetStandard>
     <SourceBuildTargetFrameworksNetFx>$(SourceBuildTargetFrameworks);net472</SourceBuildTargetFrameworksNetFx>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <SourceBuildTargetFrameworks>net8.0</SourceBuildTargetFrameworks>
-    <SourceBuildTargetFrameworksNetStandard>$(SourceBuildTargetFrameworks);netstandard2.0</SourceBuildTargetFrameworksNetStandard>
     <SourceBuildTargetFrameworksNetFx>$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworksNetFx>
   </PropertyGroup>
 
