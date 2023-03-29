@@ -949,12 +949,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeArguments = arguments.Attribute.CommonConstructorArguments;
             if (attributeArguments is not [
                 { Kind: not TypedConstantKind.Array, Value: string filePath },
-                { Kind: not TypedConstantKind.Array, Value: int lineNumber },
-                { Kind: not TypedConstantKind.Array, Value: int characterNumber }])
+                { Kind: not TypedConstantKind.Array, Value: int displayLineNumber },
+                { Kind: not TypedConstantKind.Array, Value: int displayCharacterNumber }])
             {
                 // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
                 throw ExceptionUtilities.Unreachable();
             }
+
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            int lineNumber = displayLineNumber - 1;
+            int characterNumber = displayCharacterNumber - 1;
+
+            // PROTOTYPE(ic): test with zero or negative display line/character numbers.
 
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             var attributeLocation = arguments.AttributeSyntaxOpt.Location;
@@ -995,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var referencedLineCount = referencedLines.Count;
             if (lineNumber >= referencedLineCount)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLines.Count, lineNumber);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLineCount, displayLineNumber);
                 return;
             }
 
@@ -1003,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lineLength = line.End - line.Start;
             if (characterNumber >= lineLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, characterNumber);
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, displayCharacterNumber);
                 return;
             }
 
@@ -1026,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (tokenPositionDifference != 0)
             {
                 // tokens don't span multiple lines, so we can apply the difference we found to the characterNumber within the line and figure out which character the user should have used.
-                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, characterNumber - tokenPositionDifference);
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, displayCharacterNumber - tokenPositionDifference);
                 return;
             }
 

@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Information decoded from InterceptsLocationAttribute.
     /// </summary>
-    // PROTOTYPE(ic): record ok?
+    /// <param name="Line">The 0-indexed line number.</param>
+    /// <param name="Character">The 0-indexed character number.</param>
+    // PROTOTYPE(ic): move away from records
     internal sealed record InterceptsLocationAttributeData(string FilePath, int Line, int Character, Location AttributeLocation);
 }

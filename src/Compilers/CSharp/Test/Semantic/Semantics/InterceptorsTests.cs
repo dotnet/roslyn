@@ -78,7 +78,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class D
             {
-                [InterceptsLocation("Program.cs", 10, 8)]
+                [InterceptsLocation("Program.cs", 11, 9)]
                 public static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
@@ -106,7 +106,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class D
             {
-                [InterceptsLocation("Program.cs", 10, 8)]
+                [InterceptsLocation("Program.cs", 11, 9)]
                 private static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
@@ -139,7 +139,7 @@ public class InterceptorsTests : CSharpTestBase
 
             file class D
             {
-                [InterceptsLocation("Program.cs", 10, 8)]
+                [InterceptsLocation("Program.cs", 11, 9)]
                 public static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
@@ -173,7 +173,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
@@ -209,7 +209,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
@@ -241,7 +241,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
@@ -269,15 +269,15 @@ public class InterceptorsTests : CSharpTestBase
                 [Interceptable]
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
 
-                [InterceptsLocation("Program.cs", 7, 10)]
+                [InterceptsLocation("Program.cs", 8, 11)]
                 public void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,6): error CS27012: Interceptor must not have a 'this' parameter because 'C.InterceptableMethod(string)' does not have a 'this' parameter.
-            //     [InterceptsLocation("Program.cs", 7, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, @"InterceptsLocation(""Program.cs"", 7, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(17, 6));
+            //     [InterceptsLocation("Program.cs", 8, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, @"InterceptsLocation(""Program.cs"", 8, 11)").WithArguments("C.InterceptableMethod(string)").WithLocation(17, 6));
     }
 
     // PROTOTYPE(ic): test intercepting an extension method with a non-extension method. Perhaps should be an error for simplicity even if calling in non-reduced form.
@@ -306,7 +306,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static void Interceptor1(this C c, string s1, string s2) { Console.Write("interceptor " + s1 + s2); }
             }
             """;
@@ -339,7 +339,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
@@ -376,7 +376,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 8, 10)]
+                [InterceptsLocation("Program.cs", 9, 11)]
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
@@ -447,7 +447,7 @@ public class InterceptorsTests : CSharpTestBase
                     static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
                 }
 
-                [InterceptsLocation("Program.cs", 10, 8)]
+                [InterceptsLocation("Program.cs", 11, 9)]
                 public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
@@ -481,15 +481,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 13, 10)]
+                [InterceptsLocation("Program.cs", 14, 11)]
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics(
             // Program.cs(20,6): warning CS27000: Cannot intercept a call to 'C.InterceptableMethod(string)' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
-            //     [InterceptsLocation("Program.cs", 13, 10)]
-            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 13, 10)").WithArguments("C.InterceptableMethod(string)").WithLocation(20, 6)
+            //     [InterceptsLocation("Program.cs", 14, 11)]
+            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""Program.cs"", 14, 11)").WithArguments("C.InterceptableMethod(string)").WithLocation(20, 6)
             );
     }
 
@@ -518,15 +518,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 10)]
+                [InterceptsLocation("Program.cs", 16, 11)]
                 public static I1 Interceptor1<T>(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(22,6): error CS27001: Method 'D.Interceptor1<T>(I1, string)' cannot be used as an interceptor because it or its containing type has type parameters.
-            //     [InterceptsLocation("Program.cs", 15, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 10)").WithArguments("D.Interceptor1<T>(I1, string)").WithLocation(22, 6));
+                // Program.cs(22,6): error CS27001: Method 'D.Interceptor1<T>(I1, string)' cannot be used as an interceptor because it or its containing type has type parameters.
+                //     [InterceptsLocation("Program.cs", 16, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 16, 11)").WithArguments("D.Interceptor1<T>(I1, string)").WithLocation(22, 6));
     }
 
     [Fact]
@@ -553,15 +553,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D<T>
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27001: Method 'D<T>.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
-            //     [InterceptsLocation("Program.cs", 14, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("D<T>.Interceptor1(string)").WithLocation(21, 6));
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D<T>.Interceptor1(string)").WithLocation(21, 6));
     }
 
     [Fact]
@@ -590,7 +590,7 @@ public class InterceptorsTests : CSharpTestBase
             {
                 static class D
                 {
-                    [InterceptsLocation("Program.cs", 14, 10)]
+                    [InterceptsLocation("Program.cs", 15, 11)]
                     public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
                 }
             }
@@ -598,8 +598,8 @@ public class InterceptorsTests : CSharpTestBase
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(23,10): error CS27001: Method 'Outer<T>.D.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
-            //         [InterceptsLocation("Program.cs", 14, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("Outer<T>.D.Interceptor1(string)").WithLocation(23, 10)
+            //         [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("Outer<T>.D.Interceptor1(string)").WithLocation(23, 10)
             );
     }
 
@@ -660,15 +660,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("BAD", 14, 10)]
+                [InterceptsLocation("BAD", 15, 11)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27002: Cannot intercept: compilation does not contain a file with path 'BAD'.
-            //     [InterceptsLocation("BAD", 14, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"InterceptsLocation(""BAD"", 14, 10)").WithArguments("BAD").WithLocation(21, 6)
+            //     [InterceptsLocation("BAD", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"InterceptsLocation(""BAD"", 15, 11)").WithArguments("BAD").WithLocation(21, 6)
             );
     }
 
@@ -696,15 +696,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("projects/Program.cs", 14, 10)]
+                [InterceptsLocation("projects/Program.cs", 15, 11)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "/Users/me/projects/Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
                 // /Users/me/projects/Program.cs(21,6): error CS27003: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path '/Users/me/projects/Program.cs'?
-                //     [InterceptsLocation("projects/Program.cs", 14, 10)]
-                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"InterceptsLocation(""projects/Program.cs"", 14, 10)").WithArguments("projects/Program.cs", "/Users/me/projects/Program.cs").WithLocation(21, 6)
+                //     [InterceptsLocation("projects/Program.cs", 15, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"InterceptsLocation(""projects/Program.cs"", 15, 11)").WithArguments("projects/Program.cs", "/Users/me/projects/Program.cs").WithLocation(21, 6)
             );
     }
 
@@ -768,7 +768,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 1000)]
+                [InterceptsLocation("Program.cs", 16, 1000)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
@@ -776,7 +776,7 @@ public class InterceptorsTests : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
             //     [InterceptsLocation("Program.cs", 15, 1000)]
-            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 15, 1000)").WithArguments("5", "1000").WithLocation(21, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 1000)").WithArguments("5", "1000").WithLocation(21, 6)
             );
     }
 
@@ -804,15 +804,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 8)]
+                [InterceptsLocation("Program.cs", 15, 9)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
                 // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method, but rather to token 'c'.
-                //     [InterceptsLocation("Program.cs", 14, 8)]
-                Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 8)").WithArguments("c").WithLocation(21, 6)
+                //     [InterceptsLocation("Program.cs", 15, 9)]
+                Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 15, 9)").WithArguments("c").WithLocation(21, 6)
             );
     }
 
@@ -840,15 +840,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 12)]
+                [InterceptsLocation("Program.cs", 15, 13)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '10' instead.
-            //     [InterceptsLocation("Program.cs", 14, 12)]
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 12)").WithArguments("InterceptableMethod", "10").WithLocation(21, 6)
+            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            //     [InterceptsLocation("Program.cs", 15, 13)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 15, 13)").WithArguments("InterceptableMethod", "11").WithLocation(21, 6)
         );
     }
 
@@ -875,8 +875,8 @@ public class InterceptorsTests : CSharpTestBase
                 [Interceptable]
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
-                [InterceptsLocation("Program.cs", 11, 10)] // intercept spaces before 'InterceptableMethod' token
-                [InterceptsLocation("Program.cs", 13, 32)] // intercept spaces after 'InterceptableMethod' token
+                [InterceptsLocation("Program.cs", 12, 11)] // intercept spaces before 'InterceptableMethod' token
+                [InterceptsLocation("Program.cs", 14, 33)] // intercept spaces after 'InterceptableMethod' token
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
 
@@ -886,12 +886,12 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(20,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '12' instead.
-            //     [InterceptsLocation("Program.cs", 11, 10)] // intercept spaces before 'InterceptableMethod' token
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 10)").WithArguments("InterceptableMethod", "12").WithLocation(20, 6),
-            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '10' instead.
-            //     [InterceptsLocation("Program.cs", 13, 32)] // intercept spaces after 'InterceptableMethod' token
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 13, 32)").WithArguments("InterceptableMethod", "10").WithLocation(21, 6)
+            // Program.cs(20,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '13' instead.
+            //     [InterceptsLocation("Program.cs", 12, 11)] // intercept spaces before 'InterceptableMethod' token
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 11)").WithArguments("InterceptableMethod", "13").WithLocation(20, 6),
+            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            //     [InterceptsLocation("Program.cs", 14, 33)] // intercept spaces after 'InterceptableMethod' token
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 33)").WithArguments("InterceptableMethod", "11").WithLocation(21, 6)
         );
     }
 
@@ -919,7 +919,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static I1 Interceptor1(this I1 i1, int param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
@@ -957,15 +957,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 10)]
+                [InterceptsLocation("Program.cs", 16, 11)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(22,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C this' on 'C.InterceptableMethod(string)'.
-            //     [InterceptsLocation("Program.cs", 15, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 15, 10)").WithArguments("C this", "C.InterceptableMethod(string)").WithLocation(22, 6)
+            //     [InterceptsLocation("Program.cs", 16, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 16, 11)").WithArguments("C this", "C.InterceptableMethod(string)").WithLocation(22, 6)
             );
     }
 
@@ -997,15 +997,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 10)]
+                [InterceptsLocation("Program.cs", 15, 11)]
                 public static void Interceptor1(this S s, string param) { Console.Write("interceptor " + param); }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'ref S this' on 'S.InterceptableMethod(string)'.
-            //     [InterceptsLocation("Program.cs", 14, 10)]
-            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 14, 10)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
             );
     }
 
@@ -1034,7 +1034,7 @@ public struct S1
 
 public static class S1Ext
 {
-    [InterceptsLocation("Program.cs", 4, 2)]
+    [InterceptsLocation("Program.cs", 5, 3)]
     public static void M1(ref this S1 s1, CustomHandler c)
     {
         Console.Write(2);
@@ -1086,7 +1086,7 @@ public struct S1
 
 public static class S1Ext
 {
-    [InterceptsLocation("Program.cs", 4, 2)]
+    [InterceptsLocation("Program.cs", 5, 3)]
     public static void M1(ref this S1 s1, [InterpolatedStringHandlerArgument("s1")] CustomHandler c)
     {
         Console.Write(1);
