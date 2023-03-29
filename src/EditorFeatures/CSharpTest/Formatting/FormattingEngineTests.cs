@@ -1055,7 +1055,7 @@ class C : Attribute
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
         [WpfFact]
-        public void DontSmartFormatBracesOnSmartIndentNone()
+        public void DoNotSmartFormatBracesOnSmartIndentNone()
         {
             var code = @"class Program<T>
 {
