@@ -280,6 +280,29 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var secondMiddlePos = secondMiddleLine.Start;
             var endPos = endLine.Start;
 
+#if !CODE_STYLE
+
+            context.RegisterCodeFix(
+                CodeAction.DocumentChangeAction.Create(takeTopText,
+                    c => TakeTopAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
+                    TakeTopEquivalenceKey,
+                    CodeActionPriority.High),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.DocumentChangeAction.Create(takeBottomText,
+                    c => TakeBottomAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
+                    TakeBottomEquivalenceKey,
+                    CodeActionPriority.High),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.DocumentChangeAction.Create(CodeFixesResources.Take_both,
+                    c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
+                    TakeBothEquivalenceKey,
+                    CodeActionPriority.High),
+                context.Diagnostics);
+
+#else
+
             context.RegisterCodeFix(
                 CodeAction.Create(takeTopText,
                     c => TakeTopAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
@@ -295,6 +318,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                     c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
+
+#endif
         }
 
         private static async Task<Document> AddEditsAsync(
