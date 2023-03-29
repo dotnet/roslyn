@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Dim span = New TextSpan(position, 0)
             Dim typeBlock = Await document.TryGetRelevantNodeAsync(Of TypeBlockSyntax)(span, cancellationToken).ConfigureAwait(False)
 
-            ' If TypeDiscoverRule Is set to TypeDeclaration, a position anywhere inside of the
-            ' declaration enclosure Is valid. In this case check to see if there Is a type declaration ancestor
+            ' If TypeDiscoverRule is set to TypeDeclaration, a position anywhere inside of the
+            ' type block is valid. In this case check to see if there is a type block ancestor
             ' of the focused node.
             If typeBlock Is Nothing And typeDiscoveryRule = TypeDiscoveryRule.TypeDeclaration Then
                 Dim relevantNode = Await document.TryGetRelevantNodeAsync(Of SyntaxNode)(span, cancellationToken).ConfigureAwait(False)
