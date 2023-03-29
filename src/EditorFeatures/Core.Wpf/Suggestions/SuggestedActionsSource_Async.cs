@@ -174,7 +174,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixes = await fixesTask.ConfigureAwait(false);
                 var refactorings = await refactoringsTask.ConfigureAwait(false);
-                foreach (var set in ConvertToSuggestedActionSets())
+
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
+                var convertedSets = filteredSets.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull().ToImmutableArray();
+
+                foreach (var set in convertedSets)
                     yield return set;
 
                 yield break;
@@ -221,12 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                         workspace, owner._codeRefactoringService, document, selection.Value, priority, options, isBlocking: false,
                         addOperationScope, filterOutsideSelection, cancellationToken);
-                }
-
-                ImmutableArray<SuggestedActionSet> ConvertToSuggestedActionSets()
-                {
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
-                    return filteredSets.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull().ToImmutableArray();
                 }
 
                 [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
