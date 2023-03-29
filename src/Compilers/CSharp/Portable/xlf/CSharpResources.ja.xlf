@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
-        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <target state="translated">識別子 '{0}' は、このコンテキストの型 '{1}' とパラメーター '{2}' の間であいまいです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseRefLike">
         <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="new">Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</target>
+        <target state="translated">匿名メソッド、ラムダ式、クエリ式、またはローカル関数内で ref に似た型を持つパラメーター '{0}' を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</target>
+        <target state="translated">構造体内の匿名メソッド、ラムダ式、クエリ式、ローカル関数は、インスタンス メンバー内でも使用されるプライマリ コンストラクター パラメーターにアクセスできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</target>
+        <target state="translated">構造体のインスタンス メンバー内の匿名メソッド、ラムダ式、クエリ式、ローカル関数は、プライマリ コンストラクター パラメーターにアクセスできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーターを割り当てることはできません (型または変数初期化子の init 専用セッターを除く)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーター '{0}' のメンバーは変更できません (型または変数初期化子の init 専用セッターを除く)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">型 '{0}' の using ステートメント リソースは、非同期メソッドまたは非同期ラムダ式では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -724,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in this context is not supported.</source>
-        <target state="needs-review-translation">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
+        <target state="translated">このコンテキストでの関数ポインター型の使用はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
         <source>Cannot use primary constructor parameter '{0}' in this context.</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <target state="translated">このコンテキストでは、プライマリ コンストラクター パラメーター '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1079,7 +1079,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
-        <target state="needs-review-translation">1 つのレコードの部分宣言のみがパラメーター リストを持つことができます</target>
+        <target state="translated">単一の部分型宣言のみがパラメーター リストを持つことができます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1354,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="needs-review-translation">パラメーター リストを含む "record struct" で宣言されたコンストラクターには、プライマリ コンストラクターまたは明示的に宣言されたコンストラクターを呼び出す "this" 初期化子が必要です。</target>
+        <target state="translated">パラメーター リストを使用して 'struct' で宣言されたコンストラクターには、プライマリ コンストラクターまたは明示的に宣言されたコンストラクターを呼び出す 'this' 初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーターは、ref または out 値として使用できません (型または変数初期化子の init 専用セッターを除く)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーター '{0}' のメンバーを ref または out 値として使用することはできません (型または変数初期化子の init 専用セッターを除く)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
@@ -1409,17 +1409,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
         <source>Cannot return primary constructor parameter '{0}' by reference.</source>
-        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <target state="translated">参照渡しでプライマリ コンストラクター パラメーター '{0}' を返すことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーターを書き込み可能な参照で返すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">読み取り専用型のプライマリ コンストラクター パラメーター '{0}' のメンバーを書き込み可能な参照で返すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1639,7 +1639,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
-        <target state="new">Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</target>
+        <target state="translated">型 '{1}' の構造体のプライマリ コンストラクター パラメーター '{0}' により、構造体レイアウトで循環が発生します</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1724,7 +1724,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
-        <target state="new">Unexpected parameter list.</target>
+        <target state="translated">予期しないパラメーター リストです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1739,7 +1739,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <target state="translated">'{0}' は、認識されない RefSafetyRulesAttribute バージョンを持つモジュールで定義され、'11' が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -1769,12 +1769,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
         <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
-        <target state="new">Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</target>
+        <target state="translated">インスタンス メンバー内のプライマリ コンストラクター パラメーター '{0}' では ref、out、in を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</target>
+        <target state="translated">インスタンス メンバー内に ref に似た型を持つプライマリ コンストラクター パラメーター '{0}' を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1939,7 +1939,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePrimaryConstructors">
         <source>primary constructors</source>
-        <target state="new">primary constructors</target>
+        <target state="translated">プライマリ コンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -2134,12 +2134,12 @@
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">パラメーター '{0}' は外側の型の状態にキャプチャされ、その値も基底コンストラクターに渡されます。この値は、基底クラスでもキャプチャされる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">パラメーターは外側の型の状態にキャプチャされ、その値も基底コンストラクターに渡されます。この値は、基底クラスでもキャプチャされる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2544,7 +2544,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
-        <target state="needs-review-translation">パラメーター リストを含むレコード内で宣言されたコンストラクターには、'this' コンストラクター初期化子が必要です。</target>
+        <target state="translated">パラメーター リストを持つ型で宣言されたコンストラクターには、'this' コンストラクター初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4428,12 +4428,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
         <source>Parameter '{0}' is unread.</source>
-        <target state="new">Parameter '{0}' is unread.</target>
+        <target state="translated">パラメーター '{0}' は未読です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
         <source>Parameter is unread.</source>
-        <target state="new">Parameter is unread.</target>
+        <target state="translated">パラメーターが未読です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
@@ -7807,7 +7807,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
         <source>A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.</source>
-        <target state="translated">前の catch 句は、すべての例外を既にキャッチしています。スローされる例外以外のものはすべて System.Runtime.CompilerServices.RuntimeWrappedException に折り返saます。</target>
+        <target state="translated">前の catch 句は、すべての例外を既にキャッチしています。スローされる例外以外のものはすべて System.Runtime.CompilerServices.RuntimeWrappedException にラップされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch_Title">
