@@ -419,8 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineSpan = location.GetLineSpan().StartLinePosition;
             return new InterceptableLocation(syntax.SyntaxTree.FilePath, lineSpan.Line + 1, lineSpan.Character + 1);
         }
-
-#endregion
+        #endregion
 
         #region SyntaxTree
         public static CompilationUnitSyntax GetCompilationUnitRoot(this SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken))
