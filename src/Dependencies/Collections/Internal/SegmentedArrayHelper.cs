@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
             else
             {
-                return ValueTypeSegmentHelper.SegmentShift;
+                return ValueTypeSegmentHelper<T>.SegmentShift;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
             else
             {
-                return ValueTypeSegmentHelper.OffsetMask;
+                return ValueTypeSegmentHelper<T>.OffsetMask;
             }
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             public static readonly int OffsetMask = CalculateOffsetMask(SegmentSize);
         }
 
-        private static class ValueTypeSegmentHelper
+        private static class ValueTypeSegmentHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());
             public static readonly int SegmentShift = CalculateSegmentShift(SegmentSize);
