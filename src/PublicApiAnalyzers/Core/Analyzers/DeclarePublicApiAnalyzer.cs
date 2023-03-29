@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -171,8 +172,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
         {
-            var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
-            var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
+            var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
+            var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
             var maxNullableRank = -1;
             var rank = -1;
 
@@ -202,17 +203,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
+            return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
         }
 
+        /// <summary>
+        /// Takes potentially multiple <see cref="ApiData"/> instances, corresponding to different additional text
+        /// files, and flattens them into the final instance we will use when analyzing the compilation.
+        /// </summary>
         private static ApiData Flatten(List<ApiData> allData)
         {
             Debug.Assert(allData.Count > 0);
+
+            // The common case is that we will have one file corresponding to the shipped data, and one for the
+            // unshipped data.  In that case, just return the instance directly.
             if (allData.Count == 1)
                 return allData[0];
 
-            var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
-            var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
+            var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
+            var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
             var maxNullableRank = -1;
 
             foreach (var data in allData)
@@ -222,7 +230,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
             }
 
-            return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
+            return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
         }
 
         private static bool TryGetApiData(
