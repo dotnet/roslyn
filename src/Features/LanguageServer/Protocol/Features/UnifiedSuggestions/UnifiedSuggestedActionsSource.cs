@@ -440,7 +440,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
