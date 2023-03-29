@@ -50,9 +50,11 @@ public class InterceptorsTests : CSharpTestBase
         {
             var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.InterceptableMethod");
             Assert.True(method.IsInterceptable);
+            Assert.Equal(MethodKind.Ordinary, method.MethodKind);
 
             method = module.GlobalNamespace.GetMember<MethodSymbol>("C.NotInterceptable");
             Assert.False(method.IsInterceptable);
+            Assert.Equal(MethodKind.Ordinary, method.MethodKind);
         }
     }
 
