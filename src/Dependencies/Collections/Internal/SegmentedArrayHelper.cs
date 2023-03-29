@@ -16,14 +16,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         // Large value types may benefit from a smaller number.
         internal const int IntrosortSizeThreshold = 16;
 
-        /// <summary>
-        /// A combination of <see cref="MethodImplOptions.AggressiveInlining"/> and
-        /// <see cref="F:System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization"/>.
-        /// </summary>
-        [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "The field is not supported in all compilation targets.")]
-        internal const MethodImplOptions FastPathMethodImplOptions = MethodImplOptions.AggressiveInlining | (MethodImplOptions)512;
-
-        [MethodImpl(FastPathMethodImplOptions)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentSize<T>()
         {
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
@@ -32,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
             else
             {
-                return ValueTypeSegmentHelper<T>.SegmentSize;
+                return ValueTypeSegmentSizeHelper<T>.SegmentSize;
             }
         }
 
-        [MethodImpl(FastPathMethodImplOptions)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentShift<T>()
         {
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
@@ -45,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
             else
             {
-                return ValueTypeSegmentHelper<T>.SegmentShift;
+                return ValueTypeSegmentHelper.SegmentShift;
             }
         }
 
-        [MethodImpl(FastPathMethodImplOptions)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetOffsetMask<T>()
         {
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
@@ -58,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
             else
             {
-                return ValueTypeSegmentHelper<T>.OffsetMask;
+                return ValueTypeSegmentHelper.OffsetMask;
             }
         }
 
@@ -140,9 +133,13 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             public static readonly int OffsetMask = CalculateOffsetMask(SegmentSize);
         }
 
-        private static class ValueTypeSegmentHelper<T>
+        private static class ValueTypeSegmentSizeHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());
+        }
+
+        private static class ValueTypeSegmentHelper
+        {
             public static readonly int SegmentShift = CalculateSegmentShift(SegmentSize);
             public static readonly int OffsetMask = CalculateOffsetMask(SegmentSize);
         }
