@@ -55,12 +55,11 @@
 
   <PropertyGroup>
     <SourceBuildTargetFrameworks>net6.0</SourceBuildTargetFrameworks>
-    <SourceBuildTargetFrameworksNetFx>$(SourceBuildTargetFrameworks);net472</SourceBuildTargetFrameworksNetFx>
-  </PropertyGroup>
+    <SourceBuildTargetFrameworks Condition="'$(ContinuousIntegrationBuild)' == 'true'">net8.0;$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net8.0</SourceBuildTargetFrameworks>
 
-  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <SourceBuildTargetFrameworks>net8.0</SourceBuildTargetFrameworks>
     <SourceBuildTargetFrameworksNetFx>$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworksNetFx>
+    <SourceBuildTargetFrameworksNetFx Condition="'$(DotNetBuildFromSource)' != 'true'">$(SourceBuildTargetFrameworksNetFx);net472</SourceBuildTargetFrameworksNetFx>
   </PropertyGroup>
 
   <!--
