@@ -143,9 +143,8 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.6P3]"
     },
      "release/dev17.7-vs-deps": {
