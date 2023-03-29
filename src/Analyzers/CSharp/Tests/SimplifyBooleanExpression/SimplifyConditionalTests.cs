@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpressi
                 """);
         }
 
-        [Fact, WorkItem(62827, "https://github.com/dotnet/roslyn/issues/62827")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62827")]
         public async Task TestFixAll()
         {
             await TestInRegularAndScriptAsync(

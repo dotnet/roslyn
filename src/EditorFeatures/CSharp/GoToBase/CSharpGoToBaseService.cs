@@ -4,9 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.GoToBase
 {
@@ -16,8 +20,25 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToBase
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGoToBaseService()
-            : base()
         {
+        }
+
+        protected override async Task<IMethodSymbol?> FindNextConstructorInChainAsync(
+            Solution solution, IMethodSymbol constructor, CancellationToken cancellationToken)
+        {
+            if (constructor.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken) is not ConstructorDeclarationSyntax constructorDeclaration)
+                return null;
+
+            var document = solution.GetDocument(constructorDeclaration.SyntaxTree);
+            if (document is null)
+                return null;
+
+            // this constructor must be calling an accessible no-arg constructor in the base type.
+            if (constructorDeclaration.Initializer is null)
+                return FindBaseNoArgConstructor(constructor);
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return semanticModel.GetSymbolInfo(constructorDeclaration.Initializer, cancellationToken).GetAnySymbol() as IMethodSymbol;
         }
     }
 }

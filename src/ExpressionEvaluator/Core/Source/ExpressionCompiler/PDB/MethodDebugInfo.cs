@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             localVariableNames: ImmutableArray<string>.Empty,
             localConstants: ImmutableArray<TLocalSymbol>.Empty,
             reuseSpan: ILSpan.MaxValue,
-            containingDocumentName: null);
+            containingDocumentName: null,
+            isPrimaryConstructor: false);
 
         /// <summary>
         /// Hoisted local variable scopes.
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
         public readonly ILSpan ReuseSpan;
         public readonly string? ContainingDocumentName;
+        public readonly bool IsPrimaryConstructor;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
@@ -53,7 +55,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
             ILSpan reuseSpan,
-            string? containingDocumentName)
+            string? containingDocumentName,
+            bool isPrimaryConstructor)
         {
             RoslynDebug.Assert(!importRecordGroups.IsDefault);
             RoslynDebug.Assert(!externAliasRecords.IsDefault);
@@ -73,6 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReuseSpan = reuseSpan;
 
             ContainingDocumentName = containingDocumentName;
+            IsPrimaryConstructor = isPrimaryConstructor;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

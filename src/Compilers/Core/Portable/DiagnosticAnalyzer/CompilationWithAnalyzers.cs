@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            if (analyzers.Distinct().Length != analyzers.Length)
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }
 
-            if (analyzers.Distinct().Length != analyzers.Length)
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
@@ -904,8 +904,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         compilationEvents = compilationEventsForTree.AddRange(compilationEvents);
 
+                        // Filter out synthesized compilation unit completed event that was generated for span analysis
+                        // as we are now doing full tree analysis, GetCompilationEventsForSingleFileAnalysis call above should
+                        // have already generated a CompilationUnitCompletedEvent without any filter span.
+                        compilationEvents = compilationEvents.WhereAsArray(e => e is not CompilationUnitCompletedEvent c || !c.FilterSpan.HasValue);
+                        Debug.Assert(compilationEvents.Count(e => e is CompilationUnitCompletedEvent c && !c.FilterSpan.HasValue) == 1);
+
                         // We shouldn't have any duplicate events.
-                        Debug.Assert(compilationEvents.Distinct().Length == compilationEvents.Length);
+                        Debug.Assert(!compilationEvents.HasDuplicates());
                     }
 
                     scopeAndEvents = (analysisScope, compilationEvents);
@@ -1237,7 +1243,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var analyzerManager = new AnalyzerManager(analyzer);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
+
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
+                onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(wrappedOnAnalyzerException, analyzerManager);
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, severityFilter: SeverityFilter.None);
         }
 

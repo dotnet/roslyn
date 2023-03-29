@@ -94,8 +94,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         }
 
         var declaration = methodReference.GetSyntax(cancellationToken);
-        if (declaration is ArrowExpressionClauseSyntax)
-            declaration = declaration.GetRequiredParent();
 
         var nameToken = declaration switch
         {
@@ -103,8 +101,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword,
             PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier,
             IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ThisKeyword,
+            ArrowExpressionClauseSyntax arrowExpression => arrowExpression.ArrowToken,
             _ => (SyntaxToken?)null
         };
+
+        if (declaration is ArrowExpressionClauseSyntax)
+            declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
             return;
