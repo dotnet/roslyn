@@ -407,6 +407,11 @@
         <target state="translated">Uma expressão do tipo '{0}' não pode ser manipulada por um padrão do tipo '{1}'. Use a versão de linguagem '{2}' ou superior para corresponder a um tipo aberto com um padrão constante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Um construtor de cópia em um registro precisa chamar um construtor de cópia da base ou um construtor de objeto sem parâmetros, quando o registro é herdado do objeto.</target>

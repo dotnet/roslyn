@@ -407,6 +407,11 @@
         <target state="translated">'{0}' 형식의 식은 '{1}' 형식의 패턴으로 처리할 수 없습니다. 언어 버전 '{2}' 이상을 사용하여 개방형 형식과 상수 패턴을 일치시키세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">레코드의 복사 생성자는 기준의 복사 생성자를 호출하거나, 레코드가 개체에서 상속되는 경우 매개 변수 없는 개체 생성자를 호출해야 합니다.</target>

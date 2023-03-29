@@ -81,7 +81,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             {
                 var valueFromClient = configurationsFromClient[i];
                 var (option, languageName) = _optionsAndLanguageNamesToRefresh[i];
-                SetOption(option, valueFromClient, languageName);
+                // If option doesn't exist in the client, don't try to update the option.
+                if (!string.IsNullOrEmpty(valueFromClient))
+                    SetOption(option, valueFromClient, languageName);
             }
         }
 

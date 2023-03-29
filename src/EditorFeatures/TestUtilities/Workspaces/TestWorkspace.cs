@@ -666,6 +666,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             testDocument.GetOpenTextContainer();
         }
 
+        /// <summary>
+        /// Overriding base impl so that when we close a document it goes back to the initial state when the test
+        /// workspace was loaded, throwing away any changes made to the open version.
+        /// </summary>
+        internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(this._supportsLspMutation);
+
+            var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
+            return ValueTaskFactory.CompletedTask;
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             var testDocument = this.GetTestDocument(documentId);

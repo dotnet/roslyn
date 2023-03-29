@@ -407,6 +407,11 @@
         <target state="translated">類型 '{0}' 的運算式無法由類型 '{1}' 的模式處理。請使用語言 '{2}' 版或更新版本，以比對開放式類型與常數模式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">若記錄繼承自物件，則記錄中的複製建構函式，必須呼叫基底的複製建構函式，或未設定任何參數的物件建構函式。</target>

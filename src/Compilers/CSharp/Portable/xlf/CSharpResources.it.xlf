@@ -407,6 +407,11 @@
         <target state="translated">Un'espressione di tipo '{0}' non può essere gestita da un criterio di tipo '{1}'. Usare la versione '{2}' o versioni successive del linguaggio per abbinare un tipo aperto a un criterio costante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Un costruttore di copia in un record deve chiamare un costruttore di copia della base o un costruttore di oggetto senza parametri se il record eredita dall'oggetto.</target>
