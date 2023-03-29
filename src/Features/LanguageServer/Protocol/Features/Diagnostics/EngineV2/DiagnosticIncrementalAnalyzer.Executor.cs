@@ -152,9 +152,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                     var state = stateSet.GetOrCreateActiveFileState(document.Id);
                     var existingData = state.GetAnalysisData(kind);
+                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     // we only care about local diagnostics
-                    return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
+                    return new DocumentAnalysisData(version, text.Lines.Count, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

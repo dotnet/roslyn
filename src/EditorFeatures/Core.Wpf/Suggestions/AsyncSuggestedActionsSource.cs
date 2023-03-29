@@ -120,19 +120,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingLowPrioritySets);
                     using var _3 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingMediumPrioritySets);
 
+                    var priorityProvider = CodeActionRequestPriorityProvider.Default;
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
                         var priority = TryGetPriority(collector.Priority);
-
                         if (priority != null)
                         {
+                            priorityProvider = priorityProvider.With(priority.Value);
+
                             // Compute the actions sets for the current request priority.
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                priority.Value,
+                                priorityProvider,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             // Add those computed actions sets to the current collector set which they have
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionRequestPriority priority,
+                CodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -259,10 +262,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
+                    addOperationScope, priorityProvider, options, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
+                    addOperationScope, priorityProvider.Priority, options, isBlocking: false, cancellationToken);
 
                 await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 

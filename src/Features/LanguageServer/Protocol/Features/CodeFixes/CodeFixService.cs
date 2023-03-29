@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
             TextDocument document,
-            CodeActionRequestPriority priority)
+            CodeActionRequestPriorityProvider priorityProvider)
         {
             // For Normal or Low priority, we only need to execute analyzers which can report at least one fixable
             // diagnostic that can have a non-suppression/configuration fix.
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For CodeActionPriorityRequest.High, we only run compiler analyzer, which always has fixable diagnostics,
             // so we can return a null predicate here to include all diagnostics.
 
-            if (!(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low))
+            if (!(priorityProvider.Priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low))
                 return null;
 
             var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
@@ -97,11 +97,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public async Task<FirstFixResult> GetMostSevereFixAsync(
-            TextDocument document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptionsProvider fallbackOptions, bool isBlocking, CancellationToken cancellationToken)
+            TextDocument document, TextSpan range, CodeActionRequestPriorityProvider? priorityProvider, CodeActionOptionsProvider fallbackOptions, bool isBlocking, CancellationToken cancellationToken)
         {
+            priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
-                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
-                includeSuppressedDiagnostics: false, priority, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
+                includeSuppressedDiagnostics: false, priorityProvider, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
-                    priority, fallbackOptions, isBlocking, _ => null, cancellationToken).ConfigureAwait(false))
+                    priorityProvider, fallbackOptions, isBlocking, _ => null, cancellationToken).ConfigureAwait(false))
                 {
                     // Stop at the result error we see.
                     return collection;
@@ -157,15 +159,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
             TextDocument document,
             TextSpan range,
-            CodeActionRequestPriority priority,
+            CodeActionRequestPriorityProvider? priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
-            var includeSuppressionFixes = priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
+            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.
@@ -178,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // We mark blocking requests to GetDiagnosticsForSpanAsync as 'isExplicit = true' to indicate
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
-                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priority: priority,
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider: priorityProvider,
                 addOperationScope: addOperationScope, isExplicit: isBlocking, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
@@ -194,11 +198,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
                 // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
-                if (priority != CodeActionRequestPriority.Lowest)
+                if (priorityProvider.Priority != CodeActionRequestPriority.Lowest)
                 {
                     await foreach (var collection in StreamFixesAsync(
                         document, spanToDiagnostics, fixAllForInSpan: false,
-                        priority, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false))
+                        priorityProvider, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false))
                     {
                         yield return collection;
                     }
@@ -272,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
 
             await foreach (var collection in StreamFixesAsync(
-                document, spanToDiagnostics, fixAllForInSpan: true, CodeActionRequestPriority.None,
+                document, spanToDiagnostics, fixAllForInSpan: true, CodeActionRequestPriorityProvider.Default,
                 fallbackOptions, isBlocking: false, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false))
             {
                 if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
@@ -402,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextDocument document,
             SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
             bool fixAllForInSpan,
-            CodeActionRequestPriority priority,
+            CodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
@@ -478,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!priority.MatchesPriority(fixer))
+                    if (!priorityProvider.MatchesPriority(fixer))
                         continue;
 
                     foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])

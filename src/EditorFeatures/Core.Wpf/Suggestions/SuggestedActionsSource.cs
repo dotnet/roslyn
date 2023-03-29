@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
                     var fixesTask = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionRequestPriority.None,
+                        addOperationScope, CodeActionRequestPriorityProvider.Default,
                         options, isBlocking: true, cancellationToken);
 
                     var refactoringsTask = GetRefactoringsAsync(
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextDocument document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionRequestPriority priority,
+                CodeActionRequestPriorityProvider priorityProvider,
                 CodeActionOptionsProvider fallbackOptions,
                 bool isBlocking,
                 CancellationToken cancellationToken)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    priority, fallbackOptions, isBlocking, addOperationScope, cancellationToken).AsTask();
+                    priorityProvider, fallbackOptions, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -422,21 +422,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
+                    var priorityProvider = CodeActionRequestPriorityProvider.Create(priority.Value);
 
-                    var result = await GetFixLevelAsync(priority.Value).ConfigureAwait(false);
+                    var result = await GetFixLevelAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
 
                 return null;
 
-                async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
+                async Task<string?> GetFixLevelAsync(CodeActionRequestPriorityProvider priorityProvider)
                 {
                     if (state.Target.Owner._codeFixService != null &&
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priority, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                         if (result.HasFix)
                         {
