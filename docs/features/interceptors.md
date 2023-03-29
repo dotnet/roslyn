@@ -78,7 +78,8 @@ File paths used in `[InterceptsLocation]` must exactly match the paths on the sy
 The compiler does not map `#line` directives when determining if an `[InterceptsLocation]` attribute intercepts a particular call in syntax.
 
 #### Position
-The implementation currently uses 0-indexed line and character numbers. However, we may want to change that before shipping it as an experimental feature to be 1-indexed, to match existing places where these values are displayed to the user (e.g. `Diagnostic.ToString`).
+
+Line and column numbers in `[InterceptsLocation]` are 1-indexed to match existing places where source locations are displayed to the user. For example, in `Diagnostic.ToString`.
 
 The location of the call is the location of the name syntax which denotes the interceptable method. For example, in `app.MapGet(...)`, the name syntax for `MapGet` would be considered the location of the call. For a static method call like `System.Console.WriteLine(...)`, the name syntax for `WriteLine` is the location of the call. If we allow intercepting calls to property accessors in the future (e.g `obj.Property`), we would also be able to use the name syntax in this way.
 
