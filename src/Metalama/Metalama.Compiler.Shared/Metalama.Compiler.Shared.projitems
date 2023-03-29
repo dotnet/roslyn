@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaPlugInAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformedFileMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformedFilesMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerOrderAttribute.cs" />

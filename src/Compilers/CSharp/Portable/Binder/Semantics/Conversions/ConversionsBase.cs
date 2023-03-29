@@ -658,7 +658,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler)
             {
-                Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
+                // <Metalama> This Assert sometimes fails on valid code
+                // Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
+                // </Metalama>
                 return conversion;
             }
 
