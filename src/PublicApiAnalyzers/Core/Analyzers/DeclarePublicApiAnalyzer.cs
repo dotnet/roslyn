@@ -17,10 +17,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToPublicShippedApiData = new();
-        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToPublicUnshippedApiData = new();
-        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToInternalShippedApiData = new();
-        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToInternalUnshippedApiData = new();
+        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToApiData = new();
 
         internal const string Extension = ".txt";
         internal const string PublicShippedFileNamePrefix = "PublicAPI.Shipped";
@@ -352,43 +349,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     break;
 
                 var file = new PublicApiFile(additionalText.Path, isPublic);
+
+                // if it's not an api file (quick filename check), we can just immediately ignore.
                 if (!file.IsApiFile)
                     continue;
 
-                var table = (isPublic, file.IsShipping) switch
+                if (!s_additionalTextToApiData.TryGetValue(additionalText, out var apiData))
                 {
-                    (false, false) => s_additionalTextToInternalUnshippedApiData,
-                    (false, true) => s_additionalTextToInternalShippedApiData,
-                    (true, false) => s_additionalTextToPublicUnshippedApiData,
-                    (true, true) => s_additionalTextToPublicShippedApiData,
-                };
-
-                var apiData = s_a
-
-
-                {
-                    SourceText text = additionalText.GetText(cancellationToken);
-
-                    if (text is null)
-                    {
-                        continue;
-                    }
-
-                    var data = (additionalText.Path, text);
-
-                    if (file.IsShipping)
-                    {
-                        shippedText ??= new();
-
-                        shippedText.Add(data);
-                    }
-                    else
-                    {
-                        unshippedText ??= new();
-
-                        unshippedText.Add(data);
-                    }
+                    apiData = ReadApiData(additionalText.Path, additionalText.GetText(cancellationToken), file.IsShipping);
+                    apiData = s_additionalTextToApiData.GetValue(additionalText, _ => apiData);
                 }
+
+                if (file.IsShipping)
+                    shippedData = apiData;
+                else
+                    unshippedData = apiData;
             }
 
             return shippedData != null && unshippedData != null;
