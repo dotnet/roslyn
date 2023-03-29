@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -103,6 +104,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
+                            // See if there are any items we found previously while calling into higher pri providers
+                            // that returned lower pri items. For example 'add import' is a high pri provider, but can
+                            // produce 'low pri' items (like those that add metadata-references). These can be added
+                            // now.
+                            foreach (var set in pendingActionSets[priority])
+                            {
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
+                            }
+
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
@@ -112,21 +123,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                             await foreach (var set in allSets)
                             {
-                                if (ShouldPendActionSet(priority, set.Priority, out var pendTo))
+                                // Determine the corresponding lightbulb priority class corresponding to the priority
+                                // group the set says it wants to be in.
+                                var actualSetPriority = set.Priority switch
                                 {
-                                    pendingActionSets.Add(pendTo, set);
+                                    SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
+                                    SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
+                                    SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
+                                    SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
+                                };
+
+                                // if the actual priority class is lower than the one we're currently in, then hold onto
+                                // this set for later, and place it in that priority group once we get there.
+                                if (actualSetPriority < priority)
+                                {
+                                    pendingActionSets.Add(actualSetPriority, set);
                                 }
                                 else
                                 {
                                     currentActionCount += set.Actions.Count();
                                     collector.Add(set);
                                 }
-                            }
-
-                            foreach (var set in pendingActionSets[priority])
-                            {
-                                currentActionCount += set.Actions.Count();
-                                collector.Add(set);
                             }
                         }
 
@@ -136,36 +154,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         collector.Complete();
                         completedCollectors.Add(collector);
                     }
-                }
-
-                return;
-
-                static bool ShouldPendActionSet(
-                    CodeActionRequestPriority requestPriority,
-                    SuggestedActionSetPriority setPriority,
-                    out CodeActionRequestPriority pendTo)
-                {
-                    var actualPriorityDeterminedBySet = setPriority switch
-                    {
-                        SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
-                        SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
-                        SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
-                        SuggestedActionSetPriority.High =>  CodeActionRequestPriority.High,
-                        _ => throw ExceptionUtilities.UnexpectedValue(setPriority),
-                    };
-
-                    if (actualPriorityDeterminedBySet < requestPriority)
-                    {
-                        // We got a result that is lower pri than what we asked for.  This should go in a later bucket
-                        // when the lightbulb gets around to it.
-                        pendTo = actualPriorityDeterminedBySet;
-                        return true;
-                    }
-
-                    // We got a result that either goes with our current priority class, or is even higher than what
-                    // we asked for.  We def want to add this now.
-                    pendTo = default;
-                    return false;
                 }
             }
 
