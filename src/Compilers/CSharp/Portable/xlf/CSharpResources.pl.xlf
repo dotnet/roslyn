@@ -407,6 +407,11 @@
         <target state="translated">Wyrażenie typu „{0}” nie może być obsługiwane przez wzorzec typu „{1}”. Użyj wersji języka „{2}” lub nowszej, aby dopasować typ otwarty za pomocą wzorca stałej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Konstruktor kopiujący w rekordzie musi wywoływać konstruktor kopiujący elementu podstawowego lub bezparametrowy konstruktor obiektu, jeśli rekord dziedziczy z obiektu.</target>

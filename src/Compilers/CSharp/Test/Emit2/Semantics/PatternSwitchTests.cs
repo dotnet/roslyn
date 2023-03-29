@@ -1883,13 +1883,13 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'bool' is expected
                 //             case new object() is int x1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new object() is int x1").WithArguments("bool").WithLocation(8, 18),
                 // (9,42): error CS0165: Use of unassigned local variable 'x1'
                 //                 System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 42)
-                );
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeSuppressedDiagnostics = false,
             CodeActionRequestPriority priority = CodeActionRequestPriority.None,
             DiagnosticKind diagnosticKinds = DiagnosticKind.All,
+            bool isExplicit = false,
             CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                         document, range, diagnostics, shouldIncludeDiagnostic,
                         includeSuppressedDiagnostics, true, priority, blockForData: false,
-                        addOperationScope: null, diagnosticKinds, cancellationToken).ConfigureAwait(false);
+                        addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
                     return (diagnostics.ToImmutable(), upToDate);
                 }, cancellationToken);
             }
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
+            bool isExplicit,
             CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
                     document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                    priority, blockForData: true, addOperationScope, diagnosticKinds, cancellationToken), cancellationToken);
+                    priority, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
