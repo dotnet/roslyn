@@ -100,9 +100,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CompilationWithAnalyzers? compilationWithAnalyzers,
             CancellationToken cancellationToken)
         {
-            if (analyzer.IsCompilerAnalyzer())
-                return false;
-
             // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
             // as these are computationally more expensive.
             // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
