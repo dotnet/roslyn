@@ -45,8 +45,7 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
     /// </summary>
     public ProjectSystemProjectFactory ProjectSystemProjectFactory { private get; set; } = null!;
 
-    public LanguageServerWorkspace(
-        HostServices host)
+    public LanguageServerWorkspace(HostServices host)
         : base(host, WorkspaceKind.Host)
     {
     }
@@ -67,6 +66,28 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         // to do special coordination here.
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
             _ => this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false),
+            cancellationToken);
+    }
+
+    internal override ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
+    {
+        return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
+            _ => this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false),
+            cancellationToken);
+    }
+
+    internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+    {
+        return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
+            w =>
+            {
+                var filePath = w.CurrentSolution.GetDocument(documentId)?.FilePath;
+                if (filePath != null)
+                {
+                    var loader = this.ProjectSystemProjectFactory.CreateFileTextLoader(filePath);
+                    this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
+                }
+            },
             cancellationToken);
     }
 }

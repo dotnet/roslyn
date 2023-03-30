@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
+        protected string P(MSB.Framework.ITaskItem documentItem)
         {
             return GetAbsolutePath(documentItem.ItemSpec);
         }
