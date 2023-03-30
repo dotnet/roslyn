@@ -28,13 +28,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
-        private static ConcurrentDictionary<MetadataId, bool> s_isInPackagesDirectory = new();
-
-        private static ImmutableArray<string> s_packagesDirectoryComponent = ImmutableArray.Create(
-            "packages",
-            "packs",
-            "NuGetFallbackFolder",
-            "NuGetPackages").SelectAsArray(s => $"{PathUtilities.DirectorySeparatorChar}{s}{PathUtilities.DirectorySeparatorChar}");
+        private static readonly ConcurrentDictionary<MetadataId, bool> s_isInPackagesDirectory = new();
 
         protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -381,16 +375,27 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            if (reference.FilePath is not null)
+            var metadataId = reference.GetMetadataId();
+            if (!s_isInPackagesDirectory.TryGetValue(metadataId, out var result))
             {
-                foreach (var pathComponent in s_packagesDirectoryComponent)
-                {
-                    if (reference.FilePath.IndexOf(pathComponent, StringComparison.OrdinalIgnoreCase) >= 0)
-                        return true;
-                }
+                result = ComputeIsInPackagesDirectory();
+                s_isInPackagesDirectory.TryAdd(metadataId, result);
             }
 
-            return false;
+            return result;
+
+            bool ComputeIsInPackagesDirectory()
+            {
+                return ContainsPathComponent(reference, "packages")
+                    || ContainsPathComponent(reference, "packs")
+                    || ContainsPathComponent(reference, "NuGetFallbackFolder")
+                    || ContainsPathComponent(reference, "NuGetPackages");
+            }
+
+            static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
+            {
+                return PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
+            }
         }
 
         /// <summary>
