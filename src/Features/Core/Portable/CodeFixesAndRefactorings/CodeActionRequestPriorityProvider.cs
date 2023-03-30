@@ -3,47 +3,46 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
-    internal sealed class CodeActionRequestPriorityProvider
+    internal abstract partial class CodeActionRequestPriorityProvider
     {
-        /// <summary>
-        /// Set of analyzers which have been de-prioritized to <see cref="CodeActionRequestPriority.Low"/> bucket.
-        /// </summary>
-        private readonly HashSet<DiagnosticAnalyzer> _lowPriorityAnalyzers;
-
         /// <summary>
         /// Default provider with <see cref="CodeActionRequestPriority.None"/> <see cref="Priority"/>.
         /// </summary>
-        public static readonly CodeActionRequestPriorityProvider Default = new(CodeActionRequestPriority.None, new());
+        public static readonly CodeActionRequestPriorityProvider Default = DefaultProvider.Instance;
+
+        protected CodeActionRequestPriorityProvider(CodeActionRequestPriority priority)
+        {
+            Priority = priority;
+        }
 
         public CodeActionRequestPriority Priority { get; }
 
-        private CodeActionRequestPriorityProvider(CodeActionRequestPriority priority, HashSet<DiagnosticAnalyzer> lowPriorityAnalyzers)
-        {
-            Priority = priority;
-            _lowPriorityAnalyzers = lowPriorityAnalyzers;
-        }
+        protected abstract bool IsDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer);
+
+        /// <summary>
+        /// Tracks the given <paramref name="analyzer"/> as a de-prioritized analyzer that should be moved to
+        /// <see cref="CodeActionRequestPriority.Low"/> bucket.
+        /// </summary>
+        public abstract void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer);
+
+        public abstract CodeActionRequestPriorityProvider With(CodeActionRequestPriority priority);
 
         public static CodeActionRequestPriorityProvider Create(CodeActionRequestPriority priority)
         {
             if (priority == CodeActionRequestPriority.None)
                 return Default;
 
-            return new(priority, new());
-        }
-
-        public CodeActionRequestPriorityProvider With(CodeActionRequestPriority priority)
-        {
-            Debug.Assert(priority != CodeActionRequestPriority.None);
-
-            return new(priority, _lowPriorityAnalyzers);
+            return MutableProvider.Create(priority);
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // Check if we are computing diagnostics for 'CodeActionRequestPriority.Low' and
             // this analyzer was de-prioritized to low priority bucket.
             if (Priority == CodeActionRequestPriority.Low &&
-                _lowPriorityAnalyzers.Contains(analyzer))
+                IsDeprioritizedAnalyzerWithLowPriority(analyzer))
             {
                 return true;
             }
@@ -83,44 +82,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : CodeActionRequestPriority.Normal;
 
             return Priority == analyzerPriority;
-        }
-
-        /// <summary>
-        /// Returns true if this is an analyzer that is a candidate to be de-prioritized to
-        /// <see cref="CodeActionRequestPriority.Low"/> <see cref="Priority"/> for improvement in analyzer
-        /// execution performance for priority buckets above 'Low' priority.
-        /// </summary>
-        /// <remarks>
-        /// Based on performance measurements, currently only analyzers which register SymbolStart/End actions
-        /// or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
-        /// could be changed in future based on performance measurements.
-        /// </remarks>
-        public static async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(
-            DiagnosticAnalyzer analyzer,
-            CompilationWithAnalyzers? compilationWithAnalyzers,
-            CancellationToken cancellationToken)
-        {
-            // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
-            // as these are computationally more expensive.
-            // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
-            if (compilationWithAnalyzers != null && !analyzer.IsWorkspaceDiagnosticAnalyzer())
-            {
-                var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                return (telemetryInfo?.SymbolStartActionsCount > 0 || telemetryInfo?.SemanticModelActionsCount > 0) &&
-                    !analyzer.IsCompilerAnalyzer();
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Tracks the given <paramref name="analyzer"/> as a de-prioritized analyzer that should be moved to
-        /// <see cref="CodeActionRequestPriority.Low"/> bucket.
-        /// </summary>
-        public void TrackDeprioritizedAnalyzer(DiagnosticAnalyzer analyzer)
-        {
-            Debug.Assert(Priority == CodeActionRequestPriority.Normal);
-            _lowPriorityAnalyzers.Add(analyzer);
         }
 
         /// <summary>

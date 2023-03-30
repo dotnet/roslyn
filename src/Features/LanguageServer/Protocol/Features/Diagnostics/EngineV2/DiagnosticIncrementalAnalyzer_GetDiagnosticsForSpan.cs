@@ -389,21 +389,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!incrementalAnalysis || stateSetsAndExistingData.All(stateSetAndData => stateSetAndData.stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
                 using var _ = ArrayBuilder<StateSet>.GetInstance(stateSetsAndExistingData.Length, out var stateSetBuilder);
-                foreach (var stateSetAndData in stateSetsAndExistingData)
+                foreach (var (stateSet, existingData) in stateSetsAndExistingData)
                 {
-                    var analyzer = stateSetAndData.stateSet.Analyzer;
+                    var analyzer = stateSet.Analyzer;
                     if (_priorityProvider.MatchesPriority(analyzer))
                     {
                         // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                         // If so, we skip this analyzer from execution in the current priority bucket.
                         // We will subsequently execute this analyzer in the lower priority bucket.
-                        Contract.ThrowIfNull(stateSetAndData.existingData);
-                        if (await TryDeprioritizeAnalyzerAsync(analyzer, stateSetAndData.existingData.Value).ConfigureAwait(false))
+                        Contract.ThrowIfNull(existingData);
+                        if (await TryDeprioritizeAnalyzerAsync(analyzer, existingData.Value).ConfigureAwait(false))
                         {
                             continue;
                         }
 
-                        stateSetBuilder.Add(stateSetAndData.stateSet);
+                        stateSetBuilder.Add(stateSet);
                     }
                 }
 
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // Condition 3.
                     // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
-                    if (!await CodeActionRequestPriorityProvider.IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer, _compilationWithAnalyzers, cancellationToken).ConfigureAwait(false))
+                    if (!await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false))
                     {
                         return false;
                     }
@@ -506,9 +506,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
                     // analyzer to be executed in low priority bucket.
                     if (!_owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
-                        _priorityProvider.TrackDeprioritizedAnalyzer(analyzer);
+                        _priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
 
                     return true;
+                }
+
+                // Returns true if this is an analyzer that is a candidate to be de-prioritized to
+                // 'CodeActionRequestPriority.Low' priority for improvement in analyzer
+                // execution performance for priority buckets above 'Low' priority.
+                // Based on performance measurements, currently only analyzers which register SymbolStart/End actions
+                // or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
+                // could be changed in future based on performance measurements.
+                async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
+                {
+                    // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
+                    // as these are computationally more expensive.
+                    // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
+                    if (_compilationWithAnalyzers == null ||
+                        analyzer.IsWorkspaceDiagnosticAnalyzer() ||
+                        analyzer.IsCompilerAnalyzer())
+                    {
+                        return false;
+                    }
+
+                    var telemetryInfo = await _compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    if (telemetryInfo == null)
+                        return false;
+
+                    return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
                 }
             }
 
