@@ -4,13 +4,15 @@
 
 #nullable disable
 
-using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -952,6 +954,315 @@ public class Program
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        public void SymbolInfo_InstanceMemberFromStatic_Flat()
+        {
+            var source = """
+                public class C
+                {
+                    public int Property { get; }
+                    public int Field;
+                    public event System.Action Event;
+
+                    public static string StaticField =
+                        nameof(Property) +
+                        nameof(Field) +
+                        nameof(Event);
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var cProperty = comp.GetMember("C.Property");
+            var cField = comp.GetMember("C.Field");
+            var cEvent = comp.GetMember("C.Event");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(3, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(3, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property", cProperty);
+            verify(1, "Field", cField);
+            verify(2, "Event", cEvent);
+
+            void verify(int index, string expression, Symbol symbol)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(SymbolInfo symbolInfo)
+                {
+                    Assert.NotNull(symbolInfo.Symbol);
+                    Assert.Same(symbol.GetPublicSymbol(), symbolInfo.Symbol);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact]
+        public void SymbolInfo_InstanceMemberFromStatic_Flat_MethodGroup()
+        {
+            var source = """
+                public class C
+                {
+                    public void Method1() { }
+                    public void Method1(int i) { }
+                    public void Method2() { }
+                    public static void Method2(int i) { }
+                
+                    public static string StaticField =
+                        nameof(Method1) +
+                        nameof(Method2);
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var cMethods1 = comp.GetMembers("C.Method1");
+            Assert.Equal(2, cMethods1.Length);
+            var cMethods2 = comp.GetMembers("C.Method2");
+            Assert.Equal(2, cMethods2.Length);
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(2, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(2, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Method1", cMethods1);
+            verify(1, "Method2", cMethods2);
+
+            void verify(int index, string expression, ImmutableArray<Symbol> symbols)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(CandidateReason.OverloadResolutionFailure, model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(CandidateReason reason, SymbolInfo symbolInfo)
+                {
+                    Assert.Equal(reason, symbolInfo.CandidateReason);
+                    AssertEx.SetEqual(
+                        symbols.Select(s => s.GetPublicSymbol()),
+                        symbolInfo.CandidateSymbols,
+                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")]
+        public void SymbolInfo_InstanceMemberFromStatic_Nested()
+        {
+            var source = """
+                public class C
+                {
+                    public C1 Property { get; }
+                    public C1 Field;
+
+                    public static string StaticField =
+                        nameof(Property.Property) +
+                        nameof(Property.Field) +
+                        nameof(Property.Event) +
+                        nameof(Field.Property) +
+                        nameof(Field.Field) +
+                        nameof(Field.Event);
+                }
+                
+                public class C1
+                {
+                    public int Property { get; }
+                    public int Field;
+                    public event System.Action Event;
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c1Property = comp.GetMember("C1.Property");
+            var c1Field = comp.GetMember("C1.Field");
+            var c1Event = comp.GetMember("C1.Event");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(6, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(6, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property.Property", c1Property);
+            verify(1, "Property.Field", c1Field);
+            verify(2, "Property.Event", c1Event);
+            verify(3, "Field.Property", c1Property);
+            verify(4, "Field.Field", c1Field);
+            verify(5, "Field.Event", c1Event);
+
+            void verify(int index, string expression, Symbol symbol)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(SymbolInfo symbolInfo)
+                {
+                    Assert.NotNull(symbolInfo.Symbol);
+                    Assert.Same(symbol.GetPublicSymbol(), symbolInfo.Symbol);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")]
+        public void SymbolInfo_InstanceMemberFromStatic_Nested_MethodGroup()
+        {
+            var source = """
+                public class C
+                {
+                    public C1 Property { get; }
+                    public C1 Field;
+                    public event System.Action Event;
+                
+                    public static string StaticField =
+                        nameof(Property.Method) +
+                        nameof(Field.Method) +
+                        nameof(Event.Invoke);
+                }
+                
+                public class C1
+                {
+                    public void Method() { }
+                    public void Method(int i) { }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c1Methods = comp.GetMembers("C1.Method").ToArray();
+            Assert.Equal(2, c1Methods.Length);
+            var c1Event = comp.GetMember("C1.Event");
+            var actionInvoke = comp.GetWellKnownType(WellKnownType.System_Action).GetMember("Invoke");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(3, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(3, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property.Method", c1Methods);
+            verify(1, "Field.Method", c1Methods);
+            verify(2, "Event.Invoke", actionInvoke);
+
+            void verify(int index, string expression, params Symbol[] symbols)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(CandidateReason.OverloadResolutionFailure, model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(CandidateReason reason, SymbolInfo symbolInfo)
+                {
+                    Assert.Equal(reason, symbolInfo.CandidateReason);
+                    AssertEx.SetEqual(
+                        symbols.Select(s => s.GetPublicSymbol()),
+                        symbolInfo.CandidateSymbols,
+                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
         }
 
         [Fact]
