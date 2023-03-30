@@ -71,6 +71,18 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
+PROTOTYPE(ic): open question in https://github.com/dotnet/roslyn/pull/67432#discussion_r1147822738
+
+Are the `[InterceptsLocation]` attributes dropped when emitting the methods to metadata?
+
+No. We could consider:
+
+* having the compiler drop the attributes automatically (treating them as pseudo-custom attributes, perhaps)
+* making the attribute declaration in the framework "conditional" on some debug symbol which is not usually provided.
+* deliberately keeping them there. I can't think of any good reason to do this.
+
+Perhaps the first option would be best.
+
 #### File paths
 
 File paths used in `[InterceptsLocation]` must exactly match the paths on the syntax trees they refer to by ordinal comparison. `SyntaxTree.FilePath` has already applied `/pathmap` substitution, so the paths used in the attribute will be less environment-specific in many projects.
@@ -81,13 +93,15 @@ The compiler does not map `#line` directives when determining if an `[Intercepts
 
 Line and column numbers in `[InterceptsLocation]` are 1-indexed to match existing places where source locations are displayed to the user. For example, in `Diagnostic.ToString`.
 
-The location of the call is the location of the name syntax which denotes the interceptable method. For example, in `app.MapGet(...)`, the name syntax for `MapGet` would be considered the location of the call. For a static method call like `System.Console.WriteLine(...)`, the name syntax for `WriteLine` is the location of the call. If we allow intercepting calls to property accessors in the future (e.g `obj.Property`), we would also be able to use the name syntax in this way.
+The location of the call is the location of the simple name syntax which denotes the interceptable method. For example, in `app.MapGet(...)`, the name syntax for `MapGet` would be considered the location of the call. For a static method call like `System.Console.WriteLine(...)`, the name syntax for `WriteLine` is the location of the call. If we allow intercepting calls to property accessors in the future (e.g `obj.Property`), we would also be able to use the name syntax in this way.
 
 #### Attribute creation
 
 The goal of the above decisions is to make it so that when source generators are filling in `[InterceptsLocation(...)]`, they simply need to read `nameSyntax.SyntaxTree.FilePath` and `nameSyntax.GetLineSpan().Span.Start` for the exact file path and position information they need to use.
 
-We should provide samples of recommended coding patterns for generator authors, and perhaps provide public helper methods, which will make it relatively easy for them to do the right thing. For example, we could provide a helper on InvocationExpressionSyntax which returns the values that need to be put in `[InterceptsLocation]`.
+We add the public API `public static InterceptableLocation? GetInterceptableLocation(this InvocationExpressionSyntax syntax)`. The API and the new return type are guarded by `[RequiresPreviewFeatures]`, requiring generators which use the APIs to opt-in. If the feature is significantly revised or withdrawn, use of `[RequiresPreviewFeatures]` gives us the latitude to make breaking changes to these public APIs or to remove them.
+
+We should provide samples of recommended coding patterns for generator authors.
 
 ### Non-invocation method usages
 
@@ -123,3 +137,32 @@ An interceptor must be accessible at the location where interception is occurrin
 ### Editor experience
 
 Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted. If this feature is brought forward past the experimental stage, this limitation will need to be re-examined.
+
+### User opt-in
+
+PROTOTYPE(ic): design an opt-in step which meets the needs of the generators consuming this, and permits usage of the feature in the key NativeAOT scenarios we are targeting.
+
+As interceptors are an experimental feature, it's important that an explicit opt-in step be performed by the user in order to depend on it.
+
+### Implementation strategy
+
+During the binding phase, `InterceptsLocationAttribute` usages are decoded and the related data for each usage are collected in a `ConcurrentSet` on the compilation:
+- attribute arguments
+- attribute location
+- attributed method symbol
+PROTOTYPE(ic): the exact collection used to collect the attribute usages, and the exact way it is used, are not finalized. The main concern is to ensure we can scale to large numbers of interceptors without issue, and that we can report diagnostics for duplicate interception of the same location in a deterministic way.
+
+At this time, diagnostics are reported for the following conditions:
+- problems specific to the attributed interceptor method itself, for example, that it is not an ordinary method.
+- syntactic problems specific to the referenced location, for example, that it does not refer to an applicable simple name as defined in [Position](#position) subsection.
+
+During the lowering phase, when a given `BoundCall` is lowered:
+- we check if its syntax contains an applicable simple name
+- if so, we lookup whether it is being intercepted, based on data about `InterceptsLocationAttribute` collected during the binding phase.
+- if it is being intercepted, we perform an additional step after lowering of the receiver and arguments is completed:
+  - substitute the interceptable method with the interceptor method on the `BoundCall`.
+  - if the interceptor is a classic extension method, and the interceptable method is an instance method, we adjust the `BoundCall` to use the receiver as the first argument of the call, "pushing" the other arguments forward, similar to the way it would have bound if the original call were to an extension method in reduced form.
+
+At this time, diagnostics are reported for the following conditions:
+- incompatibility between the interceptor and interceptable methods, for example, in their signatures.
+- *duplicate* `[InterceptsLocation]`, that is, multiple interceptors which intercept the same call. PROTOTYPE(ic): not yet implemented.

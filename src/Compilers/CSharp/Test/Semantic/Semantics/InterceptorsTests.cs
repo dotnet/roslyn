@@ -184,6 +184,21 @@ public class InterceptorsTests : CSharpTestBase
     // PROTOTYPE(ic): test a case where the original method has type parameter constraints.
     // PROTOTYPE(ic): for now we will just completely disallow type parameters in the interceptor.
     // PROTOTYPE(ic): test where interceptable is a constructed method or a retargeting method.
+    // PROTOTYPE(ic): test where there are differences between 'scoped' modifiers and '[UnscopedRef]' attributes
+
+    // PROTOTYPE(ic): Possible test cases:
+    //
+    // * Intercept instance method with instance method in same class, base class, derived class
+    // * Intercept with extern method
+    // * Intercept with abstract or interface method
+    // * Intercept an abstract or interface method
+    // * Intercept a virtual or overridden method
+    // * Intercept a non-extension call to a static method with a static method when one or both are extension methods
+    // * Intercept a struct instance method with an extension method with by-value / by-ref this parameter
+    // * An explicit interface implementation marked as interceptable
+    // * Intercept a generic method call when the type parameters are / are not substituted
+
+
 
     [Fact]
     public void InterceptableInstanceMethod_InterceptorExtensionMethod()
@@ -211,6 +226,38 @@ public class InterceptorsTests : CSharpTestBase
             {
                 [InterceptsLocation("Program.cs", 15, 11)]
                 public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void QualifiedNameAtCallSite()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static C InterceptableMethod(C c, string param) { Console.Write("interceptable " + param); return c; }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    C.InterceptableMethod(c, "call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static C Interceptor1(C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
@@ -282,6 +329,7 @@ public class InterceptorsTests : CSharpTestBase
 
     // PROTOTYPE(ic): test intercepting an extension method with a non-extension method. Perhaps should be an error for simplicity even if calling in non-reduced form.
 
+    // PROTOTYPE(ic): test when parameter names differ between interceptable and interceptor.
     [Fact]
     public void ArgumentLabels()
     {
