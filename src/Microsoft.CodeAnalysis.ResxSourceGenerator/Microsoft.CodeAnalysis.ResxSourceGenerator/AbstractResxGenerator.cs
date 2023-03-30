@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -22,93 +23,147 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 {
-    internal abstract class AbstractResxGenerator : ISourceGenerator
+    internal abstract class AbstractResxGenerator : IIncrementalGenerator
     {
-        protected abstract bool SupportsNullable(GeneratorExecutionContext context);
-
-        public void Initialize(GeneratorInitializationContext context)
-        {
-        }
+        protected abstract bool SupportsNullable(Compilation compilation);
 
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Standard practice for diagnosing source generator failures.")]
-        public void Execute(GeneratorExecutionContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var resourceFiles = context.AdditionalFiles.Where(file => file.Path.EndsWith(".resx", StringComparison.OrdinalIgnoreCase));
-            foreach (var resourceFile in resourceFiles)
-            {
-                try
+            var resourceFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".resx", StringComparison.OrdinalIgnoreCase));
+            var compilationInformation = context.CompilationProvider.Select(
+                (compilation, cancellationToken) =>
                 {
-                    ProcessResourceFile(context, resourceFile);
-                }
-                catch (Exception ex)
+                    var methodImplOptions = compilation.GetOrCreateTypeByMetadataName(typeof(MethodImplOptions).FullName);
+                    var hasAggressiveInlining = methodImplOptions?.MemberNames.Contains(nameof(MethodImplOptions.AggressiveInlining)) ?? false;
+                    var hasNotNullIfNotNull = compilation.GetOrCreateTypeByMetadataName("System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute") is not null;
+
+                    return new CompilationInformation(
+                        AssemblyName: compilation.AssemblyName,
+                        CodeLanguage: compilation.Language,
+                        SupportsNullable: SupportsNullable(compilation),
+                        HasAggressiveInlining: hasAggressiveInlining,
+                        HasNotNullIfNotNull: hasNotNullIfNotNull);
+                });
+            var resourceFilesToGenerateSource = resourceFiles.Combine(context.AnalyzerConfigOptionsProvider).Combine(compilationInformation).SelectMany(
+                static (resourceFileAndOptions, cancellationToken) =>
                 {
-                    var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                    var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
-                    var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
-                    context.AddSource($"{Path.GetFileName(resourceFile.Path)}.Error", errorText);
-                }
-            }
+                    var ((resourceFile, optionsProvider), compilationInfo) = resourceFileAndOptions;
+                    var options = optionsProvider.GetOptions(resourceFile);
+                    if (options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
+                        && !string.IsNullOrEmpty(generateSourceText)
+                        && generateSourceText != "unset"
+                        && !string.Equals(bool.TrueString, generateSourceText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Source generation is disabled for this resource file
+                        return Array.Empty<ResourceInformation>();
+                    }
+
+                    if (!optionsProvider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+                    {
+                        rootNamespace = compilationInfo.AssemblyName;
+                    }
+
+                    var resourceName = Path.GetFileNameWithoutExtension(resourceFile.Path);
+                    if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
+                    {
+                        resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.OmitGetResourceString", out var omitGetResourceStringText)
+                        || !bool.TryParse(omitGetResourceStringText, out var omitGetResourceString))
+                    {
+                        omitGetResourceString = false;
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.AsConstants", out var asConstantsText)
+                        || !bool.TryParse(asConstantsText, out var asConstants))
+                    {
+                        asConstants = false;
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.IncludeDefaultValues", out var includeDefaultValuesText)
+                        || !bool.TryParse(includeDefaultValuesText, out var includeDefaultValues))
+                    {
+                        includeDefaultValues = false;
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.EmitFormatMethods", out var emitFormatMethodsText)
+                        || !bool.TryParse(emitFormatMethodsText, out var emitFormatMethods))
+                    {
+                        emitFormatMethods = false;
+                    }
+
+                    return new[]
+                    {
+                        new ResourceInformation(
+                            CompilationInformation: compilationInfo,
+                            ResourceFile: resourceFile,
+                            ResourceName: string.Join(".", rootNamespace, resourceName),
+                            ResourceClassName: null,
+                            OmitGetResourceString: omitGetResourceString,
+                            AsConstants: asConstants,
+                            IncludeDefaultValues: includeDefaultValues,
+                            EmitFormatMethods: emitFormatMethods)
+                    };
+                });
+
+            context.RegisterSourceOutput(
+                resourceFilesToGenerateSource,
+                static (context, resourceInformation) =>
+                {
+                    try
+                    {
+                        ProcessResourceFile(context, resourceInformation);
+                    }
+                    catch (Exception ex)
+                    {
+                        var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
+                        var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
+                        context.AddSource($"{Path.GetFileName(resourceInformation.ResourceFile.Path)}.Error", errorText);
+                    }
+                });
         }
 
-        private void ProcessResourceFile(GeneratorExecutionContext context, AdditionalText resourceFile)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="AssemblyName"></param>
+        /// <param name="CodeLanguage">Language of source file to generate. Supported languages: CSharp, VisualBasic.</param>
+        /// <param name="SupportsNullable"></param>
+        private readonly record struct CompilationInformation(
+            string? AssemblyName,
+            string CodeLanguage,
+            bool SupportsNullable,
+            bool HasAggressiveInlining,
+            bool HasNotNullIfNotNull);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CompilationInformation">Information about the compilation.</param>
+        /// <param name="ResourceFile">Resources (resx) file.</param>
+        /// <param name="ResourceName">Name of the embedded resources to generate accessor class for.</param>
+        /// <param name="ResourceClassName">Optionally, a <c>namespace.type</c> name for the generated Resources accessor class. Defaults to <see cref="ResourceName"/> if unspecified.</param>
+        /// <param name="OmitGetResourceString">If set to <see langword="true"/>, the <c>GetResourceString</c> method is not included in the generated class and must be specified in a separate source file.</param>
+        /// <param name="AsConstants">If set to <see langword="true"/>, emits constant key strings instead of properties that retrieve values.</param>
+        /// <param name="IncludeDefaultValues">If set to <see langword="true"/>, calls to <c>GetResourceString</c> receive a default resource string value.</param>
+        /// <param name="EmitFormatMethods">If set to <see langword="true"/>, the generated code will include <c>.FormatXYZ(...)</c> methods.</param>
+        private readonly record struct ResourceInformation(
+            CompilationInformation CompilationInformation,
+            AdditionalText ResourceFile,
+            string ResourceName,
+            string? ResourceClassName,
+            bool OmitGetResourceString,
+            bool AsConstants,
+            bool IncludeDefaultValues,
+            bool EmitFormatMethods);
+
+        private static void ProcessResourceFile(SourceProductionContext context, ResourceInformation resourceFile)
         {
-            var options = context.AnalyzerConfigOptions.GetOptions(resourceFile);
-
-            if (options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
-                && !string.IsNullOrEmpty(generateSourceText)
-                && generateSourceText != "unset"
-                && !string.Equals(bool.TrueString, generateSourceText, StringComparison.OrdinalIgnoreCase))
-            {
-                // Source generation is disabled for this resource file
-                return;
-            }
-
-            if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
-            {
-                rootNamespace = context.Compilation.AssemblyName;
-            }
-
-            var resourceName = Path.GetFileNameWithoutExtension(resourceFile.Path);
-            if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
-            {
-                resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
-            }
-
-            if (!options.TryGetValue("build_metadata.AdditionalFiles.OmitGetResourceString", out var omitGetResourceStringText)
-                || !bool.TryParse(omitGetResourceStringText, out var omitGetResourceString))
-            {
-                omitGetResourceString = false;
-            }
-
-            if (!options.TryGetValue("build_metadata.AdditionalFiles.AsConstants", out var asConstantsText)
-                || !bool.TryParse(asConstantsText, out var asConstants))
-            {
-                asConstants = false;
-            }
-
-            if (!options.TryGetValue("build_metadata.AdditionalFiles.IncludeDefaultValues", out var includeDefaultValuesText)
-                || !bool.TryParse(includeDefaultValuesText, out var includeDefaultValues))
-            {
-                includeDefaultValues = false;
-            }
-
-            if (!options.TryGetValue("build_metadata.AdditionalFiles.EmitFormatMethods", out var emitFormatMethodsText)
-                || !bool.TryParse(emitFormatMethodsText, out var emitFormatMethods))
-            {
-                emitFormatMethods = false;
-            }
-
-            var impl = new Impl(
-                this,
-                language: context.Compilation.Language,
-                resourceFile: resourceFile,
-                resourceName: string.Join(".", rootNamespace, resourceName),
-                resourceClassName: null,
-                omitGetResourceString: omitGetResourceString,
-                asConstants: asConstants,
-                includeDefaultValues: includeDefaultValues,
-                emitFormatMethods: emitFormatMethods);
-            if (impl.Execute(context))
+            var impl = new Impl(resourceFile);
+            if (impl.Execute(context.CancellationToken))
             {
                 context.AddSource(impl.OutputTextHintName!, impl.OutputText);
             }
@@ -118,70 +173,14 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         {
             private const int maxDocCommentLength = 256;
 
-            public Impl(
-                AbstractResxGenerator generator,
-                string language,
-                AdditionalText resourceFile,
-                string resourceName,
-                string? resourceClassName,
-                bool omitGetResourceString,
-                bool asConstants,
-                bool includeDefaultValues,
-                bool emitFormatMethods)
+            public Impl(ResourceInformation resourceInformation)
             {
-                Generator = generator;
-                Language = language;
-                ResourceFile = resourceFile;
-                ResourceName = resourceName;
-                ResourceClassName = resourceClassName;
-                OmitGetResourceString = omitGetResourceString;
-                AsConstants = asConstants;
-                IncludeDefaultValues = includeDefaultValues;
-                EmitFormatMethods = emitFormatMethods;
+                ResourceInformation = resourceInformation;
                 OutputText = SourceText.From("", Encoding.UTF8);
             }
 
-            private AbstractResxGenerator Generator { get; }
-
-            /// <summary>
-            /// Language of source file to generate. Supported languages: CSharp, VisualBasic
-            /// </summary>
-            public string Language { get; }
-
-            /// <summary>
-            /// Resources (resx) file.
-            /// </summary>
-            public AdditionalText ResourceFile { get; }
-
-            /// <summary>
-            /// Name of the embedded resources to generate accessor class for.
-            /// </summary>
-            public string ResourceName { get; }
-
-            /// <summary>
-            /// Optionally, a namespace.type name for the generated Resources accessor class.  Defaults to <see cref="ResourceName"/> if unspecified.
-            /// </summary>
-            public string? ResourceClassName { get; }
-
-            /// <summary>
-            /// If set to true the GetResourceString method is not included in the generated class and must be specified in a separate source file.
-            /// </summary>
-            public bool OmitGetResourceString { get; }
-
-            /// <summary>
-            /// If set to true, emits constant key strings instead of properties that retrieve values.
-            /// </summary>
-            public bool AsConstants { get; }
-
-            /// <summary>
-            /// If set to true calls to GetResourceString receive a default resource string value.
-            /// </summary>
-            public bool IncludeDefaultValues { get; }
-
-            /// <summary>
-            /// If set to true, the generated code will include .FormatXYZ(...) methods.
-            /// </summary>
-            public bool EmitFormatMethods { get; }
+            public ResourceInformation ResourceInformation { get; }
+            public CompilationInformation CompilationInformation => ResourceInformation.CompilationInformation;
 
             public string? OutputTextHintName { get; private set; }
             public SourceText OutputText { get; private set; }
@@ -205,10 +204,10 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             }
 
             [MemberNotNullWhen(true, nameof(OutputTextHintName), nameof(OutputText))]
-            public bool Execute(GeneratorExecutionContext context)
+            public bool Execute(CancellationToken cancellationToken)
             {
                 Lang language;
-                switch (Language)
+                switch (CompilationInformation.CodeLanguage)
                 {
                     case LanguageNames.CSharp:
                         language = Lang.CSharp;
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         break;
 
                     default:
-                        LogError(Lang.CSharp, $"GenerateResxSource doesn't support language: '{Language}'");
+                        LogError(Lang.CSharp, $"GenerateResxSource doesn't support language: '{CompilationInformation.CodeLanguage}'");
                         return false;
                 }
 
@@ -230,21 +229,21 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     _ => "cs",
                 };
 
-                OutputTextHintName = ResourceName + $".Designer.{extension}";
+                OutputTextHintName = ResourceInformation.ResourceName + $".Designer.{extension}";
 
-                if (string.IsNullOrEmpty(ResourceName))
+                if (string.IsNullOrEmpty(ResourceInformation.ResourceName))
                 {
                     LogError(language, "ResourceName not specified");
                     return false;
                 }
 
-                var resourceAccessName = RoslynString.IsNullOrEmpty(ResourceClassName) ? ResourceName : ResourceClassName;
+                var resourceAccessName = RoslynString.IsNullOrEmpty(ResourceInformation.ResourceClassName) ? ResourceInformation.ResourceName : ResourceInformation.ResourceClassName;
                 SplitName(resourceAccessName, out var namespaceName, out var className);
 
                 var classIndent = namespaceName == null ? "" : "    ";
                 var memberIndent = classIndent + "    ";
 
-                var text = ResourceFile.GetText(context.CancellationToken);
+                var text = ResourceInformation.ResourceFile.GetText(cancellationToken);
                 if (text is null)
                 {
                     LogError(language, "ResourceFile was null");
@@ -280,21 +279,21 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 
                     var identifier = GetIdentifierFromResourceName(name);
 
-                    var defaultValue = IncludeDefaultValues ? ", " + CreateStringLiteral(value, language) : string.Empty;
+                    var defaultValue = ResourceInformation.IncludeDefaultValues ? ", " + CreateStringLiteral(value, language) : string.Empty;
 
                     switch (language)
                     {
                         case Lang.CSharp:
-                            if (AsConstants)
+                            if (ResourceInformation.AsConstants)
                             {
                                 strings.AppendLine($"{memberIndent}internal const string @{identifier} = \"{name}\";");
                             }
                             else
                             {
-                                strings.AppendLine($"{memberIndent}internal static {(IncludeDefaultValues || !Generator.SupportsNullable(context) ? "string" : "string?")} @{identifier} => GetResourceString(\"{name}\"{defaultValue});");
+                                strings.AppendLine($"{memberIndent}internal static {(ResourceInformation.IncludeDefaultValues || !CompilationInformation.SupportsNullable ? "string" : "string?")} @{identifier} => GetResourceString(\"{name}\"{defaultValue});");
                             }
 
-                            if (EmitFormatMethods)
+                            if (ResourceInformation.EmitFormatMethods)
                             {
                                 var resourceString = new ResourceString(name, value);
 
@@ -308,7 +307,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             break;
 
                         case Lang.VisualBasic:
-                            if (AsConstants)
+                            if (ResourceInformation.AsConstants)
                             {
                                 strings.AppendLine($"{memberIndent}Friend Const [{identifier}] As String = \"{name}\"");
                             }
@@ -321,7 +320,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                                 strings.AppendLine($"{memberIndent}End Property");
                             }
 
-                            if (EmitFormatMethods)
+                            if (ResourceInformation.EmitFormatMethods)
                             {
                                 throw new NotImplementedException();
                             }
@@ -333,13 +332,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
                 }
 
-                INamedTypeSymbol? methodImplOptions = context.Compilation.GetOrCreateTypeByMetadataName(typeof(MethodImplOptions).FullName);
-                var hasAggressiveInlining = methodImplOptions?.MemberNames.Contains(nameof(MethodImplOptions.AggressiveInlining)) ?? false;
-
-                var hasNotNullIfNotNull = context.Compilation.GetOrCreateTypeByMetadataName("System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute") is object;
-
                 string? getStringMethod;
-                if (OmitGetResourceString)
+                if (ResourceInformation.OmitGetResourceString)
                 {
                     getStringMethod = null;
                 }
@@ -349,20 +343,20 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     {
                         case Lang.CSharp:
                             var getResourceStringAttributes = new List<string>();
-                            if (hasAggressiveInlining)
+                            if (CompilationInformation.HasAggressiveInlining)
                             {
                                 getResourceStringAttributes.Add("[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                             }
 
-                            if (hasNotNullIfNotNull)
+                            if (CompilationInformation.HasNotNullIfNotNull)
                             {
                                 getResourceStringAttributes.Add("[return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull(\"defaultValue\")]");
                             }
 
-                            getStringMethod = $@"{memberIndent}internal static global::System.Globalization.CultureInfo{(Generator.SupportsNullable(context) ? "?" : "")} Culture {{ get; set; }}
+                            getStringMethod = $@"{memberIndent}internal static global::System.Globalization.CultureInfo{(CompilationInformation.SupportsNullable ? "?" : "")} Culture {{ get; set; }}
 {string.Join(Environment.NewLine, getResourceStringAttributes.Select(attr => memberIndent + attr))}
-{memberIndent}internal static {(Generator.SupportsNullable(context) ? "string?" : "string")} GetResourceString(string resourceKey, {(Generator.SupportsNullable(context) ? "string?" : "string")} defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;";
-                            if (EmitFormatMethods)
+{memberIndent}internal static {(CompilationInformation.SupportsNullable ? "string?" : "string")} GetResourceString(string resourceKey, {(CompilationInformation.SupportsNullable ? "string?" : "string")} defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;";
+                            if (ResourceInformation.EmitFormatMethods)
                             {
                                 getStringMethod += $@"
 
@@ -389,7 +383,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 {memberIndent}Friend Shared Function GetResourceString(ByVal resourceKey As String, Optional ByVal defaultValue As String = Nothing) As String
 {memberIndent}    Return ResourceManager.GetString(resourceKey, Culture)
 {memberIndent}End Function";
-                            if (EmitFormatMethods)
+                            if (ResourceInformation.EmitFormatMethods)
                             {
                                 throw new NotImplementedException();
                             }
@@ -427,7 +421,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 
                 string resourceTypeName;
                 string? resourceTypeDefinition;
-                if (string.IsNullOrEmpty(ResourceClassName) || ResourceName == ResourceClassName)
+                if (string.IsNullOrEmpty(ResourceInformation.ResourceClassName) || ResourceInformation.ResourceName == ResourceInformation.ResourceClassName)
                 {
                     // resource name is same as accessor, no need for a second type.
                     resourceTypeName = className;
@@ -438,7 +432,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     // resource name differs from the access class, need a type for specifying the resources
                     // this empty type must remain as it is required by the .NETNative toolchain for locating resources
                     // once assemblies have been merged into the application
-                    resourceTypeName = ResourceName;
+                    resourceTypeName = ResourceInformation.ResourceName;
 
                     SplitName(resourceTypeName, out var resourceNamespaceName, out var resourceClassName);
                     var resourceClassIndent = resourceNamespaceName == null ? "" : "    ";
@@ -483,14 +477,14 @@ End Namespace";
                     case Lang.CSharp:
                         result = $@"// <auto-generated/>
 
-{(Generator.SupportsNullable(context) ? "#nullable enable" : "")}
+{(CompilationInformation.SupportsNullable ? "#nullable enable" : "")}
 using System.Reflection;
 
 {resourceTypeDefinition}
 {namespaceStart}
 {classIndent}internal static partial class {className}
 {classIndent}{{
-{memberIndent}private static global::System.Resources.ResourceManager{(Generator.SupportsNullable(context) ? "?" : "")} s_resourceManager;
+{memberIndent}private static global::System.Resources.ResourceManager{(CompilationInformation.SupportsNullable ? "?" : "")} s_resourceManager;
 {memberIndent}internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof({resourceTypeName})));
 {getStringMethod}
 {strings}

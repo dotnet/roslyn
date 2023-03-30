@@ -29,9 +29,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 {
     public static partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+        public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
         {
             private readonly string? _testFile;
             private readonly string? _testMethod;
@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+
+            protected override IEnumerable<Type> GetSourceGenerators()
+            {
+                yield return typeof(TSourceGenerator);
+            }
 
             protected override CompilationOptions CreateCompilationOptions()
             {

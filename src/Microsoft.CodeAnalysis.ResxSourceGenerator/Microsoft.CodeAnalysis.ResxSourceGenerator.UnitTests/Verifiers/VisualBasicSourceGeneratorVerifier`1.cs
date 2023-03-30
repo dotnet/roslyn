@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 {
     public static partial class VisualBasicSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : IIncrementalGenerator, new()
     {
     }
 }

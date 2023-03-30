@@ -28,9 +28,9 @@ using Microsoft.CodeAnalysis.VisualBasic.Testing;
 namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 {
     public static partial class VisualBasicSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : VisualBasicSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+        public class Test : VisualBasicSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
         {
             private readonly string? _testFile;
             private readonly string? _testMethod;
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 #if WRITE_EXPECTED
                 TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
 #endif
+            }
+
+            protected override IEnumerable<Type> GetSourceGenerators()
+            {
+                yield return typeof(TSourceGenerator);
             }
 
             protected override async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
