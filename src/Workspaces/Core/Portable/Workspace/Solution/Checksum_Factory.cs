@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -105,9 +106,17 @@ namespace Microsoft.CodeAnalysis
         {
 #if NET
             return CreateUsingSpans(checksum1, checksum2);
-
 #else
             return CrateUsingByteArrays(checksum1, checksum2);
+#endif
+        }
+
+        public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+#if NET
+            return CreateUsingSpans(checksum1, checksum2, checksum3);
+#else
+            return CrateUsingByteArrays(checksum1, checksum2, checksum3);
 #endif
         }
 
@@ -186,21 +195,6 @@ namespace Microsoft.CodeAnalysis
         }
 
 #endif
-
-        public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-        {
-            using var stream = SerializableBytes.CreateWritableStream();
-
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
-            {
-                checksum1.WriteTo(writer);
-                checksum2.WriteTo(writer);
-                checksum3.WriteTo(writer);
-            }
-
-            stream.Position = 0;
-            return Create(stream);
-        }
 
         public static Checksum Create(IEnumerable<Checksum> checksums)
         {
