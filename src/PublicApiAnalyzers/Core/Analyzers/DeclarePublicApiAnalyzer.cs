@@ -208,34 +208,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
         }
 
-        /// <summary>
-        /// Takes potentially multiple <see cref="ApiData"/> instances, corresponding to different additional text
-        /// files, and flattens them into the final instance we will use when analyzing the compilation.
-        /// </summary>
-        private static ApiData Flatten(ArrayBuilder<ApiData> allData)
-        {
-            Debug.Assert(allData.Count > 0);
-
-            // The common case is that we will have one file corresponding to the shipped data, and one for the
-            // unshipped data.  In that case, just return the instance directly.
-            if (allData.Count == 1)
-                return allData[0];
-
-            var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
-            var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
-            var maxNullableRank = -1;
-
-            for (int i = 0, n = allData.Count; i < n; i++)
-            {
-                var data = allData[i];
-                apiBuilder.AddRange(data.ApiList);
-                removedBuilder.AddRange(data.RemovedApiList);
-                maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
-            }
-
-            return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
-        }
-
         private static bool TryGetApiData(
             AnalyzerOptions analyzerOptions,
             Compilation compilation,
@@ -285,6 +257,32 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             shippedData = null;
             unshippedData = null;
             return false;
+
+            // Takes potentially multiple ApiData instances, corresponding to different additional text files, and
+            // flattens them into the final instance we will use when analyzing the compilation.
+            static ApiData Flatten(ArrayBuilder<ApiData> allData)
+            {
+                Debug.Assert(allData.Count > 0);
+
+                // The common case is that we will have one file corresponding to the shipped data, and one for the
+                // unshipped data.  In that case, just return the instance directly.
+                if (allData.Count == 1)
+                    return allData[0];
+
+                var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
+                var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
+                var maxNullableRank = -1;
+
+                for (int i = 0, n = allData.Count; i < n; i++)
+                {
+                    var data = allData[i];
+                    apiBuilder.AddRange(data.ApiList);
+                    removedBuilder.AddRange(data.RemovedApiList);
+                    maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
+                }
+
+                return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
+            }
         }
 
         private static bool TryGetEditorConfigOption(AnalyzerOptions analyzerOptions, SyntaxTree tree, string optionName, out string optionValue)
