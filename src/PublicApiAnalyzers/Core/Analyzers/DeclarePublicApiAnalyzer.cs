@@ -134,14 +134,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 RegisterImplActions(compilationContext, new Impl(compilationContext.Compilation, shippedData, unshippedData, isPublic, compilationContext.Options));
                 return;
 
-                static bool TryGetAndValidateApiFiles(
-                    AnalyzerOptions options,
-                    Compilation compilation,
-                    bool isPublic,
-                    CancellationToken cancellationToken,
-                    List<Diagnostic> errors,
-                    [NotNullWhen(true)] out ApiData? shippedData,
-                    [NotNullWhen(true)] out ApiData? unshippedData)
+                static bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
                 {
                     return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
                            && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
