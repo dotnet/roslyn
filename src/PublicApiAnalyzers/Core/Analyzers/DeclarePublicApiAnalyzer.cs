@@ -160,22 +160,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         {
             var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
             var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
-            var maxNullableRank = -1;
-            var rank = -1;
+            var lastNullableLineNumber = -1;
+
+            // current line we're on.  Note: we ignore whitespace lines when computin gthis.
+            var lineNumber = -1;
 
             var additionalFileInfo = new AdditionalFileInfo(path, sourceText, isShippedApi);
 
             foreach (var line in sourceText.Lines)
             {
+                // Skip whitespace.
                 var text = line.ToString();
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
 
-                rank++;
+                lineNumber++;
 
                 if (text == NullableEnable)
                 {
-                    maxNullableRank = rank;
+                    lastNullableLineNumber = lineNumber;
                     continue;
                 }
 
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
+            return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), lastNullableLineNumber);
         }
 
         private static bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
@@ -263,7 +266,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return new ApiData(
                     apiBuilder.ToImmutableAndFree(),
                     removedBuilder.ToImmutableAndFree(),
-                    allData.Max(static d => d.NullableRank));
+                    allData.Max(static d => d.NullableLineNumber));
             }
         }
 
@@ -379,13 +382,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonShippedCantHaveRemoved));
             }
 
-            if (shippedData.NullableRank > 0)
+            if (shippedData.NullableLineNumber > 0)
             {
                 // '#nullable enable' must be on the first line
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonMisplacedNullableEnable));
             }
 
-            if (unshippedData.NullableRank > 0)
+            if (unshippedData.NullableLineNumber > 0)
             {
                 // '#nullable enable' must be on the first line
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonMisplacedNullableEnable));

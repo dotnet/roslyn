@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private readonly record struct ApiName(string Name, string NameWithNullability);
 
-        /// <param name="NullableRank">Number for the max line where #nullable enable was found (-1 otherwise)</param>
-        private sealed record ApiData(ImmutableArray<ApiLine> ApiList, ImmutableArray<RemovedApiLine> RemovedApiList, int NullableRank)
+        /// <param name="NullableLineNumber">Number for the max line where #nullable enable was found (-1 otherwise)</param>
+        private sealed record ApiData(ImmutableArray<ApiLine> ApiList, ImmutableArray<RemovedApiLine> RemovedApiList, int NullableLineNumber)
         {
-            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableRank: -1);
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableLineNumber: -1);
         }
 
         private sealed class Impl
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
             {
                 _compilation = compilation;
-                _useNullability = shippedData.NullableRank >= 0 || unshippedData.NullableRank >= 0;
+                _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
                 var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
