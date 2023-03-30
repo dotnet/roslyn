@@ -11,6 +11,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Testing.Lightup
 {
+    /// <summary>
+    /// With Roslyn 4.x diagnostics that have been suppressed by a DiagnosticSuppressor are no longer reported when 'report suppressed diagnostics' is not explicitly enabled via options.
+    /// Since reporting suppression via DiagnosticSuppressor is now configured the same as reporting suppression via #pragma, 'report suppressed diagnostics' must be enabled during the diagnostic
+    /// test stage to be able to test a DiagnosticSuppressor, but must be disabled during the suppressor test stage.
+    /// To minimize the risk of side effects, 'report suppressed diagnostics' will only be enabled when testing a DiagnosticSuppressor.
+    /// </summary>
     internal static class LightupCompilationWithAnalyzers
     {
         private static readonly Type CompilationType = typeof(CompilationWithAnalyzers);
@@ -21,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
 
         public static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> Create = BuildCreatorFunc();
 
-        public static bool IsTestingDiagnosticSuppressors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static bool IsTestingDiagnosticSuppressors(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var suppressorType = SuppressorType;
 

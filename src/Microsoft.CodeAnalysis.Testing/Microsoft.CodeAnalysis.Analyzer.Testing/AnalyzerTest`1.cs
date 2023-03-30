@@ -174,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
 
+        protected TestStage TestStage { get; private set; }
+
         private readonly ConcurrentBag<Workspace> _workspaces = new ConcurrentBag<Workspace>();
 
         /// <summary>
@@ -189,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             finally
             {
+                TestStage = TestStage.Idle;
                 while (_workspaces.TryTake(out var workspace))
                 {
                     workspace.Dispose();
@@ -463,8 +466,12 @@ namespace Microsoft.CodeAnalysis.Testing
             (string filename, SourceText content)[] sources = primaryProject.Sources.ToArray();
 
             var analyzers = GetDiagnosticAnalyzers().ToImmutableArray();
+
+            TestStage = TestStage.Diagnostic;
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(primaryProject, additionalProjects, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);
+            TestStage = TestStage.GeneratedCode;
             await VerifyGeneratedCodeDiagnosticsAsync(analyzers, sources, primaryProject, additionalProjects, expected, verifier, cancellationToken).ConfigureAwait(false);
+            TestStage = TestStage.Suppression;
             await VerifySuppressionDiagnosticsAsync(analyzers, sources, primaryProject, additionalProjects, expected, verifier, cancellationToken).ConfigureAwait(false);
         }
 
@@ -495,15 +502,12 @@ namespace Microsoft.CodeAnalysis.Testing
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, generatedCodeVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, generatedCodeVerifier);
         }
 
+        /// <summary>
+        /// This test is not related to test a DiagnosticSuppressor, but to test the compiler feature "#pragma warning disable"
+        /// When testing a DiagnosticSuppressor, this test may generate false negatives.
+        /// </summary>
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (LightupCompilationWithAnalyzers.IsTestingDiagnosticSuppressors(analyzers))
-            {
-                // Actually the way suppressed diagnostics are reported in CA framework 4.x conflicts with the way VerifySuppressionDiagnosticsAsync is implemented, so this will always fail.
-                // Anyhow if we test diagnostic suppressors, this check is not required, since it tests suppressing issues via source code by adding #pragma warning disable
-                return;
-            }
-
             if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
             {
                 return;
@@ -1313,7 +1317,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
         protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            => LightupCompilationWithAnalyzers.Create(compilation, analyzers, options, cancellationToken);
+        {
+            return TestStage switch
+            {
+                // During the diagnostic check we may need to switch on 'reporting suppressed diagnostics'
+                TestStage.Diagnostic => LightupCompilationWithAnalyzers.Create(compilation, analyzers, options, cancellationToken),
+
+                // All other checks assume 'reporting suppressed diagnostics' is off by default
+                _ => compilation.WithAnalyzers(analyzers, options, cancellationToken),
+            };
+        }
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the

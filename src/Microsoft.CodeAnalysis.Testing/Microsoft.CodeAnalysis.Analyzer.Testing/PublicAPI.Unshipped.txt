@@ -23,6 +23,7 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.SolutionTransforms.get ->
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.get -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestCode.set -> void
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestStage.get -> Microsoft.CodeAnalysis.Testing.TestStage
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync(Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifySourceGeneratorAsync(Microsoft.CodeAnalysis.Testing.SolutionState testState, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
@@ -236,6 +237,11 @@ Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck = 1 -> Micro
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedSourcesCheck = 4 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestFileMarkupParser
+Microsoft.CodeAnalysis.Testing.TestStage
+Microsoft.CodeAnalysis.Testing.TestStage.Diagnostic = 1 -> Microsoft.CodeAnalysis.Testing.TestStage
+Microsoft.CodeAnalysis.Testing.TestStage.GeneratedCode = 2 -> Microsoft.CodeAnalysis.Testing.TestStage
+Microsoft.CodeAnalysis.Testing.TestStage.Idle = 0 -> Microsoft.CodeAnalysis.Testing.TestStage
+Microsoft.CodeAnalysis.Testing.TestStage.Suppression = 3 -> Microsoft.CodeAnalysis.Testing.TestStage
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
