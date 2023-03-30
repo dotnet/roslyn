@@ -135,10 +135,23 @@ stages:
       inputs:
         versionSpec: '4.9.2'
 
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
+    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
+    - task: npmAuthenticate@0
+      displayName: Authenticate NPM Feed
+      inputs:
+        workingFile: $(Build.SourcesDirectory)/eng/config/.npmrc
+        customEndpoint: devdiv-vs-green-npm-package-feed
 
     # Needed for SBOM tool
     - task: UseDotNet@2

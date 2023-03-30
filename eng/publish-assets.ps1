@@ -93,6 +93,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         continue
       }
 
+      if ($feedName.equals("npm")) {
+        Write-Host "Skipping publishing for $nupkg as it is published as an NPM package"
+        continue
+      }
+
       # Use the feed name to get the source to upload the package to.
       if (-not (Get-Member -InputObject $feedData -Name $feedName)) {
         throw "$feedName has no configured source feed"
@@ -102,12 +107,37 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       $apiKey = Get-PublishKey $uploadUrl
 
       if (-not $test) {
+        Write-Host "Publishing $nupkg"
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }
   }
   finally {
     Pop-Location
+  }
+}
+
+function Publish-Npm([string]$npmPackagesDir) {
+  Write-Host ""
+  Write-Host "Publishing NPM packages in $npmPackagesDir..."
+
+  $npmrcPath = [IO.Path]::Combine($RepoRoot, "eng", "config", ".npmrc")
+  if (-not (Test-Path $npmrcPath)) {
+    throw "Missing .npmrc at $npmrcPath"
+  }
+
+  foreach ($npmPackage in Get-ChildItem -Path (Join-Path $npmPackagesDir "*") -Include *.tgz) {
+    Write-Host ""
+
+    $publishCommandArgs = "npm publish --dryrun --userconfig ""$npmrcPath"" ""$npmPackage"""
+    Write-Host "Publishing $npmPackage"
+    $publishOutput = & cmd /c "$publishCommandArgs"
+    if ($LastExitCode -ne 0)
+    {
+      Write-Host "##vso[task.logissue type=error]An error occurred while publishing '$npmPackage'."
+      Write-Host $publishOutput
+      throw
+    }
   }
 }
 
@@ -130,6 +160,9 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   foreach ($nugetKind in $publishData.nugetKind) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
   }
+
+  # Publish any NPM packages to the specified feed
+  Publish-NPM (Join-Path $PackagesDir "NPM")
 
   exit 0
 }
