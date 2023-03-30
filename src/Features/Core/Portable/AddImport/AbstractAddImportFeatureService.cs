@@ -7,10 +7,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// Cache of information about whether a <see cref="PortableExecutableReference"/> is likely contained within a
         /// NuGet packages directory.
         /// </summary>
-        private static readonly ConcurrentDictionary<MetadataId, bool> s_isInPackagesDirectory = new();
+        private static readonly ConditionalWeakTable<PortableExecutableReference, StrongBox<bool>> s_isInPackagesDirectory = new();
 
         protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -379,16 +383,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            var metadataId = reference.GetMetadataId();
-            if (!s_isInPackagesDirectory.TryGetValue(metadataId, out var result))
-            {
-                result = ComputeIsInPackagesDirectory();
-                s_isInPackagesDirectory.TryAdd(metadataId, result);
-            }
+            return s_isInPackagesDirectory.GetValue(
+                reference,
+                static reference => new StrongBox<bool>(ComputeIsInPackagesDirectory(reference))).Value;
 
-            return result;
-
-            bool ComputeIsInPackagesDirectory()
+            static bool ComputeIsInPackagesDirectory(PortableExecutableReference reference)
             {
                 return ContainsPathComponent(reference, "packages")
                     || ContainsPathComponent(reference, "packs")
