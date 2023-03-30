@@ -1,5 +1,28 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## All locals of restricted types are disallowed in async methods 
+
+***Introduced in Visual Studio 2022 version 17.6p1***
+
+Locals of restricted types are disallowed in async methods. But in earlier versions,
+the compiler failed to notice some implicitly-declared locals. For instance, in 
+`foreach` or `using` statements or deconstructions.  
+Now, such implicitly-declared locals are disallowed as well.
+
+```csharp
+ref struct RefStruct { public void Dispose() { } }
+public class C 
+{
+    public async Task M() 
+    {
+        RefStruct local = default; // disallowed
+        using (default(RefStruct)) { } // now disallowed too ("error CS9104: A using statement resource of this type cannot be used in async methods or async lambda expressions")
+    }
+}
+```
+
+See https://github.com/dotnet/roslyn/pull/66264
+
 ## Pointers must always be in unsafe contexts.
 
 ***Introduced in Visual Studio 2022 version 17.6***
