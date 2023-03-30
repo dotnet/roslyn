@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                // We should only be called with the orderings we exported in order from highest pri to lowest pri.
+                Contract.ThrowIfFalse(Orderings.SequenceEqual(collectors.SelectAsArray(c => c.Priority)));
+
                 using var _ = ArrayBuilder<ISuggestedActionSetCollector>.GetInstance(out var completedCollectors);
                 try
                 {
@@ -104,16 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
-                            // See if there are any items we found previously while calling into higher pri providers
-                            // that returned lower pri items. For example 'add import' is a high pri provider, but can
-                            // produce 'low pri' items (like those that add metadata-references). These can be added
-                            // now.
-                            foreach (var set in pendingActionSets[priority])
-                            {
-                                currentActionCount += set.Actions.Count();
-                                collector.Add(set);
-                            }
-
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
@@ -145,6 +139,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                     currentActionCount += set.Actions.Count();
                                     collector.Add(set);
                                 }
+                            }
+
+                            // We're finishing up with a particular priority group, and we're about to go to a priority
+                            // group one lower than what we have (hence `priority - 1`).  Take any pending items in the
+                            // group we're *about* to go into and add them at teh end of this group.
+                            //
+                            // For example, if we're in the high group, and we have an pending items in the normal
+                            // bucket, then add them at the end of hte high group.  The reason for this is that we
+                            // already have computed the items and we don't want to force them to have to wait for all
+                            // the processing in their own group to show up.  i.e. imagine if we added at teh start of
+                            // the next group.  They'd be in the same location in the lightbulbt as when we add at the
+                            // end of the current group, but they'd show up only when that group totally finished,
+                            // instead of right now.
+                            //
+                            // This is critical given that the lower pri groups are often much lower (which is why they
+                            // they choose to be in that class).  We don't want a fast item computed by a higher pri
+                            // provider to still have to wait on those slow items.
+                            foreach (var set in pendingActionSets[priority - 1])
+                            {
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
                             }
                         }
 
