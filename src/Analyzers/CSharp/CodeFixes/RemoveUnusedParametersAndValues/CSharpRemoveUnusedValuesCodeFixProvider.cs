@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             {
                 var triviaToAppend = newNameNode.GetLeadingTrivia().AddRange(newNameNode.GetTrailingTrivia());
 
+                // 1) `... is MyType variable` -> `... is MyType`
+                // 2) `... is MyType /*1*/ variable /*2*/` -> `... is MyType /*1*/  /*2*/`
                 if (parent is DeclarationPatternSyntax declarationPattern &&
                     parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
                 {
@@ -106,12 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
                 }
 
+                // 1) `... is { } variable` -> `... is { }`
+                // 2) `... is { } /*1*/ variable /*2*/` -> `... is { } /*1*/  /*2*/`
                 if (parent is RecursivePatternSyntax recursivePattern)
                 {
                     var withoutDesignation = recursivePattern.WithDesignation(null);
                     return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
                 }
 
+                // 1) `... is [] variable` -> `... is []`
+                // 2) `... is [] /*1*/ variable /*2*/` -> `... is [] /*1*/  /*2*/`
                 if (parent is ListPatternSyntax listPattern)
                 {
                     var withoutDesignation = listPattern.WithDesignation(null);
