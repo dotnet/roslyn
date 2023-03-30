@@ -16,14 +16,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -31,6 +28,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
+        private static ImmutableArray<string> s_packagesDirectoryComponent = ImmutableArray.Create(
+            "packages",
+            "packs",
+            "NuGetFallbackFolder",
+            "NuGetPackages").SelectAsArray(s => $"{PathUtilities.DirectorySeparatorChar}{s}{PathUtilities.DirectorySeparatorChar}");
+
         protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -376,15 +379,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            return ContainsPathComponent(reference, "packages")
-                || ContainsPathComponent(reference, "packs")
-                || ContainsPathComponent(reference, "NuGetFallbackFolder")
-                || ContainsPathComponent(reference, "NuGetPackages");
-
-            static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
+            if (reference.FilePath is not null)
             {
-                return PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
+                foreach (var pathComponent in s_packagesDirectoryComponent)
+                {
+                    if (reference.FilePath.IndexOf(pathComponent, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
             }
+
+            return false;
         }
 
         /// <summary>
