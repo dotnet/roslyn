@@ -63,11 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // So, we conservatively bail out from removable assignment analysis for such cases.
 
             var statementAncestor = unusedSymbolWriteOperation.Syntax.FirstAncestorOrSelf<StatementSyntax>()?.Parent;
-            return statementAncestor switch
-            {
-                BlockSyntax or SwitchSectionSyntax => false,
-                _ => true,
-            };
+            return statementAncestor is not (BlockSyntax or SwitchSectionSyntax);
         }
 
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
