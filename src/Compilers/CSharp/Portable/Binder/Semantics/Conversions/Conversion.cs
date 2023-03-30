@@ -263,6 +263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<Conversion> ExplicitEnumerationUnderlying => ConversionSingletons.ExplicitEnumerationUnderlying;
         internal static ImmutableArray<Conversion> PointerToIntegerUnderlying => ConversionSingletons.PointerToIntegerUnderlying;
 
+        // Common combinations to avoid allocations:
+        internal static Conversion ExplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitEnumerationUnderlying);
+        internal static Conversion ExplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ExplicitNullable, PointerToIntegerUnderlying);
+        internal static Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
+        internal static Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
+        internal static Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
+
+        internal static Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
+        internal static Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
+        internal static Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
+
         // these static fields are not directly inside the Conversion
         // because that causes CLR loader failure.
         private static class ConversionSingletons
