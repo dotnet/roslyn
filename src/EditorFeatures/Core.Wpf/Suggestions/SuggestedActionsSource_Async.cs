@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
                             priorityProvider = priorityProvider == null
-                                ? CodeActionRequestPriorityProvider.Create(priority.Value)
-                                : priorityProvider.With(priority.Value);
+                                ? CodeActionRequestPriorityProvider.Create(priority)
+                                : priorityProvider.With(priority);
 
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
