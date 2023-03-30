@@ -7,20 +7,23 @@ namespace Microsoft.CodeAnalysis.Testing
     public enum TestStage
     {
         /// <summary>
-        /// no test is running
+        /// No test is running
         /// </summary>
         Idle,
+
         /// <summary>
-        /// running the diagnostic checks
+        /// Running the diagnostic check
         /// </summary>
         Diagnostic,
+
         /// <summary>
-        /// running the generated code check
+        /// Running the generated code check
         /// </summary>
         GeneratedCode,
+
         /// <summary>
-        /// running the suppression check
+        /// Running the suppression check
         /// </summary>
-        Suppression
+        Suppression,
     }
 }
