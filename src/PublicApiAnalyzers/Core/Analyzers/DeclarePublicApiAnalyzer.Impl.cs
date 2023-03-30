@@ -33,11 +33,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private readonly record struct ApiName(string Name, string NameWithNullability);
 
-        private sealed record ApiData(
-            ImmutableArray<ApiLine> ApiList,
-            ImmutableArray<RemovedApiLine> RemovedApiList,
-            // Number for the max line where #nullable enable was found (-1 otherwise)
-            int NullableRank)
+        /// <param name="NullableRank">Number for the max line where #nullable enable was found (-1 otherwise)</param>
+        private sealed record ApiData(ImmutableArray<ApiLine> ApiList, ImmutableArray<RemovedApiLine> RemovedApiList, int NullableRank)
         {
             public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableRank: -1);
         }
