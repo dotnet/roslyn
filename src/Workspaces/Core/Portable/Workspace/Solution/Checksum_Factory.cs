@@ -123,39 +123,31 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
         {
-            var hash = s_incrementalHashPool.Allocate();
+            using var hash = s_incrementalHashPool.GetPooledObject();
+            using var bytes = s_twoChecksumByteArrayPool.GetPooledObject();
 
-            var bytes = s_twoChecksumByteArrayPool.Allocate();
-            var bytesSpan = bytes.AsSpan();
+            var bytesSpan = bytes.Object.AsSpan();
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
 
-            hash.AppendData(bytes);
-            var hashResult = hash.GetHashAndReset();
+            hash.Object.AppendData(bytes.Object);
 
-            s_incrementalHashPool.Free(hash);
-            s_twoChecksumByteArrayPool.Free(bytes);
-
-            return From(hashResult);
+            return From(hash.Object.GetHashAndReset());
         }
 
         private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            var hash = s_incrementalHashPool.Allocate();
+            using var hash = s_incrementalHashPool.GetPooledObject();
+            using var bytes = s_threeChecksumByteArrayPool.GetPooledObject();
 
-            var bytes = s_threeChecksumByteArrayPool.Allocate();
-            var bytesSpan = bytes.AsSpan();
+            var bytesSpan = bytes.Object.AsSpan();
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
             checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
 
-            hash.AppendData(bytes);
-            var hashResult = hash.GetHashAndReset();
+            hash.Object.AppendData(bytes.Object);
 
-            s_incrementalHashPool.Free(hash);
-            s_threeChecksumByteArrayPool.Free(bytes);
-
-            return From(hashResult);
+            return From(hash.Object.GetHashAndReset());
         }
 
 #if NET
