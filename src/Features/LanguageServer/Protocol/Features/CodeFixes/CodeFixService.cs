@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
-                    priorityProvider, fallbackOptions, isBlocking, _ => null, cancellationToken).ConfigureAwait(false))
+                    priorityProvider, fallbackOptions, _ => null, cancellationToken).ConfigureAwait(false))
                 {
                     // Stop at the result error we see.
                     return collection;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     await foreach (var collection in StreamFixesAsync(
                         document, spanToDiagnostics, fixAllForInSpan: false,
-                        priorityProvider, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false))
+                        priorityProvider, fallbackOptions, addOperationScope, cancellationToken).ConfigureAwait(false))
                     {
                         yield return collection;
                     }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: true, CodeActionRequestPriorityProvider.Default,
-                fallbackOptions, isBlocking: false, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false))
+                fallbackOptions, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false))
             {
                 if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
                 {
@@ -408,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             bool fixAllForInSpan,
             CodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -501,13 +500,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                     if (fixAllForInSpan)
                                     {
                                         var primaryDiagnostic = dxs.First();
-                                        return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, fallbackOptions, isBlocking,
+                                        return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, fallbackOptions,
                                             ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
                                             diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                     }
                                     else
                                     {
-                                        return GetCodeFixesAsync(document, span, fixer, fixerMetadata, fallbackOptions, isBlocking, dxs,
+                                        return GetCodeFixesAsync(document, span, fixer, fixerMetadata, fallbackOptions, dxs,
                                             uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                     }
                                 }
@@ -571,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            TextDocument document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata? fixerMetadata, CodeActionOptionsProvider fallbackOptions, bool isBlocking,
+            TextDocument document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata? fixerMetadata, CodeActionOptionsProvider fallbackOptions,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
             Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider> diagnosticAndEquivalenceKeyToFixersMap,
@@ -603,7 +602,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 },
                 fallbackOptions,
-                isBlocking,
                 cancellationToken);
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

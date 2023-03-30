@@ -3029,7 +3029,7 @@ index: 0);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task DontAddBlankLineBetweenFields()
+        public async Task DoNotAddBlankLineBetweenFields()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -3061,7 +3061,7 @@ index: ReadonlyFieldIndex);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task DontAddBlankLineBetweenAutoProperties()
+        public async Task DoNotAddBlankLineBetweenAutoProperties()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -10583,7 +10583,7 @@ index: PropertyIndex);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")]
-        public async Task DontOfferPropertyOrFieldInNamespace()
+        public async Task DoNotOfferPropertyOrFieldInNamespace()
         {
             await TestExactActionSetOfferedAsync(
                 """
