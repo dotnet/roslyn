@@ -156,35 +156,33 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
         {
-            var hash = s_incrementalHashPool.Allocate();
+            using var hash = s_incrementalHashPool.GetPooledObject();
+
             Span<byte> bytesSpan = stackalloc byte[2 * HashSize];
-            Span<byte> hashResultSpan = stackalloc byte[hash.HashLengthInBytes];
+            Span<byte> hashResultSpan = stackalloc byte[hash.Object.HashLengthInBytes];
 
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
 
-            hash.AppendData(bytesSpan);
-            hash.GetHashAndReset(hashResultSpan);
-
-            s_incrementalHashPool.Free(hash);
+            hash.Object.AppendData(bytesSpan);
+            hash.Object.GetHashAndReset(hashResultSpan);
 
             return From(hashResultSpan);
         }
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            var hash = s_incrementalHashPool.Allocate();
+            using var hash = s_incrementalHashPool.GetPooledObject();
+
             Span<byte> bytesSpan = stackalloc byte[3 * HashSize];
-            Span<byte> hashResultSpan = stackalloc byte[hash.HashLengthInBytes];
+            Span<byte> hashResultSpan = stackalloc byte[hash.Object.HashLengthInBytes];
 
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
             checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
 
-            hash.AppendData(bytesSpan);
-            hash.GetHashAndReset(hashResultSpan);
-
-            s_incrementalHashPool.Free(hash);
+            hash.Object.AppendData(bytesSpan);
+            hash.Object.GetHashAndReset(hashResultSpan);
 
             return From(hashResultSpan);
         }
