@@ -25,6 +25,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(checksumA, checksumB);
         }
+
+        [Fact]
+        public void ValidateChecksumFromSpanSameAsChecksumFromBytes2()
+        {
+            var checksum1 = Checksum.Create("Goo");
+            var checksum2 = Checksum.Create("Bar");
+            var checksum3 = Checksum.Create("Baz");
+
+            var checksumA = Checksum.TestAccessor.CrateUsingByteArrays(checksum1, checksum2, checksum3);
+            var checksumB = Checksum.TestAccessor.CreateUsingSpans(checksum1, checksum2, checksum3);
+
+            Assert.Equal(checksumA, checksumB);
+        }
 #endif
     }
 }

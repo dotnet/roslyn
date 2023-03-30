@@ -129,6 +129,25 @@ namespace Microsoft.CodeAnalysis
             return From(hashResult);
         }
 
+        private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            var hash = s_incrementalHashPool.Allocate();
+
+            var bytes = s_threeChecksumByteArrayPool.Allocate();
+            var bytesSpan = bytes.AsSpan();
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+            checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
+
+            hash.AppendData(bytes);
+            var hashResult = hash.GetHashAndReset();
+
+            s_incrementalHashPool.Free(hash);
+            s_threeChecksumByteArrayPool.Free(bytes);
+
+            return From(hashResult);
+        }
+
 #if NET
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
@@ -139,6 +158,24 @@ namespace Microsoft.CodeAnalysis
 
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
+
+            hash.AppendData(bytesSpan);
+            hash.GetHashAndReset(hashResultSpan);
+
+            s_incrementalHashPool.Free(hash);
+
+            return From(hashResultSpan);
+        }
+
+        private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            var hash = s_incrementalHashPool.Allocate();
+            Span<byte> bytesSpan = stackalloc byte[3 * HashSize];
+            Span<byte> hashResultSpan = stackalloc byte[hash.HashLengthInBytes];
+
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+            checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
 
             hash.AppendData(bytesSpan);
             hash.GetHashAndReset(hashResultSpan);
@@ -243,10 +280,16 @@ namespace Microsoft.CodeAnalysis
             public static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
                 => Checksum.CrateUsingByteArrays(checksum1, checksum2);
 
+            public static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+                => Checksum.CrateUsingByteArrays(checksum1, checksum2, checksum3);
+
 #if NET
 
             public static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
                 => Checksum.CreateUsingSpans(checksum1, checksum2);
+
+            public static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+                => Checksum.CreateUsingSpans(checksum1, checksum2, checksum3);
 
 #endif
         }
