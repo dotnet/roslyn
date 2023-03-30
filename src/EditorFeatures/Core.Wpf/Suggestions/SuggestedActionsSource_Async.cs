@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                             // We're finishing up with a particular priority group, and we're about to go to a priority
                             // group one lower than what we have (hence `priority - 1`).  Take any pending items in the
-                            // group we're *about* to go into and add them at teh end of this group.
+                            // group we're *about* to go into and add them at the end of this group.
                             //
                             // For example, if we're in the high group, and we have an pending items in the normal
-                            // bucket, then add them at the end of hte high group.  The reason for this is that we
+                            // bucket, then add them at the end of the high group.  The reason for this is that we
                             // already have computed the items and we don't want to force them to have to wait for all
-                            // the processing in their own group to show up.  i.e. imagine if we added at teh start of
-                            // the next group.  They'd be in the same location in the lightbulbt as when we add at the
+                            // the processing in their own group to show up.  i.e. imagine if we added at the start of
+                            // the next group.  They'd be in the same location in the lightbulb as when we add at the
                             // end of the current group, but they'd show up only when that group totally finished,
                             // instead of right now.
                             //
