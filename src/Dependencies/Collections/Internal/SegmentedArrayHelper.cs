@@ -19,42 +19,51 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentSize<T>()
         {
+#if NETCOREAPP3_0_OR_NEWER
+            return InlineCalculateSegmentSize(Unsafe.SizeOf<T>());
+#else
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
             {
                 return ReferenceTypeSegmentHelper.SegmentSize;
             }
-#if NETCOREAPP
-            return InlineCalculateSegmentSize(Unsafe.SizeOf<T>());
-#else
-            return ValueTypeSegmentHelper<T>.SegmentSize;
+            else
+            {
+                return ValueTypeSegmentHelper<T>.SegmentSize;
+            }
 #endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentShift<T>()
         {
+#if NETCOREAPP3_0_OR_NEWER
+            return InlineCalculateSegmentShift(Unsafe.SizeOf<T>());
+#else
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
             {
                 return ReferenceTypeSegmentHelper.SegmentShift;
             }
-#if NETCOREAPP
-            return InlineCalculateSegmentShift(Unsafe.SizeOf<T>());
-#else
-            return ValueTypeSegmentHelper<T>.SegmentShift;
+            else
+            {
+                return ValueTypeSegmentHelper<T>.SegmentShift;
+            }
 #endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetOffsetMask<T>()
         {
+#if NETCOREAPP3_0_OR_NEWER
+            return InlineCalculateOffsetMask(Unsafe.SizeOf<T>());
+#else
             if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
             {
                 return ReferenceTypeSegmentHelper.OffsetMask;
             }
-#if NETCOREAPP
-            return InlineCalculateOffsetMask(Unsafe.SizeOf<T>());
-#else
-            return ValueTypeSegmentHelper<T>.OffsetMask;
+            else
+            {
+                return ValueTypeSegmentHelper<T>.OffsetMask;
+            }
 #endif
         }
 
@@ -119,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         // Faster inline implementation for NETCOREAPP to avoid static constructors and non-inlineable
         // generics with runtime lookups
-#if NETCOREAPP
+#if NETCOREAPP3_0_OR_NEWER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int InlineCalculateSegmentSize(int elementSize)
         {
