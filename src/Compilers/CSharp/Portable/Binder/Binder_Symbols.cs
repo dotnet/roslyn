@@ -2710,6 +2710,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);
 
+        internal static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, TData data, Func<TData, Location> getLocation)
+            => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, data, getLocation);
+
         /// <param name="getLocation">Callback function that computes the location to report the diagnostics at
         /// <em>if</em> a diagnostic should be reported.  Should always be passed a static/cached callback to prevent
         /// allocations of the delegate.</param>

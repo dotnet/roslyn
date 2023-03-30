@@ -202,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsAsync)
             {
-                CheckFeatureAvailability(_syntax, MessageID.IDS_FeatureAsyncStreams, diagnostics, _syntax.AwaitKeyword.GetLocation());
+                CheckFeatureAvailability(
+                    _syntax.SyntaxTree, MessageID.IDS_FeatureAsyncStreams, diagnostics.DiagnosticBag,
+                    _syntax, static syntax => syntax.AwaitKeyword.GetLocation());
             }
 
             // Use the right binder to avoid seeing iteration variable
