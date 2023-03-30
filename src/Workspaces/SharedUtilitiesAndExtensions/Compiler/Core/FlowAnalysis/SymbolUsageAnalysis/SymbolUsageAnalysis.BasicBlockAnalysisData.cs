@@ -115,6 +115,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 using var _ = PooledHashSet<ISymbol>.GetInstance(out var uniqueSymbols);
 
                 // Check if both _reachingWrites maps have same set of keys.
+#if NET
+                uniqueSymbols.EnsureCapacity(Math.Max(_reachingWrites.Keys.Count, other._reachingWrites.Keys.Count));
+#endif
+
                 uniqueSymbols.AddRange(_reachingWrites.Keys);
                 uniqueSymbols.AddRange(other._reachingWrites.Keys);
                 if (uniqueSymbols.Count != _reachingWrites.Count)
@@ -183,6 +187,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 var mergedData = GetInstance();
+
                 AddEntries(mergedData._reachingWrites, data1);
                 AddEntries(mergedData._reachingWrites, data2);
 
@@ -213,6 +218,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             result.Add(symbol, values);
                         }
 
+#if NET
+                        values.EnsureCapacity(operations.Count);
+#endif
                         values.AddRange(operations);
                     }
                 }
