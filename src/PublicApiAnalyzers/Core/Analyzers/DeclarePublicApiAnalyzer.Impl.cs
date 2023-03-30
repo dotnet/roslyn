@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     {
         private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
 
-        private sealed class ApiLine
+        private readonly record struct ApiLine
         {
             public string Text { get; }
             public TextSpan Span { get; }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             public SourceText SourceText => _fileInfo.SourceText;
             public string Path => _fileInfo.Path;
-            public bool IsShippedApi => _fileInfo.IsShippedApi;
+            public bool IsShippedApi => _fileInfo != null && _fileInfo.IsShippedApi;
 
             public ApiLine(string text, TextSpan span, AdditionalFileInfo fileInfo)
             {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var method = (IMethodSymbol)symbol;
-                    var isMethodShippedApi = foundApiLine?.IsShippedApi == true;
+                    var isMethodShippedApi = foundApiLine.IsShippedApi;
 
                     // Check if a public API is a constructor that makes this class instantiable, even though the base class
                     // is not instantiable. That API pattern is not allowed, because it causes protected members of
