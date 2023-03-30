@@ -126,13 +126,22 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 });
         }
 
+        private static void ProcessResourceFile(SourceProductionContext context, ResourceInformation resourceFile)
+        {
+            var impl = new Impl(resourceFile);
+            if (impl.Execute(context.CancellationToken))
+            {
+                context.AddSource(impl.OutputTextHintName!, impl.OutputText);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="AssemblyName"></param>
         /// <param name="CodeLanguage">Language of source file to generate. Supported languages: CSharp, VisualBasic.</param>
         /// <param name="SupportsNullable"></param>
-        private readonly record struct CompilationInformation(
+        private sealed record CompilationInformation(
             string? AssemblyName,
             string CodeLanguage,
             bool SupportsNullable,
@@ -150,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         /// <param name="AsConstants">If set to <see langword="true"/>, emits constant key strings instead of properties that retrieve values.</param>
         /// <param name="IncludeDefaultValues">If set to <see langword="true"/>, calls to <c>GetResourceString</c> receive a default resource string value.</param>
         /// <param name="EmitFormatMethods">If set to <see langword="true"/>, the generated code will include <c>.FormatXYZ(...)</c> methods.</param>
-        private readonly record struct ResourceInformation(
+        private sealed record ResourceInformation(
             CompilationInformation CompilationInformation,
             AdditionalText ResourceFile,
             string ResourceName,
@@ -160,16 +169,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             bool IncludeDefaultValues,
             bool EmitFormatMethods);
 
-        private static void ProcessResourceFile(SourceProductionContext context, ResourceInformation resourceFile)
-        {
-            var impl = new Impl(resourceFile);
-            if (impl.Execute(context.CancellationToken))
-            {
-                context.AddSource(impl.OutputTextHintName!, impl.OutputText);
-            }
-        }
-
-        private class Impl
+        private sealed class Impl
         {
             private const int maxDocCommentLength = 256;
 
