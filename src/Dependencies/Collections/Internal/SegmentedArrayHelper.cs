@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             {
                 return ReferenceTypeSegmentHelper.SegmentSize;
             }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.SegmentSize;
-            }
+#if NETCOREAPP
+            return InlineCalculateSegmentSize(Unsafe.SizeOf<T>());
+#else
+            return ValueTypeSegmentHelper<T>.SegmentSize;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -36,10 +37,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             {
                 return ReferenceTypeSegmentHelper.SegmentShift;
             }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.SegmentShift;
-            }
+#if NETCOREAPP
+            return InlineCalculateSegmentShift(Unsafe.SizeOf<T>());
+#else
+            return ValueTypeSegmentHelper<T>.SegmentShift;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,10 +51,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             {
                 return ReferenceTypeSegmentHelper.OffsetMask;
             }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.OffsetMask;
-            }
+#if NETCOREAPP
+            return InlineCalculateOffsetMask(Unsafe.SizeOf<T>());
+#else
+            return ValueTypeSegmentHelper<T>.OffsetMask;
+#endif
         }
 
         /// <summary>
@@ -113,6 +116,31 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             Debug.Assert(segmentSize == 1 || (segmentSize & (segmentSize - 1)) == 0, "Expected size of 1, or a power of 2");
             return segmentSize - 1;
         }
+
+        // Faster inline implementation for NETCOREAPP to avoid static constructors and non-inlineable
+        // generics with runtime lookups
+#if NETCOREAPP
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int InlineCalculateSegmentSize(int elementSize)
+        {
+            return 1 << InlineCalculateSegmentShift(elementSize);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int InlineCalculateSegmentShift(int elementSize)
+        {
+            // Default Large Object Heap size threshold
+            // https://github.com/dotnet/runtime/blob/c9d69e38d0e54bea5d188593ef6c3b30139f3ab1/src/coreclr/src/gc/gc.h#L111
+            const uint Threshold = 85000;
+            return System.Numerics.BitOperations.Log2((uint)((Threshold / elementSize) - (2 * IntPtr.Size)));
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int InlineCalculateOffsetMask(int elementSize)
+        {
+            return InlineCalculateSegmentSize(elementSize) - 1;
+        }
+#endif
 
         internal static class TestAccessor
         {
