@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             AddApiTexts(analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
 
+            // Both missing.
             if (allShippedData.Count == 0 && allUnshippedData.Count == 0)
             {
                 if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
@@ -216,6 +217,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return true;
             }
 
+            // Both there. Succeed and return what was found.
             if (allShippedData.Count > 0 && allUnshippedData.Count > 0)
             {
                 shippedData = Flatten(allShippedData);
@@ -223,6 +225,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return true;
             }
 
+            // One missing.  Give custom error message depending on which it was.
             var missingFileName = (allShippedData.Count == 0, isPublic) switch
             {
                 (true, isPublic: true) => PublicShippedFileName,
@@ -249,17 +252,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
                 var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
-                var maxNullableRank = -1;
 
                 for (int i = 0, n = allData.Count; i < n; i++)
                 {
                     var data = allData[i];
                     apiBuilder.AddRange(data.ApiList);
                     removedBuilder.AddRange(data.RemovedApiList);
-                    maxNullableRank = Math.Max(maxNullableRank, data.NullableRank);
                 }
 
-                return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
+                return new ApiData(
+                    apiBuilder.ToImmutableAndFree(),
+                    removedBuilder.ToImmutableAndFree(),
+                    allData.Max(static d => d.NullableRank));
             }
         }
 
