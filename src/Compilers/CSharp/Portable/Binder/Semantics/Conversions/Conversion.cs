@@ -269,9 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
         internal static Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
         internal static Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
+        internal static Conversion ExplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitConstantUnderlying);
 
+        internal static Conversion ImplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitEnumerationUnderlying);
+        internal static Conversion ImplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ImplicitNullable, PointerToIntegerUnderlying);
         internal static Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
         internal static Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
+        internal static Conversion ImplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitNumericUnderlying);
         internal static Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
 
         // these static fields are not directly inside the Conversion
@@ -300,33 +304,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable);
 
-            ImmutableArray<Conversion> nested;
-            switch (nestedConversion.Kind)
+            return nestedConversion.Kind switch
             {
-                case ConversionKind.Identity:
-                    nested = IdentityUnderlying;
-                    break;
-                case ConversionKind.ImplicitConstant:
-                    nested = ImplicitConstantUnderlying;
-                    break;
-                case ConversionKind.ImplicitNumeric:
-                    nested = ImplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitNumeric:
-                    nested = ExplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitEnumeration:
-                    nested = ExplicitEnumerationUnderlying;
-                    break;
-                case ConversionKind.ExplicitPointerToInteger:
-                    nested = PointerToIntegerUnderlying;
-                    break;
-                default:
-                    nested = ImmutableArray.Create(nestedConversion);
-                    break;
-            }
-
-            return new Conversion(kind, nested);
+                ConversionKind.Identity => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithIdentityUnderlying : ExplicitNullableWithIdentityUnderlying,
+                ConversionKind.ImplicitConstant => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitConstantUnderlying : ExplicitNullableWithImplicitConstantUnderlying,
+                ConversionKind.ImplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitNumericUnderlying : ExplicitNullableWithImplicitNumericUnderlying,
+                ConversionKind.ExplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitNumericUnderlying : ExplicitNullableWithExplicitNumericUnderlying,
+                ConversionKind.ExplicitEnumeration => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitEnumerationUnderlying : ExplicitNullableWithExplicitEnumerationUnderlying,
+                ConversionKind.ExplicitPointerToInteger => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithPointerToIntegerUnderlying : ExplicitNullableWithPointerToIntegerUnderlying,
+                _ => new Conversion(kind, ImmutableArray.Create(nestedConversion)),
+            };
         }
 
         internal static Conversion MakeSwitchExpression(ImmutableArray<Conversion> innerConversions)
