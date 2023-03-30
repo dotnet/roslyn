@@ -22,52 +22,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     {
         private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
 
-        private readonly record struct ApiLine
+        private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
         {
-            public string Text { get; }
-            public TextSpan Span { get; }
-
-            private readonly AdditionalFileInfo _fileInfo;
-
-            public SourceText SourceText => _fileInfo.SourceText;
-            public string Path => _fileInfo.Path;
-            public bool IsShippedApi => _fileInfo != null && _fileInfo.IsShippedApi;
-
-            public ApiLine(string text, TextSpan span, AdditionalFileInfo fileInfo)
-            {
-                Text = text;
-                Span = span;
-                _fileInfo = fileInfo;
-            }
+            public SourceText SourceText => FileInfo.SourceText;
+            public string Path => FileInfo.Path;
+            public bool IsShippedApi => FileInfo?.IsShippedApi is true;
         }
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct RemovedApiLine
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public string Text { get; }
-            public ApiLine ApiLine { get; }
+        private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
 
-            internal RemovedApiLine(string text, ApiLine apiLine)
-            {
-                Text = text;
-                ApiLine = apiLine;
-            }
-        }
-
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiName
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public string Name { get; }
-            public string NameWithNullability { get; }
-
-            public ApiName(string name, string nameWithNullability)
-            {
-                Name = name;
-                NameWithNullability = nameWithNullability;
-            }
-        }
+        private readonly record struct ApiName(string Name, string NameWithNullability);
 
         private sealed record ApiData(
             ImmutableArray<ApiLine> ApiList,
