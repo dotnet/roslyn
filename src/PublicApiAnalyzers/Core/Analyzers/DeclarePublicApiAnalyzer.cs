@@ -199,8 +199,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
             using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
 
-            AddApiTexts(
-                analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
+            AddApiTexts(analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
 
             if (allShippedData.Count == 0 && allUnshippedData.Count == 0)
             {
