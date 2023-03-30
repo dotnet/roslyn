@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
+        // Dedicated pools for the byte[]s we use to create checksums from two or three existing checksums. Sized to
+        // exactly the space needed to splat the existing checksum data into the array and then hash it.
+
         private static readonly ObjectPool<byte[]> s_twoChecksumByteArrayPool = new(() => new byte[HashSize * 2]);
         private static readonly ObjectPool<byte[]> s_threeChecksumByteArrayPool = new(() => new byte[HashSize * 3]);
 
@@ -156,6 +159,8 @@ namespace Microsoft.CodeAnalysis
         }
 
 #if NET
+
+        // Optimized helpers that do not need to allocate any arrays to combine hashes.
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
         {
