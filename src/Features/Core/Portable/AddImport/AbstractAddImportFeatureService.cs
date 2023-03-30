@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
+        private static ConcurrentDictionary<MetadataId, bool> s_isInPackagesDirectory = new();
+
         private static ImmutableArray<string> s_packagesDirectoryComponent = ImmutableArray.Create(
             "packages",
             "packs",
