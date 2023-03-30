@@ -198,8 +198,6 @@ public class InterceptorsTests : CSharpTestBase
     // * An explicit interface implementation marked as interceptable
     // * Intercept a generic method call when the type parameters are / are not substituted
 
-
-
     [Fact]
     public void InterceptableInstanceMethod_InterceptorExtensionMethod()
     {
