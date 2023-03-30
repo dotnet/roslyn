@@ -116,14 +116,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var errors = new List<Diagnostic>();
                 // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
-                if (!TryGetAndValidateApiFiles(
-                        compilationContext.Options,
-                        compilationContext.Compilation,
-                        isPublic,
-                        compilationContext.CancellationToken,
-                        errors,
-                        out var shippedData,
-                        out var unshippedData))
+                if (!TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic, compilationContext.CancellationToken, errors, out var shippedData, out var unshippedData))
                 {
                     compilationContext.RegisterCompilationEndAction(context =>
                     {
