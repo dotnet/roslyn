@@ -24,9 +24,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
         {
+            public bool IsDefault => FileInfo == null;
+
             public SourceText SourceText => FileInfo.SourceText;
             public string Path => FileInfo.Path;
-            public bool IsShippedApi => FileInfo?.IsShippedApi is true;
+            public bool IsShippedApi => FileInfo.IsShippedApi;
         }
 
         private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var method = (IMethodSymbol)symbol;
-                    var isMethodShippedApi = foundApiLine.IsShippedApi;
+                    var isMethodShippedApi = !foundApiLine.IsDefault && foundApiLine.IsShippedApi;
 
                     // Check if a public API is a constructor that makes this class instantiable, even though the base class
                     // is not instantiable. That API pattern is not allowed, because it causes protected members of
