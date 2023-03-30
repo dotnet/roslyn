@@ -35,14 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [DeferCreation(OptionName = EditorOption.OptionName)]
     [Name("Roslyn Code Fix")]
     [Order]
-    [SuggestedActionPriority(DefaultOrderings.Highest)]
-    [SuggestedActionPriority(DefaultOrderings.Default)]
-    [SuggestedActionPriority(DefaultOrderings.Lowest)]
+    [SuggestedActionPriority(DefaultOrderings.Highest)] // for providers *and* items explicitly marked as high pri.
+    [SuggestedActionPriority(DefaultOrderings.Default)] // for any provider/item that is neither high or low pri and is not suppressions.
+    [SuggestedActionPriority(DefaultOrderings.Low)]     // for providers or items explicitly marked as low pri
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]  // Only for suppressions
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
             DefaultOrderings.Highest,
             DefaultOrderings.Default,
+            DefaultOrderings.Low,
             DefaultOrderings.Lowest);
 
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
@@ -104,8 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 DefaultOrderings.Highest => CodeActionRequestPriority.High,
                 DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Low => CodeActionRequestPriority.Low,
                 DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
-                _ => (CodeActionRequestPriority?)null,
+                _ => null,
             };
     }
 }
