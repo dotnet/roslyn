@@ -264,19 +264,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<Conversion> PointerToIntegerUnderlying => ConversionSingletons.PointerToIntegerUnderlying;
 
         // Common combinations to avoid allocations:
-        internal static Conversion ExplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitEnumerationUnderlying);
-        internal static Conversion ExplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ExplicitNullable, PointerToIntegerUnderlying);
-        internal static Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
-        internal static Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
-        internal static Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
-        internal static Conversion ExplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitConstantUnderlying);
+        internal static readonly Conversion ExplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ExplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ExplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitConstantUnderlying);
 
-        internal static Conversion ImplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitEnumerationUnderlying);
-        internal static Conversion ImplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ImplicitNullable, PointerToIntegerUnderlying);
-        internal static Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
-        internal static Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
-        internal static Conversion ImplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitNumericUnderlying);
-        internal static Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
+        internal static readonly Conversion ImplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ImplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ImplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
 
         // these static fields are not directly inside the Conversion
         // because that causes CLR loader failure.
