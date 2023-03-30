@@ -27,4 +27,10 @@
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.vb" />
+  </ItemGroup>
+
 </Project>
