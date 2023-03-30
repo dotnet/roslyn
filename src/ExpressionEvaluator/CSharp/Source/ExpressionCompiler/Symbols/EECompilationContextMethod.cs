@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
         }
 
+        internal override bool IsInterceptable => _underlyingMethod.IsInterceptable;
+
         internal override bool IsNullableAnalysisEnabled()
         {
             return _underlyingMethod.IsNullableAnalysisEnabled();
