@@ -32,17 +32,35 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     {
         public class Test : VisualBasicSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
         {
+            private readonly string _identifier;
             private readonly string? _testFile;
             private readonly string? _testMethod;
 
             public Test([CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
+                : this(string.Empty, testFile, testMethod)
             {
+            }
+
+            public Test(string identifier, [CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
+            {
+                _identifier = identifier;
                 _testFile = testFile;
                 _testMethod = testMethod;
 
 #if WRITE_EXPECTED
                 TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
 #endif
+            }
+
+            private string ResourceName
+            {
+                get
+                {
+                    if (string.IsNullOrEmpty(_identifier))
+                        return _testMethod ?? "";
+
+                    return $"{_testMethod}_{_identifier}";
+                }
             }
 
             protected override IEnumerable<Type> GetSourceGenerators()
@@ -52,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 
             protected override async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
             {
-                var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile)!, "Resources", _testMethod!);
+                var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile)!, "Resources", ResourceName);
 
                 var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
                 var expectedNames = new HashSet<string>();
@@ -62,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
                     expectedNames.Add(Path.GetFileName(tree.FilePath));
                 }
 
-                var currentTestPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{_testMethod}.";
+                var currentTestPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{ResourceName}.";
                 foreach (var name in GetType().Assembly.GetManifestResourceNames())
                 {
                     if (!name.StartsWith(currentTestPrefix, StringComparison.Ordinal))
@@ -79,9 +97,9 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
                 return (compilation, generatorDiagnostics);
             }
 
-            public Test AddGeneratedSources([CallerMemberName] string? testMethod = null)
+            public Test AddGeneratedSources()
             {
-                var expectedPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{testMethod}.";
+                var expectedPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{ResourceName}.";
                 foreach (var resourceName in typeof(Test).Assembly.GetManifestResourceNames())
                 {
                     if (!resourceName.StartsWith(expectedPrefix, StringComparison.Ordinal))
