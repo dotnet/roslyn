@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 CheckFeatureAvailability(
-                    _syntax.SyntaxTree, MessageID.IDS_FeatureAsyncStreams, diagnostics.DiagnosticBag,
+                    _syntax.SyntaxTree, MessageID.IDS_FeatureAsyncStreams, diagnostics,
                     _syntax, static syntax => syntax.AwaitKeyword.GetLocation());
             }
 

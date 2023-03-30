@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (syntax.ConstraintClauses.Count > 0)
                 {
                     Binder.CheckFeatureAvailability(
-                        syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics.DiagnosticBag, syntax,
+                        syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics, syntax,
                         static syntax => syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
 
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
