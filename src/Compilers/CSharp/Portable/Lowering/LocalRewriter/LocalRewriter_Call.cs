@@ -221,9 +221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            // PROTOTYPE(ic): interception should occur after lowering
-            // so that we use the original method in all relevant situations such as interpolated string lowering.
-            var (method, receiverOpt, arguments, argsToParamsOpt, argRefKindsOpt, invokedAsExtensionMethod) = (node.Method, node.ReceiverOpt, node.Arguments, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, node.InvokedAsExtensionMethod);
+            MethodSymbol method = node.Method;
+            BoundExpression? receiverOpt = node.ReceiverOpt;
+            ImmutableArray<BoundExpression> arguments = node.Arguments;
+            ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
+            ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+            bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
 
             // Rewrite the receiver
             BoundExpression? rewrittenReceiver = VisitExpression(receiverOpt);

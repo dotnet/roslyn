@@ -56,6 +56,19 @@ namespace Roslyn.Utilities
         }
 
 #if DEBUG
+        internal static bool ContainsAllValues<T>(int mask) where T : struct, Enum, IConvertible
+        {
+            foreach (T value in GetValues<T>())
+            {
+                int val = value.ToInt32(null);
+                if ((val & mask) != val)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         internal static bool ContainsAllValues<T>(long mask) where T : struct, Enum, IConvertible
         {
             foreach (T value in GetValues<T>())
