@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
             var lastNullableLineNumber = -1;
 
-            // current line we're on.  Note: we ignore whitespace lines when computin gthis.
+            // current line we're on.  Note: we ignore whitespace lines when computing this.
             var lineNumber = -1;
 
             var additionalFileInfo = new AdditionalFileInfo(path, sourceText, isShippedApi);
