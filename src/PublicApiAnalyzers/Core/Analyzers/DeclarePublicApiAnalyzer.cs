@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (var line in sourceText.Lines)
             {
-                string text = line.ToString();
+                var text = line.ToString();
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var apiLine = new ApiLine(text, line.Span, additionalFileInfo);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
-                    string removedText = text[RemovedApiPrefix.Length..];
+                    var removedText = text[RemovedApiPrefix.Length..];
                     removedBuilder.Add(new RemovedApiLine(removedText, apiLine));
                 }
                 else
