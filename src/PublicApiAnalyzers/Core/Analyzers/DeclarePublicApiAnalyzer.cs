@@ -194,14 +194,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), maxNullableRank);
         }
 
-        private static bool TryGetApiData(
-            AnalyzerOptions analyzerOptions,
-            Compilation compilation,
-            bool isPublic,
-            List<Diagnostic> errors,
-            CancellationToken cancellationToken,
-            [NotNullWhen(true)] out ApiData? shippedData,
-            [NotNullWhen(true)] out ApiData? unshippedData)
+        private static bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
         {
             using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
             using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
