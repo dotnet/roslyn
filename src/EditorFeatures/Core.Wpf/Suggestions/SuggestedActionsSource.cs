@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priority, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priority, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                         if (result.HasFix)
                         {
