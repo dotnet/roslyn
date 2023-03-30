@@ -2686,6 +2686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
@@ -2697,9 +2698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
-
-        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, TData data, Func<TData, Location> getLocation)
-            => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, data, getLocation);
 
         private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
@@ -2716,7 +2714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="getLocation">Callback function that computes the location to report the diagnostics at
         /// <em>if</em> a diagnostic should be reported.  Should always be passed a static/cached callback to prevent
         /// allocations of the delegate.</param>
-        internal static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation)
+        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation)
         {
             if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
