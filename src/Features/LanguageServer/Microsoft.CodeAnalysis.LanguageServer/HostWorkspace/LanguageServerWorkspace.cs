@@ -81,6 +81,8 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
             w =>
             {
+                // TODO(cyrusn): This only works for normal documents currently.  We'll have to rethink how things work
+                // in the world if we ever support additionalfiles/editorconfig in our language server.
                 var filePath = w.CurrentSolution.GetDocument(documentId)?.FilePath;
                 if (filePath != null)
                 {
