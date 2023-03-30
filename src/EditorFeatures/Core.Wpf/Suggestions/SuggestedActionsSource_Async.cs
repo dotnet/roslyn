@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                // We should only be called with the orderings we exported in order from highest pri to lowest pri.
+                Contract.ThrowIfFalse(Orderings.SequenceEqual(collectors.SelectAsArray(c => c.Priority)));
+
                 using var _ = ArrayBuilder<ISuggestedActionSetCollector>.GetInstance(out var completedCollectors);
                 try
                 {
@@ -97,16 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
-                    using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+                    var pendingActionSets = new MultiDictionary<CodeActionRequestPriority, SuggestedActionSet>();
 
                     CodeActionRequestPriorityProvider? priorityProvider = null;
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
-                        var priority = TryGetPriority(collector.Priority);
-
-                        if (priority != null)
+                        if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
                             priorityProvider = priorityProvider == null
                                 ? CodeActionRequestPriorityProvider.Create(priority.Value)
@@ -121,11 +123,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                             await foreach (var set in allSets)
                             {
-                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
+                                // Determine the corresponding lightbulb priority class corresponding to the priority
+                                // group the set says it wants to be in.
+                                var actualSetPriority = set.Priority switch
                                 {
-                                    // if we're processing the high pri bucket, but we get action sets for lower pri
-                                    // groups, then keep track of them and add them in later when we get to that group.
-                                    lowPrioritySets.Add(set);
+                                    SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
+                                    SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
+                                    SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
+                                    SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
+                                };
+
+                                // if the actual priority class is lower than the one we're currently in, then hold onto
+                                // this set for later, and place it in that priority group once we get there.
+                                if (actualSetPriority < priority)
+                                {
+                                    pendingActionSets.Add(actualSetPriority, set);
                                 }
                                 else
                                 {
@@ -134,14 +147,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 }
                             }
 
-                            if (priority == CodeActionRequestPriority.Normal)
+                            // We're finishing up with a particular priority group, and we're about to go to a priority
+                            // group one lower than what we have (hence `priority - 1`).  Take any pending items in the
+                            // group we're *about* to go into and add them at the end of this group.
+                            //
+                            // For example, if we're in the high group, and we have an pending items in the normal
+                            // bucket, then add them at the end of the high group.  The reason for this is that we
+                            // already have computed the items and we don't want to force them to have to wait for all
+                            // the processing in their own group to show up.  i.e. imagine if we added at the start of
+                            // the next group.  They'd be in the same location in the lightbulb as when we add at the
+                            // end of the current group, but they'd show up only when that group totally finished,
+                            // instead of right now.
+                            //
+                            // This is critical given that the lower pri groups are often much lower (which is why they
+                            // they choose to be in that class).  We don't want a fast item computed by a higher pri
+                            // provider to still have to wait on those slow items.
+                            foreach (var set in pendingActionSets[priority - 1])
                             {
-                                // now, add any low pri items we've been waiting on to the final group.
-                                foreach (var set in lowPrioritySets)
-                                {
-                                    currentActionCount += set.Actions.Count();
-                                    collector.Add(set);
-                                }
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
                             }
                         }
 
