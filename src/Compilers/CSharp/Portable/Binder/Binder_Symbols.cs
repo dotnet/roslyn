@@ -2698,7 +2698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, TData data, Func<TData, Location> getLocation)
+        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, TData data, Func<TData, Location> getLocation)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, data, getLocation);
 
         private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)

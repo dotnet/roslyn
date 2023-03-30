@@ -95,15 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsingDeclaration)
             {
-                CheckFeatureAvailability(
-                    syntax.SyntaxTree, MessageID.IDS_FeatureUsingDeclarations, diagnostics,
-                    usingKeyword, static usingKeyword => usingKeyword.GetLocation());
+                CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations, diagnostics);
             }
             else if (hasAwait)
             {
-                CheckFeatureAvailability(
-                    syntax.SyntaxTree, MessageID.IDS_FeatureAsyncUsing, diagnostics,
-                    awaitKeyword, static awaitKeyword => awaitKeyword.GetLocation());
+                CheckFeatureAvailability(awaitKeyword, MessageID.IDS_FeatureAsyncUsing, diagnostics);
             }
 
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
