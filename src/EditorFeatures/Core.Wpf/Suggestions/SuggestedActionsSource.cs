@@ -221,21 +221,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
+                    var priorityProvider = CodeActionRequestPriorityProvider.Create(priority.Value);
 
-                    var result = await GetFixLevelAsync(priority.Value).ConfigureAwait(false);
+                    var result = await GetFixLevelAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
 
                 return null;
 
-                async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
+                async Task<string?> GetFixLevelAsync(CodeActionRequestPriorityProvider priorityProvider)
                 {
                     if (state.Target.Owner._codeFixService != null &&
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priority, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                         if (result.HasFix)
                         {

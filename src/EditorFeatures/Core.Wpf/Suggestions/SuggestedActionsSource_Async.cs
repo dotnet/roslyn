@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
 
+                    CodeActionRequestPriorityProvider? priorityProvider = null;
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
@@ -106,11 +108,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         if (priority != null)
                         {
+                            priorityProvider = priorityProvider == null
+                                ? CodeActionRequestPriorityProvider.Create(priority.Value)
+                                : priorityProvider.With(priority.Value);
+
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                priority.Value,
+                                priorityProvider,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
@@ -155,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionRequestPriority priority,
+                CodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -194,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priority, options, isBlocking: false, addOperationScope, cancellationToken).AsTask();
+                        priorityProvider, options, isBlocking: false, addOperationScope, cancellationToken).AsTask();
                 }
 
                 Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
@@ -215,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
                     // No code refactoring should have this request priority.
-                    if (priority == CodeActionRequestPriority.Lowest)
+                    if (priorityProvider.Priority == CodeActionRequestPriority.Lowest)
                         return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
 
                     // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
@@ -223,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                     return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                        workspace, owner._codeRefactoringService, document, selection.Value, priority, options,
+                        workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority, options,
                         addOperationScope, filterOutsideSelection, cancellationToken);
                 }
 
