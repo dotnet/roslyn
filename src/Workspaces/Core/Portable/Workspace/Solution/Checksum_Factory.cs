@@ -23,10 +23,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
-        private static readonly ObjectPool<byte[]> s_twoChecksumByteArrayPool =
-            new(() => new byte[HashSize * 2]);
-        private static readonly ObjectPool<byte[]> s_threeChecksumByteArrayPool =
-            new(() => new byte[HashSize * 3]);
+        private static readonly ObjectPool<byte[]> s_twoChecksumByteArrayPool = new(() => new byte[HashSize * 2]);
+        private static readonly ObjectPool<byte[]> s_threeChecksumByteArrayPool = new(() => new byte[HashSize * 3]);
 
         public static Checksum Create(IEnumerable<string> values)
         {
