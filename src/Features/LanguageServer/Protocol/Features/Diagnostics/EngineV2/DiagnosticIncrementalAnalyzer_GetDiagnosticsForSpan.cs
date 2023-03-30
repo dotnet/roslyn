@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriorityProvider? priorityProvider, bool blockForData,
+            bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriorityProvider priorityProvider, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
-            CodeActionRequestPriorityProvider? priorityProvider,
+            CodeActionRequestPriorityProvider priorityProvider,
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
                  bool includeCompilerDiagnostics,
-                 CodeActionRequestPriorityProvider? priorityProvider,
+                 CodeActionRequestPriorityProvider priorityProvider,
                  Func<string, bool>? shouldIncludeDiagnostic,
                  DiagnosticKind diagnosticKinds,
                  bool isExplicit,
@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     && document is Document sourceDocument
                     && sourceDocument.SupportsSyntaxTree
                     && owner.GlobalOptions.IsLspPullDiagnostics();
-
-                priorityProvider ??= CodeActionRequestPriorityProvider.Default;
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,

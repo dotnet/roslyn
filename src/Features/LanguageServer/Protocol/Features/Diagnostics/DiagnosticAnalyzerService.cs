@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(async () =>
                 {
+                    priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+
                     using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                         document, range, diagnostics, shouldIncludeDiagnostic,
@@ -109,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
+                priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
                     document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,

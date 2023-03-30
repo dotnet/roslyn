@@ -97,10 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public async Task<FirstFixResult> GetMostSevereFixAsync(
-            TextDocument document, TextSpan range, CodeActionRequestPriorityProvider? priorityProvider, CodeActionOptionsProvider fallbackOptions, bool isBlocking, CancellationToken cancellationToken)
+            TextDocument document, TextSpan range, CodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, bool isBlocking, CancellationToken cancellationToken)
         {
-            priorityProvider ??= CodeActionRequestPriorityProvider.Default;
-
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                 includeSuppressedDiagnostics: false, priorityProvider, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -159,14 +157,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
             TextDocument document,
             TextSpan range,
-            CodeActionRequestPriorityProvider? priorityProvider,
+            CodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            priorityProvider ??= CodeActionRequestPriorityProvider.Default;
-
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
             var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
