@@ -94,8 +94,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         }
 
         var declaration = methodReference.GetSyntax(cancellationToken);
-        if (declaration is ArrowExpressionClauseSyntax)
-            declaration = declaration.GetRequiredParent();
 
         var nameToken = declaration switch
         {
@@ -103,8 +101,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword,
             PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier,
             IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ThisKeyword,
+            ArrowExpressionClauseSyntax arrowExpression => arrowExpression.ArrowToken,
             _ => (SyntaxToken?)null
         };
+
+        if (declaration is ArrowExpressionClauseSyntax)
+            declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
             return;
@@ -143,7 +145,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
     private static bool IsPotentiallyValueType(IOperation? instance)
     {
         // 1. A struct is a value type.
-        // 2. A type paramater that does not have the explicit 'class' constraint is potentially a value type.
+        // 2. A type parameter that does not have the explicit 'class' constraint is potentially a value type.
         return instance is { Type.TypeKind: TypeKind.Struct } ||
                instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
     }
@@ -165,6 +167,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
         for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
         {
+            // Had a parent we didn't understand.  Assume that 'this' could be mutated.
+            if (operation.Kind == OperationKind.None)
+                return true;
+
             if (operation is IFieldReferenceOperation { Field.IsReadOnly: false } fieldReference &&
                 IsPotentiallyValueType(fieldReference.Instance))
             {

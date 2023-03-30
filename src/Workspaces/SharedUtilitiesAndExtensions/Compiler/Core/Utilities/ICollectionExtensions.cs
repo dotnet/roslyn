@@ -29,16 +29,12 @@ namespace Roslyn.Utilities
         public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
         {
             if (collection == null)
-            {
                 throw new ArgumentNullException(nameof(collection));
-            }
 
             if (values != null)
             {
                 foreach (var item in values)
-                {
                     collection.Add(item);
-                }
             }
         }
 

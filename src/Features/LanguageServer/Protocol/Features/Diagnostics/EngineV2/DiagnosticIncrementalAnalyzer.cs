@@ -216,10 +216,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind);
 
         private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
             => project.GetDependentVersionAsync(cancellationToken);

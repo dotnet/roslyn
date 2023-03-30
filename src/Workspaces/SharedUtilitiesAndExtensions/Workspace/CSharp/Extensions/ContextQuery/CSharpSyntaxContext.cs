@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsDefiniteCastTypeContext;
         public readonly bool IsDelegateReturnTypeContext;
         public readonly bool IsDestructorTypeContext;
-        public readonly bool IsEnumBaseListContext;
         public readonly bool IsFixedVariableDeclarationContext;
         public readonly bool IsFunctionPointerTypeArgumentContext;
         public readonly bool IsGenericTypeArgumentContext;
@@ -43,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsPrimaryFunctionExpressionContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
         public readonly bool IsTypeOfExpressionContext;
+        public readonly bool IsUsingAliasTypeContext;
 
         public readonly ISet<SyntaxKind> PrecedingModifiers;
 
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isTypeArgumentOfConstraintContext,
             bool isTypeContext,
             bool isTypeOfExpressionContext,
+            bool isUsingAliasTypeContext,
             bool isWithinAsyncMethod,
             ISet<SyntaxKind> precedingModifiers,
             CancellationToken cancellationToken)
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isAtStartOfPattern: isAtStartOfPattern,
                   isAttributeNameContext: isAttributeNameContext,
                   isAwaitKeywordContext: isAwaitKeywordContext,
+                  isEnumBaseListContext: isEnumBaseListContext,
                   isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
                   isGenericConstraintContext: isGenericConstraintContext,
                   isGlobalStatementContext: isGlobalStatementContext,
@@ -146,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
             this.IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
-            this.IsEnumBaseListContext = isEnumBaseListContext;
             this.IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
             this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
             this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
@@ -167,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsPrimaryFunctionExpressionContext = isPrimaryFunctionExpressionContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
             this.IsTypeOfExpressionContext = isTypeOfExpressionContext;
+            this.IsUsingAliasTypeContext = isUsingAliasTypeContext;
 
             this.PrecedingModifiers = precedingModifiers;
         }
@@ -174,7 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => CreateContextWorker(document, semanticModel, position, cancellationToken);
 
-        private static CSharpSyntaxContext CreateContextWorker(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static CSharpSyntaxContext CreateContextWorker(
+            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -256,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,
-                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(position, leftToken),
+                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(targetToken),
                 isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
@@ -294,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 isTypeContext: syntaxTree.IsTypeContext(position, cancellationToken, semanticModel),
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
+                isUsingAliasTypeContext: syntaxTree.IsUsingAliasTypeContext(position, cancellationToken),
                 isWithinAsyncMethod: ComputeIsWithinAsyncMethod(),
                 precedingModifiers: precedingModifiers,
                 cancellationToken: cancellationToken);
@@ -364,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 if (SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                    token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
                 {
                     return true;
                 }

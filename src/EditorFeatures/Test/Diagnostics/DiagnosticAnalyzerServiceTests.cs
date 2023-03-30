@@ -515,7 +515,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Assert.True(called);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers()
         {
             // By default, hidden analyzer does not execute in full solution analysis.
@@ -525,7 +525,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: false);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInCompilationOptions()
         {
             // Escalating the analyzer to non-hidden effective severity through compilation options
@@ -538,7 +538,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInAnalyzerConfigOptions()
         {
             using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
@@ -1049,7 +1049,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(49698, "https://github.com/dotnet/roslyn/issues/49698")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49698")]
         internal async Task TestOnlyRequiredAnalyzerExecutedDuringDiagnosticComputation(bool documentAnalysis)
         {
             using var workspace = TestWorkspace.CreateCSharp("class A { }");
@@ -1067,7 +1067,7 @@ class A
             var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
                 document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
                 AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-                reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 cancellationToken: CancellationToken.None);
             Assert.False(analyzer2.ReceivedSymbolCallback);
 
@@ -1085,7 +1085,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67084")]
         internal async Task TestCancellationDuringDiagnosticComputation_OutOfProc(AnalyzerRegisterActionKind actionKind)
         {
             // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE OutOfProc diagnostic computation in presence of an OperationCanceledException during analysis.
@@ -1121,12 +1121,12 @@ class A
             try
             {
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
-            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            catch (OperationCanceledException) when (analyzer.CancellationToken.IsCancellationRequested)
             {
             }
 
@@ -1134,7 +1134,7 @@ class A
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
             var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();

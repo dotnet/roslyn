@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -110,7 +108,7 @@ class T
 }}");
         }
 
-        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWriteLine()
         {
             await TestMissingAsync(
@@ -128,7 +126,7 @@ class T
 }");
         }
 
-        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWrite()
         {
             await TestMissingAsync(
@@ -197,7 +195,9 @@ class T
         [Fact]
         public async Task TestItemOrdering3()
         {
-            await TestInRegularAndScriptAsync(
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
 @"using System;
 
 class T
@@ -206,20 +206,11 @@ class T
     {
         var a = [|string.Format(""{0}{0}{0}"", 1, 2, 3)|];
     }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var a = $""{1}{1}{1}"";
-    }
 }");
         }
 
         [Fact]
-        public async Task TestItemOutsideRange()
+        public async Task TestItemOrdering4()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -228,7 +219,7 @@ class T
 {
     void M()
     {
-        var a = [|string.Format(""{4}{5}{6}"", 1, 2, 3)|];
+        var a = [|string.Format(""{0}{1}{2}{0}{1}{2}"", 1, 2, 3)|];
     }
 }",
 @"using System;
@@ -237,7 +228,99 @@ class T
 {
     void M()
     {
-        var a = $""{4}{5}{6}"";
+        var a = $""{1}{2}{3}{1}{2}{3}"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithMissingCurly1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""0}{"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithMissingCurly2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""0{"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithIncorrectSyntax1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{:0}"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithMatchWithFollowingNumber()
+        {
+            // want to make sure that `{1` is not matched as `{1}`
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}{12}"", 1, 2)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithStringThatParsesWrongAsInterpolation()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}{a +}"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestItemOutsideRange()
+        {
+            // Missing as the format string refers to parameters that aren't provided.
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{4}{5}{6}"", 1, 2, 3)|];
     }
 }");
         }
@@ -707,7 +790,9 @@ class T
         [Fact]
         public async Task TestFormatWithNamedArguments1()
         {
-            await TestInRegularAndScriptAsync(
+            // Missing as this scenario is too esoteric.  I was not able to find any examples of code that reorders and
+            // names thigns like this with format strings.
+            await TestMissingAsync(
 @"using System;
 
 class T
@@ -715,15 +800,6 @@ class T
     void M()
     {
         var a = [|string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} {1} works"")|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var a = $""This {""test""} {""also""} works"";
     }
 }");
         }
@@ -824,7 +900,7 @@ class T
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -848,7 +924,7 @@ class T
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -872,7 +948,7 @@ class T
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -896,7 +972,7 @@ class T
 }");
         }
 
-        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61346")]
         public async Task TestNoCastToObjectWhenNullableEnabled()
         {
             await TestInRegularAndScriptAsync(
@@ -920,6 +996,58 @@ class T
     void M()
     {
         var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(1756068, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1756068")]
+        public async Task TestArbitraryAPI()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+interface ILogger
+{
+    public void Log(string s) { }
+    public void Log(string s, object arg1) { }
+}
+
+class T
+{
+    void M(ILogger logger)
+    {
+        [|logger.Log(""{0}"", 5)|];
+    }
+}",
+@"using System;
+
+interface ILogger
+{
+    public void Log(string s) { }
+    public void Log(string s, object arg1) { }
+}
+
+class T
+{
+    void M(ILogger logger)
+    {
+        logger.Log($""{5}"");
+    }
+}");
+        }
+
+        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
+        public async Task TestNotWithExplicitCultureInfo()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Globalization;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format(CultureInfo.InvariantCulture, [|""{0}"", 1|]);
     }
 }");
         }

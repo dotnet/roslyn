@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Compilation.SourceModule != method.ContainingModule)
                     {
-                        CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
 
                         if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                         {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (SyntaxFacts.IsCheckedOperator(method.Name) &&
                     Compilation.SourceModule != method.ContainingModule)
                 {
-                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics, syntax.GetLocation()!);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                 }
             }
         }
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
+            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _)).WithInAnonymousFunctionConversion();
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);

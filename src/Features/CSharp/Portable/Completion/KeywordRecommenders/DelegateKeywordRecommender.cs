@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
+                context.IsUsingAliasTypeContext ||
                 ValidTypeContext(context) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
