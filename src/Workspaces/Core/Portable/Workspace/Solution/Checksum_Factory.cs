@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
+        private static readonly ObjectPool<byte[]> s_twoChecksumByteArrayPool =
+            new(() => new byte[HashSize * 2]);
+        private static readonly ObjectPool<byte[]> s_threeChecksumByteArrayPool =
+            new(() => new byte[HashSize * 3]);
+
         public static Checksum Create(IEnumerable<string> values)
         {
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
@@ -98,17 +103,52 @@ namespace Microsoft.CodeAnalysis
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2)
         {
-            using var stream = SerializableBytes.CreateWritableStream();
+#if NET
+            return CreateUsingSpans(checksum1, checksum2);
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
-            {
-                checksum1.WriteTo(writer);
-                checksum2.WriteTo(writer);
-            }
-
-            stream.Position = 0;
-            return Create(stream);
+#else
+            return CrateUsingByteArrays(checksum1, checksum2);
+#endif
         }
+
+        private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+        {
+            var hash = s_incrementalHashPool.Allocate();
+
+            var bytes = s_twoChecksumByteArrayPool.Allocate();
+            var bytesSpan = bytes.AsSpan();
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+
+            hash.AppendData(bytes);
+            var hashResult = hash.GetHashAndReset();
+
+            s_incrementalHashPool.Free(hash);
+            s_twoChecksumByteArrayPool.Free(bytes);
+
+            return From(hashResult);
+        }
+
+#if NET
+
+        private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
+        {
+            var hash = s_incrementalHashPool.Allocate();
+            Span<byte> bytesSpan = stackalloc byte[2 * HashSize];
+            Span<byte> hashResultSpan = stackalloc byte[hash.HashLengthInBytes];
+
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+
+            hash.AppendData(bytesSpan);
+            hash.GetHashAndReset(hashResultSpan);
+
+            s_incrementalHashPool.Free(hash);
+
+            return From(hashResultSpan);
+        }
+
+#endif
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
@@ -196,6 +236,19 @@ namespace Microsoft.CodeAnalysis
 
                 index += toCopy;
             }
+        }
+
+        public static class TestAccessor
+        {
+            public static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+                => Checksum.CrateUsingByteArrays(checksum1, checksum2);
+
+#if NET
+
+            public static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
+                => Checksum.CreateUsingSpans(checksum1, checksum2);
+
+#endif
         }
     }
 }
