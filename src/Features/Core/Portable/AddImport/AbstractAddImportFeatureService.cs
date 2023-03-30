@@ -28,6 +28,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Cache of information about whether a <see cref="PortableExecutableReference"/> is likely contained within a
+        /// NuGet packages directory.
+        /// </summary>
         private static readonly ConcurrentDictionary<MetadataId, bool> s_isInPackagesDirectory = new();
 
         protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
