@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
 #if NET
             return CreateUsingSpans(checksum1, checksum2);
 #else
-            return CrateUsingByteArrays(checksum1, checksum2);
+            return CreateUsingByteArrays(checksum1, checksum2);
 #endif
         }
 
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis
 #if NET
             return CreateUsingSpans(checksum1, checksum2, checksum3);
 #else
-            return CrateUsingByteArrays(checksum1, checksum2, checksum3);
+            return CreateUsingByteArrays(checksum1, checksum2, checksum3);
 #endif
         }
 
-        private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+        private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
         {
             using var hash = s_incrementalHashPool.GetPooledObject();
             using var bytes = s_twoChecksumByteArrayPool.GetPooledObject();
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
             return From(hash.Object.GetHashAndReset());
         }
 
-        private static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
             using var hash = s_incrementalHashPool.GetPooledObject();
             using var bytes = s_threeChecksumByteArrayPool.GetPooledObject();
@@ -264,11 +264,11 @@ namespace Microsoft.CodeAnalysis
 
         public static class TestAccessor
         {
-            public static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2)
-                => Checksum.CrateUsingByteArrays(checksum1, checksum2);
+            public static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+                => Checksum.CreateUsingByteArrays(checksum1, checksum2);
 
-            public static Checksum CrateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-                => Checksum.CrateUsingByteArrays(checksum1, checksum2, checksum3);
+            public static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+                => Checksum.CreateUsingByteArrays(checksum1, checksum2, checksum3);
 
 #if NET
 
