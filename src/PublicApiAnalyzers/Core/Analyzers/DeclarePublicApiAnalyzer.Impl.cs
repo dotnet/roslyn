@@ -20,69 +20,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     public partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        private sealed class ApiLine
-        {
-            public string Text { get; }
-            public TextSpan Span { get; }
-            public SourceText SourceText { get; }
-            public string Path { get; }
-            public bool IsShippedApi { get; }
+        private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
 
-            internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
-            {
-                Text = text;
-                Span = span;
-                SourceText = sourceText;
-                Path = path;
-                IsShippedApi = isShippedApi;
-            }
+        private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
+        {
+            public bool IsDefault => FileInfo == null;
+
+            public SourceText SourceText => FileInfo.SourceText;
+            public string Path => FileInfo.Path;
+            public bool IsShippedApi => FileInfo.IsShippedApi;
         }
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct RemovedApiLine
-#pragma warning restore CA1815 // Override equals and operator equals on value types
+        private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
+
+        private readonly record struct ApiName(string Name, string NameWithNullability);
+
+        /// <param name="NullableLineNumber">Number for the max line where #nullable enable was found (-1 otherwise)</param>
+        private sealed record ApiData(ImmutableArray<ApiLine> ApiList, ImmutableArray<RemovedApiLine> RemovedApiList, int NullableLineNumber)
         {
-            public string Text { get; }
-            public ApiLine ApiLine { get; }
-
-            internal RemovedApiLine(string text, ApiLine apiLine)
-            {
-                Text = text;
-                ApiLine = apiLine;
-            }
-        }
-
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiName
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public string Name { get; }
-            public string NameWithNullability { get; }
-
-            public ApiName(string name, string nameWithNullability)
-            {
-                Name = name;
-                NameWithNullability = nameWithNullability;
-            }
-        }
-
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiData
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
-
-            public ImmutableArray<ApiLine> ApiList { get; }
-            public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
-            // Number for the max line where #nullable enable was found (-1 otherwise)
-            public int NullableRank { get; }
-
-            internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList, int nullableRank)
-            {
-                ApiList = apiList;
-                RemovedApiList = removedApiList;
-                NullableRank = nullableRank;
-            }
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableLineNumber: -1);
         }
 
         private sealed class Impl
@@ -107,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
             {
                 _compilation = compilation;
-                _useNullability = shippedData.NullableRank >= 0 || unshippedData.NullableRank >= 0;
+                _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
                 var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
@@ -293,7 +249,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var method = (IMethodSymbol)symbol;
-                    var isMethodShippedApi = foundApiLine?.IsShippedApi == true;
+                    var isMethodShippedApi = !foundApiLine.IsDefault && foundApiLine.IsShippedApi;
 
                     // Check if a public API is a constructor that makes this class instantiable, even though the base class
                     // is not instantiable. That API pattern is not allowed, because it causes protected members of
