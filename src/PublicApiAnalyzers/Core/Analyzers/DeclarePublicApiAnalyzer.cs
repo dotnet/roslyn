@@ -21,8 +21,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         /// <summary>
         /// Cache from additional text instance to the api data we have read out for that specific file.  We only store
         /// data for additional texts that explicitly match the public/internal api file names we expect.
+        /// <para/>
+        /// Intentionally not static.  We don't want this table living globally.  Rather, it should be tied to the
+        /// lifetime of this type and whatever owner it has.
         /// </summary>
-        private static readonly ConditionalWeakTable<AdditionalText, ApiData> s_additionalTextToApiData = new();
+        private readonly ConditionalWeakTable<AdditionalText, ApiData> _additionalTextToApiData = new();
 
         internal const string Extension = ".txt";
         internal const string PublicShippedFileNamePrefix = "PublicAPI.Shipped";
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 RegisterImplActions(compilationContext, new Impl(compilationContext.Compilation, shippedData, unshippedData, isPublic, compilationContext.Options));
                 return;
 
-                static bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
+                bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
                 {
                     return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
                            && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
@@ -197,7 +200,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), lastNullableLineNumber);
         }
 
-        private static bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
+        private bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
         {
             using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
             using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
@@ -346,7 +349,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private static void AddApiTexts(
+        private void AddApiTexts(
             ImmutableArray<AdditionalText> additionalTexts,
             bool isPublic,
             ArrayBuilder<ApiData> allShippedData,
@@ -363,10 +366,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (!file.IsApiFile)
                     continue;
 
-                if (!s_additionalTextToApiData.TryGetValue(additionalText, out var apiData))
+                if (!_additionalTextToApiData.TryGetValue(additionalText, out var apiData))
                 {
                     apiData = ReadApiData(additionalText.Path, additionalText.GetText(cancellationToken), file.IsShipping);
-                    apiData = s_additionalTextToApiData.GetValue(additionalText, _ => apiData);
+                    apiData = _additionalTextToApiData.GetValue(additionalText, _ => apiData);
                 }
 
                 var resultList = file.IsShipping ? allShippedData : allUnshippedData;
