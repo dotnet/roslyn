@@ -7,6 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if COMPILERCORE
+using Roslyn.Utilities;
+#endif
+
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
@@ -317,6 +322,34 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             return tmp.ToImmutableAndFree();
         }
+
+#if COMPILERCORE
+
+        /// <summary>
+        /// Realizes the OneOrMany and disposes the builder in one operation.
+        /// </summary>
+        public OneOrMany<T> ToOneOrManyAndFree()
+        {
+            OneOrMany<T> result;
+            if (Count == 0)
+            {
+                result = OneOrMany<T>.Empty;
+                Free();
+            }
+            else if (Count == 1)
+            {
+                result = OneOrMany.Create(this[0]);
+                Free();
+            }
+            else
+            {
+                result = OneOrMany.Create(ToImmutableAndFree());
+            }
+
+            return result;
+        }
+
+#endif
 
         /// <summary>
         /// Realizes the array and disposes the builder in one operation.

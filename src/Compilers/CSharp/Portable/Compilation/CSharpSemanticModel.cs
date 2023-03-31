@@ -1979,15 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddUnwrappingErrorTypes(builder, symbol);
                 }
 
-                if (builder.Count == 1)
-                {
-                    symbols = new OneOrMany<Symbol>(builder[0]);
-                    builder.Free();
-                }
-                else
-                {
-                    symbols = new OneOrMany<Symbol>(builder.ToImmutableAndFree());
-                }
+                symbols = builder.ToOneOrManyAndFree();
             }
 
             if ((options & SymbolInfoOptions.ResolveAliases) != 0)
