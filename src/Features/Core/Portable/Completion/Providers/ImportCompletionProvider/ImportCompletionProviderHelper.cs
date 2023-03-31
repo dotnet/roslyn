@@ -14,7 +14,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static ImmutableArray<string> GetImportedNamespaces(SyntaxContext context, CancellationToken cancellationToken)
         {
-            var scopes = context.SemanticModel.GetImportScopes(context.Position, cancellationToken);
+            var position = context.Position;
+
+            var trivia = context.SyntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken, findInsideTrivia: true);
+            var triviaToken = trivia.Token;
+
+            // If we are inside of leading trivia of a token adjust position to be the start of that token.
+            // This is a workaround for an issue, when immediately after a `using` directive it is not included into the import scope.
+            if (triviaToken.SpanStart > context.Position)
+                position = triviaToken.SpanStart;
+
+            var scopes = context.SemanticModel.GetImportScopes(position, cancellationToken);
 
             using var _ = ArrayBuilder<string>.GetInstance(out var usingsBuilder);
 
