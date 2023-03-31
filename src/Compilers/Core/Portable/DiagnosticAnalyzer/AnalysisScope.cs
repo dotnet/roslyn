@@ -61,11 +61,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsPartialAnalysis { get; }
 
         /// <summary>
+        /// True if we are performing syntactic or semantic analysis for a single source file with a single analyzer in scope,
+        /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
+        /// </summary>
+        public bool IsSingleFileAnalysisForCompilerAnalyzer =>
+            IsSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
+
+        /// <summary>
         /// True if we are performing semantic analysis for a single source file with a single analyzer in scope,
         /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
         /// </summary>
         public bool IsSemanticSingleFileAnalysisForCompilerAnalyzer =>
-            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
+            IsSingleFileAnalysisForCompilerAnalyzer && !IsSyntacticSingleFileAnalysis;
 
         public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
             : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
