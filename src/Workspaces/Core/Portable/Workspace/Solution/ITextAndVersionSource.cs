@@ -19,4 +19,6 @@ internal interface ITextAndVersionSource
     bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value);
     TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken);
     Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken);
+
+    Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken);
 }

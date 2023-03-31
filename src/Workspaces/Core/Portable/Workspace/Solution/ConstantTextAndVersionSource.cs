@@ -46,9 +46,6 @@ internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>
     public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
         => TryGetValue(out value);
 
-    //public bool TryGetTextVersion(out VersionStamp version)
-    //{
-    //    version = Value.Version;
-    //    return true;
-    //}
+    public Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => Task.FromResult(_value.Version);
 }
