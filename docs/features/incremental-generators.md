@@ -658,7 +658,7 @@ inputs and combine them into a single source of data. For example:
 IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
 // combine each additional text with the parse options
-IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = initContext.AdditionalTextsProvider.Combine(initContext.ParseOptionsProvider);
+IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = additionalTexts.Combine(initContext.ParseOptionsProvider);
 
 // perform a transform on each text, with access to the options
 var transformed = combined.Select(static (pair, _) => 
