@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
                 // We clear out range for such cases as we are computing full document diagnostics.
-                if (range.HasValue && range.Value.Length == text.Length)
+                if (range == new TextSpan(0, text.Length))
                     range = null;
 
                 // We log performance info when we are computing diagnostics for a span
@@ -492,8 +492,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         foreach (var diagnostic in existingData.Items)
                         {
-                            if (diagnostic.DataLocation.MappedFileSpan.StartLinePosition.Line <= endLineNumber &&
-                                diagnostic.DataLocation.MappedFileSpan.EndLinePosition.Line >= startLineNumber)
+                            if (diagnostic.DataLocation.UnmappedFileSpan.StartLinePosition.Line <= endLineNumber &&
+                                diagnostic.DataLocation.UnmappedFileSpan.EndLinePosition.Line >= startLineNumber)
                             {
                                 return false;
                             }
@@ -503,6 +503,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
                     // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
                     // analyzer to be executed in low priority bucket.
+                    // Note that 'AddDeprioritizedAnalyzerWithLowPriority' call below mutates the state in the provider to
+                    // track this analyzer. This ensures that when the owner of this provider calls us back to execute
+                    // the low priority bucket, we can still get back to this analyzer and execute it that time.
                     if (!_owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
                         _priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
 

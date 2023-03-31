@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return true;
             }
 
+            // Now compute this analyzer's priority and compare it with the provider's request 'Priority'.
+            // Our internal 'IBuiltInAnalyzer' can specify custom request priority, while all
+            // the third-party analyzers are assigned 'Normal' priority.
             var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
                 ? requestPriority
                 : CodeActionRequestPriority.Normal;
@@ -95,10 +98,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 // We are computing fixes for all priorities
                 CodeActionRequestPriority.None => true,
 
-                // 'Low' priority is used for fixes for expensive analyzers which were de-prioritized
-                // to low priority bucket.
-                // We accept fixers with any RequestPriority that can fix diagnostics
-                // from low priority analyzers.
+                // 'Low' priority can be used for two types of code fixers:
+                //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
+                //  2. Those which can fix diagnostics for expensive analyzers which were de-prioritized
+                //     to 'Low' priority bucket to improve lightbulb population performance.
+                // Hence, when processing the 'Low' Priority bucket, we accept fixers with any RequestPriority,
+                // as long as they can fix a diagnostic from an analyzer that was executed in the 'Low' bucket.
                 CodeActionRequestPriority.Low => true,
 
                 _ => Priority == codeFixProvider.RequestPriority,
