@@ -185,7 +185,7 @@ End Class</a>
         End Function
 
         <WpfFact>
-        Public Async Function TestDontFilterIfNothingMatchesReturnTypeVoidness() As Task
+        Public Async Function TestDoNotFilterIfNothingMatchesReturnTypeVoidness() As Task
             Dim text = <a>MustInherit Class Base
     MustOverride Function Goo() As String
     Protected NotOverridable Overrides Sub Finalize()

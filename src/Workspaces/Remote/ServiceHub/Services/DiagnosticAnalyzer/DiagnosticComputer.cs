@@ -298,8 +298,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         return;
                     }
 
-                    // Wait for all the high priority tasks, ignoring all exceptions from it.
-                    await Task.WhenAll(highPriorityTasksToAwait).WithCancellation(cancellationToken).NoThrowAwaitable(false);
+                    // Wait for all the high priority tasks, ignoring all exceptions from it. Loop directly to avoid
+                    // expensive allocations in Task.WhenAll.
+                    foreach (var task in highPriorityTasksToAwait)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
+                    }
                 }
             }
         }

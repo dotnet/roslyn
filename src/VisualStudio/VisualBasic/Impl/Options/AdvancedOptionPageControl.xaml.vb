@@ -151,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme)
 
             ' Extract method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.VisualBasic)
 
             ' Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
