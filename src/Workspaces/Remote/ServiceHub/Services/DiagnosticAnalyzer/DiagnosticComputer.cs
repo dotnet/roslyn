@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = ImmutableHashSet<CancellationTokenSource>.Empty;
+        private static CancellationTokenSource s_cancellationSourceForNormalPriorityComputeTasks = new();
 
         /// <summary>
         /// Static gate controlling access to following static fields:
         /// - <see cref="s_compilationWithAnalyzersCache"/>
         /// - <see cref="s_highPriorityComputeTasks"/>
-        /// - <see cref="s_normalPriorityCancellationTokenSources"/>
+        /// - <see cref="s_cancellationSourceForNormalPriorityComputeTasks"/>
         /// </summary>
         private static readonly object s_gate = new();
 
@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _analyzerInfoCache = analyzerInfoCache;
             _hostWorkspaceServices = hostWorkspaceServices;
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
+        }
+
+        private static CancellationToken GetCancellationTokenForNormalPriorityTasks()
+        {
+            lock (s_gate)
+            {
+                return s_cancellationSourceForNormalPriorityComputeTasks.Token;
+            }
         }
 
         public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
@@ -204,22 +212,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             static void CancelNormalPriorityTasks()
             {
                 // Fire cancellation on the current token source and replace it with a new token source for future normal priority requests.
-                ImmutableHashSet<CancellationTokenSource> cancellationTokenSources;
+                CancellationTokenSource currentCts;
                 lock (s_gate)
                 {
-                    cancellationTokenSources = s_normalPriorityCancellationTokenSources;
+                    currentCts = s_cancellationSourceForNormalPriorityComputeTasks;
+                    s_cancellationSourceForNormalPriorityComputeTasks = new();
                 }
 
-                foreach (var  cancellationTokenSource in cancellationTokenSources)
-                {
-                    try
-                    {
-                        cancellationTokenSource.Cancel();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-                }
+                currentCts.Cancel();
+                currentCts.Dispose();
             }
         }
 
@@ -239,17 +240,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 //    before beginning execution.
                 await WaitForHighPriorityTasksAsync(cancellationToken).ConfigureAwait(false);
 
-                using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                lock (s_gate)
-                {
-                    s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Add(cancellationTokenSource);
-                }
-
                 // Step 2:
                 //  - Create the core 'computeTask' for computing diagnostics.
-                var computeTask = GetDiagnosticsAsync(
-                    analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
-                    cancellationTokenSource.Token)
+                var computeTask = CreateComputeTask(cancellationToken);
 
                 try
                 {
@@ -257,20 +250,24 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     //  - Execute the core 'computeTask' for diagnostic computation.
                     return await computeTask.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationTokenSource.Token)
+                catch (OperationCanceledException)
                 {
                     // Step 4:
                     // Attempt to re-execute this cancelled normal priority task by running the loop again,
                     // unless cancellation was fired on the cancellationToken passed into us.
+                    cancellationToken.ThrowIfCancellationRequested();
                     continue;
                 }
-                finally
+            }
+
+            Task<SerializableDiagnosticAnalysisResults> CreateComputeTask(CancellationToken cancellationToken)
+            {
+                return Task.Run(async () =>
                 {
-                    lock (s_gate)
-                    {
-                        s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Remove(cancellationTokenSource);
-                    }
-                }
+                    // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
+                    using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(GetCancellationTokenForNormalPriorityTasks(), cancellationToken);
+                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+                }, cancellationToken);
             }
 
             static async Task WaitForHighPriorityTasksAsync(CancellationToken cancellationToken)
