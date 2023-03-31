@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract ushort LineDirectiveSyntaxKind { get; }
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
-        protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
+        protected abstract StateMachineKinds GetStateMachineInfo(SyntaxNode body);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
@@ -1508,8 +1508,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out StateMachineKinds newStateMachineKinds)
         {
             List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches = null;
-            GetStateMachineInfo(oldBody, out var oldStateMachineSuspensionPoints, out oldStateMachineKinds);
-            GetStateMachineInfo(newBody, out var _, out newStateMachineKinds);
+            oldStateMachineKinds = GetStateMachineInfo(oldBody);
+            newStateMachineKinds = GetStateMachineInfo(newBody);
 
             AddMatchingActiveNodes(ref lazyKnownMatches, activeNodes);
 
@@ -1522,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var match = ComputeBodyMatchImpl(oldBody, newBody, lazyKnownMatches);
 
-            if (oldStateMachineSuspensionPoints.Length > 0)
+            if (oldStateMachineKinds.HasSuspensionPoints)
             {
                 foreach (var (oldNode, newNode) in match.Matches)
                 {

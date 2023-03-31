@@ -2639,19 +2639,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKinds)
+        Protected Overrides Function GetStateMachineInfo(body As SyntaxNode) As StateMachineKinds
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
-                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
-                kind = New StateMachineKinds(IsAsync:=True, IsIterator:=False, HasSuspensionPoints:=Not suspensionPoints.IsEmpty())
+                Return New StateMachineKinds(IsAsync:=True, IsIterator:=False, HasSuspensionPoints:=SyntaxUtilities.GetAwaitExpressions(body).Any())
             ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
-                suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
-                kind = New StateMachineKinds(IsAsync:=False, IsIterator:=True, HasSuspensionPoints:=Not suspensionPoints.IsEmpty())
+                Return New StateMachineKinds(IsAsync:=False, IsIterator:=True, HasSuspensionPoints:=SyntaxUtilities.GetYieldStatements(body).Any())
             Else
-                suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
-                kind = StateMachineKinds.None
+                Return StateMachineKinds.None
             End If
-        End Sub
+        End Function
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)

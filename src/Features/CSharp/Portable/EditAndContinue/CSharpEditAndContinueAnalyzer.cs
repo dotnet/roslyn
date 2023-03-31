@@ -2680,15 +2680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
-        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
-        {
-            suspensionPoints = SyntaxUtilities.GetSuspensionPoints(body).ToImmutableArray();
-
-            kinds = new StateMachineKinds(
+        protected override StateMachineKinds GetStateMachineInfo(SyntaxNode body)
+            => new(
                 IsAsync: SyntaxUtilities.IsAsyncDeclaration(body.Parent),
                 IsIterator: SyntaxUtilities.IsIterator(body),
-                HasSuspensionPoints: !suspensionPoints.IsEmpty);
-        }
+                HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(body).Any());
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
