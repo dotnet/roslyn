@@ -20,5 +20,9 @@ internal interface ITextAndVersionSource
     TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken);
     Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves just the version information from this instance.  Cheaper than <see cref="GetValueAsync"/> when only
+    /// the version is needed, and avoiding loading the text is desirable.
+    /// </summary>
     Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken);
 }
