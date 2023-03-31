@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
 internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
 {
-    private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceProjectFactoryService(LanguageServerProjectSystem projectSystem)
+    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory)
     {
-        _projectSystem = projectSystem;
+        _workspaceFactory = workspaceFactory;
     }
 
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
@@ -36,13 +36,13 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
-        var project = await _projectSystem.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+        var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
             creationInfo.DisplayName,
             creationInfo.Language,
             new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
-            _projectSystem.ProjectSystemHostInfo);
+            _workspaceFactory.ProjectSystemHostInfo);
 
-        var workspaceProject = new WorkspaceProject(project, _projectSystem.Workspace.Services.SolutionServices, _projectSystem.TargetFrameworkManager);
+        var workspaceProject = new WorkspaceProject(project, _workspaceFactory.Workspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager);
 
         // We've created a new project, so initialize properties we have
         await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);

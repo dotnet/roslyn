@@ -17,7 +17,7 @@ public class WorkspaceProjectFactoryServiceTests
         using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(new LoggerFactory());
 
-        var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
+        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider
             .GetExportedValues<IExportedBrokeredService>()
             .Single(service => service.Descriptor == WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
@@ -40,7 +40,7 @@ public class WorkspaceProjectFactoryServiceTests
         await batch.ApplyAsync(CancellationToken.None);
 
         // Verify it actually did something; we won't exclusively test each method since those are tested at lower layers
-        var project = projectSystem.Workspace.CurrentSolution.Projects.Single();
+        var project = workspaceFactory.Workspace.CurrentSolution.Projects.Single();
         Assert.Equal(sourceFilePath, project.Documents.Single().FilePath);
         Assert.Equal(additionalFilePath, project.AdditionalDocuments.Single().FilePath);
     }

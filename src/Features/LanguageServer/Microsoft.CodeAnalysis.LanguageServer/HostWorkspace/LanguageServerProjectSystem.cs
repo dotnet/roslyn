@@ -6,11 +6,10 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
@@ -26,38 +25,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(LanguageServerProjectSystem)), Shared]
 internal sealed class LanguageServerProjectSystem
 {
-    private readonly ILogger _logger;
     private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+
+    /// <summary>
+    /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" /> and modifying <see cref="_msbuildLoaded" />.
+    /// This is just we don't have code simultaneously trying to load and unload solutions at once.
+    /// </summary>
+    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+
+    private bool _msbuildLoaded = false;
+
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
+
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
-    /// multiple projects at once; the key is a single List we just have a single thread processing any given project file.
+    /// multiple projects at once; the key is a single List we just have a single thread processing any given project file. This is only to be used
+    /// in <see cref="LoadOrReloadProjectsAsync" /> and downstream calls; any other updating of this (like unloading projects) should be achieved by adding
+    /// things to the <see cref="_projectsToLoadAndReload" />.
     /// </summary>
     private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(
-        HostServicesProvider hostServicesProvider,
-        VSCodeAnalyzerLoader analyzerLoader,
+        LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
-        ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _workspaceFactory = workspaceFactory;
+        _fileChangeWatcher = fileChangeWatcher;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
-        Workspace = workspace;
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, new FileChangeWatcher(), static (_, _) => Task.CompletedTask, _ => { });
-        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
-
-        analyzerLoader.InitializeDiagnosticsServices(Workspace);
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
-        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Workspace.Services.SolutionServices, new DiagnosticReporter(Workspace));
+        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<string>(
             TimeSpan.FromMilliseconds(100),
@@ -65,60 +70,66 @@ internal sealed class LanguageServerProjectSystem
             StringComparer.Ordinal,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-
-        ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),
-            new ProjectSystemDiagnosticSource(),
-            new HostDiagnosticAnalyzerProvider());
-        _fileChangeWatcher = fileChangeWatcher;
-        TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
-    public Workspace Workspace { get; }
-
-    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
-    public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
-    public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
-
-    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
+    public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader();
+        await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
+        await OpenSolutionCoreAsync(solutionFilePath);
+    }
 
-        foreach (var analyzerPath in analyzerPaths)
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenSolutionCoreAsync(string solutionFilePath)
+    {
+        using (await _gate.DisposableWaitAsync())
         {
-            if (File.Exists(analyzerPath))
+            _logger.LogInformation($"Loading {solutionFilePath}...");
+            var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
+
+            foreach (var project in solutionFile.ProjectsInOrder)
             {
-                references.Add(new AnalyzerFileReference(analyzerPath, analyzerLoader));
-                _logger.LogInformation($"Solution-level analyzer at {analyzerPath} added to workspace.");
+                if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
+                {
+                    continue;
+                }
+
+                _projectsToLoadAndReload.AddWork(project.AbsolutePath);
+            }
+        }
+    }
+
+    private async Task<bool> TryEnsureMSBuildLoadedAsync(string workingDirectory)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            if (_msbuildLoaded)
+            {
+                return true;
             }
             else
             {
-                _logger.LogWarning($"Solution-level analyzer at {analyzerPath} could not be found.");
+                var msbuildDiscoveryOptions = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = workingDirectory };
+                var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(msbuildDiscoveryOptions);
+                var msbuildInstance = msbuildInstances.FirstOrDefault();
+
+                if (msbuildInstance != null)
+                {
+                    MSBuildLocator.RegisterInstance(msbuildInstance);
+                    _logger.LogInformation($"Loaded MSBuild at {msbuildInstance.MSBuildPath}");
+                    _msbuildLoaded = true;
+
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    return false;
+                }
             }
-        }
-
-        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
-    }
-
-    public void OpenSolution(string solutionFilePath)
-    {
-        _logger.LogInformation($"Opening solution {solutionFilePath}");
-
-        var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
-
-        foreach (var project in solutionFile.ProjectsInOrder)
-        {
-            if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
-            {
-                continue;
-            }
-
-            _projectsToLoadAndReload.AddWork(project.AbsolutePath);
         }
     }
 
-    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<string> projectPathsToLoadOrReload, CancellationToken disposalToken)
+    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<string> projectPathsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -133,7 +144,7 @@ internal sealed class LanguageServerProjectSystem
 
             foreach (var projectPathToLoadOrReload in projectPathsToLoadOrReload)
             {
-                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, disposalToken), disposalToken));
+                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken), cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -146,14 +157,14 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken disposalToken)
+    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
     {
         try
         {
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
             {
-                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, disposalToken);
-                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(disposalToken);
+                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, cancellationToken);
+                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
@@ -171,13 +182,13 @@ internal sealed class LanguageServerProjectSystem
                         var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
                         var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
 
-                        var projectSystemProject = await ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                        var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
                             projectSystemName,
                             loadedProjectInfo.Language,
                             projectCreationInfo,
-                            ProjectSystemHostInfo);
+                            _workspaceFactory.ProjectSystemHostInfo);
 
-                        var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher, TargetFrameworkManager);
+                        var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);
                         existingProjects.Add(loadedProject);
 

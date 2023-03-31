@@ -8,7 +8,6 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
@@ -23,7 +22,7 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? solutionPath, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, CancellationToken cancellationToken)
+static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -63,18 +62,6 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         }
     }
 
-    // Register and load the appropriate MSBuild assemblies before we create the MEF composition.
-    // This is required because we need to include types from MS.CA.Workspaces.MSBuild which has a dependency on MSBuild dlls being loaded.
-    var msbuildDiscoveryOptions = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk };
-
-    // TODO: we probably shouldn't be doing any discovery if we don't have a solution to load, but for now we'll ensure we still have it since we indirectly
-    // depend on parts of MSBuildWorkspace
-    if (solutionPath != null)
-        msbuildDiscoveryOptions.WorkingDirectory = Path.GetDirectoryName(solutionPath);
-
-    var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(msbuildDiscoveryOptions);
-    MSBuildLocator.RegisterInstance(msbuildInstances.First());
-
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
@@ -98,23 +85,18 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBroker);
     }
 
-    // Create the project system first, since right now the language server will assume there's at least one Workspace
-    var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
+    // Create the workspace first, since right now the language server will assume there's at least one Workspace
+    var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
     var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
         .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await projectSystem.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
-
-    if (solutionPath != null)
-    {
-        projectSystem.OpenSolution(solutionPath);
-    }
 
     if (brokeredServicePipeName != null)
     {
@@ -122,6 +104,7 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
     }
 
     await server.WaitForExitAsync();
+
     // Server has exited, cancel our token.
     cancellationTokenSource.Cancel();
 
@@ -135,11 +118,6 @@ static Parser CreateCommandLineParser()
     var debugOption = new Option<bool>("--debug", getDefaultValue: () => false)
     {
         Description = "Flag indicating if the debugger should be launched on startup.",
-        IsRequired = false,
-    };
-    var solutionPathOption = new Option<string?>("--solutionPath")
-    {
-        Description = "The solution path to initialize the server with.",
         IsRequired = false,
     };
     var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
@@ -167,7 +145,6 @@ static Parser CreateCommandLineParser()
     var rootCommand = new RootCommand()
     {
         debugOption,
-        solutionPathOption,
         brokeredServicePipeNameOption,
         logLevelOption,
         starredCompletionsPathOption,
@@ -176,12 +153,11 @@ static Parser CreateCommandLineParser()
     {
         var cancellationToken = context.GetCancellationToken();
         var launchDebugger = context.ParseResult.GetValueForOption(debugOption);
-        var solutionPath = context.ParseResult.GetValueForOption(solutionPathOption);
         var brokeredServicePipeName = context.ParseResult.GetValueForOption(brokeredServicePipeNameOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
 
-        return RunAsync(launchDebugger, solutionPath, brokeredServicePipeName, logLevel, starredCompletionsPath, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
