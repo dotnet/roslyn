@@ -159,27 +159,20 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
         {
-            Span<byte> bytesSpan = stackalloc byte[2 * HashSize];
+            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum };
             Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
-            checksum1.WriteTo(bytesSpan);
-            checksum2.WriteTo(bytesSpan.Slice(HashSize));
-
-            SHA256.HashData(bytesSpan, hashResultSpan);
+            SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);
 
             return From(hashResultSpan);
         }
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            Span<byte> bytesSpan = stackalloc byte[3 * HashSize];
+            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum, checksum3._checksum };
             Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
-            checksum1.WriteTo(bytesSpan);
-            checksum2.WriteTo(bytesSpan.Slice(HashSize));
-            checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
-
-            SHA256.HashData(bytesSpan, hashResultSpan);
+            SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);
 
             return From(hashResultSpan);
         }
