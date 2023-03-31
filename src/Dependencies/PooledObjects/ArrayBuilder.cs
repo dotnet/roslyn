@@ -330,23 +330,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public OneOrMany<T> ToOneOrManyAndFree()
         {
-            OneOrMany<T> result;
-            if (Count == 0)
+            if (Count == 1)
             {
-                result = OneOrMany<T>.Empty;
+                var result = OneOrMany.Create(this[0]);
                 Free();
-            }
-            else if (Count == 1)
-            {
-                result = OneOrMany.Create(this[0]);
-                Free();
+                return result;
             }
             else
             {
-                result = OneOrMany.Create(ToImmutableAndFree());
+                return OneOrMany.Create(ToImmutableAndFree());
             }
-
-            return result;
         }
 
 #endif

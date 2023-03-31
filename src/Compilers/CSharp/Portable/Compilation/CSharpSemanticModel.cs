@@ -2379,16 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddUnwrappingErrorTypes(builder, UnwrapAlias(symbol));
             }
 
-            if (builder.Count == 1)
-            {
-                var result = OneOrMany.Create(builder[0]);
-                builder.Free();
-                return result;
-            }
-            else
-            {
-                return OneOrMany.Create(builder.ToImmutableAndFree());
-            }
+            return builder.ToOneOrManyAndFree();
         }
 
         // This is used by other binding APIs to invoke the right binder API
