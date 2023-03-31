@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // this design's weakness is that each side don't have enough information to narrow down works to do. it
             // will most likely always do more works than needed. sometimes way more than it is needed. (compilation)
 
-            // We mark blocking requests to GetDiagnosticsForSpanAsync as 'isExplicit = true' to indicate
+            // We mark requests to GetDiagnosticsForSpanAsync as 'isExplicit = true' to indicate
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
                 includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priority: priority,
-                addOperationScope: addOperationScope, isExplicit: isBlocking, cancellationToken: cancellationToken).ConfigureAwait(false);
+                addOperationScope: addOperationScope, isExplicit: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
