@@ -731,7 +731,7 @@ As an author I can make an input node that extracts the return type information
 
 ```csharp
 // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
                                                                   static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
 ```
 
