@@ -121,9 +121,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 // Check if both _reachingWrites maps have same set of write operations for each tracked symbol.
-                foreach (var symbol in _reachingWrites.Keys)
+                foreach (var (symbol, writes1) in _reachingWrites)
                 {
-                    var writes1 = _reachingWrites[symbol];
                     var writes2 = other._reachingWrites[symbol];
                     if (!SetEquals(writes1, writes2))
                         return false;
