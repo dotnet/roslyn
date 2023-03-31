@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 selection,
                 priorityProvider,
                 fallbackOptions,
-                isBlocking,
                 addOperationScope,
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 

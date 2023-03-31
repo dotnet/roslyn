@@ -112,35 +112,44 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return false;
                 }
 
-                var uniqueSymbols = PooledHashSet<ISymbol>.GetInstance();
-                try
+                // Check if both _reachingWrites maps have same set of keys.  This is a quick out based on O(keys),
+                // instead of doing the full O(k*v) check below.
+                foreach (var key in _reachingWrites.Keys)
                 {
-                    // Check if both _reachingWrites maps have same set of keys.
-                    uniqueSymbols.AddRange(_reachingWrites.Keys);
-                    uniqueSymbols.AddRange(other._reachingWrites.Keys);
-                    if (uniqueSymbols.Count != _reachingWrites.Count)
-                    {
+                    if (!other._reachingWrites.ContainsKey(key))
                         return false;
-                    }
-
-                    // Check if both _reachingWrites maps have same set of write
-                    // operations for each tracked symbol.
-                    foreach (var symbol in uniqueSymbols)
-                    {
-                        var writes1 = _reachingWrites[symbol];
-                        var writes2 = other._reachingWrites[symbol];
-                        if (!writes1.SetEquals(writes2))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
                 }
-                finally
+
+                // Check if both _reachingWrites maps have same set of write operations for each tracked symbol.
+                foreach (var symbol in _reachingWrites.Keys)
                 {
-                    uniqueSymbols.Free();
+                    var writes1 = _reachingWrites[symbol];
+                    var writes2 = other._reachingWrites[symbol];
+                    if (!SetEquals(writes1, writes2))
+                        return false;
                 }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Same as <see cref="HashSet{T}.SetEquals(IEnumerable{T})"/>, except this avoids allocations by
+            /// enumerating the set directly with a no-alloc enumerator.
+            /// </summary>
+            private static bool SetEquals<T>(HashSet<T> set1, HashSet<T> set2)
+            {
+                // same logic as https://github.com/dotnet/runtime/blob/62d6a8fe599ea3a77ef7af3c7660d398d692f062/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs#L1192
+
+                if (set1.Count != set2.Count)
+                    return false;
+
+                foreach (var operation in set1)
+                {
+                    if (!set2.Contains(operation))
+                        return false;
+                }
+
+                return true;
             }
 
             private bool IsEmpty => _reachingWrites.Count == 0;
@@ -174,6 +183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 var mergedData = GetInstance();
+
                 AddEntries(mergedData._reachingWrites, data1);
                 AddEntries(mergedData._reachingWrites, data2);
 
@@ -204,6 +214,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             result.Add(symbol, values);
                         }
 
+#if NET
+                        values.EnsureCapacity(operations.Count);
+#endif
                         values.AddRange(operations);
                     }
                 }
