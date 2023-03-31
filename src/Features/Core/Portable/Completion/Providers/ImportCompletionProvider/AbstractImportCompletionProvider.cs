@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = syntaxContext.SemanticModel;
             var document = syntaxContext.Document;
 
-            var importedNamespaces = ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken);
+            var importedNamespaces = GetImportedNamespaces(syntaxContext, cancellationToken);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -93,6 +94,40 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return namespacesInScope;
+        }
+
+        private static ImmutableArray<string> GetImportedNamespaces(SyntaxContext context, CancellationToken cancellationToken)
+        {
+            var position = context.Position;
+
+            var trivia = context.SyntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken, findInsideTrivia: true);
+            var triviaToken = trivia.Token;
+
+            // If we are inside of leading trivia of a token adjust position to be the start of that token.
+            // This is a workaround for an issue, when immediately after a `using` directive it is not included into the import scope.
+            // See https://github.com/dotnet/roslyn/issues/67447 for more info.
+            if (triviaToken.SpanStart > context.Position)
+                position = triviaToken.SpanStart;
+
+            var scopes = context.SemanticModel.GetImportScopes(position, cancellationToken);
+
+            using var _ = ArrayBuilder<string>.GetInstance(out var usingsBuilder);
+
+            foreach (var scope in scopes)
+            {
+                foreach (var import in scope.Imports)
+                {
+                    if (import.NamespaceOrType is INamespaceSymbol @namespace)
+                    {
+                        usingsBuilder.Add(GetNamespaceName(@namespace));
+                    }
+                }
+            }
+
+            return usingsBuilder.ToImmutable();
+
+            static string GetNamespaceName(INamespaceSymbol symbol)
+                => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(
