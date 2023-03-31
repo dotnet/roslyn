@@ -2228,7 +2228,7 @@ class C
 
                 ' Verify diagnostics for span
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
-                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriorityProvider.Default,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, New DefaultCodeActionRequestPriorityProvider(),
                     addOperationScope:=Nothing, DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
                 Dim diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
@@ -2236,7 +2236,7 @@ class C
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
                 diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing,
-                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, CodeActionRequestPriorityProvider.Default,
+                    includeCompilerDiagnostics:=True, includeSuppressedDiagnostics:=False, New DefaultCodeActionRequestPriorityProvider(),
                     addOperationScope:=Nothing, DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
                 Assert.Empty(diagnostics)
             End Using

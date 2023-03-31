@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -103,22 +104,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var pendingActionSets = new MultiDictionary<CodeActionRequestPriority, SuggestedActionSet>();
 
-                    CodeActionRequestPriorityProvider? priorityProvider = null;
+                    // Keep track of the diagnostic analyzers that have been deprioritized across calls to the
+                    // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
+                    // keep track of this *across* calls to each priority. So we create this set outside of the loop and
+                    // then pass it continuously from one priority group to the next.
+                    var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
                         if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
-                            priorityProvider = priorityProvider == null
-                                ? CodeActionRequestPriorityProvider.Create(priority)
-                                : priorityProvider.With(priority);
-
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                priorityProvider,
+                                new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionRequestPriorityProvider priorityProvider,
+                ICodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {

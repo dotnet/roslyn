@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -217,11 +218,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
+                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+
                 foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
-                    var priorityProvider = CodeActionRequestPriorityProvider.Create(priority.Value);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
 
                     var result = await GetFixLevelAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return null;
 
-                async Task<string?> GetFixLevelAsync(CodeActionRequestPriorityProvider priorityProvider)
+                async Task<string?> GetFixLevelAsync(ICodeActionRequestPriorityProvider priorityProvider)
                 {
                     if (state.Target.Owner._codeFixService != null &&
                         state.Target.SubjectBuffer.SupportsCodeFixes())

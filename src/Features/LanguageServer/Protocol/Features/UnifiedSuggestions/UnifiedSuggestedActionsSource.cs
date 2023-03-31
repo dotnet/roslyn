@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriorityProvider priorityProvider,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)

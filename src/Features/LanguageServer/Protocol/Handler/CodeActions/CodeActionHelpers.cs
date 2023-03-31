@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
-                CodeActionRequestPriorityProvider.Default,
+                new DefaultCodeActionRequestPriorityProvider(),
                 fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(

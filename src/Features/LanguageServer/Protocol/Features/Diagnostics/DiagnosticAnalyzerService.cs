@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics = false,
-            CodeActionRequestPriorityProvider? priorityProvider = null,
+            ICodeActionRequestPriorityProvider? priorityProvider = null,
             DiagnosticKind diagnosticKinds = DiagnosticKind.All,
             bool isExplicit = false,
             CancellationToken cancellationToken = default)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(async () =>
                 {
-                    priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+                    priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
                     using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
-            CodeActionRequestPriorityProvider? priorityProvider,
+            ICodeActionRequestPriorityProvider? priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
-                priorityProvider ??= CodeActionRequestPriorityProvider.Default;
+                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(

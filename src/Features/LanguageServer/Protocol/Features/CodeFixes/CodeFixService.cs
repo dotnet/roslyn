@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
             TextDocument document,
-            CodeActionRequestPriorityProvider priorityProvider)
+            ICodeActionRequestPriorityProvider priorityProvider)
         {
             // For Normal or Low priority, we only need to execute analyzers which can report at least one fixable
             // diagnostic that can have a non-suppression/configuration fix.
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public async Task<FirstFixResult> GetMostSevereFixAsync(
-            TextDocument document, TextSpan range, CodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
             TextDocument document,
             TextSpan range,
-            CodeActionRequestPriorityProvider priorityProvider,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
 
             await foreach (var collection in StreamFixesAsync(
-                document, spanToDiagnostics, fixAllForInSpan: true, CodeActionRequestPriorityProvider.Default,
+                document, spanToDiagnostics, fixAllForInSpan: true, new DefaultCodeActionRequestPriorityProvider(),
                 fallbackOptions, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false))
             {
                 if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextDocument document,
             SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
             bool fixAllForInSpan,
-            CodeActionRequestPriorityProvider priorityProvider,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
