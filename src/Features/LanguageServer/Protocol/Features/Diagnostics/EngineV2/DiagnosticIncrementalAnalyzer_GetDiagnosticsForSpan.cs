@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
-            private readonly bool _isExplicit;
             private readonly bool _logPerformanceInfo;
             private readonly bool _incrementalAnalysis;
             private readonly DiagnosticKind _diagnosticKind;
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
                     range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics,
-                    isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
+                    logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -172,7 +171,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CodeActionRequestPriority priority,
                 bool cacheFullDocumentDiagnostics,
-                bool isExplicit,
                 bool logPerformanceInfo,
                 bool incrementalAnalysis,
                 DiagnosticKind diagnosticKind)
@@ -190,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
                 _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
-                _isExplicit = isExplicit;
                 _logPerformanceInfo = logPerformanceInfo;
                 _incrementalAnalysis = incrementalAnalysis;
                 _diagnosticKind = diagnosticKind;
@@ -381,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
+                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
