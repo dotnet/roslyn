@@ -3611,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (query.Operation != null && (object)query.Operation.ExpressionSymbol != null) builder.Add(query.Operation.ExpressionSymbol);
                         if ((object)query.DefinedSymbol != null) builder.Add(query.DefinedSymbol);
                         if (query.Cast != null && (object)query.Cast.ExpressionSymbol != null) builder.Add(query.Cast.ExpressionSymbol);
-                        symbols = OneOrMany.Create(builder.ToImmutableAndFree());
+                        symbols = builder.ToOneOrManyAndFree();
                     }
                     break;
 
