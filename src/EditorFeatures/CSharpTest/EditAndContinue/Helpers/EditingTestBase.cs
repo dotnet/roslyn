@@ -140,16 +140,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var m1 = MakeMethodBody(src1, kind);
             var m2 = MakeMethodBody(src2, kind);
 
-            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
-            var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldStatemachineKinds, out var newStatemachineKinds);
-            var needsSyntaxMap = oldStatemachineKinds.HasSuspensionPoints && newStatemachineKinds.HasSuspensionPoints;
+            var analyzer = CreateAnalyzer();
+            var match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>());
+
+            var stateMachineInfo1 = analyzer.GetStateMachineInfo(m1);
+            var stateMachineInfo2 = analyzer.GetStateMachineInfo(m2);
+            var needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints && stateMachineInfo2.HasSuspensionPoints;
 
             Assert.Equal(kind is not MethodKind.Regular and not MethodKind.ConstructorWithParameters, needsSyntaxMap);
-
-            if (kind is MethodKind.Regular or MethodKind.ConstructorWithParameters)
-            {
-                Assert.Empty(diagnostics);
-            }
 
             return match;
         }
@@ -208,16 +206,18 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
 
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
         {
-            var decl1 = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
-            var body1 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl1).GetRoot()).Body;
+            var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
+            var oldBody = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(oldDeclaration).GetRoot()).Body;
 
-            var decl2 = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.NewRoot).Members[0]).Members[0];
-            var body2 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl2).GetRoot()).Body;
+            var newDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.NewRoot).Members[0]).Members[0];
+            var newBody = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(newDeclaration).GetRoot()).Body;
 
-            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
-            _ = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics,
-                out var oldStatemachineKinds, out var newStatemachineKinds);
-            var needsSyntaxMap = oldStatemachineKinds.HasSuspensionPoints && newStatemachineKinds.HasSuspensionPoints;
+            var analyzer = CreateAnalyzer();
+            _ = analyzer.ComputeBodyMatch(oldBody, newBody, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>());
+
+            var oldStateMachineInfo = analyzer.GetStateMachineInfo(oldBody);
+            var newStateMachineInfo = analyzer.GetStateMachineInfo(newBody);
+            var needsSyntaxMap = oldStateMachineInfo.HasSuspensionPoints && newStateMachineInfo.HasSuspensionPoints;
 
             // Active methods are detected to preserve local variables for variable mapping and
             // edited async/iterator methods are considered active.

@@ -2680,7 +2680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
-        protected override StateMachineKinds GetStateMachineInfo(SyntaxNode body)
+        internal override StateMachineKinds GetStateMachineInfo(SyntaxNode body)
             => new(
                 IsAsync: SyntaxUtilities.IsAsyncDeclaration(body.Parent),
                 IsIterator: SyntaxUtilities.IsIterator(body),

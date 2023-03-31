@@ -177,17 +177,14 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
+            Dim analyzer = CreateAnalyzer()
+            Dim match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)())
 
-            Dim oldStateMachineKind As StateMachineKinds = Nothing, newStateMachineKind As StateMachineKinds = Nothing
-            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldStateMachineKind, newStateMachineKind)
-            Dim needsSyntaxMap = oldStateMachineKind.HasSuspensionPoints AndAlso newStateMachineKind.HasSuspensionPoints
+            Dim stateMachineInfo1 = analyzer.GetStateMachineInfo(m1)
+            Dim stateMachineInfo2 = analyzer.GetStateMachineInfo(m2)
+            Dim needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints AndAlso stateMachineInfo2.HasSuspensionPoints
 
             Assert.Equal(methodKind <> MethodKind.Regular, needsSyntaxMap)
-
-            If methodKind = MethodKind.Regular Then
-                Assert.Empty(diagnostics)
-            End If
 
             Return match
         End Function

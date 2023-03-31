@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract ushort LineDirectiveSyntaxKind { get; }
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
-        protected abstract StateMachineKinds GetStateMachineInfo(SyntaxNode body);
+        internal abstract StateMachineKinds GetStateMachineInfo(SyntaxNode body);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
@@ -1041,8 +1041,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     activeNodes.Add(new ActiveNode(activeStatementIndex, oldStatementSyntax, oldEnclosingLambdaBody, statementPart, trackedNode));
                 }
 
-                var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray(), diagnostics, out var oldStateMachineKinds, out var newStateMachineKinds);
+                var activeNodesInBody = activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray();
+
+                var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodesInBody);
                 var map = ComputeMap(oldModel, oldMember, newMember, bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, capabilities, diagnostics);
+
+                var oldStateMachineKinds = GetStateMachineInfo(oldBody);
+                var newStateMachineKinds = GetStateMachineInfo(newBody);
+                ReportStateMachineBodyUpdateRudeEdits(bodyMatch, oldStateMachineKinds, newBody, newStateMachineKinds, activeNodesInBody, diagnostics);
 
                 ReportMemberOrLambdaBodyUpdateRudeEdits(
                     diagnostics,
@@ -1444,28 +1450,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
             [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            ActiveNode[]? activeNodesInLambda;
+            ActiveNode[] activeNodesInLambdaBody;
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
             {
                 // Lambda may be matched but not be active.
-                activeNodesInLambda = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray();
+                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray() ?? Array.Empty<ActiveNode>();
             }
             else
             {
                 // If the lambda body isn't in the map it doesn't have any active/tracked statements.
-                activeNodesInLambda = null;
+                activeNodesInLambdaBody = Array.Empty<ActiveNode>();
                 info = new LambdaInfo();
             }
 
-            var lambdaBodyMatch = ComputeBodyMatch(
-                oldLambdaBody,
-                newLambdaBody,
-                activeNodesInLambda ?? Array.Empty<ActiveNode>(),
-                diagnostics,
-                out var oldStateMachineKinds,
-                out var newStateMachineKinds);
+            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambdaBody);
 
             activeOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
+
+            var oldStateMachineKinds = GetStateMachineInfo(oldLambdaBody);
+            var newStateMachineKinds = GetStateMachineInfo(newLambdaBody);
+            ReportStateMachineBodyUpdateRudeEdits(lambdaBodyMatch, oldStateMachineKinds, newLambdaBody, newStateMachineKinds, activeNodesInLambdaBody, diagnostics);
 
             // When the delta IL of the containing method is emitted lambdas declared in it are also emitted.
             // If the runtime does not support changing IL of the method (e.g. method containing stackalloc)
@@ -1499,28 +1503,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Called for a member body and for bodies of all lambdas and local functions (recursively) found in the member body.
         /// </summary>
-        private Match<SyntaxNode> ComputeBodyMatch(
-            SyntaxNode oldBody,
+        internal Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<ActiveNode> activeNodes)
+            => ComputeBodyMatchImpl(oldBody, newBody, knownMatches: GetMatchingActiveNodes(activeNodes));
+
+        private void ReportStateMachineBodyUpdateRudeEdits(
+            Match<SyntaxNode> match,
+            StateMachineKinds oldStateMachineKinds,
             SyntaxNode newBody,
+            StateMachineKinds newStateMachineKinds,
             ActiveNode[] activeNodes,
-            ArrayBuilder<RudeEditDiagnostic> diagnostics,
-            out StateMachineKinds oldStateMachineKinds,
-            out StateMachineKinds newStateMachineKinds)
+            ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches = null;
-            oldStateMachineKinds = GetStateMachineInfo(oldBody);
-            newStateMachineKinds = GetStateMachineInfo(newBody);
-
-            AddMatchingActiveNodes(ref lazyKnownMatches, activeNodes);
-
             // Consider following cases:
             // 1) The new method contains yields/awaits but the old doesn't.
             //    If the method has active statements report rude edits for each inserted yield/await (insert "around" an active statement).
             // 2) The old method is async/iterator, the new method is not and it contains an active statement.
             //    Report rude edit since we can't remap IP from MoveNext to the kickoff method.
             //    Note that iterators in VB don't need to contain yield, so this case is not covered by change in number of yields.
-
-            var match = ComputeBodyMatchImpl(oldBody, newBody, lazyKnownMatches);
 
             if (oldStateMachineKinds.HasSuspensionPoints)
             {
@@ -1529,17 +1528,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
                 }
             }
-            else if (activeNodes.Length > 0)
+
+            // It is allowed to update a regular method to an async method or an iterator.
+            // The only restriction is a presence of an active statement in the method body
+            // since the debugger does not support remapping active statements to a different method.
+            if (activeNodes.Length > 0 && oldStateMachineKinds.IsStateMachine != newStateMachineKinds.IsStateMachine)
             {
-                // It is allowed to update a regular method to an async method or an iterator.
-                // The only restriction is a presence of an active statement in the method body
-                // since the debugger does not support remapping active statements to a different method.
-                if (oldStateMachineKinds != newStateMachineKinds)
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
-                        GetBodyDiagnosticSpan(newBody, EditKind.Update)));
-                }
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                    GetBodyDiagnosticSpan(newBody, EditKind.Update)));
             }
 
             // report removing async as rude:
@@ -1561,8 +1558,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newBody,
                     new[] { GetBodyDisplayName(newBody) }));
             }
-
-            return match;
         }
 
         internal virtual void ReportStateMachineSuspensionPointDeletedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
@@ -1583,9 +1578,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetSuspensionPointDisplayName(insertedSuspensionPoint, EditKind.Insert) }));
         }
 
-        private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)
+        private static List<KeyValuePair<SyntaxNode, SyntaxNode>>? GetMatchingActiveNodes(IEnumerable<ActiveNode> activeNodes)
         {
             // add nodes that are tracked by the editor buffer to known matches:
+            List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches = null;
+
             foreach (var activeNode in activeNodes)
             {
                 if (activeNode.NewTrackedNode != null)
@@ -1594,6 +1591,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
                 }
             }
+
+            return lazyKnownMatches;
         }
 
         public ActiveStatementExceptionRegions GetExceptionRegions(SyntaxNode syntaxRoot, TextSpan unmappedActiveStatementSpan, bool isNonLeaf, CancellationToken cancellationToken)
@@ -6270,17 +6269,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ArrayBuilder<RudeEditDiagnostic> diagnostics)
             {
                 return _abstractEditAndContinueAnalyzer.ComputeMap(oldModel, oldMember, newMember, bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, capabilities, diagnostics);
-            }
-
-            internal Match<SyntaxNode> ComputeBodyMatch(
-                SyntaxNode oldBody,
-                SyntaxNode newBody,
-                ActiveNode[] activeNodes,
-                ArrayBuilder<RudeEditDiagnostic> diagnostics,
-                out StateMachineKinds oldStatemachineKinds,
-                out StateMachineKinds newStatemachineKinds)
-            {
-                return _abstractEditAndContinueAnalyzer.ComputeBodyMatch(oldBody, newBody, activeNodes, diagnostics, out oldStatemachineKinds, out newStatemachineKinds);
             }
         }
 
