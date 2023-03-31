@@ -4348,7 +4348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (symbols.Count == 0)
+            if (!symbols.Any())
             {
                 // If we didn't find a better set of symbols, then assume this is a method group that didn't
                 // get resolved. Return all members of the method group, with a resultKind of OverloadResolutionFailure
