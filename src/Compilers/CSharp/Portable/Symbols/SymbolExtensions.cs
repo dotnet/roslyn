@@ -700,18 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbols.SelectAsArray(p => p.GetPublicSymbol<TISymbol>());
         }
 
-        private static OneOrMany<TISymbol> GetPublicSymbols<TISymbol>(this OneOrMany<Symbol> symbols)
-            where TISymbol : class, ISymbol
-        {
-            return symbols.Select(static s => s.GetPublicSymbol<TISymbol>());
-        }
-
         internal static ImmutableArray<ISymbol> GetPublicSymbols(this ImmutableArray<Symbol> symbols)
-        {
-            return GetPublicSymbols<ISymbol>(symbols);
-        }
-
-        internal static OneOrMany<ISymbol> GetPublicSymbols(this OneOrMany<Symbol> symbols)
         {
             return GetPublicSymbols<ISymbol>(symbols);
         }

@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder?.InCref == true)
             {
                 ImmutableArray<Symbol> symbols = BindCref(crefSyntax, binder);
-                return GetCrefSymbolInfo(symbols, options, hasParameterList);
+                return GetCrefSymbolInfo(OneOrMany.Create(symbols), options, hasParameterList);
             }
 
             return SymbolInfo.None;
@@ -362,9 +362,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static SymbolInfo GetCrefSymbolInfo(ImmutableArray<Symbol> symbols, SymbolInfoOptions options, bool hasParameterList)
+        private static SymbolInfo GetCrefSymbolInfo(OneOrMany<Symbol> symbols, SymbolInfoOptions options, bool hasParameterList)
         {
-            switch (symbols.Length)
+            switch (symbols.Count)
             {
                 case 0:
                     return SymbolInfo.None;
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundNode == null || crefSymbols.IsDefault);
             if (boundNode == null)
             {
-                return crefSymbols.IsDefault ? SymbolInfo.None : GetCrefSymbolInfo(crefSymbols, SymbolInfoOptions.DefaultOptions, hasParameterList: false);
+                return crefSymbols.IsDefault ? SymbolInfo.None : GetCrefSymbolInfo(OneOrMany.Create(crefSymbols), SymbolInfoOptions.DefaultOptions, hasParameterList: false);
             }
 
             var symbolInfo = this.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundNode, boundNode, boundNodeForSyntacticParent: null, binderOpt: binder);
@@ -2327,12 +2327,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)originalErrorSymbol != null)
             {
                 // Error case.
-                var symbols = ImmutableArray<Symbol>.Empty;
+                var symbols = OneOrMany<Symbol>.Empty;
 
                 LookupResultKind resultKind = originalErrorSymbol.ResultKind;
                 if (resultKind != LookupResultKind.Empty)
                 {
-                    symbols = originalErrorSymbol.CandidateSymbols;
+                    symbols = OneOrMany.Create(originalErrorSymbol.CandidateSymbols);
                 }
 
                 if ((options & SymbolInfoOptions.ResolveAliases) != 0)
@@ -2366,7 +2366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol is AliasSymbol aliasSym ? aliasSym.Target : symbol;
         }
 
-        protected static ImmutableArray<Symbol> UnwrapAliases(ImmutableArray<Symbol> symbols)
+        protected static OneOrMany<Symbol> UnwrapAliases(OneOrMany<Symbol> symbols)
         {
             bool anyAliases = false;
 
@@ -2387,7 +2387,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddUnwrappingErrorTypes(builder, UnwrapAlias(symbol));
             }
 
-            return builder.ToImmutableAndFree();
+            if (builder.Count == 1)
+            {
+                var result = OneOrMany.Create(builder[0]);
+                builder.Free();
+                return result;
+            }
+            else
+            {
+                return OneOrMany.Create(builder.ToImmutableAndFree());
+            }
         }
 
         // This is used by other binding APIs to invoke the right binder API
@@ -3982,7 +3991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.Attribute:
                         BoundAttribute boundAttribute = (BoundAttribute)boundNodeForSyntacticParent;
 
-                        if (unwrappedSymbols.Length == 1 && unwrappedSymbols[0].Kind == SymbolKind.NamedType)
+                        if (unwrappedSymbols.Count == 1 && unwrappedSymbols[0].Kind == SymbolKind.NamedType)
                         {
                             Debug.Assert(resultKind != LookupResultKind.Viable ||
                                 TypeSymbol.Equals((TypeSymbol)unwrappedSymbols[0], boundAttribute.Type.GetNonErrorGuess(), TypeCompareKind.ConsiderEverything2));
@@ -3995,7 +4004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.BadExpression:
                         BoundBadExpression boundBadExpression = (BoundBadExpression)boundNodeForSyntacticParent;
-                        if (unwrappedSymbols.Length == 1)
+                        if (unwrappedSymbols.Count == 1)
                         {
                             resultKind = resultKind.WorseResultKind(boundBadExpression.ResultKind);
                             typeSymbol = unwrappedSymbols[0] as NamedTypeSymbol;

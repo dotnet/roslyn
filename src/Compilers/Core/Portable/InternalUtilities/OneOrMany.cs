@@ -183,6 +183,17 @@ namespace Roslyn.Utilities
                 : new OneOrMany<T>(ImmutableArray<T>.CastUp(from._many));
         }
 
+        public bool All(Func<T, bool> predicate)
+        {
+            foreach (var value in this)
+            {
+                if (!predicate(value))
+                    return false;
+            }
+
+            return true;
+        }
+
         public Enumerator GetEnumerator()
             => new(this);
 

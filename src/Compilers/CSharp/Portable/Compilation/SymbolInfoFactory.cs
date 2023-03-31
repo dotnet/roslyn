@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new SymbolInfo(symbols.GetPublicSymbols(), CandidateReason.LateBound);
+                    return new SymbolInfo(GetPublicSymbols(symbols), CandidateReason.LateBound);
                 }
             }
             else if (resultKind == LookupResultKind.Viable)
@@ -73,7 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new SymbolInfo(symbols.GetPublicSymbols(), (symbols.Count > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
+                return new SymbolInfo(GetPublicSymbols(symbols), (symbols.Count > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
+            }
+
+            static ImmutableArray<ISymbol> GetPublicSymbols(OneOrMany<Symbol> symbols)
+            {
+                var result = ArrayBuilder<ISymbol>.GetInstance(symbols.Count);
+                foreach (var symbol in symbols)
+                    result.Add(symbol.GetPublicSymbol());
+
+                return result.ToImmutableAndFree();
             }
         }
     }
