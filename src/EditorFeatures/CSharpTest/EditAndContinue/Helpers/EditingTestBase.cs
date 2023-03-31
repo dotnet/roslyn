@@ -42,7 +42,13 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             ConstructorWithParameters
         }
 
+        public static string GetResource(string keyword, string symbolDisplayName)
+            => string.Format(FeaturesResources.member_kind_and_name, TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword), symbolDisplayName);
+
         public static string GetResource(string keyword)
+            => TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword);
+
+        public static string? TryGetResource(string keyword)
             => keyword switch
             {
                 "enum" => FeaturesResources.enum_,
@@ -52,7 +58,23 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "struct" => CSharpFeaturesResources.struct_,
                 "record" or "record class" => CSharpFeaturesResources.record_,
                 "record struct" => CSharpFeaturesResources.record_struct,
-                _ => throw ExceptionUtilities.UnexpectedValue(keyword)
+                "static constructor" => FeaturesResources.static_constructor,
+                "constructor" => FeaturesResources.constructor,
+                "field" => FeaturesResources.field,
+                "method" => FeaturesResources.method,
+                "property" => FeaturesResources.property_,
+                "auto-property" => FeaturesResources.auto_property,
+                "indexer" => CSharpFeaturesResources.indexer,
+                "indexer getter" => CSharpFeaturesResources.indexer_getter,
+                "indexer setter" => CSharpFeaturesResources.indexer_setter,
+                "parameter" => FeaturesResources.parameter,
+                "type parameter" => FeaturesResources.type_parameter,
+                "lambda" => CSharpFeaturesResources.lambda,
+                "local function" => FeaturesResources.local_function,
+                "where clause" => CSharpFeaturesResources.where_clause,
+                "select clause" => CSharpFeaturesResources.select_clause,
+                "groupby clause" => CSharpFeaturesResources.groupby_clause,
+                _ => null
             };
 
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
@@ -119,8 +141,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var m2 = MakeMethodBody(src2, kind);
 
             var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
-            var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
-            var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
+            var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldStatemachineKinds, out var newStatemachineKinds);
+            var needsSyntaxMap = oldStatemachineKinds.HasSuspensionPoints && newStatemachineKinds.HasSuspensionPoints;
 
             Assert.Equal(kind is not MethodKind.Regular and not MethodKind.ConstructorWithParameters, needsSyntaxMap);
 
@@ -193,8 +215,9 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var body2 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl2).GetRoot()).Body;
 
             var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
-            _ = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
-            var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
+            _ = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics,
+                out var oldStatemachineKinds, out var newStatemachineKinds);
+            var needsSyntaxMap = oldStatemachineKinds.HasSuspensionPoints && newStatemachineKinds.HasSuspensionPoints;
 
             // Active methods are detected to preserve local variables for variable mapping and
             // edited async/iterator methods are considered active.

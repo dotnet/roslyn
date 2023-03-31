@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns true if the specified <paramref name="node"/> is part of a lambda body. 
+        ''' Returns true if the specified <paramref name="node"/> is part of a lambda body and its parent is not.
         ''' Returns the node (<paramref name="lambdaBody"/>) that represents the containing lambda body.
         ''' </summary>
         ''' <remarks>
@@ -352,6 +352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        ''' <summary>
+        ''' Enumerates all nodes that belong to the given <paramref name="lambdaBody"/> and their parents do not
+        ''' (they are the top-most expressions and statements of the body).
+        ''' </summary>
         Friend Shared Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As IEnumerable(Of SyntaxNode)
             Dim lambda = GetLambda(lambdaBody)
 

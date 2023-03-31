@@ -39,7 +39,25 @@ End Namespace
             Iterator
         End Enum
 
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String) As String
+            Dim resource = TryGetResource(keyword)
+
+            If resource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Return String.Format(FeaturesResources.member_kind_and_name, resource, symbolDisplayName)
+        End Function
+
         Public Shared Function GetResource(keyword As String) As String
+            Dim result = TryGetResource(keyword)
+            If result Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+            Return result
+        End Function
+
+        Public Shared Function TryGetResource(keyword As String) As String
             Select Case keyword
                 Case "Enum"
                     Return FeaturesResources.enum_
@@ -53,8 +71,26 @@ End Namespace
                     Return FeaturesResources.interface_
                 Case "Delegate"
                     Return FeaturesResources.delegate_
+                Case "Lambda"
+                    Return VBFeaturesResources.Lambda
+                Case "field"
+                    Return FeaturesResources.field
+                Case "property"
+                    Return FeaturesResources.property_
+                Case "method"
+                    Return FeaturesResources.method
+                Case "constructor"
+                    Return FeaturesResources.constructor
+                Case "shared constructor"
+                    Return VBFeaturesResources.Shared_constructor
+                Case "parameter"
+                    Return FeaturesResources.parameter
+                Case "type parameter"
+                    Return FeaturesResources.type_parameter
+                Case "WithEvents field"
+                    Return VBFeaturesResources.WithEvents_field
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(keyword)
+                    Return Nothing
             End Select
         End Function
 
@@ -143,9 +179,9 @@ End Namespace
 
             Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
 
-            Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
-            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
-            Dim needsSyntaxMap = oldHasStateMachineSuspensionPoint AndAlso newHasStateMachineSuspensionPoint
+            Dim oldStateMachineKind As StateMachineKinds = Nothing, newStateMachineKind As StateMachineKinds = Nothing
+            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldStateMachineKind, newStateMachineKind)
+            Dim needsSyntaxMap = oldStateMachineKind.HasSuspensionPoints AndAlso newStateMachineKind.HasSuspensionPoints
 
             Assert.Equal(methodKind <> MethodKind.Regular, needsSyntaxMap)
 
