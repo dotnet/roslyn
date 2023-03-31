@@ -11,7 +11,6 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 #endif
 
-
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
