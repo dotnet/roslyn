@@ -45,5 +45,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new SymbolInfo(symbols.GetPublicSymbols(), (symbols.Length > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
             }
         }
+
+        internal static SymbolInfo Create(OneOrMany<Symbol> symbols, LookupResultKind resultKind, bool isDynamic)
+        {
+            if (isDynamic)
+            {
+                if (symbols.Count == 1)
+                {
+                    return new SymbolInfo(symbols[0].GetPublicSymbol(), CandidateReason.LateBound);
+                }
+                else
+                {
+                    return new SymbolInfo(symbols.GetPublicSymbols(), CandidateReason.LateBound);
+                }
+            }
+            else if (resultKind == LookupResultKind.Viable)
+            {
+                if (symbols.Count > 0)
+                {
+                    Debug.Assert(symbols.Count == 1);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol());
+                }
+                else
+                {
+                    return SymbolInfo.None;
+                }
+            }
+            else
+            {
+                return new SymbolInfo(symbols.GetPublicSymbols(), (symbols.Count > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
+            }
+        }
     }
 }
