@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCaseInSwitchArm">
         <source>A switch expression arm does not begin with a 'case' keyword.</source>
-        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <target state="translated">Un brazo de expresión de cambio no comienza con una palabra clave ''caso''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
         <source>Using alias cannot be a nullable reference type.</source>
-        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <target state="translated">El uso de alias no puede ser un tipo de referencia que acepte valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -269,12 +269,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
-        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <target state="translated">El uso de alias no puede ser un tipo 'ref'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
-        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <target state="translated">El modificador ''estático'' debe preceder al modificador ''No seguro''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
-        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
+        <target state="translated">Solo un ''usando estática'' o ''usando alias'' puede ser ''No seguro''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantValueOfTypeExpected">
         <source>A constant value of type '{0}' is expected</source>
-        <target state="new">A constant value of type '{0}' is expected</target>
+        <target state="translated">Se espera un valor constante de tipo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUsingTypeAlias">
         <source>using type alias</source>
-        <target state="new">using type alias</target>
+        <target state="translated">mediante alias de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2029,12 +2029,12 @@
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">El operador ''&amp;'' no debe usarse en parámetros o variables locales en métodos asincrónicos.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">El operador ''&amp;'' no debe usarse en parámetros o variables locales en métodos asincrónicos.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -10381,22 +10381,22 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
+        <target state="translated">La cadena de versión especificada ''{0}'' no se ajusta al formato requerido: major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">La cadena de versión especificada ''{0}'' contiene caracteres comodín, que no son compatibles con el determinismo. Quite los caracteres comodín de la cadena de versión o deshabilite el determinismo para esta compilación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
+        <target state="translated">La cadena de versión especificada ''{0}'' no se ajusta al formato requerido: major.minor.build.revision (sin caracteres comodín)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
+        <target state="translated">La cadena de versión especificada ''{0}'' no se ajusta al formato recomendado: major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">

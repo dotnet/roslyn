@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCaseInSwitchArm">
         <source>A switch expression arm does not begin with a 'case' keyword.</source>
-        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <target state="translated">스위치 식 arm은 'case' 키워드로 시작하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
         <source>Using alias cannot be a nullable reference type.</source>
-        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <target state="translated">별칭 사용은 nullable 참조 형식일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -269,12 +269,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
-        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <target state="translated">별칭을 사용하는 것은 'ref' 유형일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
-        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <target state="translated">'static' 한정자는 'unsafe' 한정자 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
-        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
+        <target state="translated">'using static' 또는 'using alias'만 'unsafe'일 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUsingTypeAlias">
         <source>using type alias</source>
-        <target state="new">using type alias</target>
+        <target state="translated">유형 별칭 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2029,12 +2029,12 @@
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -10380,22 +10380,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 필요한 형식 major[.minor[.build[.revision]]]을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">지정한 버전 문자열 '{0}'에는 결정성과 호환되지 않는 와일드카드가 포함되어 있습니다. 버전 문자열에서 와일드카드를 제거하거나 이 컴파일에 대해 결정성을 사용하지 않도록 설정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 필요한 형식 major.minor.build.revision(와일드카드 없음)을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 권장 형식 major.minor.build.revision을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
