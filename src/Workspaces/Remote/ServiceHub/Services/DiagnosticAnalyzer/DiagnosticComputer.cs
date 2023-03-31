@@ -304,21 +304,16 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     foreach (var task in highPriorityTasksToAwait)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        await WaitForHighPriorityTaskAsync(task, cancellationToken).ConfigureAwait(false);
+                        if (task.IsCompleted)
+                        {
+                            // Make sure to yield so continuations of 'task' can make progress.
+                            await Task.Yield().ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await task.WithCancellation(cancellationToken).NoThrowAwaitableInternal(false);
+                        }
                     }
-                }
-
-                static async Task WaitForHighPriorityTaskAsync(Task task, CancellationToken cancellationToken)
-                {
-                    if (task.IsCompleted)
-                    {
-                        // Make sure to yield so continuations of 'task' can make progress.
-                        await Task.Yield().ConfigureAwait(false);
-                        return;
-                    }
-
-                    await task.WithCancellation(cancellationToken).NoThrowAwaitableInternal(false);
                 }
             }
         }
