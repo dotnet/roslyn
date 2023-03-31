@@ -194,6 +194,9 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        public bool Any()
+            => this.Count > 0;
+
         public Enumerator GetEnumerator()
             => new(this);
 
