@@ -112,20 +112,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return false;
                 }
 
-                using var _ = PooledHashSet<ISymbol>.GetInstance(out var uniqueSymbols);
-
-                // Check if both _reachingWrites maps have same set of keys.
-#if NET
-                uniqueSymbols.EnsureCapacity(Math.Max(_reachingWrites.Keys.Count, other._reachingWrites.Keys.Count));
-#endif
-
-                uniqueSymbols.AddRange(_reachingWrites.Keys);
-                uniqueSymbols.AddRange(other._reachingWrites.Keys);
-                if (uniqueSymbols.Count != _reachingWrites.Count)
-                    return false;
+                // Check if both _reachingWrites maps have same set of keys.  This is a quick out based on O(keys),
+                // instead of doing the full O(k*v) check below.
+                foreach (var key in _reachingWrites.Keys)
+                {
+                    if (!other._reachingWrites.ContainsKey(key))
+                        return false;
+                }
 
                 // Check if both _reachingWrites maps have same set of write operations for each tracked symbol.
-                foreach (var symbol in uniqueSymbols)
+                foreach (var symbol in _reachingWrites.Keys)
                 {
                     var writes1 = _reachingWrites[symbol];
                     var writes2 = other._reachingWrites[symbol];
