@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
+        protected abstract void CheckUnderlyingType(BindingDiagnosticBag diagnostics);
         protected abstract void CheckBaseExtensions(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
@@ -545,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var diagnostics = BindingDiagnosticBag.GetInstance();
                             if (IsExtension)
                             {
-                                // We check the constraints on underlying type later,
-                                // as part of binding the extension marker method.
+                                CheckUnderlyingType(diagnostics);
                                 CheckBaseExtensions(diagnostics);
                             }
                             else
@@ -1613,6 +1613,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
+            else if (member is SynthesizedExtensionMarker)
+            {
+                RoslynDebug.AssertOrFailFast(member.ContainingType.IsExtension);
+                return;
+            }
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
@@ -1740,11 +1745,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
+            var extendedType = ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var baseExtensions = BaseExtensionsNoUseSiteDiagnostics;
 
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (hasBaseTypeOrInterface(static t => t.ContainsNativeIntegerWrapperType()))
+                if (hasBaseListType(static t => t.ContainsNativeIntegerWrapperType()))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1757,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                if (hasBaseTypeOrInterface(static t => t.NeedsNullableAttribute()))
+                if (hasBaseListType(static t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1805,12 +1812,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsExtension)
+            {
+                Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_ValueType, declaration.NameLocations[0], diagnostics);
+            }
+
             return;
 
-            bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
+            bool hasBaseListType(Func<TypeSymbol, bool> predicate)
             {
-                return ((object)baseType != null && predicate(baseType)) ||
-                    interfaces.Any(predicate);
+                return (baseType is not null && predicate(baseType)) ||
+                    interfaces.As<TypeSymbol>().Any(predicate) ||
+                    (extendedType is not null && predicate(extendedType)) ||
+                    baseExtensions.As<TypeSymbol>().Any(predicate);
             }
 
             static bool needsTupleElementNamesAttribute(TypeSymbol type)
@@ -3361,7 +3375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Extension:
-                    AddSynthesizedExtensionMarkerIfPossible(builder, declaredMembersAndInitializers, diagnostics);
                     // PROTOTYPE what are the rules for constructors in extensions?
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
@@ -3371,16 +3384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             AddSynthesizedTupleMembersIfNecessary(builder, declaredMembersAndInitializers);
-        }
-
-        private void AddSynthesizedExtensionMarkerIfPossible(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
-        {
-            if (ExtensionUnderlyingTypeNoUseSiteDiagnostics is not null)
-            {
-                builder.AddNonTypeMember(
-                    new SynthesizedExtensionMarker(this, ExtensionUnderlyingTypeNoUseSiteDiagnostics, BaseExtensionsNoUseSiteDiagnostics, diagnostics),
-                    declaredMembersAndInitializers);
-            }
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)

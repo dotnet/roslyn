@@ -40,6 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExtension => true;
 
+        protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
+        {
+            var underlyingType = this.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+
+            if (underlyingType is null)
+                return;
+
+            var singleDeclaration = this.FirstDeclarationWithExplicitUnderlyingType();
+            if (singleDeclaration != null)
+            {
+                var corLibrary = this.ContainingAssembly.CorLibrary;
+                var conversions = new TypeConversions(corLibrary);
+                var location = singleDeclaration.NameLocation;
+
+                underlyingType.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+            }
+        }
+
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
         {
             // PROTOTYPE confirm and test this once extensions can be loaded from metadata
@@ -66,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var baseExtension in allBaseExtensionPerCLRSignature)
                 {
-                    // We check the constraints on base extensions later, as part of binding the extension marker method.
+                    baseExtension.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
                     // PROTOTYPE confirm what we allow in terms of variation between various underlying types
                     var baseUnderlyingType = baseExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
@@ -187,6 +205,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return new SourceLocation(currentSyntax);
                     }
+                }
+            }
+
+            return null;
+        }
+
+        private SingleTypeDeclaration? FirstDeclarationWithExplicitUnderlyingType()
+        {
+            foreach (var singleDeclaration in this.declaration.Declarations)
+            {
+                var underlyingType = GetUnderlyingTypeSyntax(singleDeclaration);
+                if (underlyingType != null)
+                {
+                    return singleDeclaration;
                 }
             }
 

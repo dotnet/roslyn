@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol? TransformNamedType(NamedTypeSymbol type)
         {
+            // PROTOTYPE customer modifiers are generally not translated. We'll need
+            // to revisit this logic when we erase extension types using modopts.
             if (!type.IsGenericType)
             {
                 switch (type.SpecialType)

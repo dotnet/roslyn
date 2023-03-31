@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
-        // There is a bunch of type properties relevant only for enums or types with custom attributes.
+        // There is a bunch of type properties relevant only for enums, extensions or types with custom attributes.
         // It is fairly easy to check whether a type s is not "uncommon". So we store uncommon properties in
         // a separate class with a noUncommonProperties singleton used for cases when type is "common".
         // this is done purely to save memory with expectation that "uncommon" cases are indeed uncommon.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _lazyUncommonProperties = result = s_noUncommonProperties;
             return result;
 
-            // enums and types with custom attributes are considered uncommon
+            // enums, extensions and types with custom attributes are considered uncommon
             bool isUncommon()
             {
                 if (this.ContainingPEModule.HasAnyCustomAttributes(_handle))
@@ -645,8 +645,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
+
+                if (!uncommon.lazyBaseExtensions.IsDefault)
+                    return uncommon.lazyBaseExtensions;
+
                 var declaredBaseExtensions = GetDeclaredBaseExtensions();
-                return declaredBaseExtensions.SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(depends: t, on: this) ? CyclicInheritanceError(t) : t);
+                var baseExtensions = declaredBaseExtensions.SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(depends: t, on: this) ? CyclicInheritanceError(t) : t);
+                ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyBaseExtensions, baseExtensions, default);
+
+                return uncommon.lazyBaseExtensions;
             }
         }
 
@@ -656,14 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
 
             var uncommon = GetUncommonProperties();
-            if (uncommon == s_noUncommonProperties)
-                return null;
+            Debug.Assert(uncommon != s_noUncommonProperties);
 
             if (uncommon.lazyDeclaredExtensionUnderlyingType is not null)
                 return uncommon.lazyDeclaredExtensionUnderlyingType;
 
-            DecodeExtensionType(out TypeSymbol underlyingType, out _);
-            Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
+            EnsureExtensionTypeDecoded(uncommon);
 
             return uncommon.lazyDeclaredExtensionUnderlyingType;
         }
@@ -674,16 +682,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<NamedTypeSymbol>.Empty;
 
             var uncommon = GetUncommonProperties();
-            if (uncommon == s_noUncommonProperties)
-                return ImmutableArray<NamedTypeSymbol>.Empty;
+            Debug.Assert(uncommon != s_noUncommonProperties);
 
             if (!uncommon.lazyDeclaredBaseExtensions.IsDefault)
                 return uncommon.lazyDeclaredBaseExtensions;
 
-            DecodeExtensionType(out _, out ImmutableArray<NamedTypeSymbol> baseExtensions);
-            ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyDeclaredBaseExtensions, baseExtensions, default);
+            EnsureExtensionTypeDecoded(uncommon);
 
             return uncommon.lazyDeclaredBaseExtensions;
+        }
+
+        private void EnsureExtensionTypeDecoded(UncommonProperties uncommon)
+        {
+            DecodeExtensionType(out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions);
+            Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
+            ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyDeclaredBaseExtensions, baseExtensions, default);
         }
 #nullable disable
 
@@ -1855,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                     }
 
                                     // PROTOTYPE consider caching/optimizing this computation
-                                    if (IsExtensionType(foundMarkerMethod: out _))
+                                    if (!TryGetExtensionMarkerMethod().IsNil)
                                     {
                                         // Extension
                                         result = TypeKind.Extension;
@@ -1877,49 +1890,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsExtensionType([NotNullWhen(true)] out MethodDefinitionHandle? foundMarkerMethod)
+        /// <summary>
+        /// Superficially checks whether this is a valid extension type
+        /// and returns the extension marker method (to be validated later)
+        /// if it is.
+        /// </summary>
+        private MethodDefinitionHandle TryGetExtensionMarkerMethod()
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
-            foundMarkerMethod = null;
 
+            // Extension types must be ref structs
             var isByRefLike = module.HasIsByRefLikeAttribute(_handle);
             if (!isByRefLike)
             {
-                return false;
-            }
-
-            foreach (var field in module.GetFieldsOfTypeOrThrow(_handle))
-            {
-                if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
-                {
-                    return false;
-                }
+                return default;
             }
 
             try
             {
+                // They must not contain any instance state
+                foreach (var field in module.GetFieldsOfTypeOrThrow(_handle))
+                {
+                    if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
+                    {
+                        return default;
+                    }
+                }
+
+                // They must have a single marker method (to be validated later)
+                MethodDefinitionHandle foundMarkerMethod = default;
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
                     var methodName = module.GetMethodDefNameOrThrow(methodHandle);
                     if (methodName == WellKnownMemberNames.ExtensionMarkerMethodName)
                     {
-                        if (foundMarkerMethod != null)
+                        if (!foundMarkerMethod.IsNil)
                         {
-                            return false;
+                            return default;
                         }
 
                         foundMarkerMethod = methodHandle;
                     }
                 }
 
-                return foundMarkerMethod is not null;
+                return foundMarkerMethod;
             }
             catch (BadImageFormatException)
             {
             }
 
-            return false;
+            return default;
         }
 
         private void DecodeExtensionType(out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
@@ -1947,16 +1968,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool tryDecodeExtensionType([NotNullWhen(true)] out TypeSymbol? underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
             {
-                var found = IsExtensionType(out MethodDefinitionHandle? foundMarkerMethod);
-                Debug.Assert(found);
-                var markerMethod = foundMarkerMethod!.Value;
+                var markerMethod = TryGetExtensionMarkerMethod();
+                Debug.Assert(!markerMethod.IsNil);
                 var moduleSymbol = this.ContainingPEModule;
 
                 underlyingType = null;
                 baseExtensions = default;
 
                 MethodAttributes localFlags;
-                moduleSymbol.Module.GetMethodDefPropsOrThrow(markerMethod, name: out _, implFlags: out _, out localFlags, rva: out _);
+                try
+                {
+                    moduleSymbol.Module.GetMethodDefPropsOrThrow(markerMethod, name: out _, implFlags: out _, out localFlags, rva: out _);
+                }
+                catch (BadImageFormatException)
+                {
+                    return false;
+                }
+
                 // PROTOTYPE do we want to tighten the flags check further?
                 if ((localFlags & MethodAttributes.Private) == 0 ||
                     (localFlags & MethodAttributes.Static) == 0)
@@ -1980,13 +2008,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var paramInfo = paramInfos[i];
                     TypeSymbol type = paramInfo.Type;
 
+                    // PROTOTYPE need to decode extension type references (may be some cycle issues)
+                    type = ApplyTransforms(type, paramInfo.Handle, moduleSymbol);
+
                     if (paramInfo.IsByRef || !paramInfo.CustomModifiers.IsDefault)
                     {
-                        var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name); // PROTOTYPE need to report use-site diagnostic
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
                         type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
                     }
-
-                    type = ApplyTransforms(type, paramInfo.Handle, moduleSymbol);
 
                     if (i == 0)
                     {
@@ -1999,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(type))
                         {
-                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name); // PROTOTYPE need to report use-site diagnostic
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
                             underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
                         }
                         else
@@ -2016,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
                         else
                         {
-                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name);
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this);
                             baseExtension = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
                         }
 
@@ -2191,11 +2220,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // PROTOTYPE are extensions embeddable?
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
+            var extensionMarkerMethod = TryGetExtensionMarkerMethod();
 
             try
             {
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
+                    if (!extensionMarkerMethod.IsNil && methodHandle == extensionMarkerMethod)
+                    {
+                        continue;
+                    }
+
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);

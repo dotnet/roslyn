@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool Cci.ITypeReference.IsValueType
         {
-            get { return AdaptedNamedTypeSymbol.IsValueType; }
+            get { return AdaptedNamedTypeSymbol.IsValueType || AdaptedNamedTypeSymbol.IsExtension; }
         }
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)

@@ -104,36 +104,6 @@ public class ExtensionTypeTests : CompilingTestBase
         }
     }
 
-    private static void VerifyExtensionMarker(MethodSymbol markerMethod)
-    {
-        Assert.IsType<SynthesizedExtensionMarker>(markerMethod);
-        Assert.True(markerMethod.IsStatic);
-        Assert.Equal(Accessibility.Private, markerMethod.DeclaredAccessibility);
-        Assert.True(markerMethod.IsDefinition);
-        Assert.False(markerMethod.IsVirtual);
-        Assert.False(markerMethod.IsAbstract);
-        Assert.False(markerMethod.IsSealed);
-        Assert.False(markerMethod.IsExtern);
-        Assert.True(markerMethod.IsImplicitlyDeclared);
-        Assert.Equal(0, markerMethod.Arity);
-        Assert.Equal("<Extension>$", markerMethod.Name); // PROTOTYPE revisit when differentiating between implicit and explicit extensions
-        Assert.Equal("<Extension>$", markerMethod.MetadataName);
-
-        Assert.Equal("System.Void", markerMethod.ReturnType.ToTestDisplayString());
-        Assert.Equal(NullableAnnotation.Oblivious, markerMethod.ReturnTypeWithAnnotations.NullableAnnotation);
-        Assert.Equal(RefKind.None, markerMethod.RefKind);
-
-        foreach (var parameter in markerMethod.Parameters)
-        {
-            Assert.Equal(RefKind.None, parameter.RefKind);
-            Assert.Equal("", parameter.Name);
-            Assert.Equal("", parameter.MetadataName);
-            Assert.Equal(NullableAnnotation.Oblivious, parameter.TypeWithAnnotations.NullableAnnotation);
-            Assert.Equal(ScopedKind.None, parameter.EffectiveScope);
-            Assert.False(parameter.IsThis);
-        }
-    }
-
     [Theory, CombinatorialData]
     public void ForClass(bool useImageReference)
     {
@@ -168,7 +138,7 @@ public explicit extension R for UnderlyingClass
         // PROTOTYPE constructor and destructor
         comp.VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         verifier.VerifyIL("R.<Extension>$(UnderlyingClass)", """
 {
   // Code size        1 (0x1)
@@ -204,7 +174,6 @@ explicit extension R2 for UnderlyingClass : R { }
             {
                 AssertEx.Equal(new[]
                     {
-                        "void R.<Extension>$(UnderlyingClass)",
                         "System.Int32 R.StaticField", "System.String R.Const",
                         "void R.Method()", "void R.StaticMethod()",
                         "System.Int32 R.Property { get; set; }", "System.Int32 R.Property.get", "void R.Property.set",
@@ -290,13 +259,6 @@ explicit extension R2 for UnderlyingClass : R { }
                     r.MemberNames);
             }
 
-            if (inSource)
-            {
-                var markerMethod = r.GetMethod("<Extension>$");
-                VerifyExtensionMarker(markerMethod);
-                Assert.Equal("UnderlyingClass", markerMethod.Parameters.Single().Type.ToTestDisplayString());
-            }
-
             if (!inSource)
             {
                 AssertEx.SetEqual(new[]
@@ -334,7 +296,7 @@ explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -354,7 +316,8 @@ explicit extension R for UnderlyingClass { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validateAttributes, verify: Verification.Skipped);
+        // PROTOTYPE investigate "Type load failed" PEVerify error
+        CompileAndVerify(comp, symbolValidator: validateAttributes, verify: Verification.FailsPEVerify);
         return;
 
         static void validateAttributes(ModuleSymbol module)
@@ -363,6 +326,38 @@ explicit extension R for UnderlyingClass { }
             AssertEx.SetEqual(new[] { "IsByRefLikeAttribute", "ObsoleteAttribute", "CompilerFeatureRequiredAttribute" },
                 GetAttributeNames(r.GetAttributes()));
         }
+    }
+
+    [Fact]
+    public void ForClass_MissingValueType()
+    {
+        var src = """
+class C { }
+explicit extension R for C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.MakeTypeMissing(SpecialType.System_ValueType);
+        comp.VerifyDiagnostics(
+            // (2,20): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+            // explicit extension R for C { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.ValueType").WithLocation(2, 20)
+            );
+    }
+
+    [Fact]
+    public void ForClass_MissingVoidType()
+    {
+        var src = """
+class C { }
+explicit extension R for C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.MakeTypeMissing(SpecialType.System_Void);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0518: Predefined type 'System.Void' is not defined or imported
+            // explicit extension R for C { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Void").WithLocation(2, 20)
+            );
     }
 
     [Fact]
@@ -378,7 +373,7 @@ class C<T>
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -433,7 +428,8 @@ explicit extension R for C { }
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
 
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        // PROTOTYPE investigate "Type load failed" PEVerify error
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
         return;
 
         static void validate(ModuleSymbol module)
@@ -459,7 +455,8 @@ explicit extension R for C { }
         comp.MakeTypeMissing(WellKnownType.System_ObsoleteAttribute);
 
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        // PROTOTYPE investigate "Type load failed" PEVerify error
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
         return;
 
         static void validate(ModuleSymbol module)
@@ -504,7 +501,7 @@ explicit extension R for UnderlyingClass
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        AssertEx.Equal(new[] { "void R.<Extension>$(UnderlyingClass)", "void R.Method()", "void R.StaticMethod()" },
+        AssertEx.Equal(new[] { "void R.Method()", "void R.StaticMethod()" },
             r.GetMembers().ToTestDisplayStrings());
     }
 
@@ -581,7 +578,6 @@ explicit extension R for UnderlyingClass
         VerifyExtension<SourceExtensionTypeSymbol>(r);
         AssertEx.Equal(new[]
             {
-                "void R.<Extension>$(UnderlyingClass)",
                 "System.Int32 R.field",
                 "System.Int32 modreq(System.Runtime.CompilerServices.IsVolatile) R.field2",
                 "System.Int32 R.<AutoProperty>k__BackingField",
@@ -612,7 +608,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -633,7 +629,6 @@ explicit extension R for UnderlyingClass
             {
                 AssertEx.Equal(new[]
                     {
-                        "void R.<Extension>$(UnderlyingClass)",
                         "event System.Action R.Event",
                         "void R.Event.add",
                         "void R.Event.remove"
@@ -673,7 +668,7 @@ explicit extension R for C
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         VerifyExtension<SourceExtensionTypeSymbol>(r);
-        AssertEx.Equal(new[] { "void R.<Extension>$(C)", "void R.R()" }, r.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "void R.R()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -692,7 +687,7 @@ explicit extension R for C
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         VerifyExtension<SourceExtensionTypeSymbol>(r);
-        AssertEx.Equal(new[] { "void R.<Extension>$(C)", "void R.C()" }, r.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "void R.C()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -774,10 +769,14 @@ explicit extension R for UnderlyingType { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+        return;
 
-        var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal(new[] { "void R.<Extension>$(UnderlyingType)" }, r.GetMembers().ToTestDisplayStrings());
-        // PROTOTYPE verify PE symbol too
+        static void validate(ModuleSymbol module)
+        {
+            var r = module.GlobalNamespace.GetTypeMember("R");
+            Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
+        }
     }
 
     [Fact]
@@ -789,22 +788,13 @@ explicit extension R for UnderlyingType { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
         {
-            bool inSource = module is SourceModuleSymbol;
             var r = module.GlobalNamespace.GetTypeMember("R");
-
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R.<Extension>$(UnderlyingType)" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
         }
     }
 
@@ -827,12 +817,7 @@ explicit extension R for UnderlyingClass
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        AssertEx.Equal(new[]
-            {
-                "void R.<Extension>$(UnderlyingClass)",
-                "System.Int32 R.op_Addition(UnderlyingClass c1, UnderlyingClass c2)"
-            },
-            r.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "System.Int32 R.op_Addition(UnderlyingClass c1, UnderlyingClass c2)" }, r.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -878,7 +863,6 @@ static explicit extension R for UnderlyingClass
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
             {
-                "void R.<Extension>$(UnderlyingClass)",
                 "System.Int32 R.StaticField", "System.String R.Const",
                 "void R.Method()", "void R.StaticMethod()",
                 "System.Int32 R.Property { get; set; }", "System.Int32 R.Property.get", "void R.Property.set",
@@ -931,10 +915,10 @@ explicit extension R2 for UnderlyingClass : I
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        AssertEx.Equal(new[] { "void R1.<Extension>$(UnderlyingClass)", "void R1.M()" }, r1.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "void R1.M()" }, r1.GetMembers().ToTestDisplayStrings());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        AssertEx.Equal(new[] { "void R2.<Extension>$(UnderlyingClass)", "void R2.M()" }, r2.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "void R2.M()" }, r2.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1337,11 +1321,7 @@ partial explicit extension R for UnderlyingClass
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        AssertEx.Equal(new[]
-            {
-               "void R.<Extension>$(UnderlyingClass)",
-               "System.Int32 R.this[System.Int32 i] { get; }", "System.Int32 R.this[System.Int32 i].get"
-            },
+        AssertEx.Equal(new[] { "System.Int32 R.this[System.Int32 i] { get; }", "System.Int32 R.this[System.Int32 i].get" },
             r.GetMembers().ToTestDisplayStrings());
 
         Assert.False(r.GetIndexer<SourcePropertySymbol>("Item").IsStatic);
@@ -1981,7 +1961,7 @@ explicit extension R for UnderlyingStruct
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2001,14 +1981,7 @@ explicit extension R for UnderlyingStruct
 
             Assert.Equal("UnderlyingStruct", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R.<Extension>$(UnderlyingStruct)" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2030,7 +2003,7 @@ explicit extension R<T> for T where T : I
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2049,14 +2022,7 @@ explicit extension R<T> for T where T : I
 
             Assert.Equal("T", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R<T>.<Extension>$(T)" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2078,7 +2044,7 @@ explicit extension R for E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2097,14 +2063,7 @@ explicit extension R for E
 
             Assert.Equal("E", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R.<Extension>$(E)" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2131,7 +2090,7 @@ explicit extension R for object
         VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("System.Object", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-        Assert.Equal(new[] { "void R.<Extension>$(System.Object)" }, r.GetMembers().ToTestDisplayStrings());
+        Assert.Empty(r.GetMembers());
         Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
         Assert.False(r.IsStatic);
 
@@ -2151,7 +2110,7 @@ explicit extension R<U> for C<U>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2170,14 +2129,7 @@ explicit extension R<U> for C<U>
 
             Assert.Equal("C<U>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R<U>.<Extension>$(C<U>)" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2198,7 +2150,7 @@ explicit extension R for (int, int)
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2217,14 +2169,7 @@ explicit extension R for (int, int)
 
             Assert.Equal("(System.Int32, System.Int32)", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R.<Extension>$((System.Int32, System.Int32))" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2245,7 +2190,7 @@ explicit extension R for int[]
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2264,14 +2209,7 @@ explicit extension R for int[]
 
             Assert.Equal("System.Int32[]", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
-            if (inSource)
-            {
-                Assert.Equal(new[] { "void R.<Extension>$(System.Int32[])" }, r.GetMembers().ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Empty(r.GetMembers());
-            }
+            Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
             Assert.False(r.IsStatic);
@@ -2552,10 +2490,7 @@ explicit extension R for UnderlyingClass
         comp.VerifyDiagnostics(
             // (2,20): error CS9212: File-local type 'UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for UnderlyingClass
-            Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("UnderlyingClass", "R").WithLocation(2, 20),
-            // (2,20): error CS9051: File-local type 'UnderlyingClass' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for UnderlyingClass
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("UnderlyingClass", "R").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("UnderlyingClass", "R").WithLocation(2, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("UnderlyingClass@<tree 0>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -2577,10 +2512,29 @@ explicit extension R for Outer.UnderlyingClass
         comp.VerifyDiagnostics(
             // (5,20): error CS9212: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for Outer.UnderlyingClass
-            Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("Outer.UnderlyingClass", "R").WithLocation(5, 20),
-            // (5,20): error CS9051: File-local type 'Outer.UnderlyingClass' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for Outer.UnderlyingClass
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("Outer.UnderlyingClass", "R").WithLocation(5, 20)
+            Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("Outer.UnderlyingClass", "R").WithLocation(5, 20)
+            );
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("R", r.ToTestDisplayString());
+        Assert.Equal("Outer@<tree 0>.UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UnderlyingType_FileContainingType_NonFileExtension_Partial()
+    {
+        var src = """
+file class Outer
+{
+    internal class UnderlyingClass { }
+}
+partial explicit extension R for Outer.UnderlyingClass { } // 1
+partial explicit extension R for Outer.UnderlyingClass { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,28): error CS9212: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
+            // partial explicit extension R for Outer.UnderlyingClass { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("Outer.UnderlyingClass", "R").WithLocation(5, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -2656,14 +2610,14 @@ partial explicit extension RStruct1 { }
 partial explicit extension RStruct1 for CStruct<string> { } // 6
 
 partial explicit extension RStruct2 { }
-partial explicit extension RStruct2 for CStruct<int> { } // 7
+partial explicit extension RStruct2 for CStruct<int> { }
 
-partial explicit extension RStruct3<T> for CStruct<T> { } // 8
+partial explicit extension RStruct3<T> for CStruct<T> { } // 7
 partial explicit extension RStruct3<T> { }
 
 partial explicit extension RNotNull1 for CNotNull<string> { }
 
-partial explicit extension RNotNull2 for CNotNull<string?> { } // 9
+partial explicit extension RNotNull2 for CNotNull<string?> { } // 8
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
@@ -2676,20 +2630,20 @@ partial explicit extension RNotNull2 for CNotNull<string?> { } // 9
             // (10,54): error CS0246: The type or namespace name 'U' could not be found (are you missing a using directive or an assembly reference?)
             // partial explicit extension RDefault1<U> for CDefault<U> { } // 3
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "U").WithArguments("U").WithLocation(10, 54),
-            // (17,28): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'CClass<T>'
-            // partial explicit extension RClass2 { }
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "RClass2").WithArguments("CClass<T>", "T", "int").WithLocation(17, 28),
+            // (18,28): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'CClass<T>'
+            // partial explicit extension RClass2 for CClass<int> { } // 4
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "RClass2").WithArguments("CClass<T>", "T", "int").WithLocation(18, 28),
             // (20,28): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'CClass<T>'
             // partial explicit extension RClass3 for CClass<int> { } // 5
             Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "RClass3").WithArguments("CClass<T>", "T", "int").WithLocation(20, 28),
-            // (23,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'CStruct<T>'
-            // partial explicit extension RStruct1 { }
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "RStruct1").WithArguments("CStruct<T>", "T", "string").WithLocation(23, 28),
+            // (24,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'CStruct<T>'
+            // partial explicit extension RStruct1 for CStruct<string> { } // 6
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "RStruct1").WithArguments("CStruct<T>", "T", "string").WithLocation(24, 28),
             // (29,28): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'CStruct<T>'
-            // partial explicit extension RStruct3<T> for CStruct<T> { } // 8
+            // partial explicit extension RStruct3<T> for CStruct<T> { } // 7
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "RStruct3").WithArguments("CStruct<T>", "T", "T").WithLocation(29, 28),
             // (34,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'CNotNull<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-            // partial explicit extension RNotNull2 for CNotNull<string?> { } // 9
+            // partial explicit extension RNotNull2 for CNotNull<string?> { } // 8
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "RNotNull2").WithArguments("CNotNull<T>", "T", "string?").WithLocation(34, 28)
             );
     }
@@ -2739,7 +2693,7 @@ public explicit extension R for nint { }
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         var src2 = """
 explicit extension R2 for nint : R { }
@@ -2775,10 +2729,12 @@ explicit extension R3 for System.IntPtr : R { }
 public class C<T> { }
 public explicit extension R for C<nint> { }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib45);
+        Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+        Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         var src2 = """
 explicit extension R2 for C<nint> : R { }
@@ -2817,7 +2773,7 @@ public explicit extension R for C<dynamic> { }
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         var src2 = """
 explicit extension R2 for C<dynamic> : R { }
@@ -2857,7 +2813,7 @@ public explicit extension R for C<object?> { }
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         var src2 = """
 #nullable enable
@@ -2911,7 +2867,7 @@ public explicit extension R for C<object> { }
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         var src2 = """
 #nullable enable
@@ -2963,7 +2919,15 @@ public explicit extension R for (int a, int b) { }
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+        var comp1 = CreateCompilation(src);
+        comp1.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute);
+        comp1.VerifyDiagnostics(
+            // (1,33): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+            // public explicit extension R for (int a, int b) { }
+            Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int a, int b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(1, 33)
+            );
 
         var src2 = """
 explicit extension R2 for (int a, int b)  : R { }
@@ -3650,8 +3614,7 @@ partial explicit extension R for C
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        AssertEx.Equal(new[] { "void R.<Extension>$(C)", "void R.M1()", "void R.M2()" },
-            r.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(new[] { "void R.M1()", "void R.M2()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -4400,7 +4363,7 @@ partial explicit extension R4 for C : R2 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         return;
 
@@ -4432,7 +4395,7 @@ class D<U>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -4572,10 +4535,7 @@ explicit extension R for UnderlyingClass : R1 { }
         comp.VerifyDiagnostics(
             // (3,20): error CS9053: File-local type 'R1' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1 { }
-            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R1", "R").WithLocation(3, 20),
-            // (3,20): error CS9051: File-local type 'R1' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for UnderlyingClass : R1 { }
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("R1", "R").WithLocation(3, 20)
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R1", "R").WithLocation(3, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -4596,10 +4556,7 @@ explicit extension R for UnderlyingClass : R1, R2 { }
         comp.VerifyDiagnostics(
             // (4,20): error CS9053: File-local type 'R2' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1, R2 { }
-            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R2", "R").WithLocation(4, 20),
-            // (4,20): error CS9051: File-local type 'R2' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for UnderlyingClass : R1, R2 { }
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("R2", "R").WithLocation(4, 20)
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R2", "R").WithLocation(4, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -4623,13 +4580,7 @@ explicit extension R for UnderlyingClass : R1, R2 { }
             Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R1", "R").WithLocation(4, 20),
             // (4,20): error CS9053: File-local type 'R2' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1, R2 { }
-            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R2", "R").WithLocation(4, 20),
-            // (4,20): error CS9051: File-local type 'R1' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for UnderlyingClass : R1, R2 { }
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("R1", "R").WithLocation(4, 20),
-            // (4,20): error CS9051: File-local type 'R2' cannot be used in a member signature in non-file-local type 'R'.
-            // explicit extension R for UnderlyingClass : R1, R2 { }
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R").WithArguments("R2", "R").WithLocation(4, 20)
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R2", "R").WithLocation(4, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -6550,6 +6501,12 @@ public explicit extension R2 for object : R1 { }
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2);
+
+        comp = CreateCompilationWithIL(src, ilSource,
+            options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+        Assert.Equal(new[] { "R1..ctor()", "void R1.<Extension>$(System.Object A_0)", "void R1.<Extension>$(System.String A_0)" },
+            comp.GlobalNamespace.GetTypeMember("R1").GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -7386,7 +7343,7 @@ public explicit extension R2 for object : R1<dynamic> { }
 
         var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -7407,7 +7364,7 @@ public explicit extension R2 for object : R1<(int a, int b)> { }
 
         var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -7429,7 +7386,7 @@ public explicit extension R2 for object : R1<object?> { }
 
         var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -7437,6 +7394,91 @@ public explicit extension R2 for object : R1<object?> { }
             var r2 = module.GlobalNamespace.GetTypeMember("R2");
             Assert.Equal("R1<System.Object?>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
         }
+    }
+
+    [Fact]
+    public void BaseExtension_Nullability_Nested_MissingNullableAttribute()
+    {
+        var lib_cs = """
+public explicit extension R1<T> for object { }
+""";
+        var libComp = CreateCompilation(lib_cs);
+        libComp.VerifyDiagnostics();
+
+        var src = """
+#nullable enable
+public explicit extension R2 for object : R1<object?> { }
+""";
+
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableAttribute);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+        return;
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+
+            var r2 = module.GlobalNamespace.GetTypeMember("R2");
+            Assert.Equal("R1<System.Object?>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            var nullableAttribute = module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute");
+            Assert.Equal(inSource, nullableAttribute is null);
+        }
+    }
+
+    [Fact]
+    public void BaseExtension_Nullability_Nested_MissingNullableContextAttribute()
+    {
+        var src1 = """
+#nullable enable
+public explicit extension R1<T> for object { }
+public explicit extension R2 for object : R1<object?> { }
+""";
+
+        var comp = CreateCompilation(src1);
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+        return;
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+
+            var r2 = module.GlobalNamespace.GetTypeMember("R2");
+            Assert.Equal("R1<System.Object?>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            var nullableContextAttribute = module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableContextAttribute");
+            Assert.Equal(inSource, nullableContextAttribute is null);
+        }
+    }
+
+    [Fact]
+    public void GenerateNullableContextAttribute()
+    {
+        var source = @"
+public explicit extension R1 for object
+{
+#nullable enable
+    private object M1() => null!;
+    private object M2() => null!;
+    private object M3() => null!;
+}";
+        var comp = CreateCompilation(source, assemblyName: "comp");
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullableContextAttribute");
+            Assert.NotNull(attributeType);
+            Assert.Equal("comp", attributeType.ContainingAssembly.Name);
+            AttributeUsageInfo attributeUsage = attributeType.GetAttributeUsageInfo();
+            Assert.False(attributeUsage.Inherited);
+            Assert.False(attributeUsage.AllowMultiple);
+            Assert.True(attributeUsage.HasValidAttributeTargets);
+        });
     }
 
     [Fact]
@@ -7450,13 +7492,18 @@ public explicit extension R2 for object : R1<nint> { }
 
         var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
         {
+            bool inSource = module is SourceModuleSymbol;
+
             var r2 = module.GlobalNamespace.GetTypeMember("R2");
             Assert.Equal("R1<nint>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            var nativeIntegerAttribute = module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
+            Assert.Equal(inSource, nativeIntegerAttribute is null);
         }
     }
 
@@ -7537,5 +7584,21 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
+    }
+
+    [Fact]
+    public void ExtensionMarkerMethodHiddenInMetadata()
+    {
+        var src = """
+public explicit extension R for object { }
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() },
+            options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+        Assert.Empty(comp2.GlobalNamespace.GetTypeMember("R").GetMembers());
     }
 }

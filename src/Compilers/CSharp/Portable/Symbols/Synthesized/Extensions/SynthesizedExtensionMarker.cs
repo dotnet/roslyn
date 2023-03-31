@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -20,70 +21,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// - the underlying type (first parameter type)
     /// - the base extensions (subsequent parameter types)
     /// </summary>
-    internal sealed class SynthesizedExtensionMarker : SourceOrdinaryMethodSymbolBase
+    internal sealed class SynthesizedExtensionMarker : SourceMemberMethodSymbol
     {
-        private readonly TypeSymbol _underlyingType;
-        private readonly ImmutableArray<NamedTypeSymbol> _baseExtensionTypes;
+        private readonly TypeSymbol _returnType;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal SynthesizedExtensionMarker(SourceMemberContainerTypeSymbol containingType,
             TypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensionTypes, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ExtensionMarkerMethodName, containingType.Locations[0],
-                (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
-                isIterator: false, isExtensionMethod: false, isReadOnly: false, hasBody: true,
-                isNullableAnalysisEnabled: false, diagnostics)
+            : base(containingType, syntaxReferenceOpt: containingType.SyntaxReferences[0], containingType.Locations[0], isIterator: false)
         {
-            _underlyingType = underlyingType;
-            _baseExtensionTypes = baseExtensionTypes;
-        }
+            this.MakeFlags(
+                MethodKind.Ordinary,
+                DeclarationModifiers.Static | DeclarationModifiers.Private,
+                returnsVoid: true,
+                isExtensionMethod: false,
+                isNullableAnalysisEnabled: false,
+                isMetadataVirtualIgnoringModifiers: false);
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
-            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
-        {
-            var returnType = TypeWithAnnotations.Create(isNullableEnabled: false, DeclaringCompilation.GetSpecialType(SpecialType.System_Void));
+            _returnType = Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_Void, containingType.Locations[0], diagnostics);
 
-            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(_baseExtensionTypes.Length);
-            parameters.Add(makeParameter(0, _underlyingType, locations));
-            for (int i = 0; i < _baseExtensionTypes.Length; i++)
+            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(baseExtensionTypes.Length);
+            parameters.Add(makeParameter(0, underlyingType));
+            for (int i = 0; i < baseExtensionTypes.Length; i++)
             {
-                parameters.Add(makeParameter(i + 1, _baseExtensionTypes[i], locations));
+                parameters.Add(makeParameter(i + 1, baseExtensionTypes[i]));
             }
 
-            return (ReturnType: returnType,
-                    Parameters: parameters.ToImmutableAndFree(),
-                    IsVararg: false,
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+            _parameters = parameters.ToImmutableAndFree();
 
-            SourceSimpleParameterSymbol makeParameter(int ordinal, TypeSymbol parameterType, ImmutableArray<Location> locations)
+            return;
+
+            ParameterSymbol makeParameter(int ordinal, TypeSymbol parameterType)
             {
-                return new SourceSimpleParameterSymbol(
-                    this,
+                return SynthesizedParameterSymbol.Create(container: this,
                     TypeWithAnnotations.Create(isNullableEnabled: false, parameterType),
-                    ordinal,
-                    RefKind.None,
-                    ScopedKind.None,
-                    name: "",
-                    locations);
+                    ordinal, RefKind.None);
             }
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-            => DeclarationModifiers.Private | DeclarationModifiers.Static;
+        public override string Name => WellKnownMemberNames.ExtensionMarkerMethodName;
 
-        protected override int GetParameterCountFromSyntax() => _baseExtensionTypes.Length + 1;
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => default;
 
-        internal sealed override bool SynthesizesLoweredBoundBody => true;
+        public override bool IsVararg => false;
+
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        internal override int ParameterCount => _parameters.Length;
+
+        public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_returnType);
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override bool IsImplicitlyDeclared
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+
+        internal sealed override bool GenerateDebugInfo => false;
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override bool IsExpressionBodied
+            => throw ExceptionUtilities.Unreachable();
+
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override object MethodChecksLockObject
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
+            => throw new System.NotImplementedException("PROTOTYPE"); // PROTOTYPE
+
+        internal sealed override bool SynthesizesLoweredBoundBody
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CloseMethod(F.Return());
-        }
-
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
-            => ImmutableArray<TypeParameterSymbol>.Empty;
-
-        protected override void CompleteAsyncMethodChecksBetweenStartAndFinish()
-        {
         }
 
         public override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
@@ -92,46 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
 
-        protected override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
-        {
-        }
-
-        protected override MethodSymbol? FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
-            => null;
-
-        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-        }
-
-        protected override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
-        {
-        }
-
-        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
-
-        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-            => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
             => throw ExceptionUtilities.Unreachable();
-
-        protected override bool HasAnyBody => true;
-
-        protected override SourceMemberMethodSymbol? BoundAttributesSource => null;
-
-        protected override Location ReturnTypeLocation => Locations[0];
-
-        protected override TypeSymbol? ExplicitInterfaceType => null;
-
-        internal override bool IsExpressionBodied => false;
-
-        public override bool IsVararg => false;
-
-        public override RefKind RefKind => RefKind.None;
-
-        internal override bool GenerateDebugInfo => false;
-
-        public sealed override bool IsImplicitlyDeclared => true;
     }
 }

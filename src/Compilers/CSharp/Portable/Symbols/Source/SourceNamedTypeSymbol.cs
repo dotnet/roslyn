@@ -1428,18 +1428,15 @@ next:;
                     return data.Layout;
                 }
 
-                if (this.TypeKind == TypeKind.Struct)
+                if (this.TypeKind is TypeKind.Struct or TypeKind.Extension)
                 {
+                    // PROTOTYPE consider disallowing attribute for explicit layout on extension types
                     // CLI spec 22.37.16:
                     // "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     // 
                     // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
                     return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
-                }
-                else if (this.IsExtension)
-                {
-                    return new TypeLayout(LayoutKind.Sequential, size: this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
                 return default(TypeLayout);
@@ -1618,7 +1615,7 @@ next:;
 
                 if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
-                    attributes = addPoisonAttributes(attributes, compilation, hasObsolete,
+                    attributes = addPoisonAttributes(ref attributes, compilation, hasObsolete,
                         PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs));
                 }
             }
@@ -1626,7 +1623,7 @@ next:;
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
-                attributes = addPoisonAttributes(attributes, compilation, hasObsolete,
+                attributes = addPoisonAttributes(ref attributes, compilation, hasObsolete,
                     PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes));
             }
 
@@ -1680,7 +1677,7 @@ next:;
 
             return;
 
-            static ArrayBuilder<SynthesizedAttributeData> addPoisonAttributes(ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
+            static ArrayBuilder<SynthesizedAttributeData> addPoisonAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
                 bool hasObsolete, string marker, string compilerFeature)
             {
                 // If user specified an Obsolete attribute, we cannot emit ours.

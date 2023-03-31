@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(assembly.GetUnusedFieldWarnings(cancellationToken));
         }
 
-        // Do not report nullable diagnostics when emitting EnC delta since they are not needed. 
+        // Do not report nullable diagnostics when emitting EnC delta since they are not needed.
         private bool ReportNullableDiagnostics
             => _moduleBeingBuiltOpt?.IsEncDelta != true;
 
@@ -475,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (compilationState.Emitting)
                 {
                     CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
+
+                    if (containingType.IsExtension)
+                    {
+                        CompileSynthesizedExtensionMarker((SourceExtensionTypeSymbol)containingType, compilationState);
+                    }
                 }
             }
 
@@ -649,6 +654,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
+        }
+
+        private void CompileSynthesizedExtensionMarker(SourceExtensionTypeSymbol sourceExtension, TypeCompilationState compilationState)
+        {
+            var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
+                sourceExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
+                _diagnostics);
+
+            var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
+            extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
+            Debug.Assert(!discardedDiagnostics.HasAnyErrors());
+
+            _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
         }
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
