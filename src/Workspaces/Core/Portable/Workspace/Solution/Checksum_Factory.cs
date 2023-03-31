@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis
     // various factory methods. all these are just helper methods
     internal partial class Checksum
     {
+        // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
+        private const int SHA256HashSizeBytes = 256 / 8;
+
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
@@ -156,33 +159,27 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
         {
-            using var hash = s_incrementalHashPool.GetPooledObject();
-
             Span<byte> bytesSpan = stackalloc byte[2 * HashSize];
-            Span<byte> hashResultSpan = stackalloc byte[hash.Object.HashLengthInBytes];
+            Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
 
-            hash.Object.AppendData(bytesSpan);
-            hash.Object.GetHashAndReset(hashResultSpan);
+            SHA256.HashData(bytesSpan, hashResultSpan);
 
             return From(hashResultSpan);
         }
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            using var hash = s_incrementalHashPool.GetPooledObject();
-
             Span<byte> bytesSpan = stackalloc byte[3 * HashSize];
-            Span<byte> hashResultSpan = stackalloc byte[hash.Object.HashLengthInBytes];
+            Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
             checksum1.WriteTo(bytesSpan);
             checksum2.WriteTo(bytesSpan.Slice(HashSize));
             checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
 
-            hash.Object.AppendData(bytesSpan);
-            hash.Object.GetHashAndReset(hashResultSpan);
+            SHA256.HashData(bytesSpan, hashResultSpan);
 
             return From(hashResultSpan);
         }
