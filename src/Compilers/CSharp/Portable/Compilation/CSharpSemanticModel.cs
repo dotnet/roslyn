@@ -4433,7 +4433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols = OneOrMany.Create(propertyGroup);
             }
 
-            if (symbols.Count == 0)
+            if (!symbols.Any())
             {
                 // If we didn't find a better set of symbols, then assume this is a property group that didn't
                 // get resolved. Return all members of the property group, with a resultKind of OverloadResolutionFailure
