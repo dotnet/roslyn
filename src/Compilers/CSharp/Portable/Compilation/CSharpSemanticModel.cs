@@ -4752,16 +4752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType, compilation);
             }
             methodBuilder.Free();
-            if (filteredMethodBuilder.Count == 1)
-            {
-                var result = filteredMethodBuilder[0];
-                filteredMethodBuilder.Free();
-                return OneOrMany.Create(result);
-            }
-            else
-            {
-                return OneOrMany.Create(filteredMethodBuilder.ToImmutableAndFree());
-            }
+            return filteredMethodBuilder.ToOneOrManyAndFree();
         }
 
         /// <summary>
