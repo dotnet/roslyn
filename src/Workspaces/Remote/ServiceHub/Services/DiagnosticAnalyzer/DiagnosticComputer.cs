@@ -285,8 +285,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 // We loop continuously until we have an empty high priority task queue.
                 while (true)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     ImmutableHashSet<Task> highPriorityTasksToAwait;
                     lock (s_gate)
                     {
