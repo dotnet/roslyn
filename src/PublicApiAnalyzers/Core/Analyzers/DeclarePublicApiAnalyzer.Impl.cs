@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private static bool ContainsPublicApiName(string apiLineText, string publicApiNameToSearch)
             {
-                apiLineText = apiLineText.Trim(ObliviousMarker);
+                apiLineText = apiLineText.TrimStart(ObliviousMarkerArray);
 
                 // Ensure we don't search in parameter list/return type.
                 var indexOfParamsList = apiLineText.IndexOf('(');

@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string FileName = "FileName";
 
         private const char ObliviousMarker = '~';
+        private static readonly char[] ObliviousMarkerArray = { ObliviousMarker };
 
         /// <summary>
         /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
@@ -397,7 +398,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonMisplacedNullableEnable));
             }
 
-            var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
+            using var publicApiMap = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal);
             ValidateApiList(publicApiMap, shippedData.ApiList, isPublic, errors);
             ValidateApiList(publicApiMap, unshippedData.ApiList, isPublic, errors);
 
@@ -408,7 +409,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         {
             foreach (ApiLine cur in apiList)
             {
-                string textWithoutOblivious = cur.Text.TrimStart(ObliviousMarker);
+                string textWithoutOblivious = cur.Text.TrimStart(ObliviousMarkerArray);
                 if (publicApiMap.TryGetValue(textWithoutOblivious, out ApiLine existingLine))
                 {
                     LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
