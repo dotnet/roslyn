@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -303,8 +304,21 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     foreach (var task in highPriorityTasksToAwait)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
+
+                        await WaitForHighPriorityTaskAsync(task, cancellationToken).ConfigureAwait(false);
                     }
+                }
+
+                static async Task WaitForHighPriorityTaskAsync(Task task, CancellationToken cancellationToken)
+                {
+                    if (task.IsCompleted)
+                    {
+                        // Make sure to yield so continuations of 'task' can make progress.
+                        await Task.Yield().ConfigureAwait(false);
+                        return;
+                    }
+
+                    await task.WithCancellation(cancellationToken).NoThrowAwaitableInternal(false);
                 }
             }
         }
