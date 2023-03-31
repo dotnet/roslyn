@@ -4415,7 +4415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ImmutableArray<Symbol> myPropertyGroup = propertyGroup;
 
                         symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myPropertyGroup) => myPropertyGroup.Contains(sym), myPropertyGroup));
-                        if (symbols.Count > 0)
+                        if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;
                         }
