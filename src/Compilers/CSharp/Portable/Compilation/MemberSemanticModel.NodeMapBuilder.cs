@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var existing = map[key];
                         var added = additionMap[key];
-                        Debug.Assert(existing.Length == added.Length, "existing.Length == added.Length");
-                        for (int i = 0; i < existing.Length; i++)
+                        Debug.Assert(existing.Count == added.Length, "existing.Count == added.Length");
+                        for (int i = 0; i < existing.Count; i++)
                         {
                             // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
                             // Known impediments include:
