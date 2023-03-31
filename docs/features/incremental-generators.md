@@ -768,7 +768,7 @@ public class Class4
 The `predicate` will be re-run for `file1.cs` as it has changed, and will pick
 out the method symbol `Method1()` again.  Next, because the `transform` is
 re-run for _all_ the methods, the return type kind for `Method2()` is correctly
-changed to `Error` as `Class1` no longer exists.
+changed to `ErrorType` as `Class1` no longer exists.
 
 Note that we didn't need to run the `predicate` over for nodes in `file2.cs`
 even though they referenced something in `file1.cs`. Because the first check is
