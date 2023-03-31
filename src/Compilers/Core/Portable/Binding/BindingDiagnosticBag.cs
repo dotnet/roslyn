@@ -272,14 +272,18 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode node)
-        {
-            return Add(useSiteInfo, node.Location);
-        }
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode? node)
+            => Add(useSiteInfo, node, static node => node?.Location ?? Location.None);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> info, Location location)
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxToken token)
+            => Add(useSiteInfo, token, static token => token.GetLocation());
+
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, Location location)
+            => Add(useSiteInfo, location, static location => location);
+
+        internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, TData data, Func<TData, Location> getLocation)
         {
-            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, location))
+            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, data, getLocation))
             {
                 return true;
             }
@@ -289,6 +293,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool ReportUseSiteDiagnostic(DiagnosticInfo? info, Location location)
+            => ReportUseSiteDiagnostic(info, location, static location => location);
+
+        internal bool ReportUseSiteDiagnostic<TData>(DiagnosticInfo? info, TData data, Func<TData, Location> getLocation)
         {
             if (info is null)
             {
@@ -297,7 +304,7 @@ namespace Microsoft.CodeAnalysis
 
             if (DiagnosticBag is object)
             {
-                return ReportUseSiteDiagnostic(info, DiagnosticBag, location);
+                return ReportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
             }
 
             return info.Severity == DiagnosticSeverity.Error;

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -95,19 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool ReportUseSite(Symbol? symbol, SyntaxNode node)
         {
-            return ReportUseSite(symbol, node.Location);
+            return ReportUseSite(symbol, node, static node => node.Location);
         }
 
         internal bool ReportUseSite(Symbol? symbol, SyntaxToken token)
         {
-            return ReportUseSite(symbol, token.GetLocation());
+            return ReportUseSite(symbol, token, static token => token.GetLocation());
         }
 
         internal bool ReportUseSite(Symbol? symbol, Location location)
+            => ReportUseSite(symbol, location, static location => location);
+
+        internal bool ReportUseSite<TData>(Symbol? symbol, TData data, Func<TData, Location> getLocation)
         {
             if (symbol is object)
             {
-                return Add(symbol.GetUseSiteInfo(), location);
+                return Add(symbol.GetUseSiteInfo(), data, getLocation);
             }
 
             return false;
