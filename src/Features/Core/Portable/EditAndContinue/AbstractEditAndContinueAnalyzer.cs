@@ -936,6 +936,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 NewBody = newLambdaBody;
             }
 
+            public bool HasActiveStatement
+                => ActiveNodeIndices != null;
+
             public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
                 => new(ActiveNodeIndices, match, newLambdaBody);
         }
@@ -1044,11 +1047,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var activeNodesInBody = activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray();
 
                 var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodesInBody);
-                var map = ComputeMap(oldModel, oldMember, newMember, bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, capabilities, diagnostics);
+                var map = ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas);
 
                 var oldStateMachineKinds = GetStateMachineInfo(oldBody);
                 var newStateMachineKinds = GetStateMachineInfo(newBody);
-                ReportStateMachineBodyUpdateRudeEdits(bodyMatch, oldStateMachineKinds, newBody, newStateMachineKinds, activeNodesInBody, diagnostics);
+                ReportStateMachineBodyUpdateRudeEdits(bodyMatch, oldStateMachineKinds, newBody, newStateMachineKinds, hasActiveStatement: activeNodesInBody.Length != 0, diagnostics);
 
                 ReportMemberOrLambdaBodyUpdateRudeEdits(
                     diagnostics,
@@ -1065,10 +1068,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 ReportLambdaAndClosureRudeEdits(
                     oldModel,
+                    oldMember,
                     oldBody,
                     newModel,
                     newBody,
                     newMember,
+                    bodyMatch,
                     lazyActiveOrMatchedLambdas,
                     map,
                     capabilities,
@@ -1352,14 +1357,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Calculates a syntax map of the entire method body including all lambda bodies it contains.
         /// </summary>
         private BidirectionalMap<SyntaxNode> ComputeMap(
-            SemanticModel? oldModel,
-            ISymbol oldMember,
-            ISymbol newMember,
             Match<SyntaxNode> memberBodyMatch,
-            ArrayBuilder<ActiveNode> activeNodes,
-            ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas,
-            EditAndContinueCapabilitiesGrantor capabilities,
-            ArrayBuilder<RudeEditDiagnostic> diagnostics)
+            ArrayBuilder<ActiveNode> memberBodyActiveNodes,
+            ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas)
         {
             ArrayBuilder<Match<SyntaxNode>>? lambdaBodyMatches = null;
             var currentLambdaBodyMatch = -1;
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var newLambdaBody1 = TryGetPartnerLambdaBody(oldLambdaBody1, newNode);
                         if (newLambdaBody1 != null)
                         {
-                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldModel, oldNode, oldLambdaBody1, oldMember, newNode, newLambdaBody1, newMember, memberBodyMatch, activeNodes, capabilities, lazyActiveOrMatchedLambdas, diagnostics));
+                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambdaBody1, memberBodyActiveNodes, lazyActiveOrMatchedLambdas));
                         }
 
                         if (oldLambdaBody2 != null)
@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             var newLambdaBody2 = TryGetPartnerLambdaBody(oldLambdaBody2, newNode);
                             if (newLambdaBody2 != null)
                             {
-                                lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldModel, oldNode, oldLambdaBody2, oldMember, newNode, newLambdaBody2, newMember, memberBodyMatch, activeNodes, capabilities, lazyActiveOrMatchedLambdas, diagnostics));
+                                lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambdaBody2, memberBodyActiveNodes, lazyActiveOrMatchedLambdas));
                             }
                         }
                     }
@@ -1437,24 +1437,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private Match<SyntaxNode> ComputeLambdaBodyMatch(
-            SemanticModel? oldModel,
-            SyntaxNode oldLambda,
             SyntaxNode oldLambdaBody,
-            ISymbol oldMember,
-            SyntaxNode newLambda,
             SyntaxNode newLambdaBody,
-            ISymbol newMember,
-            Match<SyntaxNode> memberBodyMatch,
-            IReadOnlyList<ActiveNode> activeNodes,
-            EditAndContinueCapabilitiesGrantor capabilities,
-            [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
-            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics)
+            IReadOnlyList<ActiveNode> memberBodyActiveNodes,
+            [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas)
         {
-            ActiveNode[] activeNodesInLambdaBody;
+            IEnumerable<ActiveNode> activeNodesInLambdaBody;
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
             {
                 // Lambda may be matched but not be active.
-                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray() ?? Array.Empty<ActiveNode>();
+                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => memberBodyActiveNodes[i]) ?? Array.Empty<ActiveNode>();
             }
             else
             {
@@ -1466,36 +1458,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambdaBody);
 
             activeOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
-
-            var oldStateMachineKinds = GetStateMachineInfo(oldLambdaBody);
-            var newStateMachineKinds = GetStateMachineInfo(newLambdaBody);
-            ReportStateMachineBodyUpdateRudeEdits(lambdaBodyMatch, oldStateMachineKinds, newLambdaBody, newStateMachineKinds, activeNodesInLambdaBody, diagnostics);
-
-            // When the delta IL of the containing method is emitted lambdas declared in it are also emitted.
-            // If the runtime does not support changing IL of the method (e.g. method containing stackalloc)
-            // we need to report a rude edit.
-            // If only trivia change the IL is going to be unchanged and only sequence points in the PDB change,
-            // so we do not report rude edits.
-            if (!AreEquivalentLambdaBodies(oldLambda, oldLambdaBody, newLambda, newLambdaBody))
-            {
-                ReportMemberOrLambdaBodyUpdateRudeEdits(
-                    diagnostics,
-                    oldModel,
-                    oldLambdaBody,
-                    oldMember,
-                    newLambda,
-                    newLambdaBody,
-                    newMember,
-                    memberBodyMatch,
-                    capabilities,
-                    oldStateMachineKinds,
-                    newStateMachineKinds);
-
-                if (IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda))
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.GenericMethodUpdate, GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
-                }
-            }
 
             return lambdaBodyMatch;
         }
@@ -1511,7 +1473,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             StateMachineKinds oldStateMachineKinds,
             SyntaxNode newBody,
             StateMachineKinds newStateMachineKinds,
-            ActiveNode[] activeNodes,
+            bool hasActiveStatement,
             ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
             // Consider following cases:
@@ -1532,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // It is allowed to update a regular method to an async method or an iterator.
             // The only restriction is a presence of an active statement in the method body
             // since the debugger does not support remapping active statements to a different method.
-            if (activeNodes.Length > 0 && oldStateMachineKinds.IsStateMachine != newStateMachineKinds.IsStateMachine)
+            if (hasActiveStatement && oldStateMachineKinds.IsStateMachine != newStateMachineKinds.IsStateMachine)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
@@ -5229,10 +5191,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportLambdaAndClosureRudeEdits(
             SemanticModel oldModel,
+            ISymbol oldMember,
             SyntaxNode oldMemberBody,
             SemanticModel newModel,
             SyntaxNode newMemberBody,
             ISymbol newMember,
+            Match<SyntaxNode> memberBodyMatch,
             IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas,
             BidirectionalMap<SyntaxNode> map,
             EditAndContinueCapabilitiesGrantor capabilities,
@@ -5244,6 +5208,52 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (matchedLambdas != null)
             {
+                foreach (var (oldLambdaBody, newLambdaInfo) in matchedLambdas)
+                {
+                    var newLambdaBody = newLambdaInfo.NewBody;
+                    if (newLambdaBody == null)
+                    {
+                        continue;
+                    }
+
+                    var lambdaBodyMatch = newLambdaInfo.Match;
+                    Debug.Assert(lambdaBodyMatch != null);
+
+                    var oldStateMachineKinds = GetStateMachineInfo(oldLambdaBody);
+                    var newStateMachineKinds = GetStateMachineInfo(newLambdaBody);
+                    ReportStateMachineBodyUpdateRudeEdits(lambdaBodyMatch, oldStateMachineKinds, newLambdaBody, newStateMachineKinds, newLambdaInfo.HasActiveStatement, diagnostics);
+
+                    // When the delta IL of the containing method is emitted lambdas declared in it are also emitted.
+                    // If the runtime does not support changing IL of the method (e.g. method containing stackalloc)
+                    // we need to report a rude edit.
+                    // If only trivia change the IL is going to be unchanged and only sequence points in the PDB change,
+                    // so we do not report rude edits.
+
+                    var oldLambda = GetLambda(oldLambdaBody);
+                    var newLambda = GetLambda(newLambdaBody);
+
+                    if (!AreEquivalentLambdaBodies(oldLambda, oldLambdaBody, newLambda, newLambdaBody))
+                    {
+                        ReportMemberOrLambdaBodyUpdateRudeEdits(
+                            diagnostics,
+                            oldModel,
+                            oldLambdaBody,
+                            oldMember,
+                            newLambda,
+                            newLambdaBody,
+                            newMember,
+                            memberBodyMatch,
+                            capabilities,
+                            oldStateMachineKinds,
+                            newStateMachineKinds);
+
+                        if (IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda))
+                        {
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.GenericMethodUpdate, GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
+                        }
+                    }
+                }
+
                 var anySignatureErrors = false;
                 foreach (var (oldLambdaBody, newLambdaInfo) in matchedLambdas)
                 {
@@ -6259,16 +6269,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
             internal BidirectionalMap<SyntaxNode> ComputeMap(
-                SemanticModel? oldModel,
-                ISymbol oldMember,
-                ISymbol newMember,
                 Match<SyntaxNode> bodyMatch,
-                ArrayBuilder<ActiveNode> activeNodes,
-                ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas,
-                EditAndContinueCapabilitiesGrantor capabilities,
-                ArrayBuilder<RudeEditDiagnostic> diagnostics)
+                ArrayBuilder<ActiveNode> memberBodyActiveNodes,
+                ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas)
             {
-                return _abstractEditAndContinueAnalyzer.ComputeMap(oldModel, oldMember, newMember, bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, capabilities, diagnostics);
+                return _abstractEditAndContinueAnalyzer.ComputeMap(bodyMatch, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
             }
         }
 
