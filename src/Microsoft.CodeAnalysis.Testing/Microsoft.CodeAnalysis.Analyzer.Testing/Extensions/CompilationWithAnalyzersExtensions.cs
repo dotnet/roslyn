@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
         private static readonly Func<CompilationWithAnalyzers, CancellationToken, Task> s_getAnalysisResultAsync;
         private static readonly Func<Task, object> s_getTaskOfAnalysisResultResult;
         private static readonly object s_invalidResultSentinel = new object();
+        private static readonly Type s_compilationType = typeof(CompilationWithAnalyzers);
+        private static readonly Assembly s_frameworkAssembly = s_compilationType.GetTypeInfo().Assembly;
+        private static readonly Type? s_optionsType = s_frameworkAssembly.DefinedTypes.FirstOrDefault(type => type.Name == "CompilationWithAnalyzersOptions")?.AsType();
+        private static readonly Type? s_suppressorType = s_frameworkAssembly.DefinedTypes.FirstOrDefault(type => type.Name == "DiagnosticSuppressor")?.AsType();
+        private static readonly int s_frameworkMajorVersion = s_frameworkAssembly.GetName().Version?.Major ?? 0;
 
         static CompilationWithAnalyzersExtensions()
         {
@@ -43,6 +50,38 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
             var getAnalysisResultTask = s_getAnalysisResultAsync(compilationWithAnalyzers, cancellationToken);
             await getAnalysisResultTask.ConfigureAwait(false);
             return AnalysisResultWrapper.FromInstance(s_getTaskOfAnalysisResultResult(getAnalysisResultTask));
+        }
+
+        public static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> CreateCompilationWithAnalyzers = BuildCreateCompilationWithAnalyzersFunc();
+
+        private static bool IsTestingDiagnosticSuppressors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (s_frameworkMajorVersion < 4 || s_suppressorType == null)
+            {
+                return false;
+            }
+
+            return analyzers.Any(analyzer => s_suppressorType.IsInstanceOfType(analyzer));
+        }
+
+        private static Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> BuildCreateCompilationWithAnalyzersFunc()
+        {
+            if (s_optionsType != null && s_frameworkMajorVersion >= 4)
+            {
+                return (compilation, analyzers, options, cancellationToken) =>
+                {
+                    if (!IsTestingDiagnosticSuppressors(analyzers))
+                    {
+                        return compilation.WithAnalyzers(analyzers, options, cancellationToken);
+                    }
+
+                    var compilationWithAnalyzersOptions = Activator.CreateInstance(s_optionsType, options, null, true, false, true);
+
+                    return (CompilationWithAnalyzers)Activator.CreateInstance(s_compilationType, compilation, analyzers, compilationWithAnalyzersOptions)!;
+                };
+            }
+
+            return (compilation, analyzers, options, cancellationToken) => compilation.WithAnalyzers(analyzers, options, cancellationToken);
         }
     }
 }

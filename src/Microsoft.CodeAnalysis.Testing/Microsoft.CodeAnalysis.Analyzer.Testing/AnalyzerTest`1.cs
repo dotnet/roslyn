@@ -503,8 +503,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <summary>
-        /// This test is not related to test a DiagnosticSuppressor, but to test the compiler feature "#pragma warning disable"
-        /// When testing a DiagnosticSuppressor, this test may generate false negatives.
+        /// Checks that diagnostics will not be reported if a <c>#pragma warning disable</c> appears at the beginning of the file.
         /// </summary>
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
@@ -1321,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return TestStage switch
             {
                 // During the diagnostic check we may need to switch on 'reporting suppressed diagnostics'
-                TestStage.Diagnostic => LightupCompilationWithAnalyzers.Create(compilation, analyzers, options, cancellationToken),
+                TestStage.Diagnostic => CompilationWithAnalyzersExtensions.CreateCompilationWithAnalyzers(compilation, analyzers, options, cancellationToken),
 
                 // All other checks assume 'reporting suppressed diagnostics' is off by default
                 _ => compilation.WithAnalyzers(analyzers, options, cancellationToken),
