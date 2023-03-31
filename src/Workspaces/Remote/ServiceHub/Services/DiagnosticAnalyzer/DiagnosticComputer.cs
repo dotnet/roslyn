@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
-        public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+        public static async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
@@ -144,62 +144,104 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
-            // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
-            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
-            return isExplicit
-                ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
-                : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
-        }
+            // We perform prioritized execution of diagnostic computation requests based on the
+            // 'highPriority' boolean parameter.
+            //   - High priority requests forces cancellation of all the executing normal priority requests,
+            //     which are re-attempted once the high priority request completes.
+            //   - Normal priority requests wait for all the executing high priority requests to complete
+            //     before starting the compute.
+            //   - Canceled normal priority requests are re-attempted in the below loop.
 
-        private async Task<SerializableDiagnosticAnalysisResults> GetHighPriorityDiagnosticsAsync(
-            IEnumerable<string> analyzerIds,
-            bool reportSuppressedDiagnostics,
-            bool logPerformanceInfo,
-            bool getTelemetryInfo,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Step 1:
-            //  - Create the core 'computeTask' for computing diagnostics.
-            var computeTask = GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
-
-            // Step 2:
-            //  - Add this computeTask to the list of currently executing high priority tasks.
-            //    This list of high priority tasks is used in 'GetNormalPriorityDiagnosticsAsync'
-            //    method to ensure that any new or cancelled normal priority task waits for all
-            //    the executing high priority tasks before starting its execution.
-            //  - Note that it is critical to do this step prior to Step 3 below to ensure that
-            //    any canceled normal priority tasks in Step 3 do not resume execution prior to
-            //    completion of this high priority computeTask. 
-            lock (s_gate)
+            while (true)
             {
-                Debug.Assert(!s_highPriorityComputeTasks.Contains(computeTask));
-                s_highPriorityComputeTasks.Add(computeTask);
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            try
-            {
-                // Step 3:
-                //  - Force cancellation of all the executing normal priority tasks
-                //    to minimize resource and CPU contention between normal priority tasks
-                //    and the high priority computeTask in Step 4 below.
-                CancelNormalPriorityTasks(cancellationToken);
-
-                // Step 4:
-                //  - Execute the core 'computeTask' for diagnostic computation.
-                return await computeTask.ConfigureAwait(false);
-            }
-            finally
-            {
-                // Step 5:
-                //  - Remove the 'computeTask' from the list of current executing high priority tasks.
-                lock (s_gate)
+                // Step 1:
+                //  - High priority task forces cancellation of all the executing normal priority tasks
+                //    to minimize resource and CPU contention with normal priority tasks.
+                //  - Normal priority task waits for all the executing high priority tasks to complete.
+                if (highPriority)
                 {
-                    var removed = s_highPriorityComputeTasks.Remove(computeTask);
-                    Debug.Assert(removed);
+                    CancelNormalPriorityTasks(cancellationToken);
                 }
+                else
+                {
+                    await WaitForHighPriorityTasksAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                // Step 2:
+                //  - Create the core 'computeTask' for computing diagnostics.
+                //  - Create a custom 'cancellationTokenSource' associated with this 'computeTask'.
+                //    This token source allows normal priority computeTasks to be cancelled when
+                //    a high priority diagnostic request is received.
+                var (computeTask, cancellationTokenSource) = CreateComputeTaskAndCancellationSource(cancellationToken);
+
+                // Step 3:
+                //  - Start tracking the 'computeTask' and 'cancellationTokenSource' prior to invoking the computation.
+                //    These are used in Step 1 if a new diagnostic request is received while this computeTask is running.
+                StartTrackingPreCompute(computeTask, cancellationTokenSource, highPriority);
+
+                try
+                {
+                    // Step 4:
+                    //  - Execute the core 'computeTask' for diagnostic computation.
+                    return await computeTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Step 5:
+                    // Check if cancellation fired on the custom 'cancellationTokenSource' that was created for
+                    // allowing cancellation of 'computeTask' from subsequent highPriority requests.
+                    if (cancellationTokenSource.IsCancellationRequested)
+                    {
+                        // We expect only normal priority tasks to get forcefully cancelled
+                        // by firing cancellation on our custom 'cancellationTokenSource'.
+                        Debug.Assert(!highPriority);
+
+                        // Attempt to re-execute this cancelled normal priority task
+                        // by running the loop again.
+                        continue;
+                    }
+
+                    // Propagate all other OperationCanceledExceptions up the stack.
+                    throw;
+                }
+                finally
+                {
+                    // Step 6:
+                    //  - Stop tracking the 'computeTask' and 'cancellationTokenSource' for
+                    //    completed or cancelled task. For the case where the computeTask was
+                    //    cancelled, we will create a new 'computeTask' and 'cancellationTokenSource'
+                    //    for the retry.
+                    StopTrackingPostCompute(computeTask, cancellationTokenSource, highPriority);
+                    cancellationTokenSource.Dispose();
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable();
+
+            (Task<SerializableDiagnosticAnalysisResults>, CancellationTokenSource) CreateComputeTaskAndCancellationSource(CancellationToken cancellationToken)
+            {
+                // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
+                var cancellationTokenSource = new CancellationTokenSource();
+                var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+                cancellationToken = linkedCancellationTokenSource.Token;
+
+                var computeTask = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var diagnosticsComputer = new DiagnosticComputer(document, project,
+                            solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+                        return await diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        linkedCancellationTokenSource.Dispose();
+                    }
+                }, cancellationToken);
+
+                return (computeTask, cancellationTokenSource);
             }
 
             static void CancelNormalPriorityTasks(CancellationToken cancellationToken)
@@ -224,88 +266,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     }
                 }
             }
-        }
-
-        private async Task<SerializableDiagnosticAnalysisResults> GetNormalPriorityDiagnosticsAsync(
-            IEnumerable<string> analyzerIds,
-            bool reportSuppressedDiagnostics,
-            bool logPerformanceInfo,
-            bool getTelemetryInfo,
-            CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Step 1:
-                //  - Normal priority task must wait for all the executing high priority tasks to complete
-                //    before beginning execution.
-                await WaitForHighPriorityTasksAsync(cancellationToken).ConfigureAwait(false);
-
-                // Step 2:
-                //  - Create the core 'computeTask' for computing diagnostics.
-                //  - Create a custom 'cancellationTokenSource' associated with this 'computeTask'.
-                //    This token source allows normal priority computeTasks to be cancelled when
-                //    a subsequent high priority diagnostic request is received.
-                using var cancellationTokenSource = new CancellationTokenSource();
-                var computeTask = CreateComputeTask(cancellationTokenSource, cancellationToken);
-
-                // Step 3:
-                //  - Add 'cancellationTokenSource' to the list of cancellation token sources for
-                //    currently executing normal priority tasks.
-                //    This list is used in 'GetHighPriorityDiagnosticsAsync' method to cancel all the
-                //    currently executing normal priority tasks if a new high priority diagnostic
-                //    request is subsequently received.
-                lock (s_gate)
-                {
-                    Debug.Assert(!s_cancellationSourcesForNormalPriorityComputeTasks.Contains(cancellationTokenSource));
-                    s_cancellationSourcesForNormalPriorityComputeTasks.Add(cancellationTokenSource);
-                }
-
-                try
-                {
-                    // Step 4:
-                    //  - Execute the core 'computeTask' for diagnostic computation.
-                    return await computeTask.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    // Step 5:
-                    // Check if cancellation fired on the custom 'cancellationTokenSource' that was created for
-                    // allowing cancellation of 'computeTask' from subsequent highPriority requests.
-                    if (cancellationTokenSource.IsCancellationRequested)
-                    {
-                        // Attempt to re-execute this cancelled normal priority task
-                        // by running the loop again.
-                        continue;
-                    }
-
-                    // Propagate all other OperationCanceledExceptions up the stack.
-                    throw;
-                }
-                finally
-                {
-                    // Step 6:
-                    //  - Remove the 'cancellationTokenSource' for completed or cancelled task.
-                    //    For the case where the computeTask was cancelled, we will create a new
-                    //    'cancellationTokenSource' for the retry.
-                    lock (s_gate)
-                    {
-                        var removed = s_cancellationSourcesForNormalPriorityComputeTasks.Remove(cancellationTokenSource);
-                        Debug.Assert(removed);
-                    }
-                }
-            }
-
-            Task<SerializableDiagnosticAnalysisResults> CreateComputeTask(CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
-            {
-                return Task.Run(async () =>
-                {
-                    // Create a linked cancellation source to allow high priority tasks to cancel normal priority tasks.
-                    using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
-                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, linkedCancellationTokenSource.Token).ConfigureAwait(false);
-                }, cancellationToken);
-            }
 
             static async Task WaitForHighPriorityTasksAsync(CancellationToken cancellationToken)
             {
@@ -327,8 +287,48 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        // Wait for the high priority task, ignoring all exceptions from it.
-                        await task.NoThrowAwaitable(false);
+                        try
+                        {
+                            await task.ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Gracefully ignore cancellations for high priority tasks.
+                        }
+                    }
+                }
+            }
+
+            static void StartTrackingPreCompute(Task computeTask, CancellationTokenSource tokenSource, bool highPriority)
+            {
+                lock (s_gate)
+                {
+                    if (highPriority)
+                    {
+                        Debug.Assert(!s_highPriorityComputeTasks.Contains(computeTask));
+                        s_highPriorityComputeTasks.Add(computeTask);
+                    }
+                    else
+                    {
+                        Debug.Assert(!s_cancellationSourcesForNormalPriorityComputeTasks.Contains(tokenSource));
+                        s_cancellationSourcesForNormalPriorityComputeTasks.Add(tokenSource);
+                    }
+                }
+            }
+
+            static void StopTrackingPostCompute(Task computeTask, CancellationTokenSource tokenSource, bool highPriority)
+            {
+                lock (s_gate)
+                {
+                    if (highPriority)
+                    {
+                        var removed = s_highPriorityComputeTasks.Remove(computeTask);
+                        Debug.Assert(removed);
+                    }
+                    else
+                    {
+                        var removed = s_cancellationSourcesForNormalPriorityComputeTasks.Remove(tokenSource);
+                        Debug.Assert(removed);
                     }
                 }
             }
