@@ -322,27 +322,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return tmp.ToImmutableAndFree();
         }
 
-#if COMPILERCORE
-
-        /// <summary>
-        /// Realizes the OneOrMany and disposes the builder in one operation.
-        /// </summary>
-        public OneOrMany<T> ToOneOrManyAndFree()
-        {
-            if (Count == 1)
-            {
-                var result = OneOrMany.Create(this[0]);
-                Free();
-                return result;
-            }
-            else
-            {
-                return OneOrMany.Create(ToImmutableAndFree());
-            }
-        }
-
-#endif
-
         /// <summary>
         /// Realizes the array and disposes the builder in one operation.
         /// </summary>
