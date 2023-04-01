@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
-            using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
+            using var _ = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
 
             foreach (var option in operations)
             {
@@ -109,13 +109,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                 var projectChanges = changes.GetProjectChanges();
 
-                // Ignore any non-document changes for now.  Note though that LSP does support additional functionality
-                // (like create/rename/delete file).  Once VS updates their LSP client impl to support this, we should
-                // add that support here.
+                // Don't apply changes in the presence of any non-document changes for now.  Note though that LSP does
+                // support additional functionality (like create/rename/delete file).  Once VS updates their LSP client
+                // impl to support this, we should add that support here.
                 //
                 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
                 //
                 // Tracked with: https://github.com/dotnet/roslyn/issues/65303
+                foreach (var projectChange in projectChanges)
+                {
+                    if (projectChange.GetAddedProjectReferences().Any()
+                        || projectChange.GetRemovedProjectReferences().Any()
+                        || projectChange.GetAddedMetadataReferences().Any()
+                        || projectChange.GetRemovedMetadataReferences().Any()
+                        || projectChange.GetAddedAnalyzerReferences().Any()
+                        || projectChange.GetRemovedAnalyzerReferences().Any())
+                    {
+                        // Changes to references are not currently supported
+                        codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return codeAction;
+                    }
+
+                    if (projectChange.GetRemovedDocuments().Any()
+                        || projectChange.GetRemovedAdditionalDocuments().Any()
+                        || projectChange.GetRemovedAnalyzerConfigDocuments().Any())
+                    {
+                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
+                            || !resourceOperations.Contains(ResourceOperationKind.Delete))
+                        {
+                            // Removing documents is not supported by this workspace
+                            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                            return codeAction;
+                        }
+                    }
+
+                    if (projectChange.GetAddedDocuments().Any()
+                        || projectChange.GetAddedAdditionalDocuments().Any()
+                        || projectChange.GetAddedAnalyzerConfigDocuments().Any())
+                    {
+                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
+                            || !resourceOperations.Contains(ResourceOperationKind.Create))
+                        {
+                            // Adding documents is not supported by this workspace
+                            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                            return codeAction;
+                        }
+                    }
+                }
+
 #if false
 
                 // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
@@ -144,6 +185,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
 #endif
 
+                // Removed documents
+                await AddTextDocumentDeletionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetRemovedDocuments()),
+                    solution.GetDocument).ConfigureAwait(false);
+
+                // Removed analyzer config documents
+                await AddTextDocumentDeletionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetRemovedAnalyzerConfigDocuments()),
+                    solution.GetAnalyzerConfigDocument).ConfigureAwait(false);
+
+                // Removed additional documents
+                await AddTextDocumentDeletionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetRemovedAdditionalDocuments()),
+                    solution.GetAdditionalDocument).ConfigureAwait(false);
+
+                // Added documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedDocuments()),
+                    applyChangesOperation.ChangedSolution.GetDocument).ConfigureAwait(false);
+
+                // Added analyzer config documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedAnalyzerConfigDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument).ConfigureAwait(false);
+
+                // Added additional documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedAdditionalDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAdditionalDocument).ConfigureAwait(false);
+
                 // Changed documents
                 await AddTextDocumentEditsAsync(
                     projectChanges.SelectMany(pc => pc.GetChangedDocuments()),
@@ -166,6 +237,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
 
             return codeAction;
+
+            Task AddTextDocumentDeletionsAsync<TTextDocument>(
+                IEnumerable<DocumentId> removedDocuments,
+                Func<DocumentId, TTextDocument?> getOldDocument)
+                where TTextDocument : TextDocument
+            {
+                foreach (var docId in removedDocuments)
+                {
+                    var oldTextDoc = getOldDocument(docId);
+                    Contract.ThrowIfNull(oldTextDoc);
+
+                    textDocumentEdits.Add(new DeleteFile { Uri = oldTextDoc.GetURI() });
+                }
+
+                return Task.CompletedTask;
+            }
+
+            async Task AddTextDocumentAdditionsAsync<TTextDocument>(
+                IEnumerable<DocumentId> addedDocuments,
+                Func<DocumentId, TTextDocument?> getNewDocument)
+                where TTextDocument : TextDocument
+            {
+                foreach (var docId in addedDocuments)
+                {
+                    var newTextDoc = getNewDocument(docId);
+                    Contract.ThrowIfNull(newTextDoc);
+
+                    // Create the document as empty
+                    textDocumentEdits.Add(new CreateFile { Uri = newTextDoc.GetURI() });
+
+                    // And then give it content
+                    var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
+                    var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
+                }
+            }
 
             async Task AddTextDocumentEditsAsync<TTextDocument>(
                 IEnumerable<DocumentId> changedDocuments,
