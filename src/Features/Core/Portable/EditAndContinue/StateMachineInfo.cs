@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <param name="HasSuspensionPoints">
 /// True if any awaits and/or yields are present in the method.
 /// </param>
-internal readonly record struct StateMachineKinds(bool IsAsync, bool IsIterator, bool HasSuspensionPoints)
+internal readonly record struct StateMachineInfo(bool IsAsync, bool IsIterator, bool HasSuspensionPoints)
 {
-    public static StateMachineKinds None = default;
+    public static StateMachineInfo None = default;
 
     /// <summary>
     /// True if a state machine is generated.

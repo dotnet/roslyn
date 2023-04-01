@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract ushort LineDirectiveSyntaxKind { get; }
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
-        internal abstract StateMachineKinds GetStateMachineInfo(SyntaxNode body);
+        internal abstract StateMachineInfo GetStateMachineInfo(SyntaxNode body);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
@@ -1049,9 +1049,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodesInBody);
                 var map = ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas);
 
-                var oldStateMachineKinds = GetStateMachineInfo(oldBody);
-                var newStateMachineKinds = GetStateMachineInfo(newBody);
-                ReportStateMachineBodyUpdateRudeEdits(bodyMatch, oldStateMachineKinds, newBody, newStateMachineKinds, hasActiveStatement: activeNodesInBody.Length != 0, diagnostics);
+                var oldStateMachineInfo = GetStateMachineInfo(oldBody);
+                var newStateMachineInfo = GetStateMachineInfo(newBody);
+                ReportStateMachineBodyUpdateRudeEdits(bodyMatch, oldStateMachineInfo, newBody, newStateMachineInfo, hasActiveStatement: activeNodesInBody.Length != 0, diagnostics);
 
                 ReportMemberOrLambdaBodyUpdateRudeEdits(
                     diagnostics,
@@ -1063,8 +1063,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newMember,
                     bodyMatch,
                     capabilities,
-                    oldStateMachineKinds,
-                    newStateMachineKinds);
+                    oldStateMachineInfo,
+                    newStateMachineInfo);
 
                 ReportLambdaAndClosureRudeEdits(
                     oldModel,
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
                 //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
                 if (!activeNodes.IsEmpty() ||
-                    newStateMachineKinds.HasSuspensionPoints ||
+                    newStateMachineInfo.HasSuspensionPoints ||
                     newBodyHasLambdas ||
                     IsConstructorWithMemberInitializers(newDeclaration) ||
                     IsDeclarationWithInitializer(oldDeclaration) ||
@@ -1470,9 +1470,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportStateMachineBodyUpdateRudeEdits(
             Match<SyntaxNode> match,
-            StateMachineKinds oldStateMachineKinds,
+            StateMachineInfo oldStateMachineInfo,
             SyntaxNode newBody,
-            StateMachineKinds newStateMachineKinds,
+            StateMachineInfo newStateMachineInfo,
             bool hasActiveStatement,
             ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //    Report rude edit since we can't remap IP from MoveNext to the kickoff method.
             //    Note that iterators in VB don't need to contain yield, so this case is not covered by change in number of yields.
 
-            if (oldStateMachineKinds.HasSuspensionPoints)
+            if (oldStateMachineInfo.HasSuspensionPoints)
             {
                 foreach (var (oldNode, newNode) in match.Matches)
                 {
@@ -1494,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // It is allowed to update a regular method to an async method or an iterator.
             // The only restriction is a presence of an active statement in the method body
             // since the debugger does not support remapping active statements to a different method.
-            if (hasActiveStatement && oldStateMachineKinds.IsStateMachine != newStateMachineKinds.IsStateMachine)
+            if (hasActiveStatement && oldStateMachineInfo.IsStateMachine != newStateMachineInfo.IsStateMachine)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // report removing async as rude:
-            if (oldStateMachineKinds.IsAsync && !newStateMachineKinds.IsAsync)
+            if (oldStateMachineInfo.IsAsync && !newStateMachineInfo.IsAsync)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.ChangingFromAsynchronousToSynchronous,
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // VB supports iterator lambdas/methods without yields
-            if (oldStateMachineKinds.IsIterator && !newStateMachineKinds.IsIterator)
+            if (oldStateMachineInfo.IsIterator && !newStateMachineInfo.IsIterator)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.ModifiersUpdate,
@@ -3679,28 +3679,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             Match<SyntaxNode> memberBodyMatch,
             EditAndContinueCapabilitiesGrantor capabilities,
-            StateMachineKinds oldStateMachineKinds,
-            StateMachineKinds newStateMachineKinds)
+            StateMachineInfo oldStateMachineInfo,
+            StateMachineInfo newStateMachineInfo)
         {
             ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody, span: null);
 
-            if (oldStateMachineKinds.IsStateMachine)
+            if (oldStateMachineInfo.IsStateMachine)
             {
                 Contract.ThrowIfNull(oldModel);
-                ReportMissingStateMachineAttribute(oldModel.Compilation, oldStateMachineKinds, newBody, diagnostics);
+                ReportMissingStateMachineAttribute(oldModel.Compilation, oldStateMachineInfo, newBody, diagnostics);
             }
             
-            if (!oldStateMachineKinds.IsStateMachine &&
-                newStateMachineKinds.IsStateMachine &&
+            if (!oldStateMachineInfo.IsStateMachine &&
+                newStateMachineInfo.IsStateMachine &&
                 !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
             {
                 // Adding a state machine, either for async or iterator, will require creating a new helper class
                 // so is a rude edit if the runtime doesn't support it
-                var rudeEdit = newStateMachineKinds.IsAsync ? RudeEditKind.MakeMethodAsyncNotSupportedByRuntime : RudeEditKind.MakeMethodIteratorNotSupportedByRuntime;
+                var rudeEdit = newStateMachineInfo.IsAsync ? RudeEditKind.MakeMethodAsyncNotSupportedByRuntime : RudeEditKind.MakeMethodIteratorNotSupportedByRuntime;
                 diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newDeclaration, EditKind.Update)));
             }
 
-            if (oldStateMachineKinds.IsStateMachine && newStateMachineKinds.IsStateMachine)
+            if (oldStateMachineInfo.IsStateMachine && newStateMachineInfo.IsStateMachine)
             {
                 if (!capabilities.Grant(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
                 {
@@ -5219,9 +5219,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var lambdaBodyMatch = newLambdaInfo.Match;
                     Debug.Assert(lambdaBodyMatch != null);
 
-                    var oldStateMachineKinds = GetStateMachineInfo(oldLambdaBody);
-                    var newStateMachineKinds = GetStateMachineInfo(newLambdaBody);
-                    ReportStateMachineBodyUpdateRudeEdits(lambdaBodyMatch, oldStateMachineKinds, newLambdaBody, newStateMachineKinds, newLambdaInfo.HasActiveStatement, diagnostics);
+                    var oldStateMachineInfo = GetStateMachineInfo(oldLambdaBody);
+                    var newStateMachineInfo = GetStateMachineInfo(newLambdaBody);
+                    ReportStateMachineBodyUpdateRudeEdits(lambdaBodyMatch, oldStateMachineInfo, newLambdaBody, newStateMachineInfo, newLambdaInfo.HasActiveStatement, diagnostics);
 
                     // When the delta IL of the containing method is emitted lambdas declared in it are also emitted.
                     // If the runtime does not support changing IL of the method (e.g. method containing stackalloc)
@@ -5244,8 +5244,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             newMember,
                             memberBodyMatch,
                             capabilities,
-                            oldStateMachineKinds,
-                            newStateMachineKinds);
+                            oldStateMachineInfo,
+                            newStateMachineInfo);
 
                         if (IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda))
                         {
@@ -6111,7 +6111,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportMissingStateMachineAttribute(
             Compilation oldCompilation,
-            StateMachineKinds kinds,
+            StateMachineInfo kinds,
             SyntaxNode newBody,
             ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
