@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.Completion.CompletionListCache;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
@@ -49,7 +50,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
 
         // Store the members in the resolve cache so that when we get a resolve request for a particular
         // member we can re-use the syntax node and span we already computed here.
-        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, request.TextDocument, syntaxVersion));
+        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, syntaxVersion));
 
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.
         // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730462
@@ -63,7 +64,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             {
                 Range = range,
                 Command = null,
-                Data = new CodeLensResolveData(resultId, i)
+                Data = new CodeLensResolveData(resultId, i, request.TextDocument)
             };
 
             codeLenses.Add(codeLens);
