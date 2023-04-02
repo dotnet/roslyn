@@ -3689,7 +3689,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Contract.ThrowIfNull(oldModel);
                 ReportMissingStateMachineAttribute(oldModel.Compilation, oldStateMachineInfo, newBody, diagnostics);
             }
-            
+
             if (!oldStateMachineInfo.IsStateMachine &&
                 newStateMachineInfo.IsStateMachine &&
                 !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
