@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Sets the input source file for analyzer or code fix testing.
         /// </summary>
         /// <seealso cref="TestState"/>
-        public string? TestCode
+        public string TestCode
         {
             set
             {
