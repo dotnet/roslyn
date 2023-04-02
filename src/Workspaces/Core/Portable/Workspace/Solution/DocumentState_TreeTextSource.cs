@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis
                 return version != default;
             }
 
-            public Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(_version);
+            public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => new(_version);
         }
     }
 }

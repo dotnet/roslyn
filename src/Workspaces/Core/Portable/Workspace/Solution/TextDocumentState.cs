@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
             return VersionStamp.Create();
         }
 
-        public virtual Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+        public virtual ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
             => this.TextAndVersionSource.GetVersionAsync(LoadTextOptions, cancellationToken);
 
         /// <summary>

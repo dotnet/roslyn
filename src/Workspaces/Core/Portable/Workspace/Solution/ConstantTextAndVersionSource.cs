@@ -5,7 +5,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -46,6 +45,6 @@ internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>
     public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
         => TryGetValue(out value);
 
-    public Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => Task.FromResult(_value.Version);
+    public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => new(_value.Version);
 }

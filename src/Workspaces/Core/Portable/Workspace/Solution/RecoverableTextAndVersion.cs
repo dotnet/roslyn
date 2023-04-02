@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             return recoverableText.ToTextAndVersion(await recoverableText.GetValueAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        public async Task<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        public async ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             var recoverableText = await GetRecoverableTextAsync(useAsync: true, options, cancellationToken).ConfigureAwait(false);
             return recoverableText.Version;
