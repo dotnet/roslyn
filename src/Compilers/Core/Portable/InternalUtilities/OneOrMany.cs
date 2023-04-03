@@ -148,6 +148,8 @@ namespace Roslyn.Utilities
             }
         }
 
+        public T First() => this[0];
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             if (HasOne)
@@ -183,6 +185,41 @@ namespace Roslyn.Utilities
 
             return default;
         }
+
+        public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
+        {
+            return from.HasOne
+                ? new OneOrMany<T>(from._one)
+                : new OneOrMany<T>(ImmutableArray<T>.CastUp(from._many));
+        }
+
+        public bool All(Func<T, bool> predicate)
+        {
+            foreach (var value in this)
+            {
+                if (!predicate(value))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool Any()
+            => this.Count > 0;
+
+        public bool Any<TData>(Func<T, TData, bool> predicate, TData data)
+        {
+            foreach (var value in this)
+            {
+                if (predicate(value, data))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public ImmutableArray<T> ToImmutable()
+            => this.HasOne ? ImmutableArray.Create(_one) : _many;
 
         public Enumerator GetEnumerator()
             => new(this);
