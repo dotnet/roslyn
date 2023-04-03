@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DontOverparenthesize()
+        public async Task DoNotOverparenthesize()
         {
             await TestAsync(
                 """
@@ -752,7 +752,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DontOverparenthesizeGenerics()
+        public async Task DoNotOverparenthesizeGenerics()
         {
             await TestAsync(
                 """

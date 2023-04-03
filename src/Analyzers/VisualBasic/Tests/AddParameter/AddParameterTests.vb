@@ -1017,7 +1017,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")>
-        Public Async Function TestConstructorInitializer_DontOfferFixForConstructorWithDiagnostic() As Task
+        Public Async Function TestConstructorInitializer_DoNotOfferFixForConstructorWithDiagnostic() As Task
             ' Error BC30057: Too many arguments to 'Public Sub New()'.
             Dim code =
 "
