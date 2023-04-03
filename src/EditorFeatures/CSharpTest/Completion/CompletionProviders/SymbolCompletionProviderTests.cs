@@ -12023,12 +12023,238 @@ public static class Extension
             await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
         }
 
-        [Fact]
-        public async Task NoSymbolCompletionsInEnumBaseList()
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList1(string underlyingType)
         {
             var source = "enum E : $$";
 
+            await VerifyItemExistsAsync(source, "System");
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, underlyingType);
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList2(string underlyingType)
+        {
+            var source = """
+                enum E : $$
+
+                class System
+                {
+                }
+                """;
+
+            // class `System` shadows the namespace in regular source
+            await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, underlyingType);
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList3(string underlyingType)
+        {
+            var source = """
+                using System;
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, underlyingType);
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList4(string underlyingType)
+        {
+            var source = """
+                namespace MyNamespace
+                {
+                }
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "E");
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "MyNamespace");
+
+            // Not accessible in the given context
+            await VerifyItemIsAbsentAsync(source, underlyingType);
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList5(string underlyingType)
+        {
+            var source = "enum E : System.$$";
+
+            await VerifyItemIsAbsentAsync(source, "System");
+
+            await VerifyItemExistsAsync(source, underlyingType);
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList6(string underlyingType)
+        {
+            var source = "enum E : global::System.$$";
+
+            await VerifyItemIsAbsentAsync(source, "System");
+
+            await VerifyItemExistsAsync(source, underlyingType);
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Fact]
+        public async Task EnumBaseList7()
+        {
+            var source = "enum E : System.Collections.Generic.$$";
+
             await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact]
+        public async Task EnumBaseList8()
+        {
+            var source = """
+                namespace MyNamespace
+                {
+                    namespace System {}
+                    public struct Byte {}
+                    public struct SByte {}
+                    public struct Int16 {}
+                    public struct UInt16 {}
+                    public struct Int32 {}
+                    public struct UInt32 {}
+                    public struct Int64 {}
+                    public struct UInt64 {}
+                }
+
+                enum E : MyNamespace.$$
+                """;
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact]
+        public async Task EnumBaseList9()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, "MySystem");
+        }
+
+        [Fact]
+        public async Task EnumBaseList10()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "MySystem");
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList11(string underlyingType)
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : MySystem.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "MySystem");
+
+            await VerifyItemExistsAsync(source, underlyingType);
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyItemIsAbsentAsync(source, "Console");
+            await VerifyItemIsAbsentAsync(source, "Action");
+            await VerifyItemIsAbsentAsync(source, "DateTime");
+        }
+
+        [Fact]
+        public async Task EnumBaseList12()
+        {
+            var source = """
+                using MySystem = System;
+
+                enum E : global::MySystem.$$
+                """;
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList13(string underlyingType)
+        {
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
+
+                enum E : $$
+                """;
+
+            await VerifyItemExistsAsync(source, $"My{underlyingType}");
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList14(string underlyingType)
+        {
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
+
+                enum E : global::$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList15(string underlyingType)
+        {
+            var source = $"""
+                using My{underlyingType} = System.{underlyingType};
+
+                enum E : System.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+
+        }
+
+        [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
+        public async Task EnumBaseList16(string underlyingType)
+        {
+            var source = $"""
+                using MySystem = System;
+                using My{underlyingType} = System.{underlyingType};
+
+                enum E : MySystem.$$
+                """;
+
+            await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
@@ -12084,6 +12310,18 @@ public static class Extension
     </Project>
 </Workspace>
 """;
+        }
+
+        public static IEnumerable<object[]> ValidEnumUnderlyingTypeNames()
+        {
+            yield return new object[] { "Byte" };
+            yield return new object[] { "SByte" };
+            yield return new object[] { "Int16" };
+            yield return new object[] { "UInt16" };
+            yield return new object[] { "Int32" };
+            yield return new object[] { "UInt32" };
+            yield return new object[] { "Int64" };
+            yield return new object[] { "UInt64" };
         }
     }
 }

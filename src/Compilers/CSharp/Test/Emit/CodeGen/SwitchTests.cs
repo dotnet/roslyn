@@ -2623,10 +2623,10 @@ class Program
 }";
             var compilation = base.CreateCSharpCompilation(text);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case i:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "i").WithLocation(8, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "i").WithArguments("int").WithLocation(8, 18)
+            );
         }
 
         [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]

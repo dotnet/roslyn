@@ -32599,10 +32599,10 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'bool' is expected
                 //             case !TakeOutParam(3, out var x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "!TakeOutParam(3, out var x1)").WithLocation(8, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "!TakeOutParam(3, out var x1)").WithArguments("bool").WithLocation(8, 18)
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -34935,7 +34935,7 @@ class C
                 // (11,44): error CS0165: Use of unassigned local variable 'z2'
                 //             case !M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 44)
-                );
+            );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 

@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute 只能套用至具有預設值的參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">無法在非同步 foreach 中使用動態類型的集合</target>
@@ -267,14 +272,19 @@
         <target state="new">Using alias cannot be a 'ref' type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令列語法錯誤: '{0}' 對 '{1}' 選項而言不是有效的值。此值的格式必須是 '{2}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
-        <source>Only a using alias can be 'unsafe'.</source>
-        <target state="new">Only a using alias can be 'unsafe'.</target>
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -395,6 +405,11 @@
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">類型 '{0}' 的運算式無法由類型 '{1}' 的模式處理。請使用語言 '{2}' 版或更新版本，以比對開放式類型與常數模式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">

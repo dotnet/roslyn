@@ -1652,7 +1652,7 @@ class Program
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
-        Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
+        Public Async Function TestCSharpSimplifyToVarDoNotSimplify() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1945,7 +1945,7 @@ class Program
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
-        Public Async Function TestDontSimplifyToGenericNameCSharp() As Task
+        Public Async Function TestDoNotSimplifyToGenericNameCSharp() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2063,7 +2063,7 @@ class E
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
-        Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
+        Public Async Function TestDoNotSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2254,7 +2254,7 @@ namespace A
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633")>
-        Public Async Function TestCSharp_DontSimplifyNullableQualifiedName() As Task
+        Public Async Function TestCSharp_DoNotSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2284,7 +2284,7 @@ class C
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240")>
-        Public Async Function TestCSharp_DontSimplifyOpenGenericNullable() As Task
+        Public Async Function TestCSharp_DoNotSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2390,7 +2390,7 @@ namespace N
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2232")>
-        Public Async Function TestCSharp_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
+        Public Async Function TestCSharp_DoNotSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2430,7 +2430,7 @@ namespace N
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4859")>
-        Public Async Function TestCSharp_DontSimplifyNullableInNameOfExpression() As Task
+        Public Async Function TestCSharp_DoNotSimplifyNullableInNameOfExpression() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -4721,7 +4721,7 @@ End Class]]>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
-        Public Async Function TestVisualBasic_DontSimplifyToGenericName() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyToGenericName1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4772,7 +4772,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
-        Public Async Function TestVisualBasic_DoNotSimplifyToGenericName() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyToGenericName2() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4823,7 +4823,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
-        Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
+        Public Async Function TestVisualBasic_TestDoNotSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4908,7 +4908,7 @@ End Class]]></text>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746")>
-        Public Async Function TestVisualBasic_DontSimplifyAlias() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyAlias() As Task
 
             Dim input =
         <Workspace>
@@ -4945,7 +4945,7 @@ End Class]]></text>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633")>
-        Public Async Function TestVisualBasic_DontSimplifyNullableQualifiedName() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4979,7 +4979,7 @@ End Module]]></text>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240")>
-        Public Async Function TestVisualBasic_DontSimplifyOpenGenericNullable() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -5057,7 +5057,7 @@ End Module]]></text>
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2232")>
-        Public Async Function TestVisualBasic_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -5087,7 +5087,7 @@ End Module]]></text>
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4859")>
-        Public Async Function TestVisualBasic_DontSimplifyNullableInNameOfExpression() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyNullableInNameOfExpression() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -5795,11 +5795,11 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, DoNotPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7955")>
-        Public Async Function DontUsePredefinedTypeKeyword() As Task
+        Public Async Function DoNotUsePredefinedTypeKeyword() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -5827,7 +5827,7 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, DoNotPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <Fact>
@@ -5894,7 +5894,7 @@ End Class
             Return New OptionsCollection(languageName) From {{CodeStyleOptions2.QualifyPropertyAccess, New CodeStyleOption2(Of Boolean)(True, notification)}}
         End Function
 
-        Private Shared ReadOnly DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As New OptionsCollection(LanguageNames.VisualBasic) From
+        Private Shared ReadOnly DoNotPreferIntrinsicPredefinedTypeKeywordInDeclaration As New OptionsCollection(LanguageNames.VisualBasic) From
             {{CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOption2(Of Boolean).Default}}
 
 #End Region

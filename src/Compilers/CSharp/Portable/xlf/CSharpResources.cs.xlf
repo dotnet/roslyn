@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute jde použít jenom pro parametry s výchozími hodnotami.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">V asynchronním příkazu foreach nejde použít kolekce dynamického typu.</target>
@@ -267,14 +272,19 @@
         <target state="new">Using alias cannot be a 'ref' type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
-        <source>Only a using alias can be 'unsafe'.</source>
-        <target state="new">Only a using alias can be 'unsafe'.</target>
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -395,6 +405,11 @@
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">Výraz typu {0} nelze zpracovat vzorem typu {1}. Použijte prosím verzi jazyka {2} nebo vyšší, aby odpovídala otevřenému typu se vzorem konstanty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="new">A constant value of type '{0}' is expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">

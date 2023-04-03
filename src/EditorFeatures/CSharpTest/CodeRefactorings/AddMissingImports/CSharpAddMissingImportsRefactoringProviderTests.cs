@@ -141,7 +141,7 @@ namespace B
         }
 
         [WpfFact]
-        public async Task AddMissingImports_AddImportsAboveSystem_DontPlaceSystemFirstPasteContainsMultipleMissingImports()
+        public async Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
         {
             var code = @"
 using System;

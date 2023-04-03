@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
             => (new CSharpRemoveUnnecessaryCastDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryCastCodeFixProvider());
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")]
-        public async Task DontRemoveCastToErrorType()
+        public async Task DoNotRemoveCastToErrorType()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-        public async Task DontRemoveTypeParameterCastToObject()
+        public async Task DoNotRemoveTypeParameterCastToObject()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-        public async Task DontRemoveCastInIsTest()
+        public async Task DoNotRemoveCastInIsTest()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
-        public async Task DontRemoveCastNeedForUserDefinedOperator()
+        public async Task DoNotRemoveCastNeedForUserDefinedOperator()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545143")]
-        public async Task DontRemovePointerCast1()
+        public async Task DoNotRemovePointerCast1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545144")]
-        public async Task DontRemoveCastToObjectFromDelegateComparison()
+        public async Task DoNotRemoveCastToObjectFromDelegateComparison()
         {
             // The cast below can't be removed because it would result in the Delegate
             // op_Equality operator overload being used over reference equality.
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545145")]
-        public async Task DontRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
+        public async Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545157")]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution1()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution2()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution2()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution3()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution3()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545747")]
-        public async Task DontRemoveCastWhichChangesTypeOfInferredLocal()
+        public async Task DoNotRemoveCastWhichChangesTypeOfInferredLocal()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545159")]
-        public async Task DontRemoveNeededCastToIListOfObject()
+        public async Task DoNotRemoveNeededCastToIListOfObject()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-        public async Task DontRemoveNeededCastInConditionalExpression()
+        public async Task DoNotRemoveNeededCastInConditionalExpression()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [WpfFact(Skip = "529787")]
-        public async Task DontRemoveNecessaryCastWhichInCollectionInitializer1()
+        public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [WpfFact(Skip = "529787")]
-        public async Task DontRemoveNecessaryCastWhichInCollectionInitializer2()
+        public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer2()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545608")]
-        public async Task DontRemoveNecessaryCastWithImplicitUserDefinedConversion()
+        public async Task DoNotRemoveNecessaryCastWithImplicitUserDefinedConversion()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
-        public async Task DontRemoveNecessaryCastWithImplicitConversionInThrow()
+        public async Task DoNotRemoveNecessaryCastWithImplicitConversionInThrow()
         {
             // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545981")]
-        public async Task DontRemoveNecessaryCastInThrow()
+        public async Task DoNotRemoveNecessaryCastInThrow()
         {
             // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
-        public async Task DontRemoveNecessaryDowncast()
+        public async Task DoNotRemoveNecessaryDowncast()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545606")]
-        public async Task DontRemoveNecessaryCastFromNullToTypeParameter()
+        public async Task DoNotRemoveNecessaryCastFromNullToTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545744")]
-        public async Task DontRemoveNecessaryCastInImplicitlyTypedArray()
+        public async Task DoNotRemoveNecessaryCastInImplicitlyTypedArray()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
-        public async Task DontRemoveNecessaryCastInQueryExpression()
+        public async Task DoNotRemoveNecessaryCastInQueryExpression()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
-        public async Task DontRemoveNecessaryCastFromTypeParameterToInterface()
+        public async Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
-        public async Task DontCrashOnIncompleteMethodDeclaration()
+        public async Task DoNotCrashOnIncompleteMethodDeclaration()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
-        public async Task DontRemoveNecessaryCastFromTypeParameterToObject()
+        public async Task DoNotRemoveNecessaryCastFromTypeParameterToObject()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545858")]
-        public async Task DontRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
+        public async Task DoNotRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529842")]
-        public async Task DontRemoveNecessaryCastInTernaryExpression()
+        public async Task DoNotRemoveNecessaryCastInTernaryExpression()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1321,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
-        public async Task DontRemoveCastInConstructorInitializer3()
+        public async Task DoNotRemoveCastInConstructorInitializer3()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545962")]
-        public async Task DontRemoveCastWhenExpressionDoesntBind()
+        public async Task DoNotRemoveCastWhenExpressionDoesntBind()
         {
             // Note: The cast below can't be removed because its expression doesn't bind.
 
@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545944")]
-        public async Task DontRemoveNecessaryCastBeforePointerDereference1()
+        public async Task DoNotRemoveNecessaryCastBeforePointerDereference1()
         {
             // Note: The cast below can't be removed because it would result in *null,
             // which is illegal.
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545978")]
-        public async Task DontRemoveNecessaryCastBeforePointerDereference2()
+        public async Task DoNotRemoveNecessaryCastBeforePointerDereference2()
         {
             // Note: The cast below can't be removed because it would result in dereferencing
             // void*, which is illegal.
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp8()
+        public async Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp8()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp9()
+        public async Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp9()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         #region Interface Casts
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")]
-        public async Task DontRemoveCastToInterfaceForUnsealedType()
+        public async Task DoNotRemoveCastToInterfaceForUnsealedType()
         {
             // Note: The cast below can't be removed because X is not sealed.
 
@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-        public async Task DontRemoveCastToInterfaceForSealedType4()
+        public async Task DoNotRemoveCastToInterfaceForSealedType4()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because the unspecified optional parameter default values differ.
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-        public async Task DontRemoveCastToInterfaceForSealedType6()
+        public async Task DoNotRemoveCastToInterfaceForSealedType6()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because the specified named arguments refer to parameters that
@@ -1777,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-        public async Task DontRemoveCastToInterfaceForSealedType8()
+        public async Task DoNotRemoveCastToInterfaceForSealedType8()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because the specified named arguments refer to parameters that
@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545883")]
-        public async Task DontRemoveCastToInterfaceForSealedType9()
+        public async Task DoNotRemoveCastToInterfaceForSealedType9()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because it would result in binding to a Dispose method that doesn't
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545887")]
-        public async Task DontRemoveCastToInterfaceForStruct1()
+        public async Task DoNotRemoveCastToInterfaceForStruct1()
         {
             // Note: The cast below can't be removed because the cast boxes 's' and
             // unboxing would change program behavior.
@@ -2027,7 +2027,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         #region ParamArray Parameter Casts
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545141")]
-        public async Task DontRemoveCastToObjectInParamArrayArg1()
+        public async Task DoNotRemoveCastToObjectInParamArrayArg1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-        public async Task DontRemoveCastToIntArrayInParamArrayArg2()
+        public async Task DoNotRemoveCastToIntArrayInParamArrayArg2()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2071,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-        public async Task DontRemoveCastToObjectArrayInParamArrayArg3()
+        public async Task DoNotRemoveCastToObjectArrayInParamArrayArg3()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2270,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         #region ForEach Statements
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-        public async Task DontRemoveNecessaryCastInForEach1()
+        public async Task DoNotRemoveNecessaryCastInForEach1()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
@@ -2293,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-        public async Task DontRemoveNecessaryCastInForEach2()
+        public async Task DoNotRemoveNecessaryCastInForEach2()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
@@ -2316,7 +2316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-        public async Task DontRemoveNecessaryCastInForEach3()
+        public async Task DoNotRemoveNecessaryCastInForEach3()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement since C doesn't contain a GetEnumerator()
@@ -2353,7 +2353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-        public async Task DontRemoveNecessaryCastInForEach4()
+        public async Task DoNotRemoveNecessaryCastInForEach4()
         {
             // The cast below can't be removed because it would result in
             // C.GetEnumerator() being called rather than D.GetEnumerator().
@@ -2396,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-        public async Task DontRemoveNecessaryCastInForEach5()
+        public async Task DoNotRemoveNecessaryCastInForEach5()
         {
             // The cast below can't be removed because it would change the
             // type of 'x'.
@@ -2425,7 +2425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         #endregion
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545925")]
-        public async Task DontRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
+        public async Task DoNotRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
         {
             // Note: The cast below can't be removed because the parameter list
             // of Goo and its override have different default values.
@@ -2568,7 +2568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624252")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
-        public async Task DontRemoveCastIfArgumentIsRestricted_TypedReference()
+        public async Task DoNotRemoveCastIfArgumentIsRestricted_TypedReference()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2628,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2667,7 +2667,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2683,7 +2683,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2699,7 +2699,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2715,7 +2715,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2731,7 +2731,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_1()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_1()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2765,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
-        public async Task DontUnnecessaryCastFromTypeParameterToObject()
+        public async Task DoNotUnnecessaryCastFromTypeParameterToObject()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2813,7 +2813,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/626026")]
-        public async Task DontRemoveCastIfUserDefinedExplicitCast()
+        public async Task DoNotRemoveCastIfUserDefinedExplicitCast()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2841,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")]
-        public async Task DontRemoveNecessaryCastInSwitchExpression()
+        public async Task DoNotRemoveNecessaryCastInSwitchExpression()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2873,7 +2873,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2761")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
-        public async Task DontRemoveCastFromBaseToDerivedWithExplicitReference()
+        public async Task DoNotRemoveCastFromBaseToDerivedWithExplicitReference()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2898,7 +2898,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")]
-        public async Task DontRemoveCastToTypeParameterWithExceptionConstraint()
+        public async Task DoNotRemoveCastToTypeParameterWithExceptionConstraint()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2918,7 +2918,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")]
-        public async Task DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
+        public async Task DoNotRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2938,7 +2938,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
-        public async Task DontRemoveCastThatChangesShapeOfAnonymousTypeObject()
+        public async Task DoNotRemoveCastThatChangesShapeOfAnonymousTypeObject()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2978,7 +2978,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18978")]
-        public async Task DontRemoveCastOnCallToMethodWithParamsArgs()
+        public async Task DoNotRemoveCastOnCallToMethodWithParamsArgs()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3089,7 +3089,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgs()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgs()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3154,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3175,7 +3175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3196,7 +3196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3314,7 +3314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3333,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3352,7 +3352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3371,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27239")]
-        public async Task DontOfferToRemoveCastWhereNoConversionExists()
+        public async Task DoNotOfferToRemoveCastWhereNoConversionExists()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -3389,7 +3389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
-        public async Task DontOfferToRemoveCastWhenAccessingHiddenProperty()
+        public async Task DoNotOfferToRemoveCastWhenAccessingHiddenProperty()
         {
             await TestMissingInRegularAndScriptAsync("""
                 using System.Collections.Generic;

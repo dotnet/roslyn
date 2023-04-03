@@ -54,9 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfNull(textView);
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.

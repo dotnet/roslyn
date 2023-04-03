@@ -4098,7 +4098,7 @@ End Class", index:=1)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
-        Public Async Function TestDontImplementDisposePatternForLocallyDefinedIDisposable() As Task
+        Public Async Function TestDoNotImplementDisposePatternForLocallyDefinedIDisposable() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace System
     Interface IDisposable
@@ -4122,7 +4122,7 @@ End Namespace")
         End Function
 
         <Fact>
-        Public Async Function TestDontImplementDisposePatternForStructures() As Task
+        Public Async Function TestDoNotImplementDisposePatternForStructures() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
 Structure S : Implements [|IDisposable|]",

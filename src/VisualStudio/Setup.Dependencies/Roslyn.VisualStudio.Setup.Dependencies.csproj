@@ -29,13 +29,22 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.CodeDom" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.ComponentModel.Composition" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Composition" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Configuration.ConfigurationManager" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Drawing.Common" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Resources.Extensions" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Json" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Channels" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Dataflow" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Nerdbank.Streams" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" PkgDefEntry="BindingRedirect" />
@@ -62,12 +71,21 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />

@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     => default;
 
                 public DebugId MethodId => default(DebugId);
+
+                public bool IsPrimaryConstructor => false;
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;
