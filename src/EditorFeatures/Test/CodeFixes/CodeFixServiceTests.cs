@@ -946,6 +946,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             bool editOnFixLine,
             bool addNewLineWithEdit)
         {
+            // This test validates analyzer de-prioritization logic in diagnostic service for lightbulb code path.
+            // Basically, we have a certain set of heuristics (detailed in the next comment below), under which an analyzer
+            // which is deemed to be an expensive analyzer is moved down from 'Normal' priority code fix bucket to
+            // 'Low' priority bucket to improve lightbulb performance. This test validates this logic by performing
+            // the following steps:
+            //  1. Use 2 snapshots of document, such that the analyzer has a reported diagnostic on the code fix trigger
+            //     line in the earlier snapshot based on the flag 'diagnosticOnFixLineInPriorSnapshot'
+            //  2. For the second snapshot, mimic whether or not background analysis has computed and cached full document
+            //     diagnostics for the document based on the flag 'testWithCachedDiagnostics'.
+            //  3. Apply an edit in the second snapshot on the code fix trigger line based on the flag 'editOnFixLine'.
+            //     If this flag is false, edit is apply at a different line in the document.
+            //  4. Add a new line edit in the second snapshot based on the flag 'addNewLineWithEdit'. This tests the part
+            //     of the heuristic where we compare intersecting diagnostics across document snapshots only if both
+            //     snapshots have the same number of lines.
+
+            // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
+            //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
+            //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
+            //  3. Either of the below is true:
+            //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
+            //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot.
+            var boolExpectDeprioritization = !testWithCachedDiagnostics &&
+                (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel) &&
+                (!diagnosticOnFixLineInPriorSnapshot || addNewLineWithEdit);
+
             var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
             var code = $@"
 #pragma warning disable CS0219
@@ -1023,16 +1048,6 @@ class C
                 Assert.Empty(lowPriFixes);
                 return;
             }
-
-            // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
-            //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
-            //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
-            //  3. Either of the below is true:
-            //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
-            //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot.
-            var boolExpectDeprioritization = !testWithCachedDiagnostics &&
-                (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel) &&
-                (!diagnosticOnFixLineInPriorSnapshot || addNewLineWithEdit);
 
             CodeFixCollection expectedFixCollection;
             if (boolExpectDeprioritization)
