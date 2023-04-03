@@ -650,6 +650,82 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableGeneric_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod<T1, T2>(T1 t) { Console.Write("0"); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod<string>("1");
+                    C.InterceptableMethod("2");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1(string s) { Console.Write(s); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod<T>(T t) { Console.Write("0"); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod<string>("1");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 30)]
+                [InterceptsLocation("Program.cs", 14, 31)]
+                [InterceptsLocation("Program.cs", 14, 37)]
+                public static void Interceptor1(string s) { Console.Write(s); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(20,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '<'.
+            //     [InterceptsLocation("Program.cs", 14, 30)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 30)").WithArguments("<").WithLocation(20, 6),
+            // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token 'string'.
+            //     [InterceptsLocation("Program.cs", 14, 31)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 31)").WithArguments("string").WithLocation(21, 6),
+            // Program.cs(22,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '>'.
+            //     [InterceptsLocation("Program.cs", 14, 37)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 37)").WithArguments(">").WithLocation(22, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptsLocationBadAttributeArguments_01()
     {
         var source = """

@@ -141,6 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool invokedAsExtensionMethod,
             Location? interceptableLocation)
         {
+            // PROTOTYPE(ic):
+            // Add assertions for the possible shapes of calls which could come through this method.
+            // When the BoundCall shape changes in the future, force developer to decide what to do here.
+
             if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
             {
                 // The call was not intercepted.
