@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => Add(node, useSiteInfo, static node => node.Location);
 
+        internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => AddDiagnostics(node, useSiteInfo, static node => node.Location);
+
         internal bool Add(SyntaxToken token, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => Add(token, useSiteInfo, static token => token.GetLocation());
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => AddDiagnostics(location, useSiteInfo, static location => location);
-
-        internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-            => AddDiagnostics(node, useSiteInfo, static node => node.Location);
 
         internal bool AddDiagnostics<TData>(TData data, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation)
         {
