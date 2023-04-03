@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics = false,
-            CodeActionRequestPriority priority = CodeActionRequestPriority.None,
+            ICodeActionRequestPriorityProvider? priorityProvider = null,
             DiagnosticKind diagnosticKinds = DiagnosticKind.All,
             bool isExplicit = false,
             CancellationToken cancellationToken = default)
@@ -83,10 +83,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(async () =>
                 {
+                    priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+
                     using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                         document, range, diagnostics, shouldIncludeDiagnostic,
-                        includeSuppressedDiagnostics, true, priority, blockForData: false,
+                        includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
                         addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
                     return (diagnostics.ToImmutable(), upToDate);
                 }, cancellationToken);
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
-            CodeActionRequestPriority priority,
+            ICodeActionRequestPriorityProvider? priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -109,10 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
+                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
                     document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                    priority, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
+                    priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
