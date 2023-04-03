@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, TData data, Func<TData, Location> getLocation)
         {
-            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, data, getLocation))
+            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, getLocation, data))
             {
                 return true;
             }
@@ -293,9 +293,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool ReportUseSiteDiagnostic(DiagnosticInfo? info, Location location)
-            => ReportUseSiteDiagnostic(info, location, static location => location);
+            => ReportUseSiteDiagnostic(info, static location => location, location);
 
-        internal bool ReportUseSiteDiagnostic<TData>(DiagnosticInfo? info, TData data, Func<TData, Location> getLocation)
+        internal bool ReportUseSiteDiagnostic<TData>(DiagnosticInfo? info, Func<TData, Location> getLocation, TData data)
         {
             if (info is null)
             {
