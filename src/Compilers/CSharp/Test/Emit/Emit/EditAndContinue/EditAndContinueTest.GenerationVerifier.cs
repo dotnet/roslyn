@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
             }
 
-            internal void VerifyEncLog(IEnumerable<EditAndContinueLogEntry> expected)
+            internal void VerifyEncLog(IEnumerable<EditAndContinueLogEntry>? expected = null)
             {
                 AssertEx.Equal(
                     expected ?? Array.Empty<EditAndContinueLogEntry>(),
