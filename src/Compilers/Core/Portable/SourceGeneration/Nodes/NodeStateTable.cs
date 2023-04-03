@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         public int Count => _states.Length;
 
         /// <summary>
-        /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
+        /// Indicates that this table is unchanged from the previous version.
         /// </summary>
         public bool IsCached { get; }
 
