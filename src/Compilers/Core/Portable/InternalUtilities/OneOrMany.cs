@@ -142,10 +142,17 @@ namespace Roslyn.Utilities
 
         public IEnumerable<TResult> OfType<TResult>()
         {
-            foreach (var item in this)
+            return this.Count == 0
+                ? Array.Empty<TResult>()
+                : iterateElements(this);
+
+            static IEnumerable<TResult> iterateElements(OneOrMany<T> @this)
             {
-                if (item is TResult result)
-                    yield return result;
+                foreach (var item in @this)
+                {
+                    if (item is TResult result)
+                        yield return result;
+                }
             }
         }
 
