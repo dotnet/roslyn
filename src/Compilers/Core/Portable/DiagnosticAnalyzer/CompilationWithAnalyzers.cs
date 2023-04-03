@@ -588,8 +588,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(analysisScope != null);
 
-            AnalyzerDriver? driver = null;
-
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -598,7 +596,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analysisScope == null)
                     return;
 
-                (var compilation, driver) = await getCompilationAndDriverAsync().ConfigureAwait(false);
+                // Get the compilation to execute analysis.
+                // PERF: We reuse the root "_compilation" when computing single-file diagnostics only for the compiler analyzer.
+                // For rest of the cases, we use a cloned compilation with a new event queue and semantic model provider
+                // to allow us to execute analyzers on this compilation without any partial state tracking and
+                // subsequently discard this compilation.
+                var compilation = analysisScope.IsSingleFileAnalysisForCompilerAnalyzer
+                    ? _compilation
+                    : _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+
+                // Get the analyzer driver to execute analysis.
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 // Driver must have been initialized.
                 Debug.Assert(driver.IsInitialized);
@@ -681,36 +689,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw ExceptionUtilities.Unreachable();
             }
-            finally
-            {
-                driver?.Dispose();
-            }
 
             return;
-
-            async Task<(Compilation compilation, AnalyzerDriver driver)> getCompilationAndDriverAsync()
-            {
-                Debug.Assert(analysisScope != null);
-
-                // We reuse the root "_compilation" when computing diagnostics only for the compiler analyzer.
-                // For rest of the cases, we use a cloned compilation with a new event queue to allow us to execute analyzers on this
-                // compilation without any partial state tracking and subsequently discard this compilation.
-                Compilation compilation;
-                if (analysisScope.IsSingleFileAnalysisForCompilerAnalyzer)
-                {
-                    compilation = _compilation;
-                }
-                else
-                {
-                    // Clone the compilation with new event queue and semantic model provider.
-                    compilation = _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
-                }
-
-                // Get the analyzer driver to execute analysis.
-                var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
-
-                return (compilation, driver);
-            }
 
             static async Task attachQueueAndProcessAllEventsAsync(
                 ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)> builder,
