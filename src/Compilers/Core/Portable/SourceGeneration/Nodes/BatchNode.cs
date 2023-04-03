@@ -132,9 +132,7 @@ namespace Microsoft.CodeAnalysis
             {
                 newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
             }
-            else if (!sourceTable.IsCached ||
-                getTotalValueCount(previousTable) != sourceValues.Length ||
-                !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
+            else if (!sourceTable.IsCached || !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
             {
                 if (!newTable.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
                 {
@@ -143,16 +141,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newTable.ToImmutableAndFree();
-
-            static int getTotalValueCount(NodeStateTable<ImmutableArray<TInput>> table)
-            {
-                var count = 0;
-                foreach (var entry in table)
-                {
-                    count += entry.Item.Length;
-                }
-                return count;
-            }
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
