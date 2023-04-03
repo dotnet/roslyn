@@ -207,9 +207,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-            => Add(location, useSiteInfo, static location => location);
-
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => Add(node, useSiteInfo, static node => node.Location);
 
@@ -218,6 +215,9 @@ namespace Microsoft.CodeAnalysis
 
         internal bool Add(SyntaxToken token, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => Add(token, useSiteInfo, static token => token.GetLocation());
+
+        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(location, useSiteInfo, static location => location);
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => AddDiagnostics(location, useSiteInfo, static location => location);
