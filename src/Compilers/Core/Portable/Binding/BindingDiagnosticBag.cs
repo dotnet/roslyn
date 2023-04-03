@@ -207,23 +207,29 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-        {
-            return Add(node.Location, useSiteInfo);
-        }
+        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(location, useSiteInfo, static location => location);
 
-        internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-        {
-            return AddDiagnostics(node.Location, useSiteInfo);
-        }
+        internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(node, useSiteInfo, static node => node.Location);
+
+        internal bool Add(SyntaxToken token, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(token, useSiteInfo, static token => token.GetLocation());
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => AddDiagnostics(location, useSiteInfo, static location => location);
+
+        internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => AddDiagnostics(node, useSiteInfo, static node => node.Location);
+
+        internal bool AddDiagnostics<TData>(TData data, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation)
         {
             if (DiagnosticBag is DiagnosticBag diagnosticBag)
             {
                 if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                 {
                     bool haveError = false;
+                    var location = getLocation(data);
                     foreach (var diagnosticInfo in useSiteInfo.Diagnostics)
                     {
                         if (ReportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location))
@@ -252,10 +258,10 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+        internal bool Add<TData>(TData data, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation)
         {
             Debug.Assert(!useSiteInfo.AccumulatesDependencies || this.AccumulatesDependencies);
-            if (AddDiagnostics(location, useSiteInfo))
+            if (AddDiagnostics(data, useSiteInfo, getLocation))
             {
                 return true;
             }
@@ -266,14 +272,18 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode node)
-        {
-            return Add(useSiteInfo, node.Location);
-        }
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode? node)
+            => Add(useSiteInfo, node, static node => node?.Location ?? Location.None);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> info, Location location)
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxToken token)
+            => Add(useSiteInfo, token, static token => token.GetLocation());
+
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, Location location)
+            => Add(useSiteInfo, location, static location => location);
+
+        internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, TData data, Func<TData, Location> getLocation)
         {
-            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, location))
+            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, data, getLocation))
             {
                 return true;
             }
@@ -283,6 +293,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool ReportUseSiteDiagnostic(DiagnosticInfo? info, Location location)
+            => ReportUseSiteDiagnostic(info, location, static location => location);
+
+        internal bool ReportUseSiteDiagnostic<TData>(DiagnosticInfo? info, TData data, Func<TData, Location> getLocation)
         {
             if (info is null)
             {
@@ -291,7 +304,7 @@ namespace Microsoft.CodeAnalysis
 
             if (DiagnosticBag is object)
             {
-                return ReportUseSiteDiagnostic(info, DiagnosticBag, location);
+                return ReportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
             }
 
             return info.Severity == DiagnosticSeverity.Error;

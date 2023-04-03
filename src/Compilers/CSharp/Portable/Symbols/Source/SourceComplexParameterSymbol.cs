@@ -1000,14 +1000,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (diagnose)
                 {
                     diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
-                    diagnosticsOpt.Add(node.Name.Location, useSiteInfo);
+                    diagnosticsOpt.Add(node.Name, useSiteInfo);
                 }
                 return ConstantValue.Bad;
             }
 
             if (diagnose)
             {
-                diagnosticsOpt.Add(node.Name.Location, useSiteInfo);
+                diagnosticsOpt.Add(node.Name, useSiteInfo);
             }
 
             return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, node.Name.Location);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerFilePathAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerMemberNameAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCancellationTokenAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
