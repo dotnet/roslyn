@@ -15482,6 +15482,54 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void RefEscape_ForEachExpression()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { } 
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                }
+                ref struct Enumerable
+                {
+                    public static Enumerable Create(ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler) => default;
+                    public Enumerator GetEnumerator() => default;
+                }
+                ref struct Enumerator
+                {
+                    public R Current => throw null;
+                    public bool MoveNext() => false;
+                }
+                class Program
+                {
+                    static void F(ref R r)
+                    {
+                        foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                        {
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (26,49): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(26, 49),
+                // (26,52): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(26, 52));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
