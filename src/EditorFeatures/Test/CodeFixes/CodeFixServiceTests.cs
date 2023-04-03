@@ -1061,7 +1061,6 @@ class C
             Assert.Equal(FixerForDeprioritizedAnalyzer.Title, fix.Action.Title);
             return;
 
-
             static bool GetExpectDeprioritization(
                 DeprioritizedAnalyzer.ActionKind actionKind,
                 bool testWithCachedDiagnostics,
@@ -1081,7 +1080,7 @@ class C
                     return false;
 
                 // Condition 2
-                if (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel)
+                if (actionKind is not (DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel))
                     return false;
 
                 // Condition 3(a)
