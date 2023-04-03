@@ -34,6 +34,8 @@ steps:
   fetchDepth: 0
 - powershell: tools/Install-DotNetSdk.ps1
   displayName: ⚙ Install .NET SDK
+- script: dotnet tool restore
+  displayName: Restore CLI tools
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
   displayName: ⚙ Set pipeline variables based on source

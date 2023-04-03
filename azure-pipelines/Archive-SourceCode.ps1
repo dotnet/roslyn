@@ -155,7 +155,7 @@ if (!$RepoUrl) {
 }
 
 Push-Location $PSScriptRoot
-$versionsObj = & (& "$PSScriptRoot/Get-nbgv.ps1") get-version -f json | ConvertFrom-Json
+$versionsObj = dotnet tool run nbgv get-version -f json | ConvertFrom-Json
 Pop-Location
 
 $ReleaseDateString = $ReleaseDate.ToShortDateString()
