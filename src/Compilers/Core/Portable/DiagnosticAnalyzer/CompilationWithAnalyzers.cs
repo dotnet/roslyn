@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analysisScope = _compilationAnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer), this);
             using var driver = await CreateAndInitializeDriverAsync(_compilation, _analysisOptions, analysisScope, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            return await driver.GetAnalyzerActionCountsAsync(analyzer, _compilation.Options, _compilationAnalysisScope, cancellationToken).ConfigureAwait(false);
+            return await driver.GetAnalyzerActionCountsAsync(analyzer, _compilation.Options, analysisScope, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
