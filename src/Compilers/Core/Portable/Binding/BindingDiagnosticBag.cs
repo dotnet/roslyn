@@ -272,8 +272,8 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode? node)
-            => Add(useSiteInfo, static node => node?.Location ?? Location.None, node);
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode node)
+            => Add(useSiteInfo, static node => node.Location, node);
 
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxToken token)
             => Add(useSiteInfo, static token => token.GetLocation(), token);
