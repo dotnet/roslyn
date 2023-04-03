@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -19,6 +21,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -303,21 +306,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null)
-            => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument);
+            TestHostDocument? additionalDocument = null,
+            string code = "class Program { }")
+            => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
         private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             ImmutableArray<CodeFixProvider> codefixers,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null)
+            TestHostDocument? additionalDocument = null,
+            string code = "class Program { }")
         {
             var fixers = codefixers.Select(codefix =>
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
                 () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
-
-            var code = @"class Program { }";
 
             var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
             if (additionalDocument != null)
@@ -355,11 +358,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             MockAnalyzerReference? analyzerReference = null,
             TextDocumentKind documentKind = TextDocumentKind.Document)
+                => GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager, out _, analyzerReference, documentKind);
+
+        private static void GetDocumentAndExtensionManager(
+            DiagnosticAnalyzerService diagnosticService,
+            TestWorkspace workspace,
+            out TextDocument document,
+            out EditorLayerExtensionManager.ExtensionManager extensionManager,
+            out DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer,
+            MockAnalyzerReference? analyzerReference = null,
+            TextDocumentKind documentKind = TextDocumentKind.Document)
         {
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
             // register diagnostic engine to solution crawler
-            _ = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
+            diagnosticIncrementalAnalyzer = (DiagnosticIncrementalAnalyzer)incrementalAnalyzer.CreateIncrementalAnalyzer(workspace)!;
 
             var reference = analyzerReference ?? new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -924,5 +937,209 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public AdditionalFileFixerWithoutDocumentKindsAndExtensions() : base(nameof(AdditionalFileFixerWithoutDocumentKindsAndExtensions)) { }
         }
 #pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
+
+        [Theory, CombinatorialData]
+        public async Task TestGetFixesAsyncWithDeprioritizedAnalyzer(
+            DeprioritizedAnalyzer.ActionKind actionKind,
+            bool testWithCachedDiagnostics,
+            bool diagnosticOnFixLineInPriorSnapshot,
+            bool editOnFixLine,
+            bool addNewLineWithEdit)
+        {
+            var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
+            var code = $@"
+#pragma warning disable CS0219
+class C
+{{
+    void M()
+    {{
+        {priorSnapshotFixLine}
+    }}
+}}";
+
+            var codeFix = new FixerForDeprioritizedAnalyzer();
+            var analyzer = new DeprioritizedAnalyzer(actionKind);
+            var analyzerReference = new MockAnalyzerReference(codeFix, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            var tuple = ServiceSetup(codeFix, code: code);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document,
+                out var extensionManager, out var diagnosticIncrementalAnalyzer, analyzerReference);
+
+            var sourceDocument = (Document)document;
+            var root = await sourceDocument.GetSyntaxRootAsync();
+            var testSpan = diagnosticOnFixLineInPriorSnapshot
+                ? root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
+                : root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
+
+            // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
+            // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+            await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
+            await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnosticIncrementalAnalyzer);
+
+            // Compute and apply code edit
+            if (editOnFixLine)
+            {
+                code = code.Replace(priorSnapshotFixLine, "int x2 = 0;");
+            }
+            else
+            {
+                code += " // Comment at end of file";
+            }
+
+            if (addNewLineWithEdit)
+            {
+                code += Environment.NewLine;
+            }
+
+            sourceDocument = sourceDocument.WithText(SourceText.From(code));
+            var appliedChanges = workspace.TryApplyChanges(sourceDocument.Project.Solution);
+            Assert.True(appliedChanges);
+            sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            root = await sourceDocument.GetSyntaxRootAsync();
+            var expectedNoFixes = !diagnosticOnFixLineInPriorSnapshot && !editOnFixLine;
+            testSpan = !expectedNoFixes
+                ? root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
+                : root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
+
+            if (testWithCachedDiagnostics)
+            {
+                // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
+                await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
+                await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: !expectedNoFixes, testSpan, diagnosticIncrementalAnalyzer);
+            }
+
+            var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+            var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Normal, lowPriorityAnalyzers);
+            var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
+            priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers);
+            var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
+
+            if (expectedNoFixes)
+            {
+                Assert.Empty(normalPriFixes);
+                Assert.Empty(lowPriFixes);
+                return;
+            }
+
+            // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
+            //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
+            //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
+            //  3. Either of the below is true:
+            //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
+            //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot.
+            var boolExpectDeprioritization = !testWithCachedDiagnostics &&
+                (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel) &&
+                (!diagnosticOnFixLineInPriorSnapshot || addNewLineWithEdit);
+
+            CodeFixCollection expectedFixCollection;
+            if (boolExpectDeprioritization)
+            {
+                Assert.Empty(normalPriFixes);
+                expectedFixCollection = Assert.Single(lowPriFixes);
+                var lowPriorityAnalyzer = Assert.Single(lowPriorityAnalyzers);
+                Assert.Same(analyzer, lowPriorityAnalyzer);
+            }
+            else
+            {
+                expectedFixCollection = Assert.Single(normalPriFixes);
+                Assert.Empty(lowPriFixes);
+                Assert.Empty(lowPriorityAnalyzers);
+            }
+
+            var fix = expectedFixCollection.Fixes.Single();
+            Assert.Equal(FixerForDeprioritizedAnalyzer.Title, fix.Action.Title);
+            return;
+
+            static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
+            {
+                var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id);
+                if (!expectedCachedDiagnostic)
+                {
+                    Assert.Empty(cachedDiagnostics);
+                }
+                else
+                {
+                    var diagnostic = Assert.Single(cachedDiagnostics);
+                    Assert.Equal(DeprioritizedAnalyzer.Descriptor.Id, diagnostic.Id);
+                    var text = await sourceDocument.GetTextAsync();
+                    Assert.Equal(testSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class DeprioritizedAnalyzer : DiagnosticAnalyzer
+        {
+            public enum ActionKind
+            {
+                SymbolStartEnd,
+                SemanticModel,
+                Operation
+            }
+
+            public static readonly DiagnosticDescriptor Descriptor = new("ID0001", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private readonly ActionKind _actionKind;
+
+            public DeprioritizedAnalyzer(ActionKind actionKind)
+            {
+                _actionKind = actionKind;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                switch (_actionKind)
+                {
+                    case ActionKind.SymbolStartEnd:
+                        context.RegisterSymbolStartAction(context =>
+                        {
+                            var variableDeclarations = new HashSet<SyntaxNode>();
+                            context.RegisterOperationAction(context
+                                => variableDeclarations.Add(context.Operation.Syntax), OperationKind.VariableDeclaration);
+                            context.RegisterSymbolEndAction(context =>
+                            {
+                                foreach (var decl in variableDeclarations)
+                                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, decl.GetLocation()));
+                            });
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case ActionKind.SemanticModel:
+                        context.RegisterSemanticModelAction(context =>
+                        {
+                            var variableDeclarations = context.SemanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>();
+                            foreach (var decl in variableDeclarations)
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, decl.GetLocation()));
+                        });
+                        break;
+
+                    case ActionKind.Operation:
+                        context.RegisterOperationAction(context =>
+                            context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Operation.Syntax.GetLocation())),
+                            OperationKind.VariableDeclaration);
+                        break;
+                }
+            }
+        }
+
+        private sealed class FixerForDeprioritizedAnalyzer : CodeFixProvider
+        {
+            public static readonly string Title = $"Fix {DeprioritizedAnalyzer.Descriptor.Id}";
+            public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DeprioritizedAnalyzer.Descriptor.Id);
+
+            public override Task RegisterCodeFixesAsync(CodeFixContext context)
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(Title,
+                        createChangedDocument: _ => Task.FromResult(context.Document),
+                        equivalenceKey: nameof(FixerForDeprioritizedAnalyzer)),
+                    context.Diagnostics);
+                return Task.CompletedTask;
+            }
+        }
     }
 }
