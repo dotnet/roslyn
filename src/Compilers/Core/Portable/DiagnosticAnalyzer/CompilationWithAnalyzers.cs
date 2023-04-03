@@ -39,10 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
 
-        /// <summary>
-        /// Pool of event queues to serve each diagnostics request.
-        /// </summary>
-        private readonly ObjectPool<AsyncQueue<CompilationEvent>> _eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
         private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
 
         /// <summary>
@@ -295,31 +291,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //       'ComputeAnalyzerDiagnosticsAsync(AnalysisScope, CancellationToken)'.
             async Task<ImmutableArray<Diagnostic>> getAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
             {
-                AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
-                AnalyzerDriver? driver = null;
+                // Clone the compilation with new event queue.
+                var compilation = _compilation.WithEventQueue(new AsyncQueue<CompilationEvent>());
 
-                try
-                {
-                    // Clone the compilation with new event queue.
-                    var compilation = _compilation.WithEventQueue(eventQueue);
-                    var compilationData = new CompilationData(compilation);
+                // Create and attach the driver to compilation.
+                var analysisScope = AnalysisScope.Create(compilation, analyzers, this);
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
 
-                    // Create and attach the driver to compilation.
-                    var analysisScope = AnalysisScope.Create(compilation, analyzers, this);
-                    driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                    driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
-
-                    // Force compilation diagnostics and wait for analyzer execution to complete.
-                    var compDiags = compilation.GetDiagnostics(cancellationToken);
-                    var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
-                    var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
-                    return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
-                }
-                finally
-                {
-                    driver?.Dispose();
-                    FreeEventQueue(eventQueue, _eventQueuePool);
-                }
+                // Force compilation diagnostics and wait for analyzer execution to complete.
+                var compDiags = compilation.GetDiagnostics(cancellationToken);
+                var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
+                var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
             }
         }
 
@@ -684,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             _analysisResultBuilder, builder, AdditionalFiles, cancellationToken);
                     }
 
-                    await attachQueueAndProcessAllEventsAsync(builder, driver, _eventQueuePool, cancellationToken).ConfigureAwait(false);
+                    await attachQueueAndProcessAllEventsAsync(builder, driver, cancellationToken).ConfigureAwait(false);
 
                     // Update the diagnostic results based on the diagnostics reported on the driver.
                     foreach (var (scope, _) in builder)
@@ -731,26 +715,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             static async Task attachQueueAndProcessAllEventsAsync(
                 ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)> builder,
                 AnalyzerDriver driver,
-                ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool,
                 CancellationToken cancellationToken)
             {
                 foreach (var (analysisScope, compilationEvents) in builder)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    AsyncQueue<CompilationEvent>? eventQueue = null;
+                    var eventQueue = CreateEventsQueue(compilationEvents);
 
-                    try
-                    {
-                        eventQueue = CreateEventsQueue(compilationEvents, eventQueuePool);
-
-                        // Perform analysis to compute new diagnostics.
-                        await driver.AttachQueueAndProcessAllEventsAsync(eventQueue, analysisScope, cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        FreeEventQueue(eventQueue, eventQueuePool);
-                    }
+                    // Perform analysis to compute new diagnostics.
+                    await driver.AttachQueueAndProcessAllEventsAsync(eventQueue, analysisScope, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -1040,45 +1014,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static AsyncQueue<CompilationEvent> CreateEventsQueue(ImmutableArray<CompilationEvent> compilationEvents, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
+        private static AsyncQueue<CompilationEvent> CreateEventsQueue(ImmutableArray<CompilationEvent> compilationEvents)
         {
             if (compilationEvents.IsEmpty)
             {
                 return s_EmptyEventQueue;
             }
 
-            var eventQueue = eventQueuePool.Allocate();
-            Debug.Assert(!eventQueue.IsCompleted);
-            Debug.Assert(eventQueue.Count == 0);
-
+            var eventQueue = new AsyncQueue<CompilationEvent>();
             foreach (var compilationEvent in compilationEvents)
             {
                 eventQueue.TryEnqueue(compilationEvent);
             }
 
             return eventQueue;
-        }
-
-        private static void FreeEventQueue(AsyncQueue<CompilationEvent>? eventQueue, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
-        {
-            if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
-            {
-                return;
-            }
-
-            if (eventQueue.Count > 0)
-            {
-                while (eventQueue.TryDequeue(out _)) ;
-            }
-
-            if (!eventQueue.IsCompleted)
-            {
-                eventQueuePool.Free(eventQueue);
-            }
-            else
-            {
-                eventQueuePool.ForgetTrackedObject(eventQueue);
-            }
         }
 
         /// <summary>
