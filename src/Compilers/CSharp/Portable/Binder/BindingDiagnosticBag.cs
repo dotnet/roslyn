@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is object)
             {
-                return Add(symbol.GetUseSiteInfo(), data, getLocation);
+                return Add(symbol.GetUseSiteInfo(), getLocation, data);
             }
 
             return false;

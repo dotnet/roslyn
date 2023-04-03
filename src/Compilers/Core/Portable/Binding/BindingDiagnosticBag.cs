@@ -273,15 +273,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
 
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode? node)
-            => Add(useSiteInfo, node, static node => node?.Location ?? Location.None);
+            => Add(useSiteInfo, static node => node?.Location ?? Location.None, node);
 
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxToken token)
-            => Add(useSiteInfo, token, static token => token.GetLocation());
+            => Add(useSiteInfo, static token => token.GetLocation(), token);
 
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, Location location)
-            => Add(useSiteInfo, location, static location => location);
+            => Add(useSiteInfo, static location => location, location);
 
-        internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, TData data, Func<TData, Location> getLocation)
+        internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, Func<TData, Location> getLocation, TData data)
         {
             if (ReportUseSiteDiagnostic(info.DiagnosticInfo, getLocation, data))
             {
