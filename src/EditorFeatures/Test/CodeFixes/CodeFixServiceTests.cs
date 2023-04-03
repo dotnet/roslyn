@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 #pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
 
         [Theory, CombinatorialData]
-        public async Task TestGetFixesAsyncWithDeprioritizedAnalyzer(
+        public async Task TestGetFixesWithDeprioritizedAnalyzerAsync(
             DeprioritizedAnalyzer.ActionKind actionKind,
             bool testWithCachedDiagnostics,
             bool diagnosticOnFixLineInPriorSnapshot,
