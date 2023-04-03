@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var completionOptions = GetCompletionOptions(document);
+            if (!clientCapabilities.HasVisualStudioLspCapability())
+            {
+                completionOptions = completionOptions with
+                {
+                    TriggerInArgumentLists = false,
+                    ShowNewSnippetExperienceUserOption = false,
+                };
+            }
+
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -470,7 +479,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
                 UpdateImportCompletionCacheInBackground = false,
-                TriggerInArgumentLists = false
             };
         }
 
