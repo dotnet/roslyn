@@ -22,7 +22,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   $errorFileName = if ($language -eq "CSharp") { "ErrorCode.cs" } else { "Errors.vb" }
   $errorFilePath = Join-Path $languageDir "Errors\$errorFileName"
   $errorGeneratedFilePath = Join-Path $generatedDir "ErrorFacts.Generated.$($languageSuffix)"
-  $targetFramework = "net7.0"
+  $targetFramework = "net8.0"
 
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
@@ -91,7 +91,7 @@ function Run-GetTextCore($generatedDir) {
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
   Create-Directory $generatedDir
-  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net7.0"
+  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net8.0"
 }
 
 function Run-GetText() {
