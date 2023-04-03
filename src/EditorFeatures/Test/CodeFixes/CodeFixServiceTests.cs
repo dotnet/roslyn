@@ -961,15 +961,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             //     of the heuristic where we compare intersecting diagnostics across document snapshots only if both
             //     snapshots have the same number of lines.
 
-            // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
-            //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
-            //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
-            //  3. Either of the below is true:
-            //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
-            //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot.
-            var boolExpectDeprioritization = !testWithCachedDiagnostics &&
-                (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel) &&
-                (!diagnosticOnFixLineInPriorSnapshot || addNewLineWithEdit);
+            var expectDeprioritization = GetExpectDeprioritization(actionKind, testWithCachedDiagnostics, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
 
             var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
             var code = $@"
@@ -992,10 +984,10 @@ class C
                 out var extensionManager, out var diagnosticIncrementalAnalyzer, analyzerReference);
 
             var sourceDocument = (Document)document;
-            var root = await sourceDocument.GetSyntaxRootAsync();
+            var root = await sourceDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var testSpan = diagnosticOnFixLineInPriorSnapshot
-                ? root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
-                : root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
+                ? root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
+                : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
             // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
             // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
@@ -1015,7 +1007,8 @@ class C
 
             if (addNewLineWithEdit)
             {
-                code += Environment.NewLine;
+                // Add a new line at the start of the document to ensure the line with diagnostic in prior snapshot moved.
+                code = Environment.NewLine + code;
             }
 
             sourceDocument = sourceDocument.WithText(SourceText.From(code));
@@ -1023,11 +1016,11 @@ class C
             Assert.True(appliedChanges);
             sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            root = await sourceDocument.GetSyntaxRootAsync();
+            root = await sourceDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var expectedNoFixes = !diagnosticOnFixLineInPriorSnapshot && !editOnFixLine;
             testSpan = !expectedNoFixes
-                ? root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
-                : root!.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
+                ? root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
+                : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
             if (testWithCachedDiagnostics)
             {
@@ -1050,7 +1043,7 @@ class C
             }
 
             CodeFixCollection expectedFixCollection;
-            if (boolExpectDeprioritization)
+            if (expectDeprioritization)
             {
                 Assert.Empty(normalPriFixes);
                 expectedFixCollection = Assert.Single(lowPriFixes);
@@ -1067,6 +1060,37 @@ class C
             var fix = expectedFixCollection.Fixes.Single();
             Assert.Equal(FixerForDeprioritizedAnalyzer.Title, fix.Action.Title);
             return;
+
+
+            static bool GetExpectDeprioritization(
+                DeprioritizedAnalyzer.ActionKind actionKind,
+                bool testWithCachedDiagnostics,
+                bool diagnosticOnFixLineInPriorSnapshot,
+                bool addNewLineWithEdit)
+            {
+                // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
+                //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
+                //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
+                //  3. Either of the below is true:
+                //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
+                //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot,
+                //        i.e. we added a new line with the edit and 'addNewLineWithEdit = true'.
+
+                // Condition 1
+                if (testWithCachedDiagnostics)
+                    return false;
+
+                // Condition 2
+                if (actionKind is DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel)
+                    return false;
+
+                // Condition 3(a)
+                if (!diagnosticOnFixLineInPriorSnapshot)
+                    return true;
+
+                // Condition 3(b)
+                return addNewLineWithEdit;
+            }
 
             static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
             {
