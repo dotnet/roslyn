@@ -139,6 +139,15 @@ namespace Roslyn.Utilities
                 OneOrMany.Create(_many.SelectAsArray(selector, arg));
         }
 
+        public IEnumerable<TResult> OfType<TResult>()
+        {
+            foreach (var item in this)
+            {
+                if (item is TResult result)
+                    yield return result;
+            }
+        }
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             if (HasOne)
