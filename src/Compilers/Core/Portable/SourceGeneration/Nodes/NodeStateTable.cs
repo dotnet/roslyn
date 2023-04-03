@@ -60,18 +60,30 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true, previousStates: default);
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps, ImmutableArray<TableEntry> previousStates)
         {
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
+            IsCached = !states.IsEmpty && areStatesCompatible(previous: previousStates, current: states) && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
+
+            static bool areStatesCompatible(ImmutableArray<TableEntry> previous, ImmutableArray<TableEntry> current)
+            {
+                if (previous.IsDefault)
+                {
+                    return true;
+                }
+
+                var previousCount = previous.Sum(e => e.Count);
+                var currentCount = current.Sum(e => e.Count);
+                return previousCount == currentCount;
+            }
         }
 
         public int Count => _states.Length;
@@ -126,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
             // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
             Debug.Assert(compacted.Count == nonRemovedCount);
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false, previousStates: default);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -451,7 +463,8 @@ namespace Microsoft.CodeAnalysis
                 return new NodeStateTable<T>(
                     finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    hasTrackedSteps: TrackIncrementalSteps);
+                    hasTrackedSteps: TrackIncrementalSteps,
+                    previousStates: _previous._states);
             }
 
             private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
