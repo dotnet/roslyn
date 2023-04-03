@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Runtime.Serialization;
+using Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -45,14 +46,28 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     public event EventHandler<string>? Updated;
 #pragma warning restore CS0067
 
+    private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
+    private RazorWorkspaceListener? _razorWorkspaceListener;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider()
+    public RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
     {
+        _workspaceFactory = workspaceFactory;
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
+        // Make sure Razor is listening, since we have evidence of at least one .razor or .cshtml file in this workspace!
+        // It is expected to be save to call EnsureInitialized multiple times, but we may as well be nice.
+        // Note: projectRazorJsonFileName should match what is in the C# extension TypeScript code, where it starts the Razor language server.
+        if (_razorWorkspaceListener is null)
+        {
+            _razorWorkspaceListener = new RazorWorkspaceListener();
+            var workspace = _workspaceFactory.Value.Workspace;
+            _razorWorkspaceListener.EnsureInitialized(workspace, projectRazorJsonFileName: "project.razor.vscode.json");
+        }
+
         var requestParams = new ProvideDynamicFileParams { RazorFiles = new[] { ProtocolConversions.GetUriFromFilePath(filePath) } };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
