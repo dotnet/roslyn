@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             var errors = new List<Diagnostic>();
 
             // Report any duplicates.
-            var groups = entries.GroupBy(e => e.DeclarationId);
+            var groups = entries.GroupBy(e => TrimForErrorReporting(e.DeclarationId));
             foreach (var group in groups)
             {
                 if (group.Count() >= 2)
@@ -123,6 +123,18 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             }
 
             return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
+
+            static string TrimForErrorReporting(string declarationId)
+            {
+                return declarationId switch
+                {
+                    // Remove the prefix and colon if there.
+                    [_, ':', .. var rest] => rest,
+                    // Colon is technically optional.  So remove just the first character if not there.
+                    [_, .. var rest] => rest,
+                    _ => declarationId,
+                };
+            }
         }
     }
 }
