@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -210,6 +211,12 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
+        /// <summary>
+        /// Todo, use an actual AdditionalTextValueProvider once it is available:
+        /// https://github.com/dotnet/roslyn/issues/67611
+        /// </summary>
+        private readonly ConditionalWeakTable<AdditionalText, CodeAnalysisDictionary> _textToDictionary = new();
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             FileParseRule,
             AssemblyRule,
@@ -238,14 +245,15 @@ namespace Text.Analyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var dictionaries = ReadDictionaries();
-            var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(s_mainDictionary));
+            var cancellationToken = context.CancellationToken;
 
-            compilationStartContext.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
-            compilationStartContext.RegisterCompilationEndAction(AnalyzeAssembly);
-            compilationStartContext.RegisterSymbolAction(
+            var dictionaries = ReadDictionaries().Add(s_mainDictionary);
+
+            context.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
+            context.RegisterCompilationEndAction(AnalyzeAssembly);
+            context.RegisterSymbolAction(
                 AnalyzeSymbol,
                 SymbolKind.Namespace,
                 SymbolKind.NamedType,
@@ -255,21 +263,39 @@ namespace Text.Analyzers
                 SymbolKind.Field,
                 SymbolKind.Parameter);
 
-            IEnumerable<CodeAnalysisDictionary> ReadDictionaries()
+            ImmutableArray<CodeAnalysisDictionary> ReadDictionaries()
             {
-                var fileProvider = AdditionalFileProvider.FromOptions(compilationStartContext.Options);
+                var fileProvider = AdditionalFileProvider.FromOptions(context.Options);
                 return fileProvider.GetMatchingFiles(@"(?:dictionary|custom).*?\.(?:xml|dic)$")
-                    .Select(CreateDictionaryFromAdditionalText)
+                    .Select(GetOrCreateDictionaryFromAdditionalText)
                     .Where(x => x != null)
-                    .ToList();
+                    .ToImmutableArray();
+
+                CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)
+                {
+                    if (!_textToDictionary.TryGetValue(additionalText, out var dictionary))
+                    {
+                        dictionary = CreateAndAddDictionary(additionalText);
+                    }
+
+                    return dictionary;
+
+                    // Local function to avoid unnecessary lambda alloc in mainline case.
+                    CodeAnalysisDictionary CreateAndAddDictionary(AdditionalText additionalText)
+                    {
+                        var dictionary = CreateDictionaryFromAdditionalText(additionalText);
+                        dictionary = _textToDictionary.GetValue(additionalText, _ => dictionary);
+                        return dictionary;
+                    }
+                }
 
                 CodeAnalysisDictionary CreateDictionaryFromAdditionalText(AdditionalText additionalFile)
                 {
-                    var text = additionalFile.GetText(compilationStartContext.CancellationToken);
+                    var text = additionalFile.GetText(context.CancellationToken);
                     var isXml = additionalFile.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
                     var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
 
-                    if (!compilationStartContext.TryGetValue(text, provider, out var dictionary))
+                    if (!context.TryGetValue(text, provider, out var dictionary))
                     {
                         try
                         {
@@ -292,7 +318,7 @@ namespace Text.Analyzers
                 void ReportFileParseDiagnostic(string filePath, string message)
                 {
                     var diagnostic = Diagnostic.Create(FileParseRule, Location.None, filePath, message);
-                    compilationStartContext.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
+                    context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
                 }
             }
 
@@ -409,7 +435,12 @@ namespace Text.Analyzers
             static bool IsWordNumeric(string word) => char.IsDigit(word[0]);
 
             bool IsWordSpelledCorrectly(string word)
-                => !projectDictionary.UnrecognizedWords.Contains(word) && projectDictionary.RecognizedWords.Contains(word);
+            {
+                var unrecognizedWordsContains = dictionaries.Any(static (d, word) => d.ContainsUnrecognizedWord(word), word);
+                var recognizedWordsContains = dictionaries.Any(static (d, word) => d.ContainsRecognizedWord(word), word);
+
+                return !unrecognizedWordsContains && recognizedWordsContains;
+            }
         }
 
         /// <summary>
