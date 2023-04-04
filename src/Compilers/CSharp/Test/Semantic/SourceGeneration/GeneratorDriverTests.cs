@@ -2054,7 +2054,7 @@ class C { }
         }
 
         [Fact, WorkItem(61162, "https://github.com/dotnet/roslyn/issues/61162")]
-        public void IncrementalGenerator_Collect_SyntaxProvider()
+        public void IncrementalGenerator_Collect_SyntaxProvider_01()
         {
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(static ctx =>
             {
@@ -2107,6 +2107,68 @@ class C { }
                 generatorDiagnostics.Verify();
                 var generatedTree = driver.GetRunResult().GeneratedTrees.Single();
                 AssertEx.EqualOrDiff(generatedContent, generatedTree.ToString());
+            }
+
+            static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string source)
+            {
+                compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Single(), CSharpSyntaxTree.ParseText(source, parseOptions));
+            }
+        }
+
+        [Fact, WorkItem(61162, "https://github.com/dotnet/roslyn/issues/61162")]
+        public void IncrementalGenerator_Collect_SyntaxProvider_02()
+        {
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(static ctx =>
+            {
+                var invokedMethodsProvider = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (node, _) => node is InvocationExpressionSyntax,
+                        static (ctx, ct) => ctx.SemanticModel.GetSymbolInfo(ctx.Node, ct).Symbol?.Name ?? "(method not found)")
+                    .Select((n, _) => n);
+
+                ctx.RegisterSourceOutput(invokedMethodsProvider, static (spc, invokedMethod) =>
+                {
+                    spc.AddSource(invokedMethod, "// " + invokedMethod);
+                });
+            }));
+
+            var source = """
+                System.Console.WriteLine();
+                System.Console.ReadLine();
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// ReadLine"
+            });
+
+            replace(ref compilation, parseOptions, """
+                System.Console.WriteLine();
+                """);
+
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine"
+            });
+
+            replace(ref compilation, parseOptions, "_ = 0;");
+            verify(ref driver, compilation, Array.Empty<string>());
+
+            static void verify(ref GeneratorDriver driver, Compilation compilation, string[] generatedContent)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                generatorDiagnostics.Verify();
+                var trees = driver.GetRunResult().GeneratedTrees;
+                Assert.Equal(generatedContent.Length, trees.Length);
+                for (int i = 0; i < generatedContent.Length; i++)
+                {
+                    AssertEx.EqualOrDiff(generatedContent[i], trees[i].ToString());
+                }
             }
 
             static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string source)
