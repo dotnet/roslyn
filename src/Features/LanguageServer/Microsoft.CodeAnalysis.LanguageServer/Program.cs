@@ -22,7 +22,7 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, CancellationToken cancellationToken)
+static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -66,6 +66,8 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
 
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
     exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+
+    RazorDynamicFileInfoProvider.Initialize(projectRazorJsonFileName);
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -142,12 +144,19 @@ static Parser CreateCommandLineParser()
         IsRequired = false,
     };
 
+    var projectRazorJsonFileNameOption = new Option<string?>("--projectRazorJsonFileName")
+    {
+        Description = "The file name to use for the project.razor.json file (for Razor projects).",
+        IsRequired = false,
+    };
+
     var rootCommand = new RootCommand()
     {
         debugOption,
         brokeredServicePipeNameOption,
         logLevelOption,
         starredCompletionsPathOption,
+        projectRazorJsonFileNameOption,
     };
     rootCommand.SetHandler(context =>
     {
@@ -156,8 +165,9 @@ static Parser CreateCommandLineParser()
         var brokeredServicePipeName = context.ParseResult.GetValueForOption(brokeredServicePipeNameOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
+        var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();

@@ -18,6 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
+    private static string _projectRazorJsonFileName = "project.razor.vscode.json";
+
+    internal static void Initialize(string? projectRazorJsonFileName)
+    {
+        if (projectRazorJsonFileName is not null)
+        {
+            _projectRazorJsonFileName = projectRazorJsonFileName;
+        }
+    }
 
     [DataContract]
     private class ProvideDynamicFileParams
@@ -46,27 +55,26 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     public event EventHandler<string>? Updated;
 #pragma warning restore CS0067
 
-    private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
-    private RazorWorkspaceListener? _razorWorkspaceListener;
+    private readonly Lazy<RazorWorkspaceListener> _razorWorkspaceListener;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
     {
-        _workspaceFactory = workspaceFactory;
+        _razorWorkspaceListener = new Lazy<RazorWorkspaceListener>(() =>
+        {
+            var razorWorkspaceListener = new RazorWorkspaceListener();
+            var workspace = workspaceFactory.Value.Workspace;
+            razorWorkspaceListener.EnsureInitialized(workspace, _projectRazorJsonFileName);
+
+            return razorWorkspaceListener;
+        });
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         // Make sure Razor is listening, since we have evidence of at least one .razor or .cshtml file in this workspace!
-        // It is expected to be save to call EnsureInitialized multiple times, but we may as well be nice.
-        // Note: projectRazorJsonFileName should match what is in the C# extension TypeScript code, where it starts the Razor language server.
-        if (_razorWorkspaceListener is null)
-        {
-            _razorWorkspaceListener = new RazorWorkspaceListener();
-            var workspace = _workspaceFactory.Value.Workspace;
-            _razorWorkspaceListener.EnsureInitialized(workspace, projectRazorJsonFileName: "project.razor.vscode.json");
-        }
+        _ = _razorWorkspaceListener.Value;
 
         var requestParams = new ProvideDynamicFileParams { RazorFiles = new[] { ProtocolConversions.GetUriFromFilePath(filePath) } };
 
