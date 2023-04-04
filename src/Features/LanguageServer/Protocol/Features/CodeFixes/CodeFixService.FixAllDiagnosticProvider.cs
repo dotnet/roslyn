@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, _diagnosticIds, _includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, projectId: null, document.Id, _diagnosticIds, _includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }

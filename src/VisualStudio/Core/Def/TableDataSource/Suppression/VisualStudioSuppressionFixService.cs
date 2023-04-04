@@ -546,7 +546,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                     var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                    var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                    var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
+                        diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                     latestDocumentDiagnosticsMap.Clear();
@@ -635,7 +636,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                     var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                    var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                    var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
+                        diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false));
 
                     latestDiagnosticsToFix.Clear();
