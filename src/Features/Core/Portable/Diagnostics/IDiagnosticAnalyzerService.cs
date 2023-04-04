@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
         /// </summary>
-        Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default);
+        Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken);
 
         /// <summary>
         /// True if given project has any diagnostics

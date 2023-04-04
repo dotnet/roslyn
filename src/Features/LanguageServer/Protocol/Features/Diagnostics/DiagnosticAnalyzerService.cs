@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public async Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default)
+        public async Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {

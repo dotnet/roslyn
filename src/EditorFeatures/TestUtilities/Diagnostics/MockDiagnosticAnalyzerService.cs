@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
             => throw new NotImplementedException();
 
-        public Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default)
+        public Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
