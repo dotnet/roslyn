@@ -962,12 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return declaration.NameLocations.Cast<SourceLocation, Location>();
-            }
-        }
+            => ImmutableArray<Location>.CastUp(declaration.NameLocations.ToImmutable());
 
         public ImmutableArray<SyntaxReference> SyntaxReferences
         {
