@@ -101,17 +101,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         private static string DecodeName(string name)
             => name.IndexOf('#') >= 0 ? name.Replace('#', '.') : name;
 
-        private static int ReadNextInteger(string id, ref int index)
+        private static void ReadNextInteger(string id, ref int index)
         {
-            int n = 0;
-
             while (index < id.Length && char.IsDigit(id[index]))
-            {
-                n = n * 10 + (id[index] - '0');
                 index++;
-            }
-
-            return n;
         }
     }
 }
