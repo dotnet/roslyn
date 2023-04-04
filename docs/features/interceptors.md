@@ -3,7 +3,9 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature. An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
+*Interceptors* are an experimental compiler feature.
+
+An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
 ```cs
 using System;
@@ -146,7 +148,11 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 PROTOTYPE(ic): design an opt-in step which meets the needs of the generators consuming this, and permits usage of the feature in the key NativeAOT scenarios we are targeting.
 
-As interceptors are an experimental feature, it's important that an explicit opt-in step be performed by the user in order to depend on it.
+Because this is a generator-oriented feature, we'd like to have an opt-in step during the *experimental* phase which permits generators to opt-in without the end user needing to take additional steps.
+
+Question: can a generator opt-in to a preview feature on behalf of the user? If not, is it fine to ask the user to take an additional step here?
+
+There's a concern on the ASP.NET side that if the user needs to opt-in to something which is "preview/experimental" then they will need to use their non-interceptors codegen strategy *as well as* the interceptors one for NativeAOT, depending on whether the user did the gesture to enable the feature.
 
 ### Implementation strategy
 
