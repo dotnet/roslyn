@@ -1886,6 +1886,82 @@ public class C1
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void InstanceFromStatic_Lambdas()
+        {
+            var source = """
+                using System;
+                Console.Write(C.Names());
+                public class C
+                {
+                    public object Property { get; }
+                    public object Field;
+                    public event Action Event;
+                    public void Method() { }
+                    public static string Names()
+                    {
+                        var lambda1 = static () => nameof(Property);
+                        var lambda2 = static (string f = nameof(Field)) => f;
+                        var lambda3 = static () => nameof(Event.Invoke);
+                        var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                        return lambda1() + "," + lambda2() + "," + lambda3() + "," + lambda4();
+                    }
+                }
+                """;
+            var expectedOutput = "Property,Field,Invoke,Invoke";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (12,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda2 = static (string f = nameof(Field)) => f;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(12, 40),
+                // (13,43): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda3 = static () => nameof(Event.Invoke);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 43),
+                // (14,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(14, 40),
+                // (14,49): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 49));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void InstanceFromStatic_LocalFunctions()
+        {
+            var source = """
+                using System;
+                Console.Write(C.Names());
+                public class C
+                {
+                    public object Property { get; }
+                    public object Field;
+                    public event Action Event;
+                    public void Method() { }
+                    public static string Names()
+                    {
+                        static string local1() => nameof(Property);
+                        static string local2(string f = nameof(Field)) => f;
+                        static string local3() => nameof(Event.Invoke);
+                        static string local4(string i = nameof(Event.Invoke)) => i;
+                        return local1() + "," + local2() + "," + local3() + "," + local4();
+                    }
+                }
+                """;
+            var expectedOutput = "Property,Field,Invoke,Invoke";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (13,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static string local3() => nameof(Event.Invoke);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 42),
+                // (14,48): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static string local4(string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 48));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromFieldInitializerInNameof()
         {
             var source = @"
