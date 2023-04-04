@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+using Public = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
+
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal sealed partial class EditAndContinueTest : IDisposable
@@ -160,7 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 if (e.PreserveLocalVariables)
                 {
                     Assert.Equal(SemanticEditKind.Update, e.Kind);
-                    syntaxMap = syntaxMapFromMarkers ?? EditAndContinueTestBase.GetEquivalentNodesMap((MethodSymbol)oldSymbol, (MethodSymbol)newSymbol);
+                    syntaxMap = syntaxMapFromMarkers ?? EditAndContinueTestBase.GetEquivalentNodesMap(
+                        ((Public.MethodSymbol)newSymbol).GetSymbol<MethodSymbol>(), ((Public.MethodSymbol)oldSymbol).GetSymbol<MethodSymbol>());
                 }
                 else
                 {
