@@ -81,12 +81,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidSegment">
         <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <target state="translated">HintName {0} obsahuje neplatný segment {1} na pozici {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameNotWithinCurrentDirectory">
         <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <target state="translated">HintName {0} není v aktuálním adresáři.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
@@ -106,7 +106,7 @@
       </trans-unit>
       <trans-unit id="InvalidInstrumentationKind">
         <source>Invalid instrumentation kind: {0}</source>
-        <target state="new">Invalid instrumentation kind: {0}</target>
+        <target state="translated">Neplatný typ instrumentace: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
-        <target state="new">Method symbol expected</target>
+        <target state="translated">Byl očekáván symbol metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">

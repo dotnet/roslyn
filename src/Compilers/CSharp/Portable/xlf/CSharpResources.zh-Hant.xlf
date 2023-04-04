@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
-        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <target state="translated">在此內容中，類型 '{1}' 與參數 '{2}' 之間的識別碼 '{0}' 不明確。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseRefLike">
         <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="new">Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</target>
+        <target state="translated">無法使用在匿名方法、Lambda 運算式、查詢運算式或區域函式內具有類似參考類型的參數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</target>
+        <target state="translated">結構內的匿名方法、Lambda 運算式、查詢運算式和區域函式無法存取也在執行個體成員內使用的主要建構函式參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</target>
+        <target state="translated">結構的執行個體成員內的匿名方法、Lambda 運算式、查詢運算式和區域函式無法存取主要建構函式參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">無法指派唯讀類型的主要建構函式參數 (類型的 init-only setter 或變數初始設定式中除外)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">無法修改唯讀類型的主要建構函式參數 '{0}' 的成員 (類型的 init-only setter 或變數初始設定式中除外)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCaseInSwitchArm">
         <source>A switch expression arm does not begin with a 'case' keyword.</source>
-        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <target state="translated">切換運算式 ARM 不會以 'case' 關鍵字開頭。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
         <source>Using alias cannot be a nullable reference type.</source>
-        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <target state="translated">使用別名不可以是可為 Null 的參考型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -264,17 +264,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">類型 '{0}' 的 using 陳述式資源不能用於非同步方法或非同步 Lambda 運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
-        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <target state="translated">使用別名不可以是 'ref' 類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
-        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <target state="translated">'static' 修飾元必須在 'unsafe' 修飾元之前。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
-        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
+        <target state="translated">只有 'using static' 或 'using alias' 可以是 'unsafe'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in this context is not supported.</source>
-        <target state="needs-review-translation">不支援在屬性的 'typeof' 中使用函式指標類型。</target>
+        <target state="translated">不支援在此內容中使用函式指標類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
         <source>Cannot use primary constructor parameter '{0}' in this context.</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <target state="translated">無法在此內容中使用主要建構函式參數 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1084,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
-        <target state="needs-review-translation">只有一筆記錄可以在部分宣告中包含參數清單</target>
+        <target state="translated">只有單一部分類型宣告可以有參數清單</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1359,7 +1359,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="needs-review-translation">使用參數清單在 'record struct' 中宣告的建構函式，必須有呼叫主要建構函式或已明確宣告建構函式的 'this' 初始設定式。</target>
+        <target state="translated">在 'struct' 中宣告、具有參數清單的建構函式，必須有呼叫主要建構函式或已明確宣告建構函式的 'this' 初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1394,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">唯讀類型的主要建構函式參數不能做為 ref 或 out 值 (類型的 init-only setter 或變數初始設定式中除外)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">唯讀類型的主要建構函式參數 '{0}' 的成員不能做為 ref 或 out 值 (類型的 init-only setter 或變數初始設定式中除外)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
@@ -1414,17 +1414,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
         <source>Cannot return primary constructor parameter '{0}' by reference.</source>
-        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <target state="translated">無法依參考傳回主要建構函式參數 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">唯讀類型的主要建構函式參數無法由可寫入的參考傳回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">唯讀類型的主要建構函式參數 '{0}' 的成員無法由可寫入的參考傳回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1644,7 +1644,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
-        <target state="new">Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</target>
+        <target state="translated">類型 '{1}' 的結構主要建構函式參數 '{0}' 在結構配置中導致循環</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1729,7 +1729,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
-        <target state="new">Unexpected parameter list.</target>
+        <target state="translated">未預期的參數清單。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1744,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <target state="translated">'{0}' 是在具有無法辨識的 RefSafetyRulesAttribute 版本的模組中定義，預期為 '11'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -1774,12 +1774,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
         <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
-        <target state="new">Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</target>
+        <target state="translated">無法在執行個體成員內使用 ref、out 或 in 主要建立建構函式參數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</target>
+        <target state="translated">無法使用執行個體成員內具有類似參考類型的主要建立函式參數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1944,7 +1944,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePrimaryConstructors">
         <source>primary constructors</source>
-        <target state="new">primary constructors</target>
+        <target state="translated">主要建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUsingTypeAlias">
         <source>using type alias</source>
-        <target state="new">using type alias</target>
+        <target state="translated">使用類型別名</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2029,12 +2029,12 @@
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 運算子不應該用於非同步方法中的參數或區域變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 運算子不應該用於非同步方法中的參數或區域變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2139,12 +2139,12 @@
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">參數 '{0}' 會擷取至包含類型的狀態，且其值也會傳遞給基礎建構函式。值也可能由基礎類別擷取。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">參數會擷取至包含類型的狀態，且其值也會傳遞給基礎建構函式。值也可能由基礎類別擷取。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2549,7 +2549,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
-        <target state="needs-review-translation">在包含參數清單之記錄中宣告的構造函式，必須具有 'this' 建構函式初始設定式。</target>
+        <target state="translated">在類型中宣告、具有參數清單的建構函式，必須具有 'this' 建構函式初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4433,12 +4433,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
         <source>Parameter '{0}' is unread.</source>
-        <target state="new">Parameter '{0}' is unread.</target>
+        <target state="translated">參數 '{0}' 未讀取。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
         <source>Parameter is unread.</source>
-        <target state="new">Parameter is unread.</target>
+        <target state="translated">參數未讀取。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
@@ -10381,22 +10381,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
+        <target state="translated">指定的版本字串 '{0}' 不符合所需的格式 - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">指定的版本字串 '{0}' 包含萬用字元，但這與確定性不相容。請移除版本字串中的萬用字元，或停用此編譯的確定性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
+        <target state="translated">指定的版本字串 '{0}' 不符合所需的格式: major.minor.build.revision (不含萬用字元)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
+        <target state="translated">指定的版本字串 '{0}' 不符合建議的格式 - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">

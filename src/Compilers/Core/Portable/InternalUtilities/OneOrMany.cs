@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -139,6 +140,22 @@ namespace Roslyn.Utilities
                 OneOrMany.Create(_many.SelectAsArray(selector, arg));
         }
 
+        public IEnumerable<TResult> OfType<TResult>()
+        {
+            return this.Count == 0
+                ? Array.Empty<TResult>()
+                : iterateElements(this);
+
+            static IEnumerable<TResult> iterateElements(OneOrMany<T> @this)
+            {
+                foreach (var item in @this)
+                {
+                    if (item is TResult result)
+                        yield return result;
+                }
+            }
+        }
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             if (HasOne)
@@ -174,6 +191,27 @@ namespace Roslyn.Utilities
 
             return default;
         }
+
+        public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
+        {
+            return from.HasOne
+                ? new OneOrMany<T>(from._one)
+                : new OneOrMany<T>(ImmutableArray<T>.CastUp(from._many));
+        }
+
+        public bool All(Func<T, bool> predicate)
+        {
+            foreach (var value in this)
+            {
+                if (!predicate(value))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool Any()
+            => this.Count > 0;
 
         public Enumerator GetEnumerator()
             => new(this);
