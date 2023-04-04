@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!arrayType.IsSZArray)
                 {
-                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, syntax);
                 }
                 collectionLiteral = bindArrayOrSpan(syntax, targetType, spanConstructor: null, node.Initializers, arrayType.ElementType, diagnostics);
             }
@@ -454,9 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool hasEnumerableInitializerType = collectionTypeImplementsIEnumerable(targetType, syntax, diagnostics);
+                bool hasEnumerableInitializerType = supportsCollectionInitializer(targetType, syntax, diagnostics);
                 if (!hasEnumerableInitializerType)
                 {
+                    // PROTOTYPE: Why is this case here? We're being called with an explicit target type. Shouldn't
+                    // the caller handle the conversion from natural type if the target type is not applicable?
+
                     // Target type is not constructible. Use collection literal natural type if available, instead.
                     if (node.Type is { } collectionType)
                     {
@@ -468,10 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             wasCompilerGenerated: node.WasCompilerGenerated,
                             diagnostics);
                         Debug.Assert(expr.Type is { });
-                        // PROTOTYPE: Test various conversions, including conversions expected to fail.
                         var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        conversion = Conversions.ClassifyImplicitConversionFromType(expr.Type, targetType, ref useSiteInfo);
-                        // PROTOTYPE: Test.
+                        conversion = isCast
+                            ? Conversions.ClassifyConversionFromType(expr.Type, targetType, isChecked: false, ref useSiteInfo, forCast: isCast)
+                            : Conversions.ClassifyImplicitConversionFromType(expr.Type, targetType, ref useSiteInfo);
                         diagnostics.Add(syntax, useSiteInfo);
                         bool hasErrors = !conversion.IsValid;
                         if (hasErrors)
@@ -489,8 +492,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             hasErrors: hasErrors);
                     }
+
                     Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
                 }
+
                 collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, hasEnumerableInitializerType: hasEnumerableInitializerType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
             }
 
@@ -546,15 +551,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (MethodSymbol?)GetWellKnownTypeMember(spanMember, diagnostics, syntax: syntax)?.SymbolAsMember((NamedTypeSymbol)spanType);
             }
 
-            bool collectionTypeImplementsIEnumerable(TypeSymbol targetType, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            bool supportsCollectionInitializer(TypeSymbol targetType, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        return false;
+                }
+
                 // This implementation differs from CollectionInitializerTypeImplementsIEnumerable().
                 // That method checks for an implicit conversion from IEnumerable to the collection type,
                 // but that would allow: Nullable<StructCollection> s = [];
                 var ienumerableType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, syntax);
-                var allInterfaces = targetType is TypeParameterSymbol typeParameter
-                    ? typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics
-                    : targetType.AllInterfacesNoUseSiteDiagnostics;
                 return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
             }
 
@@ -589,7 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasTargetTyped,
             bool hasEnumerableInitializerType,
             bool wasCompilerGenerated,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool hasErrors = false)
         {
             Debug.Assert(wasTargetTyped ||
                 targetType.IsErrorType() ||
@@ -601,9 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType is NamedTypeSymbol namedType)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                // PROTOTYPE: Use List<T>(int capacity) constructor when size is known, and when using natural type.
-                // What about when target-typed to List<T>? We should still use the int capacity constructor in that case.
-                // Review with LDM.
+                // PROTOTYPE: Should we use List<T>(int capacity) constructor when the size is known
+                // and using natural type? What about when target-typed to List<T>?
                 collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
                 analyzedArguments.Free();
@@ -641,7 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 wasTargetTyped: wasTargetTyped,
                 implicitReceiver,
                 builder.ToImmutableAndFree(),
-                targetType)
+                targetType,
+                hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 

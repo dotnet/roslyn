@@ -78,9 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var initializer in initializers)
             {
-                var rewrittenInitializer = initializer is BoundCollectionElementInitializer element
-                    ? MakeCollectionInitializer(temp, element)
-                    : throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+                var rewrittenInitializer = initializer switch
+                {
+                    BoundCollectionElementInitializer collectionElement => MakeCollectionInitializer(temp, collectionElement),
+                    BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
+                    _ => throw ExceptionUtilities.UnexpectedValue(initializer)
+                };
+                // PROTOTYPE: Test with null. For instance, MakeCollectionInitializer()
+                // returns null when the Add() call is omitted.
                 if (rewrittenInitializer != null)
                 {
                     sideEffects.Add(rewrittenInitializer);

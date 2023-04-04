@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr = BindIndexerDefaultArguments((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
-                case BoundKind.UnconvertedObjectCreationExpression: // PROTOTYPE: What is the effect of commenting out this case? Add a corresponding test for collection literals (next case).
+                case BoundKind.UnconvertedObjectCreationExpression:
                     if (valueKind == BindValueKind.RValue)
                     {
                         return expr;

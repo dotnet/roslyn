@@ -6781,7 +6781,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>collection literals</value>
   </data>
   <data name="ERR_CollectionLiteralTargetTypeNotConstructible" xml:space="preserve">
-    <value>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</value>
+    <value>Cannot initialize type '{0}' with the collection literal because the type is not constructible and no best type was found for the collection literal.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsCollectionLiteral" xml:space="preserve">
     <value>An expression tree may not contain a collection literal.</value>
@@ -6791,6 +6791,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitlyTypedCollectionLiteralNoBestType" xml:space="preserve">
     <value>No best type found for implicitly-typed collection literal.</value>
+  </data>
+  <data name="ERR_CollectionLiteralTargetTypeMultiDimensionalArray" xml:space="preserve">
+    <value>A collection literal cannot be target typed to a multidimensional array.</value>
   </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>

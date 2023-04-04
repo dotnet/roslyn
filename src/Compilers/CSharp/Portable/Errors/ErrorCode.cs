@@ -2191,6 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsCollectionLiteral = 9501,
         ERR_CollectionLiteralElementNotImplemented = 9502, // PROTOTYPE: Temporary error until feature has been implemented.
         ERR_ImplicitlyTypedCollectionLiteralNoBestType = 9503,
+        ERR_CollectionLiteralTargetTypeMultiDimensionalArray = 9504,
 
         #endregion
 
