@@ -208,16 +208,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-            => Add(node, useSiteInfo, static node => node.Location);
+            => Add(useSiteInfo, static node => node.Location, node);
 
         internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => AddDiagnostics(useSiteInfo, static node => node.Location, node);
 
         internal bool Add(SyntaxToken token, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-            => Add(token, useSiteInfo, static token => token.GetLocation());
+            => Add(useSiteInfo, static token => token.GetLocation(), token);
 
         internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-            => Add(location, useSiteInfo, static location => location);
+            => Add(useSiteInfo, static location => location, location);
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
             => AddDiagnostics(useSiteInfo, static location => location, location);
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal bool Add<TData>(TData data, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation)
+        internal bool Add<TData>(CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation, TData data)
         {
             Debug.Assert(!useSiteInfo.AccumulatesDependencies || this.AccumulatesDependencies);
             if (AddDiagnostics(useSiteInfo, getLocation, data))
