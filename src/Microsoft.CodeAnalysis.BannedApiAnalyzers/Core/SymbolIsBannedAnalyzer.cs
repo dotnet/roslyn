@@ -76,16 +76,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             var errors = new List<Diagnostic>();
 
-            if (errors.Count != 0)
-            {
-                compilationContext.RegisterCompilationEndAction(
-                    endContext =>
-                    {
-                        foreach (var error in errors)
-                            endContext.ReportDiagnostic(error);
-                    });
-            }
-
             // Report any duplicates.
             var groups = entries.GroupBy(e => e.DeclarationId);
             foreach (var group in groups)
@@ -103,6 +93,16 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             firstEntry.Symbols.FirstOrDefault()?.ToDisplayString() ?? ""));
                     }
                 }
+            }
+
+            if (errors.Count != 0)
+            {
+                compilationContext.RegisterCompilationEndAction(
+                    endContext =>
+                    {
+                        foreach (var error in errors)
+                            endContext.ReportDiagnostic(error);
+                    });
             }
 
             var result = new Dictionary<(string ContainerName, string SymbolName), List<BanFileEntry>>();
