@@ -1,5 +1,35 @@
 <UsageData>
   <IgnorePatterns>
-    <UsagePattern IdentityGlob="*/*" />
+    <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
+
+    <!-- Needs SBRPs -->
+    <UsagePattern IdentityGlob="Microsoft.Build*/*16.10.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Bcl.AsyncInterfaces/*7.0.0*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.Analyzers/*3.3.4*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.AnalyzerUtilities/*3.3.0*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.CSharp.CodeStyle/*4.3.0-1.final*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.VisualBasic.CodeStyle/*4.3.0-1.final*" />
+    <UsagePattern IdentityGlob="Microsoft.NET.StringTools/*1.0.0*" />
+    <UsagePattern IdentityGlob="System.Collections.Immutable/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition.AttributedModel/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition.Convention/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition.Hosting/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition.Runtime/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Composition.TypedParts/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Configuration.ConfigurationManager/*4.7.0*" />
+    <UsagePattern IdentityGlob="System.IO.Pipelines/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Reflection.Metadata/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Security.Cryptography.ProtectedData/*4.7.0*" />
+    <UsagePattern IdentityGlob="System.Security.Cryptography.Xml/*4.7.0*" />
+    <UsagePattern IdentityGlob="System.Text.Encoding.CodePages/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Text.Encodings.Web/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Text.Json/*7.0.0*" />
+    <UsagePattern IdentityGlob="System.Threading.Channels/*7.0.0*" />
+
+    <!-- The ref pack versions should be updated to the p3 released versions, along with the SDK. At that
+         point the 8.0 ref pack prebuilts should go away -->
+    <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/*8.0.0-preview.3.23164.14*" />
+    <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/*8.0.0-preview.3.23165.3*" />
   </IgnorePatterns>
 </UsageData>
