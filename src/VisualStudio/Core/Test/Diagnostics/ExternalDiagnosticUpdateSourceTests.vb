@@ -667,7 +667,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Sub Reanalyze(workspace As Workspace, projectIds As IEnumerable(Of ProjectId), documentIds As IEnumerable(Of DocumentId), highPriority As Boolean) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As ICodeActionRequestPriorityProvider = Nothing, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional isExplicit As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, addOperationScope As Func(Of String, IDisposable), diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 

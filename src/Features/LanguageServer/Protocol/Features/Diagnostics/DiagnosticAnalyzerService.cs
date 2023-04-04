@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
-            ICodeActionRequestPriorityProvider? priorityProvider,
+            ICodeActionRequestPriorityProvider priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -109,8 +109,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
-                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
-
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
                     document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
