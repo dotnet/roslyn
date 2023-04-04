@@ -58,11 +58,13 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
+            var totalEntryItemCount = sourceTable.GetTotalEntryItemCountPlusEmpty();
             var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             foreach (var entry in sourceTable)
             {
+                newTable.CopyEmpty(sourceTable);
+
                 var inputs = newTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
                 if (entry.State == EntryState.Removed)
                 {
