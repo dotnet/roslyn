@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -27,8 +26,8 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyDescription));
 
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_xmlDictionaryProvider = new(ParseXmlDictionary);
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new(ParseDicDictionary);
+        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_xmlDictionaryProvider = new(static text => ParseDictionary(text, isXml: false));
+        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_dicDictionaryProvider = new(static text => ParseDictionary(text, isXml: false));
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
         internal static readonly DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(
@@ -211,12 +210,6 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        /// <summary>
-        /// Todo, use an actual AdditionalTextValueProvider once it is available:
-        /// https://github.com/dotnet/roslyn/issues/67611
-        /// </summary>
-        private readonly ConditionalWeakTable<AdditionalText, CodeAnalysisDictionary> _textToDictionary = new();
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             FileParseRule,
             AssemblyRule,
@@ -273,52 +266,20 @@ namespace Text.Analyzers
 
                 CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)
                 {
-                    if (!_textToDictionary.TryGetValue(additionalText, out var dictionary))
-                    {
-                        dictionary = CreateAndAddDictionary(additionalText);
-                    }
-
-                    return dictionary;
-
-                    // Local function to avoid unnecessary lambda alloc in mainline case.
-                    CodeAnalysisDictionary CreateAndAddDictionary(AdditionalText additionalText)
-                    {
-                        var dictionary = CreateDictionaryFromAdditionalText(additionalText);
-                        dictionary = _textToDictionary.GetValue(additionalText, _ => dictionary);
-                        return dictionary;
-                    }
-                }
-
-                CodeAnalysisDictionary CreateDictionaryFromAdditionalText(AdditionalText additionalFile)
-                {
-                    var text = additionalFile.GetText(context.CancellationToken);
-                    var isXml = additionalFile.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
+                    var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
                     var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
 
-                    if (!context.TryGetValue(text, provider, out var dictionary))
+                    var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken), provider, out var result)
+                        ? result
+                        : default;
+
+                    if (exception != null)
                     {
-                        try
-                        {
-                            // Annoyingly (and expectedly), TryGetValue swallows the parsing exception,
-                            // so we have to parse again to get it.
-                            var unused = isXml ? ParseXmlDictionary(text) : ParseDicDictionary(text);
-                            ReportFileParseDiagnostic(additionalFile.Path, "Unknown error");
-                        }
-#pragma warning disable CA1031 // Do not catch general exception types
-                        catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-                        {
-                            ReportFileParseDiagnostic(additionalFile.Path, ex.Message);
-                        }
+                        var diagnostic = Diagnostic.Create(FileParseRule, Location.None, additionalText.Path, exception.Message);
+                        context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
                     }
 
-                    return dictionary;
-                }
-
-                void ReportFileParseDiagnostic(string filePath, string message)
-                {
-                    var diagnostic = Diagnostic.Create(FileParseRule, Location.None, filePath, message);
-                    context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
+                    return dictionary!;
                 }
             }
 
@@ -497,6 +458,20 @@ namespace Text.Analyzers
             // Added the words: 'namespace'
             var text = SourceText.From(TextAnalyzersResources.Dictionary);
             return ParseDicDictionary(text);
+        }
+
+        private static (CodeAnalysisDictionary dictionary, Exception? exception) ParseDictionary(SourceText text, bool isXml)
+        {
+            try
+            {
+                return (isXml ? ParseXmlDictionary(text) : ParseDicDictionary(text), exception: null);
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                return (null!, ex);
+            }
         }
 
         private static CodeAnalysisDictionary ParseXmlDictionary(SourceText text)
