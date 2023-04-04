@@ -174,6 +174,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             bool ShouldAnalyzeAttributes()
             {
+                // We want to avoid realizing symbols here as that can be very expensive.  So we instead use a simple
+                // heuristic which works thanks to .net coding conventions.  Specifically, we look to see if the banned
+                // api is a type that ends in 'Attribute'.  In that case, we do the work to try to get the real symbol.
                 foreach (var kvp in bannedApis)
                 {
                     if (!kvp.Key.SymbolName.EndsWith("Attribute", StringComparison.InvariantCulture))
@@ -181,7 +184,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                     foreach (var entry in kvp.Value)
                     {
-                        if (entry.DeclarationId.StartsWith("T:", StringComparison.InvariantCulture) &&
+                        if (entry.DeclarationId.StartsWith("T", StringComparison.InvariantCulture) &&
                             entry.Symbols.Any(s => s is INamedTypeSymbol namedType && namedType.IsAttribute()))
                         {
                             return true;
