@@ -664,7 +664,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed)))
             End Function
 
-            Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
+            Public Sub Reanalyze(workspace As Workspace, projectIds As IEnumerable(Of ProjectId), documentIds As IEnumerable(Of DocumentId), highPriority As Boolean) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
             Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As ICodeActionRequestPriorityProvider = Nothing, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional isExplicit As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync

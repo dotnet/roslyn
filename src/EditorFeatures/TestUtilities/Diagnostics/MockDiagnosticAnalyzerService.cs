@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 AddDiagnostic(diagnostic, diagnosticKind);
         }
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
+        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
             => DocumentsToReanalyze.AddRange(documentIds);
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache

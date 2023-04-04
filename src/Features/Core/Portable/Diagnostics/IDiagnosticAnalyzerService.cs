@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         /// <summary>
-        /// Re-analyze given projects and documents
+        /// Re-analyze given projects and documents. If both <paramref name="projectIds"/> and <paramref name="documentIds"/> are null,
+        /// then re-analyzes the entire <see cref="Workspace.CurrentSolution"/> for the given <paramref name="workspace"/>.
         /// </summary>
-        void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
+        void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority);
 
         /// <summary>
         /// Get specific diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.

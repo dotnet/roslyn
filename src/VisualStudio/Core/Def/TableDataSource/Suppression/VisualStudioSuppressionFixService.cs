@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     _ = Task.Run(() =>
                     {
                         var reanalyzeDocuments = diagnosticsToFix.Select(d => d.DocumentId).WhereNotNull().Distinct();
-                        _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
+                        _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: reanalyzeDocuments, highPriority: true);
                     });
                 }
             }
