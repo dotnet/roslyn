@@ -263,24 +263,24 @@ namespace Text.Analyzers
                     .Select(GetOrCreateDictionaryFromAdditionalText)
                     .Where(x => x != null)
                     .ToImmutableArray();
+            }
 
-                CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)
+            CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)
+            {
+                var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
+                var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
+
+                var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken), provider, out var result)
+                    ? result
+                    : default;
+
+                if (exception != null)
                 {
-                    var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
-                    var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
-
-                    var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken), provider, out var result)
-                        ? result
-                        : default;
-
-                    if (exception != null)
-                    {
-                        var diagnostic = Diagnostic.Create(FileParseRule, Location.None, additionalText.Path, exception.Message);
-                        context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
-                    }
-
-                    return dictionary!;
+                    var diagnostic = Diagnostic.Create(FileParseRule, Location.None, additionalText.Path, exception.Message);
+                    context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
                 }
+
+                return dictionary!;
             }
 
             void AnalyzeVariable(OperationAnalysisContext operationContext)
