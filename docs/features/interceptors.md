@@ -136,7 +136,7 @@ An interceptor must be accessible at the location where interception is occurrin
 
 We imagine it will be common to want to discourage explicit use of interceptor methods. For this use case, should consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation, and encouraging generator authors to use it to prevent interceptors from appearing in lookup, etc.
 
-PROTOTYPE(ic): Generators often want to put things not intended to be user-visible in fire-local types. This reduces the need to defend against name conflicts with other types in the user's project. A file-local type is not present in lookup outside of the file it is declared in. But, the type is *accessible* from the runtime point of view presently. Should we permit interceptors declared in file types to refer to other files?
+PROTOTYPE(ic): Generators often want to put things not intended to be user-visible in file-local types. This reduces the need to defend against name conflicts with other types in the user's project. A file-local type is not present in lookup outside of the file it is declared in. But, the type is *accessible* from the runtime point of view presently. Should we permit interceptors declared in file types to refer to other files?
 
 ### Editor experience
 
