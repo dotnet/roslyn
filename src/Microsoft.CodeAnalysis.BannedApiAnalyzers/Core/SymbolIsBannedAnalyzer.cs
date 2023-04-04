@@ -48,8 +48,11 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         protected sealed override DiagnosticDescriptor SymbolIsBannedRule => SymbolIsBannedAnalyzer.SymbolIsBannedRule;
 
 #pragma warning disable RS1013 // 'compilationContext' does not register any analyzer actions, except for a 'CompilationEndAction'. Consider replacing this start/end action pair with a 'RegisterCompilationAction' or moving actions registered in 'Initialize' that depend on this start action to 'compilationContext'.
-        protected sealed override Dictionary<ISymbol, BanFileEntry>? ReadBannedApis(CompilationStartAnalysisContext compilationContext)
+        protected sealed override Dictionary<(string ContainerName, string SymbolName), ImmutableArray<BanFileEntry>>? ReadBannedApis(
+            CompilationStartAnalysisContext compilationContext)
         {
+            var compilation = compilationContext.Compilation;
+
             var query =
                 from additionalFile in compilationContext.Options.AdditionalFiles
                 let fileName = Path.GetFileName(additionalFile.Path)
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 where !string.IsNullOrWhiteSpace(textWithoutComment)
                 let trimmedTextWithoutComment = textWithoutComment.TrimEnd()
                 let span = commentIndex == -1 ? line.Span : new Text.TextSpan(line.Span.Start, trimmedTextWithoutComment.Length)
-                select new BanFileEntry(trimmedTextWithoutComment, span, sourceText, additionalFile.Path);
+                select new BanFileEntry(compilation, trimmedTextWithoutComment, span, sourceText, additionalFile.Path);
 
             var entries = query.ToList();
 
@@ -72,27 +75,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return null;
 
             var errors = new List<Diagnostic>();
-            var result = new Dictionary<ISymbol, BanFileEntry>(SymbolEqualityComparer.Default);
-
-            foreach (var line in entries)
-            {
-                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.DeclarationId, compilationContext.Compilation);
-
-                if (!symbols.IsDefaultOrEmpty)
-                {
-                    foreach (var symbol in symbols)
-                    {
-                        if (result.TryGetValue(symbol, out var existingLine))
-                        {
-                            errors.Add(Diagnostic.Create(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, symbol.ToDisplayString()));
-                        }
-                        else
-                        {
-                            result.Add(symbol, line);
-                        }
-                    }
-                }
-            }
 
             if (errors.Count != 0)
             {
@@ -104,7 +86,43 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     });
             }
 
-            return result;
+            // Report any duplicates.
+            var groups = entries.GroupBy(e => e.DeclarationId);
+            foreach (var group in groups)
+            {
+                if (group.Count() >= 2)
+                {
+                    var groupList = group.ToList();
+                    var firstEntry = groupList[0];
+                    for (int i = 1; i < groupList.Count; i++)
+                    {
+                        var nextEntry = groupList[i];
+                        errors.Add(Diagnostic.Create(
+                            SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule,
+                            nextEntry.Location, new[] { firstEntry.Location },
+                            firstEntry.Symbols.FirstOrDefault()?.ToDisplayString() ?? ""));
+                    }
+                }
+            }
+
+            var result = new Dictionary<(string ContainerName, string SymbolName), List<BanFileEntry>>();
+
+            foreach (var entry in entries)
+            {
+                var parsed = DocumentationCommentIdParser.ParseDeclaredSymbolId(entry.DeclarationId);
+                if (parsed is null)
+                    continue;
+
+                if (!result.TryGetValue(parsed.Value, out var existing))
+                {
+                    existing = new();
+                    result.Add(parsed.Value, existing);
+                }
+
+                existing.Add(entry);
+            }
+
+            return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
         }
     }
 }

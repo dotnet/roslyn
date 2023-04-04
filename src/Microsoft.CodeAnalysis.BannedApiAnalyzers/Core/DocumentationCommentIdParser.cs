@@ -1,26 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities.PooledObjects;
-
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     internal static class DocumentationCommentIdParser
     {
-        public static bool ParseDeclaredSymbolId(string id, ArrayBuilder<(string ParentName, string SymbolName)> results)
+        public static (string ParentName, string SymbolName)? ParseDeclaredSymbolId(string id)
         {
             if (id == null)
-                return false;
+                return null;
 
             if (id.Length < 2)
-                return false;
+                return null;
 
             int index = 0;
-            results.Clear();
-            ParseDeclaredId(id, ref index, results);
-            return results.Count > 0;
+            return ParseDeclaredId(id, ref index);
         }
 
-        private static void ParseDeclaredId(string id, ref int index, ArrayBuilder<(string ParentName, string SymbolName)> results)
+        private static (string ParentName, string SymbolName)? ParseDeclaredId(string id, ref int index)
         {
             var kindChar = PeekNextChar(id, index);
 
@@ -36,7 +32,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 default:
                     // Documentation comment id must start with E, F, M, N, P or T. Note: we don't support banning full
                     // namespaces, so we bail in that case as well.
-                    return;
+                    return null;
             }
 
             index++;
@@ -70,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
                 else
                 {
-                    results.Add((parentName, symbolName));
+                    return (parentName, symbolName);
                 }
             }
         }
