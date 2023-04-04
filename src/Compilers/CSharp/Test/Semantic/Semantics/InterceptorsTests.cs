@@ -1234,4 +1234,57 @@ partial struct CustomHandler
             expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
+
+    [Fact]
+    public void InterpolatedStringHandler_03()
+    {
+        // Verify that interpolated string attributes on an interceptor don't cause us to somehow pick a different argument.
+        var code = """
+using System;
+using System.Runtime.CompilerServices;
+
+var s1 = new S1(1);
+var s2 = new S1(2);
+S1.M(s1, s2, $"");
+
+public struct S1
+{
+    public S1(int field) => Field = field;
+    public int Field = 1;
+
+    [Interceptable]
+    public static void M(S1 s1, S1 s2, [InterpolatedStringHandlerArgument("s1")] CustomHandler c)
+    {
+        Console.Write(0);
+    }
+}
+
+public static class S1Ext
+{
+    [InterceptsLocation("Program.cs", 6, 4)]
+    public static void M1(S1 s2, S1 s3, [InterpolatedStringHandlerArgument("s2")] CustomHandler c)
+    {
+        Console.Write(2);
+    }
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S1 s)
+    {
+        Console.Write(s.Field);
+    }
+}
+""";
+        var verifier = CompileAndVerify(
+            new[]
+            {
+                (code, "Program.cs"),
+                (InterpolatedStringHandlerArgumentAttribute, "a.cs"),
+                (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
+                s_attributesSource
+            },
+            expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+    }
 }

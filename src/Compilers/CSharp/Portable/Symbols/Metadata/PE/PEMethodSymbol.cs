@@ -82,7 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // A = IsInterceptablePopulated. 1 bit.
             // 31 bits remain for future purposes.
 
-            // PROTOTYPE(ic): consider if we can move away from a 'long' for these flags and use less space.
+            // PROTOTYPE(ic): consider reverting back to 'int' for these flags.
+            // - There may not be a need to cache 'IsInterceptable' on the symbol. We could just look it up from attributes each time.
+            //   Since the number of calls which are intercepted is relatively small, this may be a negligible additional cost.
+            // - Otherwise, there may be more space efficient method of storing the flags which we should be using instead.
+            //   For example, writing a byte is atomic, so if multiple *bits of information* aren't being stored independently in it,
+            //   we could store 'IsInterceptable' in a 'ThreeState' field, for example.
 
             private const int MethodKindOffset = 0;
             private const long MethodKindMask = 0x1F;
