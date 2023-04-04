@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
             }
 
-            diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteInfo);
+            diagnostics.Add(_syntax.ForEachKeyword, useSiteInfo);
 
             // Due to the way we extracted the various types, these conversions should always be possible.
             // CAVEAT: if we're iterating over an array of pointers, the current conversion will fail since we

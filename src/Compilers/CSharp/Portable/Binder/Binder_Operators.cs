@@ -2502,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
-            diagnostics.Add(node.Location, useSiteInfo);
+            diagnostics.Add(node, useSiteInfo);
 
             if (!hasErrors)
             {
