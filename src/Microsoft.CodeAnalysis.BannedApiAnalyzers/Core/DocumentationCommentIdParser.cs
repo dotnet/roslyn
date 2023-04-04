@@ -2,6 +2,10 @@
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    /// <summary>
+    /// Stripped down port of the code in roslyn.  Responsible only for determining the <see cref="ISymbol.Name"/> and
+    /// name of the <see cref="ISymbol.ContainingSymbol"/> for a given xml doc comment symbol id.
+    /// </summary>
     internal static class DocumentationCommentIdParser
     {
         private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
