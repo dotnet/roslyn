@@ -342,7 +342,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
-        <target state="new">C# and Visual Basic References</target>
+        <target state="translated">Dokumentacja języków C# i Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -612,7 +612,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Deconstruct_locals_for_0">
         <source>Deconstruct locals for '{0}'</source>
-        <target state="new">Deconstruct locals for '{0}'</target>
+        <target state="translated">Dekonstrukcja elementów lokalnych dla '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -747,7 +747,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
         <source>'Find All References' not invoked on applicable symbol</source>
-        <target state="new">'Find All References' not invoked on applicable symbol</target>
+        <target state="translated">Nie wywołano elementu „Znajdź wszystkie odwołania” dla odpowiedniego symbolu</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2692,7 +2692,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="This_0_has_1_references">
         <source>This {0} has {1} reference(s).</source>
-        <target state="new">This {0} has {1} reference(s).</target>
+        <target state="translated">Liczba odwołań dla {0}: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -3127,7 +3127,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="_0_reference_unquoted">
         <source>{0} reference</source>
-        <target state="new">{0} reference</target>
+        <target state="translated">{0} odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -3137,7 +3137,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="_0_references_unquoted">
         <source>{0} references</source>
-        <target state="new">{0} references</target>
+        <target state="translated">Odwołania: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3549,7 +3549,7 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       </trans-unit>
       <trans-unit id="get_only_property">
         <source>get-only property</source>
-        <target state="new">get-only property</target>
+        <target state="translated">własność tylko do uzyskania</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">

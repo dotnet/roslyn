@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document,
                 selection,
-                priority,
+                priorityProvider,
                 fallbackOptions,
                 addOperationScope,
                 cancellationToken), cancellationToken).ConfigureAwait(false);
