@@ -26,7 +26,7 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyDescription));
 
-        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_xmlDictionaryProvider = new(static text => ParseDictionary(text, isXml: false));
+        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_xmlDictionaryProvider = new(static text => ParseDictionary(text, isXml: true));
         private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_dicDictionaryProvider = new(static text => ParseDictionary(text, isXml: false));
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
