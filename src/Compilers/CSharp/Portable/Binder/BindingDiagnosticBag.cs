@@ -96,22 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool ReportUseSite(Symbol? symbol, SyntaxNode node)
         {
-            return ReportUseSite(symbol, node, static node => node.Location);
+            return ReportUseSite(symbol, static node => node.Location, node);
         }
 
         internal bool ReportUseSite(Symbol? symbol, SyntaxToken token)
         {
-            return ReportUseSite(symbol, token, static token => token.GetLocation());
+            return ReportUseSite(symbol, static token => token.GetLocation(), token);
         }
 
         internal bool ReportUseSite(Symbol? symbol, Location location)
-            => ReportUseSite(symbol, location, static location => location);
+            => ReportUseSite(symbol, static location => location, location);
 
-        internal bool ReportUseSite<TData>(Symbol? symbol, TData data, Func<TData, Location> getLocation)
+        internal bool ReportUseSite<TData>(Symbol? symbol, Func<TData, Location> getLocation, TData data)
         {
             if (symbol is object)
             {
-                return Add(symbol.GetUseSiteInfo(), data, getLocation);
+                return Add(symbol.GetUseSiteInfo(), getLocation, data);
             }
 
             return false;
