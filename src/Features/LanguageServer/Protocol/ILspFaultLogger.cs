@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal interface ILspFaultLogger
 {
     void Initialize();
-    void LogFault(Exception exception, LogLevel logLevel, bool forceDump);
+    void ReportFault(Exception exception, LogLevel logLevel, bool forceDump);
 }

@@ -533,7 +533,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Too
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LanguageServer", "LanguageServer", "{D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServer.Internal", "src\VisualStudio\Microsoft.VisualStudio.LanguageServer.Internal\Microsoft.VisualStudio.LanguageServer.Internal.csproj", "{9B7AC5C2-293D-438D-B9A2-1EDDC2C6BF00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Internal", "src\VisualStudio\Microsoft.CodeAnalysis.LanguageServer.Internal\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj", "{9B7AC5C2-293D-438D-B9A2-1EDDC2C6BF00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
