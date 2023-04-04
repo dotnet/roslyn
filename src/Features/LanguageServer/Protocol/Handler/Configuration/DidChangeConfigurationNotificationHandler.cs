@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     [Method(Methods.WorkspaceDidChangeConfigurationName)]
     internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
+        private bool _supportWorkspaceConfiguration;
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
@@ -66,6 +67,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
+            // We rely on the workspace/configuration to get the option values. If client doesn't support this, don't update.
+            if (!_supportWorkspaceConfiguration)
+            {
+                return;
+            }
+
             var configurationsFromClient = await GetConfigurationsAsync(cancellationToken).ConfigureAwait(false);
             if (configurationsFromClient.IsEmpty)
             {
