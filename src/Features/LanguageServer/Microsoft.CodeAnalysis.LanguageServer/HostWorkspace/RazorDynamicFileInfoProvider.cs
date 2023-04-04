@@ -20,12 +20,9 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private static string _projectRazorJsonFileName = "project.razor.vscode.json";
 
-    internal static void Initialize(string? projectRazorJsonFileName)
+    internal static void SetProjectRazorJsonFileName(string projectRazorJsonFileName)
     {
-        if (projectRazorJsonFileName is not null)
-        {
-            _projectRazorJsonFileName = projectRazorJsonFileName;
-        }
+        _projectRazorJsonFileName = projectRazorJsonFileName;
     }
 
     [DataContract]

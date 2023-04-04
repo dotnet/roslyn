@@ -67,7 +67,11 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
     exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
-    RazorDynamicFileInfoProvider.Initialize(projectRazorJsonFileName);
+    // Allow the extension to override the razor file name to generate, in case they need to break the format
+    if (projectRazorJsonFileName is not null)
+    {
+        RazorDynamicFileInfoProvider.SetProjectRazorJsonFileName(projectRazorJsonFileName);
+    }
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
