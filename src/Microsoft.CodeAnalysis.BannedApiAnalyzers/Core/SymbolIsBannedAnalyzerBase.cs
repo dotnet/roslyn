@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
+                    context.CancellationToken.ThrowIfCancellationRequested();
                     switch (context.Operation)
                     {
                         case IObjectCreationOperation objectCreation:
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var attribute in attributes)
                 {
                     if (IsBannedSymbol(attribute.AttributeClass, out var entry))
