@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get diagnostics for the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId = null, DocumentId? documentId = null, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = true, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
