@@ -4,6 +4,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     internal static class DocumentationCommentIdParser
     {
+        private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
+
         public static (string ParentName, string SymbolName)? ParseDeclaredSymbolId(string id)
         {
             if (id == null)
@@ -72,11 +74,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         }
 
         private static char PeekNextChar(string id, int index)
-        {
-            return index >= id.Length ? '\0' : id[index];
-        }
-
-        private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
+            => index >= id.Length ? '\0' : id[index];
 
         private static string ParseName(string id, ref int index)
         {
@@ -94,12 +92,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 index = id.Length;
             }
 
-            return DecodeName(name);
+            return name.Replace('#', '.');
         }
-
-        // undoes dot encodings within names...
-        private static string DecodeName(string name)
-            => name.IndexOf('#') >= 0 ? name.Replace('#', '.') : name;
 
         private static void ReadNextInteger(string id, ref int index)
         {
