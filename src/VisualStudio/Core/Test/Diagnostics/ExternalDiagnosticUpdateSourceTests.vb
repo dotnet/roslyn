@@ -699,7 +699,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Throw New NotImplementedException()
             End Function
 
-            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As ICodeActionRequestPriorityProvider = Nothing, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional isExplicit As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
+            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
                 Return Task.FromResult((ImmutableArray(Of DiagnosticData).Empty, False))
             End Function
         End Class

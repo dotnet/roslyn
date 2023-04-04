@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, ICodeActionRequestPriorityProvider? priorityProvider = null, DiagnosticKind diagnosticKind = DiagnosticKind.All, bool isExplicit = false, CancellationToken cancellationToken = default)
+        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, DiagnosticKind diagnosticKind, bool isExplicit, CancellationToken cancellationToken)
             => throw new NotImplementedException();
     }
 }

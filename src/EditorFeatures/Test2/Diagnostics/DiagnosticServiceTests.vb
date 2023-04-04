@@ -2351,7 +2351,9 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Try get diagnostics for span
-                Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing, includeSuppressedDiagnostics:=False,
+                                                                      priorityProvider:=New DefaultCodeActionRequestPriorityProvider(),
+                                                                      DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
 
                 ' Verify only existing cached diagnostics are returned with TryAppendDiagnosticsForSpanAsync, with no analyzer callbacks being made.
                 Assert.False(analyzer.ReceivedOperationCallback)

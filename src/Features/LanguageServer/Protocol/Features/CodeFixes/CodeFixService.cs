@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                includeSuppressedDiagnostics: false, priorityProvider, cancellationToken: cancellationToken).ConfigureAwait(false);
+                includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
