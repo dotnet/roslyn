@@ -436,10 +436,7 @@ namespace Text.Analyzers
 
             bool IsWordSpelledCorrectly(string word)
             {
-                var unrecognizedWordsContains = dictionaries.Any(static (d, word) => d.ContainsUnrecognizedWord(word), word);
-                var recognizedWordsContains = dictionaries.Any(static (d, word) => d.ContainsRecognizedWord(word), word);
-
-                return !unrecognizedWordsContains && recognizedWordsContains;
+                return !dictionaries.Any(static (d, word) => d.ContainsUnrecognizedWord(word), word) && dictionaries.Any(static (d, word) => d.ContainsRecognizedWord(word), word);
             }
         }
 
