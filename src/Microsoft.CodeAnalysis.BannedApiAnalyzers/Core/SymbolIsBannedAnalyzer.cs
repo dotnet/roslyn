@@ -69,12 +69,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             var entries = query.ToList();
 
             if (entries.Count == 0)
-            {
                 return null;
-            }
 
             var errors = new List<Diagnostic>();
-
             var result = new Dictionary<ISymbol, BanFileEntry>(SymbolEqualityComparer.Default);
 
             foreach (var line in entries)
@@ -103,9 +100,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     endContext =>
                     {
                         foreach (var error in errors)
-                        {
                             endContext.ReportDiagnostic(error);
-                        }
                     });
             }
 
