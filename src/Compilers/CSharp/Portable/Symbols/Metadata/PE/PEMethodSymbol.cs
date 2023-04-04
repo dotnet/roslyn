@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // A = IsInterceptablePopulated. 1 bit.
             // 31 bits remain for future purposes.
 
+            // PROTOTYPE(ic): consider if we can move away from a 'long' for these flags and use less space.
+
             private const int MethodKindOffset = 0;
             private const long MethodKindMask = 0x1F;
 
