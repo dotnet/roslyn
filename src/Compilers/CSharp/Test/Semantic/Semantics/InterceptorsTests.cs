@@ -659,7 +659,7 @@ public class InterceptorsTests : CSharpTestBase
             class C
             {
                 [Interceptable]
-                public static void InterceptableMethod<T1, T2>(T1 t) { Console.Write("0"); }
+                public static void InterceptableMethod<T>(T t) { Console.Write("0"); }
             }
 
             static class Program
