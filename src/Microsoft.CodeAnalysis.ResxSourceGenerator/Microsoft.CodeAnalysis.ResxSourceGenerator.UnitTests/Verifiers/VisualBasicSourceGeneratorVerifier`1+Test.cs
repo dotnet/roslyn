@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     public static partial class VisualBasicSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : VisualBasicSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
+        public class Test : VisualBasicSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
         {
             private readonly string _identifier;
             private readonly string? _testFile;
@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 
                     return $"{_testMethod}_{_identifier}";
                 }
-            }
-
-            protected override IEnumerable<Type> GetSourceGenerators()
-            {
-                yield return typeof(TSourceGenerator);
             }
 
             protected override async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)

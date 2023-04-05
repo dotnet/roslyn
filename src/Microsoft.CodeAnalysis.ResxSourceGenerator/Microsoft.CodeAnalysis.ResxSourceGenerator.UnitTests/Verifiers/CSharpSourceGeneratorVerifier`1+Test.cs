@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     public static partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
+        public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
         {
             private readonly string _identifier;
             private readonly string? _testFile;
@@ -64,11 +64,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 
                     return $"{_testMethod}_{_identifier}";
                 }
-            }
-
-            protected override IEnumerable<Type> GetSourceGenerators()
-            {
-                yield return typeof(TSourceGenerator);
             }
 
             protected override CompilationOptions CreateCompilationOptions()
