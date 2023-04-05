@@ -861,6 +861,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsDeclarationPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.DeclarationPattern;
 
+        public static bool IsListPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ListPattern;
+
         public static bool IsNotPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.NotPattern;
 
