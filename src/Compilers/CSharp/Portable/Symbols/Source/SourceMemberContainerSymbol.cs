@@ -30,15 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We current pack everything into one 32-bit int; layout is given below.
             //
-            // |             |ss|vvv|zzzz|f|d|yy|wwwwww|
+            // |            p|ss|vvv|zzzz|f|d|yy|wwwwww|
             //
             // w = special type.  6 bits.
             // y = IsManagedType.  2 bits.
-            // d = FieldDefinitionsNoted. 1 bit
+            // d = FieldDefinitionsNoted. 1 bit.
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
             // v = NullableContext. 3 bits.
             // s = DeclaredRequiredMembers. 2 bits
+            // p = HasPrimaryConstructor. 1 bit.
             private int _flags;
 
             private const int SpecialTypeOffset = 0;
@@ -60,7 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
-            //private const int HasDeclaredRequiredMembersSize = 2;
+            private const int HasDeclaredRequiredMembersSize = 2;
+
+            private const int HasPrimaryConstructorOffset = HasDeclaredRequiredMembersOffset + HasDeclaredRequiredMembersSize;
+            // private const int HasPrimaryConstructorSize = 1;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
@@ -72,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int HasDeclaredMembersBit = (1 << HasDeclaredRequiredMembersOffset);
             private const int HasDeclaredMembersBitSet = (1 << (HasDeclaredRequiredMembersOffset + 1));
+
+            private const int HasPrimaryConstructorBit = 1 << HasPrimaryConstructorOffset;
 
             public SpecialType SpecialType
             {
@@ -108,12 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
 
-            public Flags(SpecialType specialType, TypeKind typeKind)
+            public Flags(SpecialType specialType, TypeKind typeKind, bool hasPrimaryConstructor)
             {
                 int specialTypeInt = ((int)specialType & SpecialTypeMask) << SpecialTypeOffset;
                 int typeKindInt = ((int)typeKind & TypeKindMask) << TypeKindOffset;
+                int hasPrimaryConstructorInt = hasPrimaryConstructor ? HasPrimaryConstructorBit : 0;
 
-                _flags = specialTypeInt | typeKindInt;
+                _flags = specialTypeInt | typeKindInt | hasPrimaryConstructorInt;
             }
 
             public void SetFieldDefinitionsNoted()
@@ -166,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ThreadSafeFlagOperations.Set(ref _flags, HasDeclaredMembersBitSet | (value ? HasDeclaredMembersBit : 0));
             }
+
+            public readonly bool HasPrimaryConstructor => (_flags & HasPrimaryConstructorBit) != 0;
         }
 
         private static readonly ObjectPool<PooledDictionary<Symbol, Symbol>> s_duplicateRecordMemberSignatureDictionary =
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MakeSpecialType()
                 : SpecialType.None;
 
-            _flags = new Flags(specialType, typeKind);
+            _flags = new Flags(specialType, typeKind, declaration.HasPrimaryConstructor);
 
             var containingType = this.ContainingType;
             if (containingType?.IsSealed == true && this.DeclaredAccessibility.HasProtected())
@@ -3192,6 +3201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (!this._flags.HasPrimaryConstructor)
+                    return null;
+
                 var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
                 if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
