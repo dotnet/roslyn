@@ -1805,7 +1805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If ShouldAddEvent(symbol) Then
-                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol, symbol))
             End If
         End Sub
 

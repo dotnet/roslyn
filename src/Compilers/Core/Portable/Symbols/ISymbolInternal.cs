@@ -142,5 +142,12 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// is to use it on a symbol that is a definition.
         /// </summary>
         Cci.IReference GetCciAdapter();
+
+        /// <summary>
+        /// <see langword="true"/> if this symbol has any location that is within <paramref name="tree"/>. <see
+        /// langword="false"/> otherwise. Can be more efficient than iteration over all the <see
+        /// cref="ISymbol.Locations"/> as it will avoid an unnecessary array allocation.
+        /// </summary>
+        bool HasLocationInTree(SyntaxTree tree);
     }
 }
