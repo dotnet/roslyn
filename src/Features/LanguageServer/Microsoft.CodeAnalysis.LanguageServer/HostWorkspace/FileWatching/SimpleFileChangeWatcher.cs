@@ -3,22 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
-[Export(typeof(IFileChangeWatcher)), Shared]
-internal sealed class FileChangeWatcher : IFileChangeWatcher
+/// <summary>
+/// A trivial implementation of <see cref="IFileChangeWatcher" /> that is built atop the framework <see cref="FileSystemWatcher" />. This is used if we can't
+/// use the LSP one.
+/// </summary>
+/// <remarks>
+/// This implementation is not remotely efficient, but is available as a fallback implementation. If this needs to regularly be used, then this should get some improvements.
+/// </remarks>
+internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FileChangeWatcher()
-    {
-    }
-
     public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
     {
         return new FileChangeContext(watchedDirectories.ToImmutableArray());
@@ -74,19 +72,8 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
             // If this path is already covered by one of our directory watchers, nothing further to do
-            foreach (var watchedDirectory in _watchedDirectories)
-            {
-                if (filePath.StartsWith(watchedDirectory.Path, StringComparison.Ordinal))
-                {
-                    // If ExtensionFilter is null, then we're watching for all files in the directory so the prior check
-                    // of the directory containment was sufficient. If it isn't null, then we have to check the extension
-                    // matches.
-                    if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter, StringComparison.Ordinal))
-                    {
-                        return NoOpWatchedFile.Instance;
-                    }
-                }
-            }
+            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, StringComparison.Ordinal))
+                return NoOpWatchedFile.Instance;
 
             var individualWatchedFile = new IndividualWatchedFile(filePath, this);
             _individualWatchedFiles.Add(individualWatchedFile);
@@ -102,23 +89,6 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
         {
             foreach (var directoryWatcher in _directoryFileSystemWatchers)
                 directoryWatcher.Dispose();
-        }
-
-        /// <summary>
-        /// When a FileChangeWatcher already has a watch on a directory, a request to watch a specific file is a no-op. In that case, we return this token,
-        /// which when disposed also does nothing.
-        /// </summary>
-        internal sealed class NoOpWatchedFile : IWatchedFile
-        {
-            public static readonly IWatchedFile Instance = new NoOpWatchedFile();
-
-            private NoOpWatchedFile()
-            {
-            }
-
-            public void Dispose()
-            {
-            }
         }
 
         private class IndividualWatchedFile : IWatchedFile
