@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // remove state for the file that got removed.
                     if (_projectStates.TryGetValue(id.ProjectId, out var state))
                     {
-                        _projectStates = _projectStates.Remove(id.ProjectId);
                         removed |= state.OnDocumentRemoved(id);
                     }
                 }
