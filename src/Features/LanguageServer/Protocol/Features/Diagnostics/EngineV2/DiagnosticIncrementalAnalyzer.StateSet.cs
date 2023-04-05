@@ -227,12 +227,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _activeFileStates = _activeFileStates.Remove(id);
                         removed = true;
                     }
+                }
 
-                    // remove state for the file that got removed.
-                    if (_projectStates.TryGetValue(id.ProjectId, out var state))
-                    {
-                        removed |= state.OnDocumentRemoved(id);
-                    }
+                // remove state for the file that got removed.
+                if (_projectStates.TryGetValue(id.ProjectId, out var state))
+                {
+                    removed |= state.OnDocumentRemoved(id);
                 }
 
                 return removed;
