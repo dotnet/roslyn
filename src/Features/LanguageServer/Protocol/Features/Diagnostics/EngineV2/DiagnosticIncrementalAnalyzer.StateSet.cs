@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private ImmutableDictionary<ProjectId, ProjectState> _projectStates;
 
             // Used to protect writes of _activeFileStates or _projectStates
-            private readonly object _lock;
+            private readonly object _lock = new object();
 
             public StateSet(string language, DiagnosticAnalyzer analyzer)
             {
@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 _activeFileStates = ImmutableDictionary<DocumentId, ActiveFileState>.Empty;
                 _projectStates = ImmutableDictionary<ProjectId, ProjectState>.Empty;
-
-                _lock = new object();
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
@@ -126,8 +124,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     lock (_lock)
                     {
-                        value = new ActiveFileState(documentId);
-                        _activeFileStates = _activeFileStates.SetItem(documentId, value);
+                        if (!_activeFileStates.TryGetValue(documentId, out value))
+                        {
+                            value = new ActiveFileState(documentId);
+                            _activeFileStates = _activeFileStates.SetItem(documentId, value);
+                        }
                     }
                 }
 
@@ -140,8 +141,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     lock (_lock)
                     {
-                        value = new ProjectState(this, projectId);
-                        _projectStates = _projectStates.SetItem(projectId, value);
+                        if (!_projectStates.TryGetValue(projectId, out value))
+                        {
+                            value = new ProjectState(this, projectId);
+                            _projectStates = _projectStates.SetItem(projectId, value);
+                        }
                     }
                 }
 
@@ -172,15 +176,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<bool> OnDocumentClosedAsync(TextDocument document, IGlobalOptionService globalOptions)
             {
-                // can not be cancelled
-                // remove active file state and put it in project state
-                if (!_activeFileStates.TryGetValue(document.Id, out var activeFileState))
-                {
-                    return false;
-                }
+                ActiveFileState activeFileState;
 
                 lock (_lock)
                 {
+                    // can not be cancelled
+                    // remove active file state and put it in project state
+                    if (!_activeFileStates.TryGetValue(document.Id, out activeFileState))
+                    {
+                        return false;
+                    }
+
                     _activeFileStates = _activeFileStates.Remove(document.Id);
                 }
 
@@ -214,25 +220,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // remove active file state for removed document
                 var removed = false;
-                if (_activeFileStates.ContainsKey(id))
+                lock (_lock)
                 {
-                    lock (_lock)
+                    if (_activeFileStates.ContainsKey(id))
                     {
                         _activeFileStates = _activeFileStates.Remove(id);
+                        removed = true;
                     }
 
-                    removed = true;
-                }
-
-                // remove state for the file that got removed.
-                if (_projectStates.TryGetValue(id.ProjectId, out var state))
-                {
-                    lock(_lock)
+                    // remove state for the file that got removed.
+                    if (_projectStates.TryGetValue(id.ProjectId, out var state))
                     {
                         _projectStates = _projectStates.Remove(id.ProjectId);
+                        removed |= state.OnDocumentRemoved(id);
                     }
-
-                    removed |= state.OnDocumentRemoved(id);
                 }
 
                 return removed;
@@ -241,13 +242,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool OnProjectRemoved(ProjectId id)
             {
                 // remove state for project that got removed.
-                if (_projectStates.TryGetValue(id, out var state))
+                ProjectState? state = null;
+                lock (_lock)
                 {
-                    lock (_lock)
+                    if (_projectStates.TryGetValue(id, out state))
                     {
                         _projectStates = _projectStates.Remove(id);
                     }
+                }
 
+                if (state is not null)
+                {
                     return state.OnProjectRemoved(id);
                 }
 
