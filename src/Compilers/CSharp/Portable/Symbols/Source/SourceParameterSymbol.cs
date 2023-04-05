@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
         protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
-        private readonly ImmutableArray<Location> _locations;
+        private readonly OneOrMany<Location> _locations;
         private readonly RefKind _refKind;
         private readonly ScopedKind _scope;
 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
 
             var name = identifier.ValueText;
-            var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
+            var locations = OneOrMany.Create<Location>(new SourceLocation(identifier));
 
             if (isParams)
             {
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ScopedKind scope,
             string name,
-            ImmutableArray<Location> locations)
+            OneOrMany<Location> locations)
             : base(owner, ordinal)
         {
 #if DEBUG
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _locations;
+                return _locations.ToImmutable();
             }
         }
 
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return IsImplicitlyDeclared ?
                     ImmutableArray<SyntaxReference>.Empty :
-                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(_locations);
+                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(this.Locations);
             }
         }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "obj", Locations)),
+                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "obj", OneOrMany.Create(Locations))),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
