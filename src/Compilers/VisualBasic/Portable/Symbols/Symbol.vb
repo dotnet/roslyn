@@ -281,17 +281,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public MustOverride ReadOnly Property Locations As ImmutableArray(Of Location)
 
-        Public Overridable Function HasLocationInTree(tree As SyntaxTree) As Boolean Implements ISymbolInternal.HasLocationInTree
-            ' Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
-            For Each location In Locations
-                If location.SourceTree Is tree Then
-                    Return True
-                End If
-            Next
-
-            Return False
-        End Function
-
         ''' <summary>
         ''' Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,
         ''' partial classes) may be defined in more than one location. This property should return
@@ -845,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
-        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolInternal.IsDefinedInSourceTree
             Dim declaringReferences = Me.DeclaringSyntaxReferences
             If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
                 Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)

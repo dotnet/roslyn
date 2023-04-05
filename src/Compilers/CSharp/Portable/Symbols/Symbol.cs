@@ -331,18 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
 
-        public virtual bool HasLocationInTree(SyntaxTree tree)
-        {
-            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
-            foreach (var location in Locations)
-            {
-                if (location.SourceTree == tree)
-                    return true;
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// <para>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for
@@ -809,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
-        internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             var declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)

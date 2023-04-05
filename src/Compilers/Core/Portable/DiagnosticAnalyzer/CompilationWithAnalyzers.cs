@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
-                            if (!symbolDeclaredCompilationEvent.SymbolInternal.HasLocationInTree(tree))
+                            if (!symbolDeclaredCompilationEvent.SymbolInternal.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
                                 continue;
 
                             break;
