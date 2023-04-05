@@ -10,6 +10,7 @@
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.CSharp.CodeStyle/*4.3.0-1.final*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.VisualBasic.CodeStyle/*4.3.0-1.final*" />
     <UsagePattern IdentityGlob="Microsoft.NET.StringTools/*1.0.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Win32.Registry/*5.0.0*" />
     <UsagePattern IdentityGlob="System.Collections.Immutable/*7.0.0*" />
     <UsagePattern IdentityGlob="System.Composition/*7.0.0*" />
     <UsagePattern IdentityGlob="System.Composition.AttributedModel/*7.0.0*" />
