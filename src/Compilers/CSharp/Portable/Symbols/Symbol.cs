@@ -331,6 +331,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
 
+        public virtual bool HasLocationInTree(SyntaxTree tree)
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            foreach (var location in Locations)
+            {
+                if (location.SourceTree == tree)
+                    return true;
+            }
+
+            return false;
+        }
+
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public virtual Location GetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            return this.Locations[0];
+        }
+
+#nullable disable
+
         /// <summary>
         /// <para>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for
