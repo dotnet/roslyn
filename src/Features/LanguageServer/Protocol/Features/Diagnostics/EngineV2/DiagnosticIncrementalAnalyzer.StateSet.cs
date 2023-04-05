@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (!_activeFileStates.TryGetValue(documentId, out value))
                         {
                             value = new ActiveFileState(documentId);
-                            _activeFileStates = _activeFileStates.SetItem(documentId, value);
+                            _activeFileStates = _activeFileStates.Add(documentId, value);
                         }
                     }
                 }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (!_projectStates.TryGetValue(projectId, out value))
                         {
                             value = new ProjectState(this, projectId);
-                            _projectStates = _projectStates.SetItem(projectId, value);
+                            _projectStates = _projectStates.Add(projectId, value);
                         }
                     }
                 }
