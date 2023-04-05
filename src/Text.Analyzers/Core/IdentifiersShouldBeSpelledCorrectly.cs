@@ -26,8 +26,8 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyDescription));
 
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_xmlDictionaryProvider = new(ParseXmlDictionary);
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new(ParseDicDictionary);
+        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_xmlDictionaryProvider = new(static text => ParseDictionary(text, isXml: true));
+        private static readonly SourceTextValueProvider<(CodeAnalysisDictionary dictionary, Exception? exception)> s_dicDictionaryProvider = new(static text => ParseDictionary(text, isXml: false));
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
         internal static readonly DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(
@@ -238,14 +238,15 @@ namespace Text.Analyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var dictionaries = ReadDictionaries();
-            var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(s_mainDictionary));
+            var cancellationToken = context.CancellationToken;
 
-            compilationStartContext.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
-            compilationStartContext.RegisterCompilationEndAction(AnalyzeAssembly);
-            compilationStartContext.RegisterSymbolAction(
+            var dictionaries = ReadDictionaries().Add(s_mainDictionary);
+
+            context.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
+            context.RegisterCompilationEndAction(AnalyzeAssembly);
+            context.RegisterSymbolAction(
                 AnalyzeSymbol,
                 SymbolKind.Namespace,
                 SymbolKind.NamedType,
@@ -255,45 +256,31 @@ namespace Text.Analyzers
                 SymbolKind.Field,
                 SymbolKind.Parameter);
 
-            IEnumerable<CodeAnalysisDictionary> ReadDictionaries()
+            ImmutableArray<CodeAnalysisDictionary> ReadDictionaries()
             {
-                var fileProvider = AdditionalFileProvider.FromOptions(compilationStartContext.Options);
+                var fileProvider = AdditionalFileProvider.FromOptions(context.Options);
                 return fileProvider.GetMatchingFiles(@"(?:dictionary|custom).*?\.(?:xml|dic)$")
-                    .Select(CreateDictionaryFromAdditionalText)
+                    .Select(GetOrCreateDictionaryFromAdditionalText)
                     .Where(x => x != null)
-                    .ToList();
+                    .ToImmutableArray();
+            }
 
-                CodeAnalysisDictionary CreateDictionaryFromAdditionalText(AdditionalText additionalFile)
+            CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)
+            {
+                var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
+                var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
+
+                var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken), provider, out var result)
+                    ? result
+                    : default;
+
+                if (exception != null)
                 {
-                    var text = additionalFile.GetText(compilationStartContext.CancellationToken);
-                    var isXml = additionalFile.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
-                    var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
-
-                    if (!compilationStartContext.TryGetValue(text, provider, out var dictionary))
-                    {
-                        try
-                        {
-                            // Annoyingly (and expectedly), TryGetValue swallows the parsing exception,
-                            // so we have to parse again to get it.
-                            var unused = isXml ? ParseXmlDictionary(text) : ParseDicDictionary(text);
-                            ReportFileParseDiagnostic(additionalFile.Path, "Unknown error");
-                        }
-#pragma warning disable CA1031 // Do not catch general exception types
-                        catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-                        {
-                            ReportFileParseDiagnostic(additionalFile.Path, ex.Message);
-                        }
-                    }
-
-                    return dictionary;
+                    var diagnostic = Diagnostic.Create(FileParseRule, Location.None, additionalText.Path, exception.Message);
+                    context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
                 }
 
-                void ReportFileParseDiagnostic(string filePath, string message)
-                {
-                    var diagnostic = Diagnostic.Create(FileParseRule, Location.None, filePath, message);
-                    compilationStartContext.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
-                }
+                return dictionary!;
             }
 
             void AnalyzeVariable(OperationAnalysisContext operationContext)
@@ -409,7 +396,9 @@ namespace Text.Analyzers
             static bool IsWordNumeric(string word) => char.IsDigit(word[0]);
 
             bool IsWordSpelledCorrectly(string word)
-                => !projectDictionary.UnrecognizedWords.Contains(word) && projectDictionary.RecognizedWords.Contains(word);
+            {
+                return !dictionaries.Any(static (d, word) => d.ContainsUnrecognizedWord(word), word) && dictionaries.Any(static (d, word) => d.ContainsRecognizedWord(word), word);
+            }
         }
 
         /// <summary>
@@ -466,6 +455,20 @@ namespace Text.Analyzers
             // Added the words: 'namespace'
             var text = SourceText.From(TextAnalyzersResources.Dictionary);
             return ParseDicDictionary(text);
+        }
+
+        private static (CodeAnalysisDictionary dictionary, Exception? exception) ParseDictionary(SourceText text, bool isXml)
+        {
+            try
+            {
+                return (isXml ? ParseXmlDictionary(text) : ParseDicDictionary(text), exception: null);
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                return (null!, ex);
+            }
         }
 
         private static CodeAnalysisDictionary ParseXmlDictionary(SourceText text)
