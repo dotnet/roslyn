@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -25,16 +24,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
 
-            private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
-            private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
+            private ImmutableDictionary<DocumentId, ActiveFileState> _activeFileStates;
+            private ImmutableDictionary<ProjectId, ProjectState> _projectStates;
+
+            // Used to protect writes of _activeFileStates or _projectStates
+            private readonly object _lock;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer)
             {
                 Language = language;
                 Analyzer = analyzer;
 
-                _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
-                _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
+                _activeFileStates = ImmutableDictionary<DocumentId, ActiveFileState>.Empty;
+                _projectStates = ImmutableDictionary<ProjectId, ProjectState>.Empty;
+
+                _lock = new object();
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
@@ -53,16 +57,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
             {
+                // Placed in locals because accessed multiple times in this method
+                var activeFileStates = _activeFileStates;
+                var projectStates = _projectStates;
+
                 // quick bail out
-                if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
+                if (activeFileStates.IsEmpty && projectStates.IsEmpty)
                 {
                     return SpecializedCollections.EmptyEnumerable<ProjectId>();
                 }
 
-                if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
+                if (activeFileStates.Count == 1 && projectStates.IsEmpty)
                 {
                     // see whether we actually have diagnostics
-                    var (documentId, state) = _activeFileStates.First();
+                    var (documentId, state) = activeFileStates.First();
                     if (state.IsEmpty)
                     {
                         return SpecializedCollections.EmptyEnumerable<ProjectId>();
@@ -73,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return new HashSet<ProjectId>(
-                    _activeFileStates.Where(kv => !kv.Value.IsEmpty)
-                                     .Select(kv => kv.Key.ProjectId)
-                                     .Concat(_projectStates.Where(kv => !kv.Value.IsEmpty())
-                                                           .Select(kv => kv.Key)));
+                    activeFileStates.Where(kv => !kv.Value.IsEmpty)
+                                    .Select(kv => kv.Key.ProjectId)
+                                    .Concat(projectStates.Where(kv => !kv.Value.IsEmpty())
+                                                         .Select(kv => kv.Key)));
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
@@ -113,10 +121,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => _projectStates.TryGetValue(projectId, out state);
 
             public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
-                => _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
+            {
+                if (!_activeFileStates.TryGetValue(documentId, out var value))
+                {
+                    lock (_lock)
+                    {
+                        value = new ActiveFileState(documentId);
+                        _activeFileStates = _activeFileStates.SetItem(documentId, value);
+                    }
+                }
+
+                return value;
+            }
 
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
-                => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
+            {
+                if (!_projectStates.TryGetValue(projectId, out var value))
+                {
+                    lock (_lock)
+                    {
+                        value = new ProjectState(this, projectId);
+                        _projectStates = _projectStates.SetItem(projectId, value);
+                    }
+                }
+
+                return value;
+            }
 
             public async Task<bool> OnDocumentOpenedAsync(TextDocument document)
             {
@@ -144,9 +174,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
-                if (!_activeFileStates.TryRemove(document.Id, out var activeFileState))
+                if (!_activeFileStates.TryGetValue(document.Id, out var activeFileState))
                 {
                     return false;
+                }
+
+                lock (_lock)
+                {
+                    _activeFileStates = _activeFileStates.Remove(document.Id);
                 }
 
                 // active file exist, put it in the project state
@@ -179,13 +214,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // remove active file state for removed document
                 var removed = false;
-                if (_activeFileStates.TryRemove(id, out _))
+                if (_activeFileStates.ContainsKey(id))
                 {
+                    lock (_lock)
+                    {
+                        _activeFileStates = _activeFileStates.Remove(id);
+                    }
+
                     removed = true;
                 }
+
                 // remove state for the file that got removed.
                 if (_projectStates.TryGetValue(id.ProjectId, out var state))
                 {
+                    lock(_lock)
+                    {
+                        _projectStates = _projectStates.Remove(id.ProjectId);
+                    }
+
                     removed |= state.OnDocumentRemoved(id);
                 }
 
@@ -195,8 +241,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool OnProjectRemoved(ProjectId id)
             {
                 // remove state for project that got removed.
-                if (_projectStates.TryRemove(id, out var state))
+                if (_projectStates.TryGetValue(id, out var state))
                 {
+                    lock (_lock)
+                    {
+                        _projectStates = _projectStates.Remove(id);
+                    }
+
                     return state.OnProjectRemoved(id);
                 }
 
