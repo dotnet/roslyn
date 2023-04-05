@@ -4278,7 +4278,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontRefactorInitializerWithExistingConstructor()
+        public async Task TestMovePropertiesAndDoNotRefactorInitializerWithExistingConstructor()
         {
             var initialMarkup = @"
 namespace N

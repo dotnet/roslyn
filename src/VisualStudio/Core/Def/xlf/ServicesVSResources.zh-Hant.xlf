@@ -287,11 +287,6 @@
         <target state="translated">註解</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">非同步計算快速動作 (實驗性，需要重新開機)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含的成員</target>
@@ -434,7 +429,7 @@
       </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
-        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <target state="translated">啟用文件大綱 (實驗性，需要重新開機)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -1154,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct_member">
         <source>Prefer read-only struct member</source>
-        <target state="new">Prefer read-only struct member</target>
+        <target state="translated">偏好唯讀結構成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1499,7 +1494,7 @@
       </trans-unit>
       <trans-unit id="Sync_namespaces_changes">
         <source>Sync namespaces changes</source>
-        <target state="new">Sync namespaces changes</target>
+        <target state="translated">同步處理命名空間變更</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">

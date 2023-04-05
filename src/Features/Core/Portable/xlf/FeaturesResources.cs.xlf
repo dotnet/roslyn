@@ -342,7 +342,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
-        <target state="new">C# and Visual Basic References</target>
+        <target state="translated">Reference pro C# a Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -612,7 +612,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Deconstruct_locals_for_0">
         <source>Deconstruct locals for '{0}'</source>
-        <target state="new">Deconstruct locals for '{0}'</target>
+        <target state="translated">Dekonstruovat místní hodnoty pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -747,7 +747,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
         <source>'Find All References' not invoked on applicable symbol</source>
-        <target state="new">'Find All References' not invoked on applicable symbol</target>
+        <target state="translated">Funkce Najít všechny odkazy se nevyvolala u použitelného symbolu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2692,7 +2692,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="This_0_has_1_references">
         <source>This {0} has {1} reference(s).</source>
-        <target state="new">This {0} has {1} reference(s).</target>
+        <target state="translated">Položka {0} obsahuje tento počet odkazů: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -2849,6 +2849,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Aktualizace modifikátoru async nebo iterator kolem aktivního příkazu vyžaduje restartování aplikace.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
@@ -3127,7 +3132,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_reference_unquoted">
         <source>{0} reference</source>
-        <target state="new">{0} reference</target>
+        <target state="translated">Počet odkazů: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -3137,7 +3142,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_references_unquoted">
         <source>{0} references</source>
-        <target state="new">{0} references</target>
+        <target state="translated">Počet odkazů: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3549,7 +3554,7 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
       </trans-unit>
       <trans-unit id="get_only_property">
         <source>get-only property</source>
-        <target state="new">get-only property</target>
+        <target state="translated">vlastnost jenom pro načtení</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">

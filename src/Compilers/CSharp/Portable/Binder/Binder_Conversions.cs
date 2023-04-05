@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Compilation.SourceModule != method.ContainingModule)
                     {
-                        CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
 
                         if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                         {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (SyntaxFacts.IsCheckedOperator(method.Name) &&
                     Compilation.SourceModule != method.ContainingModule)
                 {
-                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics, syntax.GetLocation()!);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                 }
             }
         }
