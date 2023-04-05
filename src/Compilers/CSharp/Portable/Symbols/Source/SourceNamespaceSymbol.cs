@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
         /// <summary>
-        /// Should only be read using <see cref="GetOrCreateAliasAndUsings"/>.
+        /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
         private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
             ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
 #if DEBUG
         /// <summary>
-        /// Should only be read using <see cref="GetOrCreateAliasAndUsings"/>.
+        /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
         private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
             ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);

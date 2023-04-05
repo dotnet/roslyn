@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (declaration.HasGlobalUsings || declaration.HasUsings || declaration.HasExternAliases)
                                     {
                                         targetDeclarationWithImports = declaration;
-                                        GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration).Complete(this, declaration.SyntaxReference, cancellationToken);
+                                        GetAliasesAndUsings(declaration).Complete(this, declaration.SyntaxReference, cancellationToken);
                                     }
                                 }
                             }
