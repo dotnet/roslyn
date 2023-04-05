@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var singleDeclaration = GetMatchingNamespaceDeclaration(declarationSyntax);
 
             return singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings
-                ? GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, singleDeclaration)
+                ? GetAliasesAndUsings(singleDeclaration)
                 : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration);
         }
 #endif
