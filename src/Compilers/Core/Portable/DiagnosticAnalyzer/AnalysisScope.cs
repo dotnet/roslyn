@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool ConcurrentAnalysis { get; }
 
         /// <summary>
-        /// True if we need to categorize diagnostics into local and non-local diagnostics and track the analyzer reporting each diagnostic.
-        /// </summary>
-        public bool CategorizeDiagnostics { get; }
-
-        /// <summary>
         /// True if we need to perform only syntax analysis for a single source or additional file.
         /// </summary>
         public bool IsSyntacticSingleFileAnalysis { get; }
@@ -55,36 +50,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsSingleFileAnalysis => FilterFileOpt != null;
 
         /// <summary>
-        /// Flag indicating if this is a partial analysis for the corresponding <see cref="CompilationWithAnalyzers"/>,
-        /// i.e. <see cref="IsSingleFileAnalysis"/> is true and/or <see cref="Analyzers"/> is a subset of <see cref="CompilationWithAnalyzers.Analyzers"/>.
+        /// Flag indicating if this analysis scope contains all analyzers from the corresponding <see cref="CompilationWithAnalyzers"/>,
+        /// i.e. <see cref="Analyzers"/> is the same set as <see cref="CompilationWithAnalyzers.Analyzers"/>.
+        /// This flag is used to improve the performance for <see cref="Contains(DiagnosticAnalyzer)"/> check for
+        /// batch compilation scenario, where this flag is always true.
         /// </summary>
-        public bool IsPartialAnalysis { get; }
+        private bool HasAllAnalyzers { get; }
+
+        /// <summary>
+        /// True if we are performing syntactic or semantic analysis for a single source file with a single analyzer in scope,
+        /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
+        /// </summary>
+        public bool IsSingleFileAnalysisForCompilerAnalyzer =>
+            IsSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
 
         /// <summary>
         /// True if we are performing semantic analysis for a single source file with a single analyzer in scope,
         /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
         /// </summary>
         public bool IsSemanticSingleFileAnalysisForCompilerAnalyzer =>
-            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
+            IsSingleFileAnalysisForCompilerAnalyzer && !IsSyntacticSingleFileAnalysis;
 
-        public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
-            : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
-                   analyzers, isPartialAnalysis: !hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: concurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics)
+        public static AnalysisScope Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
         {
+            var analyzerOptions = compilationWithAnalyzers.AnalysisOptions.Options;
+            var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
+            var concurrentAnalysis = compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis;
+            return Create(compilation, analyzerOptions, analyzers, hasAllAnalyzers, concurrentAnalysis);
         }
 
-        public AnalysisScope(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
-            : this(filterFile.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterFile.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
-                   filterFile.AdditionalFile != null ? SpecializedCollections.SingletonEnumerable(filterFile.AdditionalFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>(),
-                   analyzers, isPartialAnalysis: true, filterFile, filterSpan, isSyntacticSingleFileAnalysis, concurrentAnalysis, categorizeDiagnostics)
+        public static AnalysisScope CreateForBatchCompile(Compilation compilation, AnalyzerOptions analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
+            return Create(compilation, analyzerOptions, analyzers, hasAllAnalyzers: true, concurrentAnalysis: compilation.Options.ConcurrentBuild);
         }
 
-        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool isPartialAnalysis, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+        private static AnalysisScope Create(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis)
         {
-            Debug.Assert(isPartialAnalysis || FilterFileOpt == null);
-            Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
-            Debug.Assert(isPartialAnalysis || !isSyntacticSingleFileAnalysis);
+            var additionalFiles = analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
+            return new AnalysisScope(compilation.SyntaxTrees, additionalFiles,
+                   analyzers, hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false,
+                   concurrentAnalysis: concurrentAnalysis);
+        }
+
+        public static AnalysisScope Create(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, bool isSyntacticSingleFileAnalysis, CompilationWithAnalyzers compilationWithAnalyzers)
+        {
+            var trees = filterFile.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterFile.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>();
+            var additionalFiles = filterFile.AdditionalFile != null ? SpecializedCollections.SingletonEnumerable(filterFile.AdditionalFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>();
+            var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
+            var concurrentAnalysis = compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis;
+            return new AnalysisScope(trees, additionalFiles, analyzers, hasAllAnalyzers, filterFile, filterSpan, isSyntacticSingleFileAnalysis, concurrentAnalysis);
+        }
+
+        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis)
+        {
+            Debug.Assert(!filterSpanOpt.HasValue || filterFile.HasValue);
+            Debug.Assert(!isSyntacticSingleFileAnalysis || filterFile.HasValue);
 
             if (filterSpanOpt.HasValue)
             {
@@ -104,12 +124,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxTrees = trees;
             AdditionalFiles = additionalFiles;
             Analyzers = analyzers;
-            IsPartialAnalysis = isPartialAnalysis;
+            HasAllAnalyzers = hasAllAnalyzers;
             FilterFileOpt = filterFile;
             FilterSpanOpt = filterSpanOpt;
             IsSyntacticSingleFileAnalysis = isSyntacticSingleFileAnalysis;
             ConcurrentAnalysis = concurrentAnalysis;
-            CategorizeDiagnostics = categorizeDiagnostics;
 
             _lazyAnalyzersSet = new Lazy<ImmutableHashSet<DiagnosticAnalyzer>>(CreateAnalyzersSet);
         }
@@ -118,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool Contains(DiagnosticAnalyzer analyzer)
         {
-            if (!IsPartialAnalysis)
+            if (HasAllAnalyzers)
             {
                 Debug.Assert(_lazyAnalyzersSet.Value.Contains(analyzer));
                 return true;
@@ -127,14 +146,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _lazyAnalyzersSet.Value.Contains(analyzer);
         }
 
-        public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers)
+        public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
         {
-            var isPartialAnalysis = IsSingleFileAnalysis || !hasAllAnalyzers;
-            return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+            var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
+            return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, hasAllAnalyzers, FilterFileOpt, FilterSpanOpt, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
+        }
+
+        private static bool ComputeHasAllAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
+        {
+#if DEBUG
+            foreach (var analyzer in analyzers)
+            {
+                Debug.Assert(compilationWithAnalyzers.Analyzers.Contains(analyzer));
+            }
+#endif
+
+            return compilationWithAnalyzers.Analyzers.Length == analyzers.Length;
         }
 
         public AnalysisScope WithFilterSpan(TextSpan? filterSpan)
-            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, IsPartialAnalysis, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, HasAllAnalyzers, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {

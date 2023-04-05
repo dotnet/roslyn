@@ -156,6 +156,8 @@ namespace Roslyn.Utilities
             }
         }
 
+        public T First() => this[0];
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             if (HasOne)
@@ -212,6 +214,20 @@ namespace Roslyn.Utilities
 
         public bool Any()
             => this.Count > 0;
+
+        public bool Any<TData>(Func<T, TData, bool> predicate, TData data)
+        {
+            foreach (var value in this)
+            {
+                if (predicate(value, data))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public ImmutableArray<T> ToImmutable()
+            => this.HasOne ? ImmutableArray.Create(_one) : _many;
 
         public Enumerator GetEnumerator()
             => new(this);
