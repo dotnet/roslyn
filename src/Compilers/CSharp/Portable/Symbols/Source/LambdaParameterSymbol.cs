@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            string name,
            bool isDiscard,
            bool isParams,
-           ImmutableArray<Location> locations)
+           OneOrMany<Location> locations)
            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis: false, scope)
         {
             _attributeLists = attributeLists;

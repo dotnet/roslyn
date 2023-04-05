@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ScopedKind scope,
             string name,
-            ImmutableArray<Location> locations)
+            OneOrMany<Location> locations)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
         }
