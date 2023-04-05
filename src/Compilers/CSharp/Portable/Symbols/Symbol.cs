@@ -318,10 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
+            var firstLocation = this.TryGetFirstLocation();
+            if (firstLocation is null)
+                return LexicalSortKey.NotInSource;
+
             var declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
+            return new LexicalSortKey(firstLocation, declaringCompilation);
         }
 
         /// <summary>
