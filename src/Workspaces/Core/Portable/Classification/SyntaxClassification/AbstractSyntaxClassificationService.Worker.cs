@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly SegmentedHashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
             private readonly ClassificationOptions _options;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 _options = options;
 
                 // get one from pool
-                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
+                _set = SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().AllocateAndClear();
                 _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 finally
                 {
                     // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
+                    SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
                     SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
                 }
             }
