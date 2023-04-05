@@ -1287,4 +1287,67 @@ partial struct CustomHandler
             expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
+
+    [Fact]
+    public void LineDirective_01()
+    {
+        // Verify that line directives are not considered when deciding if a particular call is being intercepted.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod() { Console.Write("interceptable"); }
+
+                public static void Main()
+                {
+                    #line 42 "OtherFile.cs"
+                    InterceptableMethod();
+                }
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 12, 9)]
+                public static void Interceptor1() { Console.Write("interceptor 1"); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LineDirective_02()
+    {
+        // Verify that line directives are not considered when deciding if a particular call is being intercepted.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod() { Console.Write("interceptable"); }
+
+                public static void Main()
+                {
+                    #line 42 "OtherFile.cs"
+                    InterceptableMethod();
+                }
+            }
+
+            class D
+            {
+                [InterceptsLocation("OtherFile.cs", 42, 9)]
+                public static void Interceptor1() { Console.Write("interceptor 1"); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // OtherFile.cs(48,6): error CS27002: Cannot intercept: compilation does not contain a file with path 'OtherFile.cs'.
+            //     [InterceptsLocation("OtherFile.cs", 42, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"InterceptsLocation(""OtherFile.cs"", 42, 9)").WithArguments("OtherFile.cs").WithLocation(48, 6));
+    }
 }
