@@ -29,9 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
-        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
+        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
+            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
 #if DEBUG
-        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
+        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
+            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
@@ -50,30 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
-#if DEBUG
-            var builderForAsserts = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
-#endif
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
-            {
-                if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
-                {
-                    builder.Add(singleDeclaration, new AliasesAndUsings());
-                }
-#if DEBUG
-                else
-                {
-                    builderForAsserts.Add(singleDeclaration, new AliasesAndUsings());
-                }
-#endif
-
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
-            }
-
-            _aliasesAndUsings = builder.ToImmutable();
-#if DEBUG
-            _aliasesAndUsingsForAsserts = builderForAsserts.ToImmutable();
-#endif
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
