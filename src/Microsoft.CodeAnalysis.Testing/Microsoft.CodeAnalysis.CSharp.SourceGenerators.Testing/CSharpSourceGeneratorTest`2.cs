@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Testing;
 namespace Microsoft.CodeAnalysis.CSharp.Testing
 {
     public class CSharpSourceGeneratorTest<TSourceGenerator, TVerifier> : SourceGeneratorTest<TVerifier>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : new()
         where TVerifier : IVerifier, new()
     {
         private static readonly LanguageVersion DefaultLanguageVersion =
