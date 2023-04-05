@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Returns the source generators being tested - to be implemented in non-abstract class.
         /// </summary>
-        /// <returns>The <see cref="ISourceGenerator"/> to be used.</returns>
+        /// <returns>The <see cref="ISourceGenerator"/> and/or <see cref="T:Microsoft.CodeAnalysis.IIncrementalGenerator"/> to be used.</returns>
         protected override abstract IEnumerable<Type> GetSourceGenerators();
     }
 }

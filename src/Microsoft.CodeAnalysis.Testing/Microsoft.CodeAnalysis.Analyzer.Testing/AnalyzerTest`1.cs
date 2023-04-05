@@ -281,21 +281,21 @@ namespace Microsoft.CodeAnalysis.Testing
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(Language, sourceGenerators, testState, ApplySourceGeneratorsAsync, verifier.PushContext("Source generator application"), cancellationToken);
         }
 
         private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
             string language,
             ImmutableArray<Type> sourceGenerators,
             SolutionState testState,
-            Func<ImmutableArray<Type>, Project, IVerifier, CancellationToken, Task<(Project project, ImmutableArray<Diagnostic> diagnostics)>> getFixedProject,
+            Func<ImmutableArray<Type>, Project, IVerifier, CancellationToken, Task<(Project project, ImmutableArray<Diagnostic> diagnostics)>> applySourceGenerators,
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
             var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
 
             ImmutableArray<Diagnostic> diagnostics;
-            (project, diagnostics) = await getFixedProject(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
+            (project, diagnostics) = await applySourceGenerators(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying the source generator, compare the resulting string to the inputted one
             if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
@@ -1153,11 +1153,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
         protected virtual async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var (finalProject, generatorDiagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            var (finalProject, generatorDiagnostics) = await ApplySourceGeneratorsAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
             return ((await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!, generatorDiagnostics);
         }
 
-        private protected async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
+        private protected async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorsAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             verifier.True(compilation is { });
@@ -1228,6 +1228,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     var iincrementalGeneratorType = isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.IIncrementalGenerator");
+                    verifier.True(iincrementalGeneratorType?.IsAssignableFrom(sourceGenerators[i].GetType()) ?? false, $"'{sourceGenerators[i].GetType().FullName}' must implement '{iincrementalGeneratorType.FullName}' or '{isourceGeneratorType.FullName}'");
                     var asGeneratorMethod = (from method in isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorExtensions")!.GetMethods()
                                              where method is { Name: "AsSourceGenerator", IsStatic: true, IsPublic: true }
                                              let parameterTypes = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray()
