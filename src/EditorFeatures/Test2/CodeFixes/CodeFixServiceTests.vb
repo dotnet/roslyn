@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 

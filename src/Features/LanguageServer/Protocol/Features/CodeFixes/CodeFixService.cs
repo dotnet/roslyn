@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                includeSuppressedDiagnostics: false, priorityProvider, cancellationToken: cancellationToken).ConfigureAwait(false);
+                includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider: priorityProvider,
-                addOperationScope: addOperationScope, isExplicit: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
+                addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
@@ -259,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             cancellationToken.ThrowIfCancellationRequested();
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));
             if (!diagnostics.Any())
                 return null;
