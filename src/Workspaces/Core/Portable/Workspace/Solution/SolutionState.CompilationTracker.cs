@@ -1085,6 +1085,18 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutableAndClear();
             }
 
+            public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                if (!this.ProjectState.SourceGenerators.Any())
+                {
+                    return null;
+                }
+
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken).ConfigureAwait(false);
+
+                return compilationInfo.GeneratorInfo.Driver?.GetRunResult();
+            }
+
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
             {
                 var state = ReadState();

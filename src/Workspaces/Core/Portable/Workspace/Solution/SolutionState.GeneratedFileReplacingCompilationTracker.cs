@@ -196,6 +196,12 @@ namespace Microsoft.CodeAnalysis
                 // outputs of each other.
                 return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
             }
+
+            public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                // PROTOTYPE: the run results should always be the same?
+                return UnderlyingTracker.GetSourceGeneratorRunResultAsync(solution, cancellationToken);
+            }
         }
     }
 }
