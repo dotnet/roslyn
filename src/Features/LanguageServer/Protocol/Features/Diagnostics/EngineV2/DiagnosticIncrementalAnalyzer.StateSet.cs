@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private ImmutableDictionary<ProjectId, ProjectState> _projectStates;
 
             // Used to protect writes of _activeFileStates or _projectStates
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
 
             public StateSet(string language, DiagnosticAnalyzer analyzer)
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<bool> OnDocumentClosedAsync(TextDocument document, IGlobalOptionService globalOptions)
             {
-                ActiveFileState activeFileState;
+                ActiveFileState? activeFileState;
 
                 lock (_lock)
                 {
