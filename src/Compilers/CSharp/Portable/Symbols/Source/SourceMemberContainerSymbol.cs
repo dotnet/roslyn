@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We current pack everything into one 32-bit int; layout is given below.
             //
-            // |           p|ss|vvv|zzzz|f|d|yy|wwwwww|
+            // |            p|ss|vvv|zzzz|f|d|yy|wwwwww|
             //
             // w = special type.  6 bits.
             // y = IsManagedType.  2 bits.
