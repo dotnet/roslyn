@@ -38,11 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
         {
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, out analyzers, out generators);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, out analyzers, out generators);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             out ImmutableArray<ISourceGenerator> generators)
         {
             diagnostics = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, out analyzers, out generators);
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, TestOptions.DebugDll, skipAnalyzers, out analyzers, out generators);
         }
 
         public Compilation CreateCompilation(
