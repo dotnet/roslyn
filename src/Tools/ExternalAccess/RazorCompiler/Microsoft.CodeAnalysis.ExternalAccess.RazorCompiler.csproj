@@ -4,7 +4,7 @@
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
-
+	
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</PackageId>
@@ -20,6 +20,7 @@
     <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Test" Key="$(RazorKey)" />
   </ItemGroup>
