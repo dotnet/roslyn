@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -390,34 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DirectiveTriviaSyntax? GetLastDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             return ((CSharpSyntaxNode)node).GetLastDirective(predicate);
-        }
-
-        internal static Location? GetInterceptableLocationInternal(this InvocationExpressionSyntax syntax)
-        {
-            // If a qualified name is used as a valid receiver of an invocation syntax at some point,
-            // we probably want to treat it similarly to a MemberAccessExpression.
-            // However, we don't expect to encounter it.
-            Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
-
-            return syntax.Expression switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
-                SimpleNameSyntax name => name.Location,
-                _ => null
-            };
-        }
-
-        [RequiresPreviewFeatures]
-        public static InterceptableLocation? GetInterceptableLocation(this InvocationExpressionSyntax syntax)
-        {
-            var location = syntax.GetInterceptableLocationInternal();
-            if (location is null)
-            {
-                return null;
-            }
-
-            var lineSpan = location.GetLineSpan().StartLinePosition;
-            return new InterceptableLocation(syntax.SyntaxTree.FilePath, lineSpan.Line + 1, lineSpan.Character + 1);
         }
         #endregion
 

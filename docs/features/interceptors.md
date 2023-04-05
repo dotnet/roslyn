@@ -101,9 +101,7 @@ The location of the call is the location of the simple name syntax which denotes
 
 The goal of the above decisions is to make it so that when source generators are filling in `[InterceptsLocation(...)]`, they simply need to read `nameSyntax.SyntaxTree.FilePath` and `nameSyntax.GetLineSpan().Span.Start` for the exact file path and position information they need to use.
 
-We add the public API `public static InterceptableLocation? GetInterceptableLocation(this InvocationExpressionSyntax syntax)`. The API and the new return type are guarded by `[RequiresPreviewFeatures]`, requiring generators which use the APIs to opt-in. If the feature is significantly revised or withdrawn, use of `[RequiresPreviewFeatures]` gives us the latitude to make breaking changes to these public APIs or to remove them.
-
-We should provide samples of recommended coding patterns for generator authors.
+We should provide samples of recommended coding patterns for generator authors to show correct usage of these, including the "translation" from 0-indexed to 1-indexed positions.
 
 ### Non-invocation method usages
 
