@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly HashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
             private readonly ClassificationOptions _options;
+
+            private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => new());
 
             private Worker(
                 SemanticModel semanticModel,
@@ -121,27 +125,23 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyNode(SyntaxNode syntax)
             {
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+                using var obj = s_listPool.GetPooledObject();
+                var list = obj.Object;
 
                 foreach (var classifier in _getNodeClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    result.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
-                    AddClassifications(result);
+                    list.Clear();
+                    classifier.AddClassifications(syntax, _semanticModel, _options, list, _cancellationToken);
+                    AddClassifications(list);
                 }
             }
 
-            private void AddClassifications(ArrayBuilder<ClassifiedSpan> classifications)
+            private void AddClassifications(SegmentedList<ClassifiedSpan> classifications)
             {
-                if (classifications != null)
-                {
-                    foreach (var classification in classifications)
-                    {
-                        AddClassification(classification);
-                    }
-                }
+                foreach (var classification in classifications)
+                    AddClassification(classification);
             }
 
             private void AddClassification(ClassifiedSpan classification)
@@ -156,15 +156,16 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ClassifyStructuredTrivia(syntax.LeadingTrivia);
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+                using var obj = s_listPool.GetPooledObject();
+                var list = obj.Object;
 
                 foreach (var classifier in _getTokenClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    result.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
-                    AddClassifications(result);
+                    list.Clear();
+                    classifier.AddClassifications(syntax, _semanticModel, _options, list, _cancellationToken);
+                    AddClassifications(list);
                 }
 
                 ClassifyStructuredTrivia(syntax.TrailingTrivia);
