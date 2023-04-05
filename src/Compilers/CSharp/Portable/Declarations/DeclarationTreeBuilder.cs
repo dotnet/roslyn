@@ -618,6 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasPrimaryConstructor;
             }
 
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
