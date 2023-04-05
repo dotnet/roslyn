@@ -2,6 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Testing
 
-Public Class VisualBasicSourceGeneratorVerifier(Of TSourceGenerator As {ISourceGenerator, New}, TVerifier As {IVerifier, New})
+Public Class VisualBasicSourceGeneratorVerifier(Of TSourceGenerator As New, TVerifier As {IVerifier, New})
     Inherits SourceGeneratorVerifier(Of TSourceGenerator, VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier), TVerifier)
 End Class

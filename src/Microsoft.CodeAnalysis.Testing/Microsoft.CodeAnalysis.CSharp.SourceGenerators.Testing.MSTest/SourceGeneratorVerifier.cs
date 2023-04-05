@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing.MSTest
     public static class SourceGeneratorVerifier
     {
         public static SourceGeneratorVerifier<TSourceGenerator> Create<TSourceGenerator>()
-            where TSourceGenerator : ISourceGenerator, new()
+            where TSourceGenerator : new()
         {
             return new SourceGeneratorVerifier<TSourceGenerator>();
         }
