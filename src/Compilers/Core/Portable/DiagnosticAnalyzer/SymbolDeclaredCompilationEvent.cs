@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -16,15 +17,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Lazy<ImmutableArray<SyntaxReference>> _lazyCachedDeclaringReferences;
 
-        public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol, SemanticModel? semanticModelWithCachedBoundNodes = null)
+        public SymbolDeclaredCompilationEvent(
+            Compilation compilation,
+            ISymbol symbol,
+            ISymbolInternal symbolInternal,
+            SemanticModel? semanticModelWithCachedBoundNodes = null)
             : base(compilation)
         {
             Symbol = symbol;
+            SymbolInternal = symbolInternal;
             SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
             _lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => symbol.DeclaringSyntaxReferences);
         }
 
         public ISymbol Symbol { get; }
+
+        public ISymbolInternal SymbolInternal { get; }
+
         public SemanticModel? SemanticModelWithCachedBoundNodes { get; }
 
         // PERF: We avoid allocations in re-computing syntax references for declared symbol during event processing by caching them directly on this member.

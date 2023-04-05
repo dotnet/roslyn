@@ -1275,7 +1275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     End If
                                 End If
 
-                                compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, semanticModelWithCachedBoundNodes))
+                                compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, method, semanticModelWithCachedBoundNodes))
                             End If
                         End If
                     End If
