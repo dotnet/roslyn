@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
@@ -12,38 +10,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(IDocumentationProviderService), ServiceLayer.Default), Shared]
-    internal sealed class DocumentationProviderServiceFactory : IWorkspaceServiceFactory
+    [Export(typeof(IDocumentationProviderService)), Shared]
+    internal sealed class DocumentationProviderService : IDocumentationProviderService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationProviderServiceFactory()
+        public DocumentationProviderService()
         {
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new DocumentationProviderService();
+        private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap = new();
 
-        internal sealed class DocumentationProviderService : IDocumentationProviderService
+        public DocumentationProvider GetDocumentationProvider(string assemblyPath)
         {
-            private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap =
-                new();
+            if (assemblyPath == null)
+                throw new ArgumentNullException(nameof(assemblyPath));
 
-            public DocumentationProvider GetDocumentationProvider(string assemblyPath)
-            {
-                if (assemblyPath == null)
-                {
-                    throw new ArgumentNullException(nameof(assemblyPath));
-                }
-
-                assemblyPath = Path.ChangeExtension(assemblyPath, "xml");
-                if (!_assemblyPathToDocumentationProviderMap.TryGetValue(assemblyPath, out var provider))
-                {
-                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, XmlDocumentationProvider.CreateFromFile);
-                }
-
-                return provider;
-            }
+            assemblyPath = Path.ChangeExtension(assemblyPath, "xml");
+            return _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, static assemblyPath => XmlDocumentationProvider.CreateFromFile(assemblyPath));
         }
     }
 }

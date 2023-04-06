@@ -13,14 +13,17 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
     internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IDocumentationProviderService _documentationProviderService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MetadataServiceFactory()
+        public MetadataServiceFactory(IDocumentationProviderService documentationProviderService)
         {
+            _documentationProviderService = documentationProviderService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new Service(workspaceServices.GetService<IDocumentationProviderService>());
+            => new Service(_documentationProviderService);
 
         private sealed class Service : IMetadataService
         {

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -24,17 +23,21 @@ namespace Microsoft.CodeAnalysis.Serialization
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
+            private readonly IDocumentationProviderService _documentationProviderService;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory([ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
+            public Factory(
+                IDocumentationProviderService documentationProviderService,
+                [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
                 _serializationServices = serializationServices.ToImmutableArray();
+                _documentationProviderService = documentationProviderService;
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(workspaceServices.SolutionServices, _serializationServices);
+                => new SerializerService(workspaceServices.SolutionServices, _documentationProviderService, _serializationServices);
         }
 
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         private protected SerializerService(
             SolutionServices workspaceServices,
+            IDocumentationProviderService documentationProviderService,
             ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
         {
             _workspaceServices = workspaceServices;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
+            _documentationService = documentationProviderService;
         }
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
