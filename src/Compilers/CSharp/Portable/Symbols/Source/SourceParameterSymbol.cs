@@ -21,12 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
+#nullable enable
         protected SymbolCompletionState state;
         protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
-        private readonly Location _location;
+        private readonly Location? _location;
         private readonly RefKind _refKind;
         private readonly ScopedKind _scope;
+#nullable disable
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -42,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ScopedKind scope,
             BindingDiagnosticBag declarationDiagnostics)
         {
-            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+            Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
             var name = identifier.ValueText;
-            var locations = OneOrMany.Create<Location>(new SourceLocation(identifier));
+            var location = new SourceLocation(identifier);
 
             if (isParams)
             {
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind,
                     inModifiers,
                     name,
-                    locations,
+                    location,
                     syntax.GetReference(),
                     isParams,
                     isExtensionMethodThis,
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod())
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, scope, name, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, scope, name, location);
             }
 
             return new SourceComplexParameterSymbol(
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterType,
                 refKind,
                 name,
-                locations,
+                location,
                 syntax.GetReference(),
                 isParams,
                 isExtensionMethodThis,
@@ -104,23 +106,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ScopedKind scope,
             string name,
-            OneOrMany<Location> locations)
+            Location location)
             : base(owner, ordinal)
         {
-#if DEBUG
-            Debug.Assert(locations.Count == 1);
-            foreach (var location in locations)
-            {
-                Debug.Assert(location != null);
-            }
-#endif
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
             this.parameterType = parameterType;
             _refKind = refKind;
             _scope = scope;
             _name = name;
-
-            _location = locations.Count == 0 ? Location.None : locations[0];
+            _location = location;
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
@@ -142,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newTypeWithModifiers,
                     _refKind,
                     _name,
-                    OneOrMany.Create(_location),
+                    _location,
                     this.SyntaxReference,
                     newIsParams,
                     this.IsExtensionMethodThis,
@@ -159,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind,
                 newRefCustomModifiers,
                 _name,
-                OneOrMany.Create(_location),
+                _location,
                 this.SyntaxReference,
                 newIsParams,
                 this.IsExtensionMethodThis,
@@ -251,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<Location> Locations
-            => ImmutableArray.Create(_location);
+            => _location is null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(_location);
 
 #nullable enable
 

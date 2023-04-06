@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Void, location, diagnostics)),
-                    Parameters: _ctor.Parameters.SelectAsArray<ParameterSymbol, OneOrMany<Location>, ParameterSymbol>(
+                    Parameters: _ctor.Parameters.SelectAsArray<ParameterSymbol, ImmutableArray<Location>, ParameterSymbol>(
                                         (param, locations) =>
                                             new SourceSimpleParameterSymbol(owner: this,
                                                 param.TypeWithAnnotations,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 ScopedKind.None,
                                                 param.Name,
                                                 locations),
-                                        arg: OneOrMany.Create(Locations)),
+                                        arg: Locations),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
