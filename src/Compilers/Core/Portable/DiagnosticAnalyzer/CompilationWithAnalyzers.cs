@@ -963,17 +963,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
-                            var hasLocationInTree = false;
-                            foreach (var location in symbolDeclaredCompilationEvent.Symbol.Locations)
-                            {
-                                if (tree == location.SourceTree)
-                                {
-                                    hasLocationInTree = true;
-                                    break;
-                                }
-                            }
-
-                            if (!hasLocationInTree)
+                            if (!symbolDeclaredCompilationEvent.SymbolInternal.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
                                 continue;
 
                             break;
