@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal RangeVariableSymbol(string Name, Symbol containingSymbol, Location location, bool isTransparent = false)
         {
+            Debug.Assert(Name is not null);
+            Debug.Assert(containingSymbol is not null);
+            Debug.Assert(location is not null);
+
             _name = Name;
             _containingSymbol = containingSymbol;
             _locations = ImmutableArray.Create<Location>(location);
@@ -61,9 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                SyntaxToken token = (SyntaxToken)_locations[0].SourceTree.GetRoot().FindToken(_locations[0].SourceSpan.Start);
+                var location = _locations[0];
+                Debug.Assert(location.SourceTree is not null);
+                SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                 Debug.Assert(token.Kind() == SyntaxKind.IdentifierToken);
-                CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
+                CSharpSyntaxNode? node = (CSharpSyntaxNode?)token.Parent;
                 Debug.Assert(node is QueryClauseSyntax || node is QueryContinuationSyntax || node is JoinIntoClauseSyntax);
                 return ImmutableArray.Create<SyntaxReference>(node.GetReference());
             }
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -152,12 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitRangeVariable(this);
         }
 
-        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
+        public override TResult? Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
+            where TResult : default
         {
             return visitor.VisitRangeVariable(this);
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as RangeVariableSymbol;
-            return (object)symbol != null
+            return (object?)symbol != null
                 && symbol._locations[0].Equals(_locations[0])
                 && _containingSymbol.Equals(symbol.ContainingSymbol, compareKind);
         }
