@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                
+
                 // If a qualified name is used as a valid receiver of an invocation syntax at some point,
                 // we probably want to treat it similarly to a MemberAccessExpression.
                 // However, we don't expect to encounter it.

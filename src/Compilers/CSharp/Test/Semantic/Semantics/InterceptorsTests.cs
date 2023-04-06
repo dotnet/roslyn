@@ -198,6 +198,8 @@ public class InterceptorsTests : CSharpTestBase
     // * An explicit interface implementation marked as interceptable
     // * Intercept a generic method call when the type parameters are / are not substituted
 
+    // PROTOTYPE(ic): test a valid case with large numbers of interceptors. (EndToEndTests?)
+
     [Fact]
     public void InterceptableInstanceMethod_InterceptorExtensionMethod()
     {
@@ -1130,6 +1132,8 @@ public class InterceptorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
             );
     }
+
+    // PROTOTYPE(ic): test when parameter names differ or appear in a different order in interceptor vs interceptable method.
 
     [Fact]
     public void InterpolatedStringHandler_01()
