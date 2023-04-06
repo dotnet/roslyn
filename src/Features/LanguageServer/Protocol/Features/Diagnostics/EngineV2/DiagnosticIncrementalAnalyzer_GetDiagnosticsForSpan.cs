@@ -206,20 +206,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var containsFullResult = true;
 
                     // Try to get cached diagnostics, and also compute non-cached state sets that need diagnostic computation.
-                    using var _1 = ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)>.GetInstance(out var syntaxAnalyzers);
+                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var syntaxAnalyzers);
 
                     // If we are performing incremental member edit analysis to compute diagnostics incrementally,
                     // we divide the analyzers into those that support span-based incremental analysis and
                     // those that do not support incremental analysis and must be executed for the entire document.
                     // Otherwise, if we are not performing incremental analysis, all semantic analyzers are added
                     // to the span-based analyzer set as we want to compute diagnostics only for the given span.
-                    using var _2 = ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)>.GetInstance(out var semanticSpanBasedAnalyzers);
-                    using var _3 = ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)>.GetInstance(out var semanticDocumentBasedAnalyzers);
+                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticSpanBasedAnalyzers);
+                    using var _3 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
                     foreach (var stateSet in _stateSets)
                     {
                         var analyzer = stateSet.Analyzer;
-                        if (!ShouldIncludeAnalyzer(analyzer, _shouldIncludeDiagnostic, _owner))
+                        if (!ShouldIncludeAnalyzer(analyzer, _shouldIncludeDiagnostic, _priorityProvider, _owner))
                             continue;
 
                         bool includeSyntax = true, includeSemantic = true;
@@ -234,22 +234,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                 : _diagnosticKind == DiagnosticKind.AnalyzerSemantic;
                         }
 
+                        var lazyActiveFileState = new Lazy<ActiveFileState>(() => stateSet.GetOrCreateActiveFileState(_document.Id));
                         if (includeSyntax)
                         {
-                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false);
+                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
                             if (!added)
-                                syntaxAnalyzers.Add((stateSet, existingData));
+                                syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, lazyActiveFileState.Value, existingData!.Value));
                         }
 
                         if (includeSemantic && _document is Document)
                         {
-                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false);
+                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
                             if (!added)
                             {
                                 if (ShouldRunSemanticAnalysis(stateSet.Analyzer, _incrementalAnalysis, _blockForData,
                                         semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers, out var stateSets))
                                 {
-                                    stateSets.Add((stateSet, existingData));
+                                    stateSets.Add(new AnalyzerWithState(stateSet.Analyzer, lazyActiveFileState.Value, existingData!.Value));
                                 }
                                 else
                                 {
@@ -278,15 +279,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 static bool ShouldIncludeAnalyzer(
                     DiagnosticAnalyzer analyzer,
                     Func<string, bool>? shouldIncludeDiagnostic,
+                    ICodeActionRequestPriorityProvider priorityProvider,
                     DiagnosticIncrementalAnalyzer owner)
                 {
+                    // Skip executing analyzer if its priority does not match the request priority.
+                    if (!priorityProvider.MatchesPriority(analyzer))
+                        return false;
+
                     // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers
                     // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
                     // analyzer which report 0 supported diagnostics, but we always want to execute it.
                     if (analyzer is DocumentDiagnosticAnalyzer)
-                    {
                         return true;
-                    }
 
                     // Skip analyzer if none of its reported diagnostics should be included.
                     if (shouldIncludeDiagnostic != null &&
@@ -302,9 +306,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     DiagnosticAnalyzer analyzer,
                     bool incrementalAnalysis,
                     bool blockForData,
-                    ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)> semanticSpanBasedAnalyzers,
-                    ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)> semanticDocumentBasedAnalyzers,
-                    [NotNullWhen(true)] out ArrayBuilder<(StateSet stateSet, DocumentAnalysisData? existingData)>? selectedStateSets)
+                    ArrayBuilder<AnalyzerWithState> semanticSpanBasedAnalyzers,
+                    ArrayBuilder<AnalyzerWithState> semanticDocumentBasedAnalyzers,
+                    [NotNullWhen(true)] out ArrayBuilder<AnalyzerWithState>? selectedStateSets)
                 {
                     // If the caller doesn't want us to force compute diagnostics,
                     // we don't run semantic analysis.
@@ -342,13 +346,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<(bool added, DocumentAnalysisData? existingData)> TryAddCachedDocumentDiagnosticsAsync(
                 StateSet stateSet,
                 AnalysisKind kind,
+                Lazy<ActiveFileState> lazyActiveFileState,
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!stateSet.Analyzer.SupportAnalysisKind(kind) ||
-                    !_priorityProvider.MatchesPriority(stateSet.Analyzer))
+                Debug.Assert(_priorityProvider.MatchesPriority(stateSet.Analyzer));
+
+                if (!stateSet.Analyzer.SupportAnalysisKind(kind))
                 {
-                    // In the case where the analyzer doesn't support the requested kind or priority, act as if we succeeded, but just
+                    // In the case where the analyzer doesn't support the requested kind, act as if we succeeded, but just
                     // added no items to the result.  Effectively we did add the cached values, just that all the values that could have
                     // been added have been filtered out.  We do not want to then compute the up to date values in the caller.
                     return (true, null);
@@ -356,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // make sure we get state even when none of our analyzer has ran yet.
                 // but this shouldn't create analyzer that doesn't belong to this project (language)
-                var state = stateSet.GetOrCreateActiveFileState(_document.Id);
+                var state = lazyActiveFileState.Value;
 
                 // see whether we can use existing info
                 var existingData = state.GetAnalysisData(kind);
@@ -376,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task ComputeDocumentDiagnosticsAsync(
-                ImmutableArray<(StateSet stateSet, DocumentAnalysisData? existingData)> stateSetsAndExistingData,
+                ImmutableArray<AnalyzerWithState> analyzersWithState,
                 AnalysisKind kind,
                 TextSpan? span,
                 ArrayBuilder<DiagnosticData> builder,
@@ -384,33 +390,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-                Debug.Assert(!incrementalAnalysis || stateSetsAndExistingData.All(stateSetAndData => stateSetAndData.stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                Debug.Assert(!incrementalAnalysis || analyzersWithState.All(analyzerWithState => analyzerWithState.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                using var _ = ArrayBuilder<StateSet>.GetInstance(stateSetsAndExistingData.Length, out var stateSetBuilder);
-                foreach (var (stateSet, existingData) in stateSetsAndExistingData)
+                using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
+                foreach (var analyzerWithState in analyzersWithState)
                 {
-                    var analyzer = stateSet.Analyzer;
+                    var analyzer = analyzerWithState.Analyzer;
                     if (_priorityProvider.MatchesPriority(analyzer))
                     {
                         // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                         // If so, we skip this analyzer from execution in the current priority bucket.
                         // We will subsequently execute this analyzer in the lower priority bucket.
-                        Contract.ThrowIfNull(existingData);
-                        if (await TryDeprioritizeAnalyzerAsync(analyzer, existingData.Value).ConfigureAwait(false))
+                        if (await TryDeprioritizeAnalyzerAsync(analyzer, analyzerWithState.ExistingData).ConfigureAwait(false))
                         {
                             continue;
                         }
 
-                        stateSetBuilder.Add(stateSet);
+                        filteredAnalyzersWithStateBuilder.Add(analyzerWithState);
                     }
                 }
 
-                var stateSets = stateSetBuilder.ToImmutable();
+                analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
 
-                if (stateSets.IsEmpty)
+                if (analyzersWithState.IsEmpty)
                     return;
 
-                var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
+                var analyzers = analyzersWithState.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
@@ -420,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     diagnosticsMap = await _owner._incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
                         executor,
-                        stateSets,
+                        analyzersWithState,
                         version,
                         ComputeDocumentDiagnosticsForAnalyzerCoreAsync,
                         ComputeDocumentDiagnosticsCoreAsync,
@@ -431,17 +436,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var stateSet in stateSets)
+                foreach (var analyzerWithState in analyzersWithState)
                 {
-                    var diagnostics = diagnosticsMap[stateSet.Analyzer];
+                    var diagnostics = diagnosticsMap[analyzerWithState.Analyzer];
                     builder.AddRange(diagnostics.Where(ShouldInclude));
 
                     // Save the computed diagnostics if caching is enabled and diagnostics were computed for the entire document.
                     if (_cacheFullDocumentDiagnostics && !span.HasValue)
                     {
-                        var state = stateSet.GetOrCreateActiveFileState(_document.Id);
                         var data = new DocumentAnalysisData(version, _text.Lines.Count, diagnostics);
-                        state.Save(executor.AnalysisScope.Kind, data);
+                        analyzerWithState.State.Save(executor.AnalysisScope.Kind, data);
                     }
                 }
 
@@ -579,5 +583,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }
+
+        private record class AnalyzerWithState(DiagnosticAnalyzer Analyzer, ActiveFileState State, DocumentAnalysisData ExistingData);
     }
 }
