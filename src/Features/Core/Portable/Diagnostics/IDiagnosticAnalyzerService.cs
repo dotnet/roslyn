@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken);
 
         /// <summary>
-        /// True if given project has any diagnostics
-        /// </summary>
-        bool ContainsDiagnostics(Workspace workspace, ProjectId projectId);
-
-        /// <summary>
         /// Get diagnostics of the given diagnostic ids from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
         /// Note that for project case, this method returns diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync(Solution, ProjectId, ImmutableHashSet{string}, bool, bool, CancellationToken)"/>
         /// if you want to fetch only project diagnostics without source locations.
