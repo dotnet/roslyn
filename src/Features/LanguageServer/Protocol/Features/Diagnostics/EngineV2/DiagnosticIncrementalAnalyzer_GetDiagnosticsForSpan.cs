@@ -237,14 +237,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var lazyActiveFileState = new Lazy<ActiveFileState>(() => stateSet.GetOrCreateActiveFileState(_document.Id));
                         if (includeSyntax)
                         {
-                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
+                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Syntax, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
                             if (!added)
                                 syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, lazyActiveFileState.Value, existingData!.Value));
                         }
 
                         if (includeSemantic && _document is Document)
                         {
-                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
+                            var (added, existingData) = await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Semantic, lazyActiveFileState, list, cancellationToken).ConfigureAwait(false);
                             if (!added)
                             {
                                 if (ShouldRunSemanticAnalysis(stateSet.Analyzer, _incrementalAnalysis, _blockForData,
@@ -344,15 +344,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ///                     Note that this cached data may be from a prior document snapshot.
             /// </summary>
             private async Task<(bool added, DocumentAnalysisData? existingData)> TryAddCachedDocumentDiagnosticsAsync(
-                StateSet stateSet,
+                DiagnosticAnalyzer analyzer,
                 AnalysisKind kind,
                 Lazy<ActiveFileState> lazyActiveFileState,
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(_priorityProvider.MatchesPriority(stateSet.Analyzer));
+                Debug.Assert(_priorityProvider.MatchesPriority(analyzer));
 
-                if (!stateSet.Analyzer.SupportAnalysisKind(kind))
+                if (!analyzer.SupportAnalysisKind(kind))
                 {
                     // In the case where the analyzer doesn't support the requested kind, act as if we succeeded, but just
                     // added no items to the result.  Effectively we did add the cached values, just that all the values that could have
