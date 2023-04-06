@@ -331,6 +331,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
 
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+
+#nullable disable
+
         /// <summary>
         /// <para>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for

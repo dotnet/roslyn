@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        modifierErrors = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false, diagnostics, Locations[0]);
+                        modifierErrors = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false, diagnostics, this.GetFirstLocation());
                     }
                 }
 
@@ -972,6 +972,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<Location> Locations
             => ImmutableArray<Location>.CastUp(declaration.NameLocations.ToImmutable());
+
+        public override Location? TryGetFirstLocation()
+            => declaration.Declarations[0].NameLocation;
 
         public ImmutableArray<SyntaxReference> SyntaxReferences
         {
