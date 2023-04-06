@@ -7,20 +7,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -28,12 +22,18 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
     {
         private readonly SolutionServices _workspaceServices;
         private readonly InProcRemoteServices _inprocServices;
+        private readonly ISolutionAssetStorageProvider _solutionAssetStorageProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
-        public static RemoteHostClient Create(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
+        public static RemoteHostClient Create(
+            SolutionServices services,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+            TraceListener? traceListener,
+            RemoteHostTestData testData)
         {
-            var inprocServices = new InProcRemoteServices(services, traceListener, testData);
-            var instance = new InProcRemoteHostClient(services, inprocServices, callbackDispatchers);
+            var inprocServices = new InProcRemoteServices(services, traceListener, testData, solutionAssetStorageProvider);
+            var instance = new InProcRemoteHostClient(services, inprocServices, solutionAssetStorageProvider, callbackDispatchers);
 
             instance.Started();
 
@@ -44,9 +44,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private InProcRemoteHostClient(
             SolutionServices services,
             InProcRemoteServices inprocServices,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _workspaceServices = services;
+            _solutionAssetStorageProvider = solutionAssetStorageProvider;
             _callbackDispatchers = callbackDispatchers;
             _inprocServices = inprocServices;
         }
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 callbackTarget,
                 callbackDispatcher,
                 _inprocServices.ServiceBrokerClient,
-                _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
+                _solutionAssetStorageProvider.AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
                 shutdownCancellationService: null,
                 remoteProcess: null);
@@ -168,7 +170,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public readonly IServiceBroker ServiceBroker;
             public readonly ServiceBrokerClient ServiceBrokerClient;
 
-            public InProcRemoteServices(SolutionServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
+            public InProcRemoteServices(
+                SolutionServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData, ISolutionAssetStorageProvider solutionAssetStorageProvider)
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
 #pragma warning restore
 
-                RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
+                RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices, solutionAssetStorageProvider));
                 RegisterRemoteBrokeredService(new RemoteAssetSynchronizationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());

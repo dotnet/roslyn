@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
             private readonly IGlobalOptionService _globalOptions;
             private readonly IThreadingContext _threadingContext;
+            private readonly ISolutionAssetStorageProvider _solutionAssetStorageProvider;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,12 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 AsynchronousOperationListenerProvider listenerProvider,
                 IGlobalOptionService globalOptions,
                 IThreadingContext threadingContext,
+                ISolutionAssetStorageProvider solutionAssetStorageProvider,
                 [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _globalOptions = globalOptions;
                 _listenerProvider = listenerProvider;
                 _threadingContext = threadingContext;
+                _solutionAssetStorageProvider = solutionAssetStorageProvider;
                 _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
             }
 
@@ -63,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(
+                    workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _solutionAssetStorageProvider, _callbackDispatchers);
             }
         }
 
@@ -73,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IAsyncServiceProvider _vsServiceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
+        private readonly ISolutionAssetStorageProvider _solutionAssetStorageProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
@@ -81,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             IAsyncServiceProvider vsServiceProvider,
             IThreadingContext threadingContext,
             AsynchronousOperationListenerProvider listenerProvider,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
@@ -88,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _vsServiceProvider = vsServiceProvider;
             _threadingContext = threadingContext;
             _listenerProvider = listenerProvider;
+            _solutionAssetStorageProvider = solutionAssetStorageProvider;
             _callbackDispatchers = callbackDispatchers;
 
             // using VS AsyncLazy here since Roslyn's is not compatible with JTF. 
@@ -108,10 +115,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler) ? RemoteProcessConfiguration.EnableSolutionCrawler : 0);
 
                 // VS AsyncLazy does not currently support cancellation:
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(
+                    _services, configuration, _listenerProvider, serviceBroker, _solutionAssetStorageProvider, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
-                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
+                _ = brokeredServiceContainer.Proffer(
+                    SolutionAssetProvider.ServiceDescriptor,
+                    (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services, _solutionAssetStorageProvider)));
 
                 return client;
             }

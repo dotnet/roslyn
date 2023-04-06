@@ -27,10 +27,14 @@ namespace Microsoft.CodeAnalysis.Remote
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
         private readonly SolutionServices _services;
+        private readonly ISolutionAssetStorageProvider _solutionAssetStorageProvider;
 
-        public SolutionAssetProvider(SolutionServices services)
+        public SolutionAssetProvider(
+            SolutionServices services,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider)
         {
             _services = services;
+            _solutionAssetStorageProvider = solutionAssetStorageProvider;
         }
 
         public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async ValueTask GetAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            var assetStorage = _solutionAssetStorageProvider.AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 

@@ -4,33 +4,19 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    [Export(typeof(ISolutionAssetStorageProvider)), Shared]
     internal sealed class SolutionAssetStorageProvider : ISolutionAssetStorageProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(ISolutionAssetStorageProvider)), Shared]
-        internal sealed class Factory : IWorkspaceServiceFactory
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SolutionAssetStorageProvider()
         {
-            private readonly SolutionAssetStorage _storage = new();
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SolutionAssetStorageProvider(_storage);
         }
 
-        public SolutionAssetStorage AssetStorage { get; private set; }
-
-        private SolutionAssetStorageProvider(SolutionAssetStorage storage)
-        {
-            AssetStorage = storage;
-        }
+        public SolutionAssetStorage AssetStorage { get; } = new();
     }
 }

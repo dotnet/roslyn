@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -72,7 +74,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public SerializationValidator(HostWorkspaceServices services)
         {
-            AssetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            var mefServices = (MefWorkspaceServices)services;
+
+            AssetStorage = mefServices.HostExportProvider.GetExportedValue<ISolutionAssetStorageProvider>().AssetStorage;
             Serializer = services.GetRequiredService<ISerializerService>();
             Services = services;
         }

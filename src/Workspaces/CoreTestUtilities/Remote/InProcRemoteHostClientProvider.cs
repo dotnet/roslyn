@@ -22,15 +22,21 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly ISolutionAssetStorageProvider _solutionAssetStorageProvider;
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory([ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
-                => _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
+            public Factory(
+                ISolutionAssetStorageProvider solutionAssetStorageProvider,
+                [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
+            {
+                _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
+                _solutionAssetStorageProvider = solutionAssetStorageProvider;
+            }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new InProcRemoteHostClientProvider(workspaceServices.SolutionServices, _callbackDispatchers);
+                => new InProcRemoteHostClientProvider(workspaceServices.SolutionServices, _solutionAssetStorageProvider, _callbackDispatchers);
         }
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
@@ -58,7 +64,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Type[]? AdditionalRemoteParts { get; set; }
         public TraceListener? TraceListener { get; set; }
 
-        public InProcRemoteHostClientProvider(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
+        public InProcRemoteHostClientProvider(
+            SolutionServices services,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
 
@@ -72,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             _lazyClient = new Lazy<RemoteHostClient>(
                 () => InProcRemoteHostClient.Create(
                     _services,
+                    solutionAssetStorageProvider,
                     callbackDispatchers,
                     TraceListener,
                     new RemoteHostTestData(_lazyManager.Value, isInProc: true)));

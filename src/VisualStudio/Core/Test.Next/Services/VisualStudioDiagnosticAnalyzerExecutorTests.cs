@@ -220,7 +220,7 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
             // add host analyzer as global assets
-            var remotableDataService = workspace.Services.GetService<ISolutionAssetStorageProvider>();
+            var remotableDataService = workspace.ExportProvider.GetExportedValue<ISolutionAssetStorageProvider>();
             var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
             // run analysis

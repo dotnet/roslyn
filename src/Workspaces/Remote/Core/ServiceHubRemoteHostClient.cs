@@ -4,24 +4,16 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -44,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteProcessConfiguration configuration,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
             IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
         {
             // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
@@ -54,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _hubClient = hubClient;
             _callbackDispatcherProvider = callbackDispatcherProvider;
 
-            _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            _assetStorage = solutionAssetStorageProvider.AssetStorage;
             _errorReportingService = services.GetService<IErrorReportingService>();
             _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
             Configuration = configuration;
@@ -65,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteProcessConfiguration configuration,
             AsynchronousOperationListenerProvider listenerProvider,
             IServiceBroker serviceBroker,
+            ISolutionAssetStorageProvider solutionAssetStorageProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             CancellationToken cancellationToken)
         {
@@ -77,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+                var client = new ServiceHubRemoteHostClient(
+                    services, configuration, serviceBrokerClient, hubClient, solutionAssetStorageProvider, callbackDispatchers);
 
                 var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
