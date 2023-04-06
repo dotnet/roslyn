@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (matches)
                 return;
 
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            using var _2 = Classifier.GetPooledList(out var classifiedSpans);
 
             // Compute classifications for the full span.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await storage.WriteStreamAsync(documentKey, persistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void WriteTo(ArrayBuilder<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
+        private static void WriteTo(SegmentedList<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
         {
             writer.WriteInt32(ClassificationFormat);
 
