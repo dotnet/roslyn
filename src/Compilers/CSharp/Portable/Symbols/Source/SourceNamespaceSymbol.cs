@@ -99,16 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasLocationInTree(SyntaxTree tree)
-        {
-            foreach (var decl in _mergedDeclaration.Declarations)
-            {
-                if (decl.SyntaxReference.SyntaxTree == tree)
-                    return true;
-            }
-
-            return false;
-        }
+        public override Location TryGetFirstLocation()
+            => _mergedDeclaration.Declarations[0].NameLocation;
 
         private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
             new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
