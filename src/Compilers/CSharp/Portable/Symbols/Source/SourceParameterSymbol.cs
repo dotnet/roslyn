@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
         protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
-        private readonly OneOrMany<Location> _locations;
+        private readonly Location _location;
         private readonly RefKind _refKind;
         private readonly ScopedKind _scope;
 
@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, ordinal)
         {
 #if DEBUG
+            Debug.Assert(locations.Count == 1);
             foreach (var location in locations)
             {
                 Debug.Assert(location != null);
@@ -118,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _scope = scope;
             _name = name;
-            _locations = locations;
+
+            _location = locations.Count == 0 ? Location.None : locations[0];
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newTypeWithModifiers,
                     _refKind,
                     _name,
-                    _locations,
+                    OneOrMany.Create(_location),
                     this.SyntaxReference,
                     newIsParams,
                     this.IsExtensionMethodThis,
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind,
                 newRefCustomModifiers,
                 _name,
-                _locations,
+                OneOrMany.Create(_location),
                 this.SyntaxReference,
                 newIsParams,
                 this.IsExtensionMethodThis,
@@ -249,17 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations.ToImmutable();
-            }
-        }
+            => ImmutableArray.Create(_location);
 
 #nullable enable
 
         public override Location? TryGetFirstLocation()
-            => _locations.Count == 0 ? null : _locations[0];
+            => _location;
 
 #nullable disable
 
