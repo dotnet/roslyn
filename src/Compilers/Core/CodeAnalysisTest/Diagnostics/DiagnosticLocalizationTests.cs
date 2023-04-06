@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerManager = new AnalyzerManager(analyzer);
             var compilation = CSharp.CSharpCompilation.Create("test");
             var analyzerExecutor = AnalyzerExecutor.Create(compilation, AnalyzerOptions.Empty,
-                addNonCategorizedDiagnostic: null, onAnalyzerException, analyzerExceptionFilter: null,
+                addNonCategorizedDiagnostic: (_, _) => { }, onAnalyzerException, analyzerExceptionFilter: null,
                 isCompilerAnalyzer: _ => false, analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
                 shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _) => false,
                 isAnalyzerSuppressedForTree: (_, _, _) => false, getAnalyzerGate: _ => null,
