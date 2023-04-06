@@ -341,14 +341,6 @@ namespace Microsoft.CodeAnalysis
             return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
         }
 
-        /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
-        {
-            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options);
-        }
-
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {

@@ -1066,25 +1066,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-        /// </param>        
+        /// </param>
+        [Obsolete("This API is no longer supported. See https://github.com/dotnet/roslyn/issues/67592 for details")]
         public static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException = null)
         {
-            VerifyAnalyzerArgumentForStaticApis(analyzer);
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            var analyzerManager = new AnalyzerManager(analyzer);
-
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
-                onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(wrappedOnAnalyzerException, analyzerManager);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, analysisScope: null, severityFilter: SeverityFilter.None);
+            return false;
         }
 
         /// <summary>

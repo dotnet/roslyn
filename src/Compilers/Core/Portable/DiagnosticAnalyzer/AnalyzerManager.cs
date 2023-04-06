@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerExecutor analyzerExecutor,
-            AnalysisScope? analysisScope,
+            AnalysisScope analysisScope,
             SeverityFilter severityFilter)
         {
             if (isCompilerAnalyzer(analyzer))
@@ -305,7 +305,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
-            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -349,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analysisScope, analyzerExecutor.CancellationToken))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions, analysisScope, analyzerExecutor.CancellationToken))
                 {
                     isSuppressed = false;
                 }
@@ -376,15 +375,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             static bool isEnabledWithAnalyzerConfigOptions(
                 DiagnosticDescriptor descriptor,
                 SeverityFilter severityFilter,
-                Compilation? compilation,
-                AnalyzerOptions? analyzerOptions,
-                AnalysisScope? analysisScope,
+                Compilation compilation,
+                AnalyzerOptions analyzerOptions,
+                AnalysisScope analysisScope,
                 CancellationToken cancellationToken)
             {
-                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                if (compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
-                    var trees = analysisScope?.SyntaxTrees ?? compilation.SyntaxTrees;
-                    foreach (var tree in trees)
+                    foreach (var tree in analysisScope.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
                         if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||

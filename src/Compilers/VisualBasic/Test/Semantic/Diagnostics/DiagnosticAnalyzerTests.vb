@@ -241,24 +241,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Sub
         End Class
 
-        <Fact>
-        Public Sub TestDisabledAnalyzers()
-            Dim FullyDisabledAnalyzer = New FullyDisabledAnalyzer()
-            Dim PartiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
-
-            Dim options = TestOptions.ReleaseDll
-            Assert.True(FullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-            Assert.False(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-
-            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn)
-            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress)
-
-            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
-            Assert.False(FullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-            Assert.True(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-        End Sub
-
         Public Class ModuleStatementAnalyzer
             Inherits DiagnosticAnalyzer
 
