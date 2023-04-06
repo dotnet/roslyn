@@ -395,19 +395,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
                 foreach (var analyzerWithState in analyzersWithState)
                 {
-                    var analyzer = analyzerWithState.Analyzer;
-                    if (_priorityProvider.MatchesPriority(analyzer))
-                    {
-                        // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
-                        // If so, we skip this analyzer from execution in the current priority bucket.
-                        // We will subsequently execute this analyzer in the lower priority bucket.
-                        if (await TryDeprioritizeAnalyzerAsync(analyzer, analyzerWithState.ExistingData).ConfigureAwait(false))
-                        {
-                            continue;
-                        }
+                    Debug.Assert(_priorityProvider.MatchesPriority(analyzerWithState.Analyzer));
 
-                        filteredAnalyzersWithStateBuilder.Add(analyzerWithState);
+                    // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
+                    // If so, we skip this analyzer from execution in the current priority bucket.
+                    // We will subsequently execute this analyzer in the lower priority bucket.
+                    if (await TryDeprioritizeAnalyzerAsync(analyzerWithState.Analyzer, analyzerWithState.ExistingData).ConfigureAwait(false))
+                    {
+                        continue;
                     }
+
+                    filteredAnalyzersWithStateBuilder.Add(analyzerWithState);
                 }
 
                 analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
