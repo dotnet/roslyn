@@ -261,9 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Location? TryGetFirstLocation()
             => _locations.Count == 0 ? null : _locations[0];
 
-        public override Location GetFirstLocation()
-            => _locations[0];
-
 #nullable disable
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences

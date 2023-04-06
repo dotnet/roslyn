@@ -343,11 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locations.IsEmpty ? null : locations[0];
         }
 
-        public virtual Location GetFirstLocation()
-        {
-            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
-            return this.Locations[0];
-        }
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
 
 #nullable disable
 
