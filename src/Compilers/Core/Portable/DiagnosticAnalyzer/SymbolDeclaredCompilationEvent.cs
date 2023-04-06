@@ -19,18 +19,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public SymbolDeclaredCompilationEvent(
             Compilation compilation,
-            ISymbol symbol,
             ISymbolInternal symbolInternal,
             SemanticModel? semanticModelWithCachedBoundNodes = null)
             : base(compilation)
         {
-            Symbol = symbol;
             SymbolInternal = symbolInternal;
             SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
-            _lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => symbol.DeclaringSyntaxReferences);
+            _lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => Symbol.DeclaringSyntaxReferences);
         }
 
-        public ISymbol Symbol { get; }
+        public ISymbol Symbol => SymbolInternal.GetISymbol();
 
         public ISymbolInternal SymbolInternal { get; }
 

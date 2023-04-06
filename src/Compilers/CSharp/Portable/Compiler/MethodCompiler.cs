@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
-                                _compilation, methodSymbol.GetPublicSymbol(), methodSymbol, semanticModelWithCachedBoundNodes));
+                                _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
                     }
                     finally
