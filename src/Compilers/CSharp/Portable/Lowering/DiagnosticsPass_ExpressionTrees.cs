@@ -531,16 +531,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (p.RefKind != RefKind.None && p.Locations.Length != 0)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.GetFirstLocation());
                     }
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.GetFirstLocation(), p.Type.Name);
                     }
 
                     if (!reportedAttributes && !p.GetAttributes().IsEmpty)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.GetFirstLocation());
                         reportedAttributes = true;
                     }
                 }

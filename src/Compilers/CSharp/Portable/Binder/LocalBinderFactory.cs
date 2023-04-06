@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate in possibleScopeBinder.LocalFunctions)
                 {
-                    if (candidate.Locations[0] == node.Identifier.GetLocation())
+                    if (candidate.GetFirstLocation() == node.Identifier.GetLocation())
                     {
                         match = candidate;
                     }

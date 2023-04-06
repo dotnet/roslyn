@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
                 {
                     var taskCandidates = taskEntryPoints.SelectAsArray(s => (Symbol)s.Candidate);
-                    var taskLocations = taskCandidates.SelectAsArray(s => s.Locations[0]);
+                    var taskLocations = taskCandidates.SelectAsArray(s => s.GetFirstLocation());
 
                     foreach (var candidate in taskCandidates)
                     {
@@ -1889,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              args: new object[] { candidate, viableEntryPoints[0] },
                              symbols: taskCandidates,
                              additionalLocations: taskLocations);
-                        diagnostics.Add(new CSDiagnostic(info, candidate.Locations[0]));
+                        diagnostics.Add(new CSDiagnostic(info, candidate.GetFirstLocation()));
                     }
                 }
 
@@ -3328,7 +3328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
                 if (symbol.AssociatedFileIdentifier is not null)
                 {
-                    var location = symbol.Locations[0];
+                    var location = symbol.GetFirstLocation();
                     var filePath = location.SourceTree?.FilePath;
                     if (_duplicatePaths.Contains(filePath!))
                     {
