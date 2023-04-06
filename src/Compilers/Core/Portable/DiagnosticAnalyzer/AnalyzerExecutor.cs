@@ -287,7 +287,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics)
         {
             Debug.Assert(_addSuppression != null);
-            Debug.Assert(_getSemanticModel != null);
 
             if (reportedDiagnostics.IsEmpty)
             {
@@ -1091,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 timer = SharedStopwatch.StartNew();
             }
 
-            var gate = _getAnalyzerGate?.Invoke(analyzer);
+            var gate = _getAnalyzerGate(analyzer);
             if (gate != null)
             {
                 lock (gate)
@@ -1272,8 +1271,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
-            Debug.Assert(_isCompilerAnalyzer != null);
-
             if (diagnostic is DiagnosticWithInfo)
             {
                 // Compiler diagnostic
