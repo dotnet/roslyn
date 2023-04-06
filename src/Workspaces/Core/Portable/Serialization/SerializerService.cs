@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,39 +23,41 @@ namespace Microsoft.CodeAnalysis.Serialization
         [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory([ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
+                _serializationServices = serializationServices.ToImmutableArray();
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(workspaceServices.SolutionServices);
+                => new SerializerService(workspaceServices.SolutionServices, _serializationServices);
         }
 
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
         private readonly SolutionServices _workspaceServices;
+        private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
         private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly ITextFactoryService _textService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
 
-        private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
-
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private protected SerializerService(SolutionServices workspaceServices)
+        private protected SerializerService(
+            SolutionServices workspaceServices,
+            ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
         {
             _workspaceServices = workspaceServices;
-
+            _serializationServices = serializationServices;
             _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
-
-            _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
+            => _serializationServices.Single(lazy => lazy.Metadata.Language == languageName).Value;
 
         public Checksum CreateParseOptionsChecksum(ParseOptions value)
             => Checksum.Create(value, this);

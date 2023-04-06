@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Serialization
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
-    <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>
+    <ExportOptionsSerializationService(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicOptionsSerializationService
         Inherits AbstractOptionsSerializationService
 

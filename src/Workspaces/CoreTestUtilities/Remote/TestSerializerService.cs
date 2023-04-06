@@ -35,8 +35,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
         private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public TestSerializerService(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, SolutionServices workspaceServices)
-            : base(workspaceServices)
+        public TestSerializerService(
+            ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
+            SolutionServices workspaceServices,
+            ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
+            : base(workspaceServices, serializationServices)
         {
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
         }
@@ -108,7 +111,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             /// <summary>
             /// Gate to serialize reads/writes to <see cref="_sharedTestGeneratorReferences"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
+            private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
             /// <summary>
             /// In unit tests that are testing OOP, we want to be able to share test generator references directly
@@ -146,13 +150,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory([ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
+                _serializationServices = serializationServices.ToImmutableArray();
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new TestSerializerService(SharedTestGeneratorReferences, workspaceServices.SolutionServices);
+                => new TestSerializerService(SharedTestGeneratorReferences, workspaceServices.SolutionServices, _serializationServices);
         }
     }
 }
