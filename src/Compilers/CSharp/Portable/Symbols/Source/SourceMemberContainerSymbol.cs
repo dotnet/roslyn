@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // This method behaves the same was as the base class, but avoids allocations associated with DeclaringSyntaxReferences
-        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
             var declarations = declaration.Declarations;
             if (IsImplicitlyDeclared && declarations.IsEmpty)
