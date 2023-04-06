@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -75,6 +76,14 @@ namespace Microsoft.CodeAnalysis
             return set;
         }
 
+        public static SegmentedHashSet<T> AllocateAndClear<T>(this ObjectPool<SegmentedHashSet<T>> pool)
+        {
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
+        }
+
         public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
             where TKey : notnull
         {
@@ -110,6 +119,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static void ClearAndFree<T>(this ObjectPool<HashSet<T>> pool, HashSet<T> set)
+        {
+            if (set == null)
+            {
+                return;
+            }
+
+            var count = set.Count;
+            set.Clear();
+
+            if (count > Threshold)
+            {
+                set.TrimExcess();
+            }
+
+            pool.Free(set);
+        }
+
+        public static void ClearAndFree<T>(this ObjectPool<SegmentedHashSet<T>> pool, SegmentedHashSet<T> set)
         {
             if (set == null)
             {
