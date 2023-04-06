@@ -63,7 +63,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         public string? SolutionPath { get; set; }
         public Guid SolutionTelemetryId { get; set; }
 
-        public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync, Action<Project> onProjectRemoved)
+        public ProjectSystemProjectFactory(
+            Workspace workspace,
+            IFileChangeWatcher fileChangeWatcher,
+            Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync,
+            Action<Project> onProjectRemoved)
         {
             Workspace = workspace;
             WorkspaceListener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();

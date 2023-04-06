@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.NotNull(workspace.Services.Workspace);
             Assert.Equal(workspace, workspace.Services.Workspace);
             Assert.NotNull(workspace.Services.HostServices);
-            Assert.NotNull(workspace.Services.TextFactory);
+            Assert.NotNull(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITextFactoryService>());
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.GetRequiredService<ITextFactoryService>());
+            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITextFactoryService>());
 
             TestCreateTextInferredEncoding(
                 textFactoryService,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestCreateTextFallsBackToUTF8Encoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.GetRequiredService<ITextFactoryService>());
+            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITextFactoryService>());
 
             TestCreateTextInferredEncoding(
                 textFactoryService,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestCreateTextFallsBackToProvidedDefaultEncoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.GetRequiredService<ITextFactoryService>());
+            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITextFactoryService>());
 
             TestCreateTextInferredEncoding(
                 textFactoryService,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestCreateTextUsesByteOrderMarkIfPresent()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.GetRequiredService<ITextFactoryService>());
+            var textFactoryService = Assert.IsType<EditorTextFactoryService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITextFactoryService>());
 
             TestCreateTextInferredEncoding(
                 textFactoryService,

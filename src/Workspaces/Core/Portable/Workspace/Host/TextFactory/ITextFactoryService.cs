@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// A factory for creating <see cref="SourceText"/> instances.
     /// </summary>
-    internal interface ITextFactoryService : IWorkspaceService
+    internal interface ITextFactoryService
     {
         /// <summary>
         /// Creates <see cref="SourceText"/> from a stream.

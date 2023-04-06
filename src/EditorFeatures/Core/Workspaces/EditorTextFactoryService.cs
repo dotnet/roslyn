@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -16,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
+    [Export(typeof(ITextFactoryService)), Shared]
     internal sealed class EditorTextFactoryService : ITextFactoryService
     {
         private readonly ITextBufferCloneService _textBufferCloneService;

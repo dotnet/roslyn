@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
+    /// <summary>
+    /// Intentionally not exported.  This instance can instead be used whenever a specialized instance is not provided
+    /// in the mef composition.
+    /// </summary>
     internal sealed class TextFactoryService : ITextFactoryService
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TextFactoryService()
+        public static readonly ITextFactoryService Default = new TextFactoryService();
+
+        private TextFactoryService()
         {
         }
 

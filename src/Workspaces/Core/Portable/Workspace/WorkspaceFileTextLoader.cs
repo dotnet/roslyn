@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             : base(path, defaultEncoding)
 #pragma warning restore
         {
-            _textFactory = services.GetRequiredService<ITextFactoryService>();
+            _textFactory = services.ExportProvider.GetExports<ITextFactoryService>().FirstOrDefault()?.Value ?? TextFactoryService.Default;
         }
 
         private protected override SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)

@@ -165,14 +165,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 documentTextLoaderChangedAction: (s, d, loader) => s.WithDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
                 documentChangedWorkspaceKind: WorkspaceChangeKind.DocumentChanged);
 
-            _additionalFiles = new BatchingDocumentCollection(this,
+            _additionalFiles = new BatchingDocumentCollection(
+                this,
                 (s, d) => s.ContainsAdditionalDocument(d),
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
                 documentTextLoaderChangedAction: (s, d, loader) => s.WithAdditionalDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
                 documentChangedWorkspaceKind: WorkspaceChangeKind.AdditionalDocumentChanged);
 
-            _analyzerConfigFiles = new BatchingDocumentCollection(this,
+            _analyzerConfigFiles = new BatchingDocumentCollection(
+                this,
                 (s, d) => s.ContainsAnalyzerConfigDocument(d),
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),

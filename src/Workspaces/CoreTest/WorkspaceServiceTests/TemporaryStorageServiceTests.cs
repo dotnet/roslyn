@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStorageText()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             // test normal string
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var temporaryStorage = service.CreateTemporaryStreamStorage();
 
@@ -88,7 +86,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryTextStorageExceptions()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryTextStorage();
 
@@ -109,7 +106,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStreamStorageExceptions()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryStreamStorage();
 
@@ -133,7 +129,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestZeroLengthStreams()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryStreamStorage();
 
@@ -153,7 +148,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var buffer = new MemoryStream(257 * 1024 + 1);
             for (var i = 0; i < buffer.Length; i++)
@@ -199,7 +193,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess)
             {
                 using var workspace = new AdhocWorkspace();
-                var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
                 var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
                 using var data = SerializableBytes.CreateWritableStream();
@@ -232,7 +225,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void StreamTest1()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryStreamStorage();
 
@@ -259,7 +251,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void StreamTest2()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryStreamStorage();
 
@@ -296,7 +287,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void StreamTest3()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryStreamStorage();
 
@@ -333,7 +323,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStorageTextEncoding()
         {
             using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             // test normal string
