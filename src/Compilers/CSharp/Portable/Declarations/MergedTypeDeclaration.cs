@@ -129,6 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasPrimaryConstructor
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.HasPrimaryConstructor)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool AnyMemberHasAttributes
         {
             get
