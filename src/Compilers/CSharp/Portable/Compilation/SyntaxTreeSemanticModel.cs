@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : null;
                 if ((object)partial != null)
                 {
-                    var loc = partial.Locations[0];
+                    var loc = partial.GetFirstLocation();
                     if (loc.IsInSource && loc.SourceTree == this.SyntaxTree && declarationSpan.Contains(loc.SourceSpan))
                     {
                         return partial;
@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var alias in usingAliases)
                     {
-                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Alias.Name.Span)
+                        if (alias.Alias.GetFirstLocation().SourceSpan == declarationSyntax.Alias.Name.Span)
                         {
                             return alias.Alias.GetPublicSymbol();
                         }
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var alias in externAliases)
                     {
-                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Identifier.Span)
+                        if (alias.Alias.GetFirstLocation().SourceSpan == declarationSyntax.Identifier.Span)
                         {
                             return alias.Alias.GetPublicSymbol();
                         }
@@ -2385,7 +2385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return symbol;
             }
 
-            var location = symbol.Locations[0];
+            var location = symbol.GetFirstLocation();
             // The symbol may be from a distinct syntax tree - perhaps the
             // symbol was returned from LookupSymbols() for instance.
             if (location.SourceTree != this.SyntaxTree)

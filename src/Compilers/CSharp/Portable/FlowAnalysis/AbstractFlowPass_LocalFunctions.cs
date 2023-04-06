@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
             {
-                location = localFuncSymbol.Locations[0];
+                location = localFuncSymbol.GetFirstLocation();
             }
 
             LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);

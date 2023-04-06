@@ -1847,8 +1847,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int bLocationsCount = fst.Locations.Length;
                 if (aLocationsCount != bLocationsCount) return aLocationsCount - bLocationsCount;
                 if (aLocationsCount == 0 && bLocationsCount == 0) return Compare(fst.ContainingSymbol, snd.ContainingSymbol);
-                Location la = snd.Locations[0];
-                Location lb = fst.Locations[0];
+                Location la = snd.GetFirstLocation();
+                Location lb = fst.GetFirstLocation();
                 if (la.IsInSource != lb.IsInSource) return la.IsInSource ? 1 : -1;
                 int containerResult = Compare(fst.ContainingSymbol, snd.ContainingSymbol);
                 if (!la.IsInSource) return containerResult;

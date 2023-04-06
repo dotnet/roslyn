@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
-                target.CheckAllConstraints(DeclaringCompilation, conversions, Locations[0], diagnostics);
+                target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
             }
         }
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamespaceSymbol? target;
             if (!ContainingSymbol.DeclaringCompilation.GetExternAliasTarget(Name, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, Locations[0], Name);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, GetFirstLocation(), Name);
             }
 
             RoslynDebug.Assert(target is object);

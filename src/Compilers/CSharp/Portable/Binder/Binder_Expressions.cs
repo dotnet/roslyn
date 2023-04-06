@@ -2019,7 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
             {
-                Location localSymbolLocation = localSymbol.Locations[0];
+                Location localSymbolLocation = localSymbol.GetFirstLocation();
 
                 if (node.SyntaxTree == localSymbolLocation.SourceTree)
                 {
@@ -4162,7 +4162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.Locations[0], containingType);
+                            diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.GetFirstLocation(), containingType);
                             return new BoundBadExpression(
                                 syntax: initializerArgumentListOpt.Parent,
                                 resultKind: LookupResultKind.Empty,
@@ -4173,7 +4173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (initializerArgumentListOpt != null && containingType.TypeKind == TypeKind.Struct)
                     {
-                        diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.Locations[0], containingType);
+                        diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.GetFirstLocation(), containingType);
                         return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
@@ -4208,7 +4208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
                         nonNullSyntax = constructor.GetNonNullSyntaxNode();
-                        errorLocation = constructor.Locations[0];
+                        errorLocation = constructor.GetFirstLocation();
                         enableCallerInfo = false;
                         break;
                 }
