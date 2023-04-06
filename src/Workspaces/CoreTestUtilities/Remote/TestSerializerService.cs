@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
             SolutionServices workspaceServices,
             IDocumentationProviderService documentationProviderService,
+            IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
             ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
-            : base(workspaceServices, documentationProviderService, serializationServices)
+            : base(workspaceServices, documentationProviderService, analyzerAssemblyLoaderProvider, serializationServices)
         {
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
         }
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             /// </summary>
             private readonly object _gate = new();
             private readonly IDocumentationProviderService _documentationProviderService;
+            private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider;
             private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
             /// <summary>
@@ -154,15 +156,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 IDocumentationProviderService documentationProviderService,
+                [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
                 [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
                 _documentationProviderService = documentationProviderService;
+                _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
                 _serializationServices = serializationServices.ToImmutableArray();
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new TestSerializerService(SharedTestGeneratorReferences, workspaceServices.SolutionServices, _documentationProviderService, _serializationServices);
+                => new TestSerializerService(
+                    SharedTestGeneratorReferences, workspaceServices.SolutionServices, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
         }
     }
 }

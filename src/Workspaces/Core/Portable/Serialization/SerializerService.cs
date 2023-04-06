@@ -22,46 +22,50 @@ namespace Microsoft.CodeAnalysis.Serialization
         [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
             private readonly IDocumentationProviderService _documentationProviderService;
+            private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider;
+            private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 IDocumentationProviderService documentationProviderService,
+                [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider? analyzerAssemblyLoaderProvider,
                 [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
-                _serializationServices = serializationServices.ToImmutableArray();
                 _documentationProviderService = documentationProviderService;
+                _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
+                _serializationServices = serializationServices.ToImmutableArray();
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(workspaceServices.SolutionServices, _documentationProviderService, _serializationServices);
+                => new SerializerService(workspaceServices.SolutionServices, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
         }
 
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
         private readonly SolutionServices _workspaceServices;
-        private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
         private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly ITextFactoryService _textService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
+        private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         private protected SerializerService(
             SolutionServices workspaceServices,
             IDocumentationProviderService documentationProviderService,
+            IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
             ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
         {
             _workspaceServices = workspaceServices;
             _serializationServices = serializationServices;
             _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
-            _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             _documentationService = documentationProviderService;
+            _analyzerLoaderProvider = analyzerAssemblyLoaderProvider;
         }
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
