@@ -119,6 +119,6 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         return genericTagger;
     }
 
-    protected bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
+    public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
         => TaggerUtilities.SpanEquals(span1, span2, this.SpanTrackingMode);
 }

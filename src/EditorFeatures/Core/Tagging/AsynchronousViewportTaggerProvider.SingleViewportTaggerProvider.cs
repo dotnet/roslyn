@@ -50,6 +50,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             => _callback.CreateEventSource(textView, subjectBuffer);
 
         protected override TaggerDelay EventChangeDelay
+            // If we're in view, tag at the cadence the feature wants for visible code.  Otherwise, if we're out of
+            // view, tag at the slowest cadence to reduce the amount of resources used for things that may never even be
+            // looked at.
             => _viewPortToTag == ViewPortToTag.InView ? _callback.EventChangeDelay : TaggerDelay.NonFocus;
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
