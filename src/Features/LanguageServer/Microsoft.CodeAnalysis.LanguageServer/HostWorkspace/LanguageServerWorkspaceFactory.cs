@@ -64,7 +64,7 @@ internal sealed class LanguageServerWorkspaceFactory
             if (File.Exists(analyzerPath))
             {
                 references.Add(new AnalyzerFileReference(analyzerPath, analyzerLoader));
-                _logger.LogInformation($"Solution-level analyzer at {analyzerPath} added to workspace.");
+                _logger.LogDebug($"Solution-level analyzer at {analyzerPath} added to workspace.");
             }
             else
             {
