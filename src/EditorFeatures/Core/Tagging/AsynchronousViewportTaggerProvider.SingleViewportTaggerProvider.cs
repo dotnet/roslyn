@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
 internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where TTag : ITag
 {
+    /// <summary>
+    /// Actual <see cref="AsynchronousViewTaggerProvider{TTag}"/> responsible for tagging a particular span (or spans)
+    /// of the view.  Inherits all behavior of a normal view tagger, except for determining what spans to tag and what
+    /// cadence to tag them at.
+    /// </summary>
     private sealed class SingleViewportTaggerProvider : AsynchronousViewTaggerProvider<TTag>
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback;
