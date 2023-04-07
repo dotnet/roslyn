@@ -611,7 +611,7 @@ End Class</text>
             End Function
 
             <Fact>
-            Public Async Function TestSelectValidSubexpressionAndHenceDontExpand() As Task
+            Public Async Function TestSelectValidSubexpressionAndHenceDoNotExpand() As Task
                 Dim code = <text>Class A
     Public Sub method(a As Integer, b As Integer, c As Integer)
         Dim d = {|b:a + b|} + c
@@ -945,7 +945,7 @@ End Class</text>
 
             <Fact, WorkItem(10071, "DevDiv_Projects/Roslyn")>
             <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
-            Public Async Function TestDontCrash() As Task
+            Public Async Function TestDoNotCrash() As Task
                 Await IterateAllAsync(TestResource.AllInOneVisualBasicCode)
             End Function
 

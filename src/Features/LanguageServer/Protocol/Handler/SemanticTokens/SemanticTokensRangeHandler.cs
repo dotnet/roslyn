@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 SemanticTokensHelpers.TokenTypeToIndex,
                 request.Range,
                 options,
-                includeSyntacticClassifications: contextDocument.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 
             // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick

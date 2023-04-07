@@ -113,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern
         Public ReadOnly Property DeclarationPattern As Integer? Implements ISyntaxKinds.DeclarationPattern
+        Public ReadOnly Property ListPattern As Integer? Implements ISyntaxKinds.ListPattern
         Public ReadOnly Property NotPattern As Integer? Implements ISyntaxKinds.NotPattern
         Public ReadOnly Property OrPattern As Integer? Implements ISyntaxKinds.OrPattern
         Public ReadOnly Property ParenthesizedPattern As Integer? Implements ISyntaxKinds.ParenthesizedPattern

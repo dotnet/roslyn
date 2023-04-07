@@ -6279,7 +6279,7 @@ class C : I
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
-        public async Task TestDontImplementDisposePatternForLocallyDefinedIDisposable()
+        public async Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
                 """
@@ -6313,7 +6313,7 @@ class C : I
         }
 
         [Fact]
-        public async Task TestDontImplementDisposePatternForStructures1()
+        public async Task TestDoNotImplementDisposePatternForStructures1()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
                 """
@@ -6334,7 +6334,7 @@ class C : I
         }
 
         [Fact]
-        public async Task TestDontImplementDisposePatternForStructures2()
+        public async Task TestDoNotImplementDisposePatternForStructures2()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
                 """
