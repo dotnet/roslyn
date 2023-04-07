@@ -310,40 +310,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         // Compute the localizable strings once, caching any exceptions produced doing that. This helps
                         // avoid an excessive amount of string allocations loading resources.
-                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.Title), descriptor.Title);
-                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.MessageFormat), descriptor.MessageFormat);
-                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.Description), descriptor.Description);
+                        forceLocalizableStringExceptions(descriptor, descriptor.Title);
+                        forceLocalizableStringExceptions(descriptor, descriptor.MessageFormat);
+                        forceLocalizableStringExceptions(descriptor, descriptor.Description);
                     }
                 }
 
                 return supportedDiagnostics;
 
                 void forceLocalizableStringExceptions(
-                    DiagnosticDescriptor descriptor, string key, LocalizableString localizableString)
+                    DiagnosticDescriptor descriptor, LocalizableString localizableString)
                 {
-                    if (localizableString.CanThrowExceptions)
+                    var exception = descriptor.ComputeToStringException(localizableString);
+                    if (exception != null)
                     {
-                        var exception = ImmutableInterlocked.GetOrAdd(
-                            ref descriptor.PropertyNameToException,
-                            key,
-                            static (key, localizableString) =>
-                            {
-                                Exception? localException = null;
-                                EventHandler<Exception> handler = (_, ex) => localException = ex;
-
-                                localizableString.OnException += handler;
-                                localizableString.ToString();
-                                localizableString.OnException -= handler;
-
-                                return localException;
-                            },
-                            localizableString);
-
-                        if (exception != null)
-                        {
-                            var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
-                            onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
-                        }
+                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
+                        onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
                     }
                 }
             }
