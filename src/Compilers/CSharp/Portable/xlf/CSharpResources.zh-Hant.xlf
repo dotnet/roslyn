@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantValueOfTypeExpected">
         <source>A constant value of type '{0}' is expected</source>
-        <target state="new">A constant value of type '{0}' is expected</target>
+        <target state="translated">必須為 '{0}' 類型的常數值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
