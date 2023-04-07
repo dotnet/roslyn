@@ -63,36 +63,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
 
-        /// <summary>
-        /// Cached mapping of localizable strings in this this descriptor to any exceptions thrown while obtaining them.
-        /// </summary>
-        private ImmutableDictionary<LocalizableString, Exception?> _localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
-
-        internal Exception? ComputeToStringException(LocalizableString localizableString)
-        {
-            Debug.Assert(
-                localizableString == this.Title ||
-                localizableString == this.Description ||
-                localizableString == this.MessageFormat);
-
-            if (!localizableString.CanThrowExceptions)
-                return null;
-
-            return ImmutableInterlocked.GetOrAdd(ref _localizableStringToException, localizableString, computeException);
-
-            static Exception? computeException(LocalizableString localizableString)
-            {
-                Exception? localException = null;
-                EventHandler<Exception> handler = (_, ex) => localException = ex;
-
-                localizableString.OnException += handler;
-                localizableString.ToString();
-                localizableString.OnException -= handler;
-
-                return localException;
-            }
-        }
-
         internal ImmutableArray<string> ImmutableCustomTags
         {
             get

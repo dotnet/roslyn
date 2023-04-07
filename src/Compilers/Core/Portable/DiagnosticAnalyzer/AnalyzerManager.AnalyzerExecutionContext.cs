@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 void forceLocalizableStringExceptions(
                     DiagnosticDescriptor descriptor, LocalizableString localizableString)
                 {
-                    var exception = descriptor.ComputeToStringException(localizableString);
+                    var exception = LocalizableString.GetAndCacheToStringException(localizableString);
                     if (exception != null)
                     {
                         var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);

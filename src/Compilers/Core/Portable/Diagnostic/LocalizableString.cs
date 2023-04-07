@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,6 +14,36 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString?>
     {
+        /// <summary>
+        /// Cached mapping of localizable strings in this this descriptor to any exceptions thrown while obtaining them.
+        /// </summary>
+        private static ImmutableDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+
+        /// <summary>
+        /// Computes <see cref="ToString()"/> on <paramref name="localizableString"/>, returning any exception produced
+        /// during that operation. The exception is cached, and will be returned in future calls without invoking
+        /// ToString again.
+        /// </summary>
+        internal static Exception? GetAndCacheToStringException(LocalizableString localizableString)
+        {
+            if (!localizableString.CanThrowExceptions)
+                return null;
+
+            return ImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
+
+            static Exception? computeException(LocalizableString localizableString)
+            {
+                Exception? localException = null;
+                EventHandler<Exception> handler = (_, ex) => localException = ex;
+
+                localizableString.OnException += handler;
+                localizableString.ToString();
+                localizableString.OnException -= handler;
+
+                return localException;
+            }
+        }
+
         /// <summary>
         /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.
         /// If the exception handler itself throws an exception, that exception is ignored.
