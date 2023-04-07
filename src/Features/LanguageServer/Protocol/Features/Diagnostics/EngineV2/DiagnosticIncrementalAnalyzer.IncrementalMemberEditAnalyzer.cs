@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var (analyzerWithState, spanBased) = compilerAnalyzerData.Value;
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
-                    var analyzersWithState = SpecializedCollections.SingletonEnumerable(analyzerWithState);
+                    using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(out var analyzersWithState);
                     await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
-                    IEnumerable<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
