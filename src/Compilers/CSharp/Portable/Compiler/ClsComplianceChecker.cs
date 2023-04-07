@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)
                     {
-                        if (_diagnostics.ReportUseSite(attributeClass, symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.GetFirstLocation()))
+                        if (_diagnostics.ReportUseSite(attributeClass, symbol.GetFirstLocationOrNone()))
                         {
                             continue;
                         }

@@ -3818,7 +3818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol? baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
-            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.GetFirstLocation();
+            Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
             foreach (MethodSymbol ctor in baseType.InstanceConstructors)
             {

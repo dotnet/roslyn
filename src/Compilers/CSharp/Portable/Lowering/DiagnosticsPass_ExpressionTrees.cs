@@ -529,9 +529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in lambda.Parameters)
                 {
-                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
+                    if (p.RefKind != RefKind.None && p.TryGetFirstLocation() is Location location)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.GetFirstLocation());
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, location);
                     }
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {

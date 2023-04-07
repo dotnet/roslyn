@@ -2380,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
 
-            if (symbol.Locations.IsDefaultOrEmpty)
+            if (symbol.TryGetFirstLocation() is null)
             {
                 return symbol;
             }

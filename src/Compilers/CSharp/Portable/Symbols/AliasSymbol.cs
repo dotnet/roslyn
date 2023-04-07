@@ -260,12 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override int GetHashCode()
-        {
-            if (this.Locations.Length > 0)
-                return this.GetFirstLocation().GetHashCode();
-            else
-                return Name.GetHashCode();
-        }
+            => this.TryGetFirstLocation()?.GetHashCode() ?? Name.GetHashCode();
 
         internal abstract override bool RequiresCompletion
         {
