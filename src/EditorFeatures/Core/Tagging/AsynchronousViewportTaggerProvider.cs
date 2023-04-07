@@ -107,6 +107,17 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
 
             return result.ToImmutableAndClear();
         }
+
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<TTag> context, CancellationToken cancellationToken)
+        {
+            foreach (var spanToTag in context.SpansToTag)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await _callback.ProduceTagsAsync(
+                    context, spanToTag, cancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>
@@ -119,6 +130,8 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
     private readonly ImmutableArray<SingleViewportTaggerProvider> _viewportTaggerProviders;
 
     protected readonly IThreadingContext ThreadingContext;
+    protected readonly IGlobalOptionService GlobalOptions;
+    protected readonly IAsynchronousOperationListener AsyncListener;
 
     protected AsynchronousViewportTaggerProvider(
         IThreadingContext threadingContext,
@@ -128,6 +141,8 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
         int extraLinesAroundViewportToTag = 100)
     {
         ThreadingContext = threadingContext;
+        GlobalOptions = globalOptions;
+        AsyncListener = asyncListener;
         _extraLinesAroundViewportToTag = extraLinesAroundViewportToTag;
 
         using var providers = TemporaryArray<SingleViewportTaggerProvider>.Empty;
@@ -164,7 +179,7 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
     protected abstract TaggerDelay EventChangeDelay { get; }
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>
-    protected abstract Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken);
+    protected abstract Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.TagEquals(TTag, TTag)"/>
     protected abstract bool TagEquals(TTag tag1, TTag tag2);
