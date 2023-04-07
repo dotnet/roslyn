@@ -80,17 +80,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 if (firstType is null || secondType is null)
                     return false;
 
-                var conversionFromFirstToSecond = compilation.ClassifyCommonConversion(firstType, secondType);
-
-                if (conversionFromFirstToSecond.IsImplicit)
-                    return true;
-
-                var conversionFromSecondToFirst = compilation.ClassifyCommonConversion(secondType, firstType);
-
-                if (conversionFromSecondToFirst.IsImplicit)
-                    return true;
-
-                return false;
+                return compilation.ClassifyCommonConversion(firstType, secondType).IsImplicit
+                    || compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
             }
         }
 
