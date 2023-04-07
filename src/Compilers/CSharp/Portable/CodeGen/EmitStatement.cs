@@ -1745,7 +1745,7 @@ oneMoreTime:
                 MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics.DiagnosticBag);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
-                    local.TryGetFirstLocation() ?? Location.None,
+                    local.GetFirstLocationOrNone(),
                     compileTimeValue,
                     dynamicTransformFlags: dynamicTransformFlags,
                     tupleElementNames: tupleElementNames);
