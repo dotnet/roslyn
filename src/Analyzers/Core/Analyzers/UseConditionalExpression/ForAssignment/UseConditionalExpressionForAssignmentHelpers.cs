@@ -41,6 +41,23 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            // if there are discard assignment in both branches, report as not matched.
+            // Otherwise the resulting code looks like `_ = condition ? trueBranch : falseBranch`,
+            // which is not as clear as separate statements in if:
+            // if (condition)
+            // {
+            //     _ = trueBranch;
+            // }
+            // else
+            // {
+            //     _ = falseBranch;
+            // }
+            if (trueAssignment?.Target is IDiscardOperation &&
+                falseAssignment?.Target is IDiscardOperation)
+            {
+                return false;
+            }
+
             // The left side of both assignment statements has to be syntactically identical (modulo
             // trivia differences).
             if (trueAssignment != null && falseAssignment != null &&

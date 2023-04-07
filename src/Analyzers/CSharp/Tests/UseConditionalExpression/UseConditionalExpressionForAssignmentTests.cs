@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
@@ -1952,6 +1948,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                     }
                 }
                 """, LanguageVersion.CSharp9, equivalenceKey: nameof(AnalyzersResources.Simplify_check));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        [CombinatorialData]
+        public async Task TestMissingForDiscard(
+            [CombinatorialValues("int", "string")] string originalFirstType,
+            [CombinatorialValues("int", "string")] string originalSecondType)
+        {
+            await TestMissingAsync($$"""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        if (flag)
+                        {
+                            _ = A();
+                        }
+                        else
+                        {
+                            _ = B();
+                        }
+                    }
+
+                    {{originalFirstType}} A() => default;
+                    {{originalSecondType}} B() => default;
+                }
+                """);
         }
     }
 }
