@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly ArrayBuilder<ClassifiedSpan> _list;
+            private readonly SegmentedList<ClassifiedSpan> _list;
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private Worker(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Classification
             internal static void Classify(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
