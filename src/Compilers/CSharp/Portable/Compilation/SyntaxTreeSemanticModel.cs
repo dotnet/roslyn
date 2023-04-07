@@ -1774,24 +1774,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (symbol.IsDefinedInSourceTree(this.SyntaxTree, declarationSpan))
+                // Get the first location, and see if it's empty.  If it's not empty, then this was a member that parsed
+                // reasonably (i.e. it had a location for the name).  As such, all of its parts in all files must also
+                // have parsed in a similar fashion.  So, we know we can return this symbol as a reasonable match for
+                // the requested span.
+                //
+                // If, however, the location name is empty, then this was a bogus symbol created in an error recovery
+                // scenario.  Remember this symbol for the end in case we aren't able to find anything better to return.
+                var firstLocation = symbol.TryGetFirstLocation();
+                if (firstLocation != null && !firstLocation.SourceSpan.IsEmpty)
                 {
-                    // Get the first location, and see if it's empty.  If it's not empty, then this was a member that
-                    // parsed reasonably (i.e. it had a location for the name).  As such, all of its parts in all files
-                    // must also have parsed in a similar fashion.  So, we know we can return this symbol as a reasonable
-                    // match for the requested span.
-                    //
-                    // If, however, the location name is empty, then this was a bogus symbol created in an error
-                    // recovery scenario.  Remember this symbol for the end in case we aren't able to find anything
-                    // better to return.
-                    var firstLocation = symbol.TryGetFirstLocation();
-                    if (firstLocation != null)
+                    if (symbol.IsDefinedInSourceTree(this.SyntaxTree, declarationSpan))
+                        return symbol;
+                }
+                else
+                {
+                    // ok to realize .Locations here.  This is the rare case and will not impact memory much.
+                    foreach (var loc in symbol.Locations)
                     {
-                        if (!firstLocation.SourceSpan.IsEmpty)
-                            return symbol;
-
-                        // exclude decls created via syntax recovery
-                        zeroWidthMatch = symbol;
+                        if (loc.IsInSource && loc.SourceTree == this.SyntaxTree && declarationSpan.Contains(loc.SourceSpan) &&
+                            loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start)
+                        {
+                            zeroWidthMatch = symbol;
+                        }
                     }
                 }
 
