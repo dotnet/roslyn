@@ -1774,32 +1774,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Get the first location, and see if it's empty.  If it's not empty, then this was a member that parsed
-                // reasonably (i.e. it had a location for the name).  As such, all of its parts in all files must also
-                // have parsed in a similar fashion (otherwise they could not have stitched together into the same
-                // namespace/type).  As such, this symbol is the best one to return as long as it's defined in this
-                // tree/span.
-                //
-                // If, however, the location name is empty, then this was a bogus symbol created in an error recovery
-                // scenario.  Remember this symbol for the end in case we aren't able to find anything better to return.
-                var firstLocation = symbol.TryGetFirstLocation();
-                if (firstLocation != null && !firstLocation.SourceSpan.IsEmpty)
+                if (symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
                 {
-                    if (symbol.IsDefinedInSourceTree(this.SyntaxTree, declarationSpan))
+                    if (!wasZeroWidthMatch)
                         return symbol;
-                }
-                else
-                {
-                    // ok to realize .Locations here.  This is the rare case and will not impact memory much.
-                    foreach (var loc in symbol.Locations)
-                    {
-                        if (loc.IsInSource && loc.SourceTree == this.SyntaxTree && declarationSpan.Contains(loc.SourceSpan) &&
-                            loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start)
-                        {
-                            // exclude decls created via syntax recovery
-                            zeroWidthMatch = symbol;
-                        }
-                    }
+
+                    // exclude decls created via syntax recovery
+                    zeroWidthMatch = symbol;
                 }
 
                 // Handle the case of the implementation of a partial method.

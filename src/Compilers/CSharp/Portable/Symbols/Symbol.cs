@@ -346,6 +346,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Location GetFirstLocation()
             => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
 
+        public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            wasZeroWidthMatch = false;
+            foreach (var loc in this.Locations)
+            {
+                if (IsLocationContainedWithin(loc, tree, declarationSpan, out var zeroWidthMatch))
+                {
+                    // exclude decls created via syntax recovery, but keep going looking for non-zero-width match.
+                    if (zeroWidthMatch)
+                    {
+                        wasZeroWidthMatch = true;
+                        continue;
+                    }
+
+                    wasZeroWidthMatch = false;
+                    return true;
+                }
+            }
+
+            // We didn't find a non-zero-width match.  But at least indicate if we did find one zero-width-match.
+            return wasZeroWidthMatch;
+        }
+
+        protected static bool IsLocationContainedWithin(Location loc, SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            if (loc.IsInSource && loc.SourceTree == tree && declarationSpan.Contains(loc.SourceSpan))
+            {
+                wasZeroWidthMatch = loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start;
+                return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
 #nullable disable
 
         /// <summary>
