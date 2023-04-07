@@ -128,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
+        protected virtual AttributeLocation AttributeLocationForLoadAndValidateAttributes
+        {
+            get { return AttributeLocation.None; }
+        }
+
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
         {
             get { return this.AttributeOwner; }
@@ -280,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var (declarations, symbolPart) = forReturnType
                     ? (GetReturnTypeAttributeDeclarations(), AttributeLocation.Return)
-                    : (GetAttributeDeclarations(), AttributeLocation.None);
+                    : (GetAttributeDeclarations(), AttributeLocationForLoadAndValidateAttributes);
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     declarations,
                     ref lazyCustomAttributesBag,
@@ -476,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
@@ -1015,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);

@@ -175,14 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
         }
 
-        protected sealed override IAttributeTargetSymbol AttributeOwner
-        {
-            get
-            {
-                return base.AttributeOwner;
-            }
-        }
-
         internal sealed override bool GenerateDebugInfo
         {
             get { return true; }
@@ -252,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool HasSetsRequiredMembersImpl
             => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
 
-        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             if (arguments.SymbolPart == AttributeLocation.None)
             {
