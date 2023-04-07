@@ -60,6 +60,9 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
         protected override ImmutableArray<IOption2> Options
             => _callback.Options;
 
+        protected override TaggerTextChangeBehavior TextChangeBehavior
+            => _callback.TextChangeBehavior;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
@@ -171,6 +174,10 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.Options"/>
     protected virtual ImmutableArray<IOption2> Options => ImmutableArray<IOption2>.Empty;
+
+    /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>
+    protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
+
     //protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray<IOption2>.Empty;
 
     //protected abstract bool TagEquals(TTag tag1, TTag tag2);
