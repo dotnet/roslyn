@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
                 var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
                 GC.KeepAlive(semanticModel);
+
+                Debug.Assert(item.Span.Contains(change.TextChange.Span) || item.IsComplexTextEdit);
                 return change;
             }
             else
