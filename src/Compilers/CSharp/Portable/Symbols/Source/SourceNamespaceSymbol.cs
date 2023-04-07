@@ -101,25 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
         {
-            wasZeroWidthMatch = false;
             foreach (var decl in _mergedDeclaration.Declarations)
             {
-                if (IsLocationContainedWithin(decl.NameLocation, tree, declarationSpan, out var zeroWidthMatch))
-                {
-                    // exclude decls created via syntax recovery, but keep going looking for non-zero-width match.
-                    if (zeroWidthMatch)
-                    {
-                        wasZeroWidthMatch = true;
-                        continue;
-                    }
-
-                    wasZeroWidthMatch = false;
+                if (IsLocationContainedWithin(decl.NameLocation, tree, declarationSpan, out wasZeroWidthMatch))
                     return true;
-                }
             }
 
-            // We didn't find a non-zero-width match.  But at least indicate if we did find one zero-width-match.
-            return wasZeroWidthMatch;
+            wasZeroWidthMatch = false;
+            return false;
         }
 
         private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
