@@ -1776,8 +1776,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Get the first location, and see if it's empty.  If it's not empty, then this was a member that parsed
                 // reasonably (i.e. it had a location for the name).  As such, all of its parts in all files must also
-                // have parsed in a similar fashion.  So, we know we can return this symbol as a reasonable match for
-                // the requested span.
+                // have parsed in a similar fashion (otherwise they could not have stitched together into the same
+                // namespace/type).  As such, this symbol is the best one to return as long as it's defined in this
+                // tree/span.
                 //
                 // If, however, the location name is empty, then this was a bogus symbol created in an error recovery
                 // scenario.  Remember this symbol for the end in case we aren't able to find anything better to return.
