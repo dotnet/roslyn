@@ -42,7 +42,7 @@ internal class BrokeredServiceBridgeProvider
     /// <returns>a task that represents the lifetime of the bridge.  It will complete when the bridge closes.</returns>
     public async Task SetupBrokeredServicesBridgeAsync(string brokeredServicePipeName, BrokeredServiceContainer container, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Setting up brokered service bridge");
+        _logger.LogDebug("Setting up brokered service bridge");
         using var bridgeStream = await ServerFactory.ConnectAsync(brokeredServicePipeName, cancellationToken);
         using var bridgeMxStream = await MultiplexingStream.CreateAsync(bridgeStream, cancellationToken);
 

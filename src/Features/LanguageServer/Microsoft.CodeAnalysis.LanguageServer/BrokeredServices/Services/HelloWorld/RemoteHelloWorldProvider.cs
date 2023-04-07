@@ -55,7 +55,7 @@ internal class RemoteHelloWorldProvider
                 try
                 {
                     var callback = await helloWorldService.CallMeAsync(Descriptors.LocalHelloWorldService.Moniker, cancellationToken);
-                    _logger.LogInformation("Callback from remote: " + callback);
+                    _logger.LogDebug("Callback from remote: " + callback);
                     return true;
                 }
                 catch (Exception ex)

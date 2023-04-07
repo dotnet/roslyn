@@ -31,7 +31,7 @@ internal class HelloWorldService : IHelloWorld, IExportedBrokeredService
 
     public Task<string> SayHelloAsync(string name, CancellationToken cancellationToken)
     {
-        return Task.FromResult($"Greetings {name}, welcome to the blue party :)");
+        return Task.FromResult($"Greetings {name}, welcome to the C# party :)");
     }
 
     public Task<string> CallMeAsync(ServiceMoniker serviceMoniker, CancellationToken cancellationToken)
