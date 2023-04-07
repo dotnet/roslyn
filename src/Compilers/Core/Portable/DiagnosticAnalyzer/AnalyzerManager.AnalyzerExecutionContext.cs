@@ -303,24 +303,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     argument: (object?)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
-                Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
+                var onAnalyzerException = analyzerExecutor.OnAnalyzerException;
                 if (onAnalyzerException != null)
                 {
-                    var handler = new EventHandler<Exception>((sender, ex) =>
-                    {
-                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                        onAnalyzerException(ex, analyzer, diagnostic, analyzerExecutor.CancellationToken);
-                    });
-
                     foreach (var descriptor in supportedDiagnostics)
                     {
-                        ForceLocalizableStringExceptions(descriptor.Title, handler);
-                        ForceLocalizableStringExceptions(descriptor.MessageFormat, handler);
-                        ForceLocalizableStringExceptions(descriptor.Description, handler);
+                        // Compute the localizable strings once, caching any exceptions produced doing that. This helps
+                        // avoid an excessive amount of string allocations loading resources.
+                        descriptor.PropertyNameToException ??= computeCachedExceptions(descriptor);
+
+                        foreach (var (_, exception) in descriptor.PropertyNameToException)
+                        {
+                            if (exception != null)
+                            {
+                                var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
+                                onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
+                            }
+                        }
                     }
                 }
 
                 return supportedDiagnostics;
+                
+                static ImmutableDictionary<string, Exception> computeCachedExceptions(DiagnosticDescriptor descriptor)
+                {
+                    var builder = ImmutableDictionary.CreateBuilder<string, Exception>();
+
+                    forceLocalizableStringExceptions(builder, nameof(descriptor.Title), descriptor.Title);
+                    forceLocalizableStringExceptions(builder, nameof(descriptor.MessageFormat), descriptor.MessageFormat);
+                    forceLocalizableStringExceptions(builder, nameof(descriptor.Description), descriptor.Description);
+
+                    return builder.ToImmutable();
+                }
+
+                static void forceLocalizableStringExceptions(
+                    ImmutableDictionary<string, Exception>.Builder builder, string key, LocalizableString localizableString)
+                {
+                    if (localizableString.CanThrowExceptions)
+                    {
+                        EventHandler<Exception> handler = (_, ex) => builder[key] = ex;
+
+                        localizableString.OnException += handler;
+                        localizableString.ToString();
+                        localizableString.OnException -= handler;
+                    }
+                }
             }
 
             private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors_NoLock(

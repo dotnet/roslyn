@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
 
+        /// <summary>
+        /// Cached mapping of property names for this descriptor to any exceptions thrown while obtaining them.
+        /// </summary>
+        internal ImmutableDictionary<string, Exception>? PropertyNameToException;
+
         internal ImmutableArray<string> ImmutableCustomTags
         {
             get
