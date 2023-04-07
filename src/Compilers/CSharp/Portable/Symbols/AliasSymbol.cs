@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             if (this.Locations.Length > 0)
-                return this.Locations.First().GetHashCode();
+                return this.GetFirstLocation().GetHashCode();
             else
                 return Name.GetHashCode();
         }

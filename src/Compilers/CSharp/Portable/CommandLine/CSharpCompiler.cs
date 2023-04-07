@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.GetFirstLocation().SourceTree!.FilePath);
             return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 

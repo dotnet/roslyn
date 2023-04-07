@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (best.IsFromSourceModule)
                             {
-                                arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
+                                arg0 = srcSymbol.GetFirstLocation().SourceTree.FilePath;
                             }
                             else
                             {
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     if (best.IsFromSourceModule)
                                     {
-                                        arg0 = first.Locations.First().SourceTree.FilePath;
+                                        arg0 = first.GetFirstLocation().SourceTree.FilePath;
                                     }
                                     else
                                     {
