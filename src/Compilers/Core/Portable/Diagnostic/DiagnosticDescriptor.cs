@@ -66,11 +66,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached mapping of localizable strings in this this descriptor to any exceptions thrown while obtaining them.
         /// </summary>
-        private ImmutableDictionary<LocalizableString, Exception?> _localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty;
+        private ImmutableDictionary<LocalizableString, Exception?> _localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
         internal Exception? ComputeToStringException(LocalizableString localizableString)
         {
-            Debug.Assert(localizableString == this.Title ||
+            Debug.Assert(
+                localizableString == this.Title ||
                 localizableString == this.Description ||
                 localizableString == this.MessageFormat);
 
