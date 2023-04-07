@@ -1720,6 +1720,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithComments()
+        {
+            var markup =
+                """
+                public class $$Goo
+                {
+                    /// <summary>
+                    /// Comment
+                    /// </summary>
+                    public void Test()
+                    {
+                    }
+                }
+                """;
+
+            var expectedInterfaceCode =
+                """
+                public interface IGoo
+                {
+                    /// <summary>
+                    /// Comment
+                    /// </summary>
+                    void Test();
+                }
+                """;
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord1()

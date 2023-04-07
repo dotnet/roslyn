@@ -65,9 +65,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            // Becca 
+            var newdoc = (await newDocument.GetTextAsync()).ToString();
+
             var context = new CodeGenerationContext(
                 contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
-                generateMethodBodies: true);
+                generateMethodBodies: true,
+                generateDocumentationComments: true);
 
             // need to remove the root namespace from the containing namespace display because it is implied
             // For C# this does nothing as there is no root namespace (root namespace is empty string)
@@ -89,6 +93,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
                 cancellationToken).ConfigureAwait(false);
+
+            // Becca 
+            var newTxt = (await newTypeDocument.GetTextAsync()).ToString();
 
             var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 

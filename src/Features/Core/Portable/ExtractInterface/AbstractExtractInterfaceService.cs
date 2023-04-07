@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -109,6 +110,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
+
+            var compilation = semanticModel.Compilation;
+            var parentTrivia = extractableMembers.First().GetDocumentationComment(compilation);// .GetAncestor<DocumentationCommentTriviaSyntax>();
 
             return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
         }
@@ -314,7 +318,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     cleanupOptions.SimplifierOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                formattedSolution = simplifiedDocument.Project.Solution;
+                formattedSolution = formattedDocument.Project.Solution;
+
+                var updatedOriginalDocument = formattedSolution.GetDocument(documentId);
+                var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
+
+                var unsimplified = (await formattedDocument.GetTextAsync()).ToString();
             }
 
             return formattedSolution;
@@ -359,6 +368,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 editor.ReplaceNode(typeDeclaration, unformattedTypeDeclaration);
 
                 unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
+
+                // Becca 
+                var updatedOriginalDocument = unformattedSolution.GetDocument(documentId);
+                var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
 
                 // Only update the first instance of the typedeclaration,
                 // since it's not needed in all declarations
