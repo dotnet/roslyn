@@ -875,11 +875,6 @@ namespace Microsoft.CodeAnalysis
             return dictionary;
         }
 
-        internal static Location FirstOrNone(this ImmutableArray<Location> items)
-        {
-            return items.IsEmpty ? Location.None : items[0];
-        }
-
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
         {
             // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we

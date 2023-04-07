@@ -2037,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocationOrNone();
         }
 
         private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)

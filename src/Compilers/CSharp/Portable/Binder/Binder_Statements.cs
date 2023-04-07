@@ -3818,7 +3818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol? baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
-            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.GetFirstLocation();
+            Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
             foreach (MethodSymbol ctor in baseType.InstanceConstructors)
             {
@@ -3878,7 +3878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol containingType = constructor.ContainingType;
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+            Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
             MethodSymbol? baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);

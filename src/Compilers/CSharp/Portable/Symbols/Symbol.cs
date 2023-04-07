@@ -346,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Location GetFirstLocation()
             => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
 
+        public Location GetFirstLocationOrNone()
+            => TryGetFirstLocation() ?? Location.None;
+
 #nullable disable
 
         /// <summary>

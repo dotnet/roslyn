@@ -20,11 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
-<<<<<<< HEAD
-            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations.FirstOrDefault(),
-=======
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.TryGetFirstLocation(),
->>>>>>> main
                    syntaxRef: null,
                    isParams: false,
                    isExtensionMethodThis: false,
