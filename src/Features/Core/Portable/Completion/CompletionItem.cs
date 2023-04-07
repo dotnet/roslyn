@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns true if this item's text edit requires complex resolution.
-        /// For example, an edit may be complex if it makes changes outside the range
+        /// An edit is considered complex if the span of the change is different from
         /// specified by <see cref="Span"/>.
         /// 
         /// Example of an item type requiring complex resolution is C#/VB override completion.

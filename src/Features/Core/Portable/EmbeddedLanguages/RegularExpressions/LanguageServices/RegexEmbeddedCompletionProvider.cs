@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     sortText: sortText,
                     properties: properties.ToImmutable(),
                     rules: s_rules,
-                    isComplexTextEdit: !context.CompletionListSpan.Contains(textChange.Span)));
+                    isComplexTextEdit: context.CompletionListSpan != textChange.Span));
             }
 
             context.IsExclusive = true;

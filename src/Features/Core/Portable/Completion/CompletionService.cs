@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
                 GC.KeepAlive(semanticModel);
 
-                Debug.Assert(item.Span.Contains(change.TextChange.Span) || item.IsComplexTextEdit);
+                Debug.Assert(item.Span == change.TextChange.Span || item.IsComplexTextEdit);
                 return change;
             }
             else
