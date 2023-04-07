@@ -1951,12 +1951,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
-        [CombinatorialData]
-        public async Task TestMissingForDiscard(
-            [CombinatorialValues("int", "string")] string originalFirstType,
-            [CombinatorialValues("int", "string")] string originalSecondType)
+        [InlineData("int", "int")]
+        [InlineData("string", "string")]
+        public async Task TestForDiscardsWithMatchingExpressionTypes(string originalFirstType, string originalSecondType)
         {
-            await TestMissingAsync($$"""
+            await TestInRegularAndScript1Async($$"""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        [|if|] (flag)
+                        {
+                            _ = A();
+                        }
+                        else
+                        {
+                            _ = B();
+                        }
+                    }
+
+                    {{originalFirstType}} A() => default;
+                    {{originalSecondType}} B() => default;
+                }
+                """, $$"""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        _ = flag ? A() : B();
+                    }
+                
+                    {{originalFirstType}} A() => default;
+                    {{originalSecondType}} B() => default;
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        public async Task TestMissingForDiscardsWithDifferentTypes()
+        {
+            await TestMissingAsync("""
                 class MyClass
                 {
                     void M(bool flag)
@@ -1970,9 +2004,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                             _ = B();
                         }
                     }
-
-                    {{originalFirstType}} A() => default;
-                    {{originalSecondType}} B() => default;
+                
+                    int A() => default;
+                    string B() => default;
                 }
                 """);
         }

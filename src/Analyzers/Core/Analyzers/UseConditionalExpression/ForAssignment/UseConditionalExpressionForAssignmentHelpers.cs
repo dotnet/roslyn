@@ -41,27 +41,29 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            // if there are discard assignment in both branches, report as not matched.
-            // Otherwise the resulting code looks like `_ = condition ? trueBranch : falseBranch`,
-            // which is not as clear as separate statements in if:
-            // if (condition)
-            // {
-            //     _ = trueBranch;
-            // }
-            // else
-            // {
-            //     _ = falseBranch;
-            // }
-            if (trueAssignment?.Target is IDiscardOperation &&
-                falseAssignment?.Target is IDiscardOperation)
-            {
-                return false;
-            }
-
             // The left side of both assignment statements has to be syntactically identical (modulo
             // trivia differences).
             if (trueAssignment != null && falseAssignment != null &&
                 !syntaxFacts.AreEquivalent(trueAssignment.Target.Syntax, falseAssignment.Target.Syntax))
+            {
+                return false;
+            }
+
+            // If both assignments are discards type check is required.
+            // Since discard can discard value of any type, after converting if statement to a conditional expression
+            // it can produce compiler error if types are not the same, e.g.:
+            // if (flag)
+            // {
+            //     _ = 5;
+            // }
+            // else
+            // {
+            //     _ = "";
+            // }
+            // This code can result in `_ = flag ? 5 : ""`, which immediately produces CS0173
+            if (trueAssignment?.Target is IDiscardOperation &&
+                falseAssignment?.Target is IDiscardOperation &&
+                !Equals(trueAssignment.Type, falseAssignment.Type))
             {
                 return false;
             }
