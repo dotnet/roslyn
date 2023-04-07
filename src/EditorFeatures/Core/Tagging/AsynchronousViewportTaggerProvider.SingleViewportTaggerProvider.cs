@@ -89,7 +89,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
             // subtract out the visible range.
             var widenedSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
-            Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal span");
+            Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
 
             var widenedSpan = widenedSpanOpt.Value;
             Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
