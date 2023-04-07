@@ -191,52 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            /// <summary>
-            /// Determines if any of the state sets in <see cref="GetAllHostStateSets()"/> match a specified predicate.
-            /// </summary>
-            /// <remarks>
-            /// This method avoids the performance overhead of calling <see cref="GetAllHostStateSets()"/> for the
-            /// specific case where the result is only used for testing if any element meets certain conditions.
-            /// </remarks>
-            public bool HasAnyHostStateSet<TArg>(Func<StateSet, TArg, bool> match, TArg arg)
-            {
-                foreach (var (_, hostStateSet) in _hostAnalyzerStateMap)
-                {
-                    foreach (var stateSet in hostStateSet.OrderedStateSets)
-                    {
-                        if (match(stateSet, arg))
-                            return true;
-                    }
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Determines if any of the state sets in <see cref="_projectAnalyzerStateMap"/> for a specific project
-            /// match a specified predicate.
-            /// </summary>
-            /// <remarks>
-            /// <para>This method avoids the performance overhead of calling <see cref="GetStateSets(Project)"/> for the
-            /// specific case where the result is only used for testing if any element meets certain conditions.</para>
-            ///
-            /// <para>Note that host state sets (i.e. ones retured by <see cref="GetAllHostStateSets()"/> are not tested
-            /// by this method.</para>
-            /// </remarks>
-            public bool HasAnyProjectStateSet<TArg>(ProjectId projectId, Func<StateSet, TArg, bool> match, TArg arg)
-            {
-                if (_projectAnalyzerStateMap.TryGetValue(projectId, out var entry))
-                {
-                    foreach (var (_, stateSet) in entry.StateSetMap)
-                    {
-                        if (match(stateSet, arg))
-                            return true;
-                    }
-                }
-
-                return false;
-            }
-
             public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
             {
                 var removed = false;
