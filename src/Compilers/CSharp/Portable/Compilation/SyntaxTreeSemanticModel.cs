@@ -1796,6 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loc.IsInSource && loc.SourceTree == this.SyntaxTree && declarationSpan.Contains(loc.SourceSpan) &&
                             loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start)
                         {
+                            // exclude decls created via syntax recovery
                             zeroWidthMatch = symbol;
                         }
                     }
