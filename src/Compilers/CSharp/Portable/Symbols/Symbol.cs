@@ -346,6 +346,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Location GetFirstLocation()
             => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
 
+        /// <summary>
+        /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref
+        /// name="tree"/> and is contained within <paramref name="declarationSpan"/>.  Subclasses can override this to
+        /// be more efficient if desired (especially if avoiding allocations of the <see cref="Locations"/> array is
+        /// desired).
+        /// </summary>
         public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
         {
             foreach (var loc in this.Locations)
