@@ -1953,7 +1953,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
         [InlineData("int", "int")]
         [InlineData("string", "string")]
-        public async Task TestForDiscardsWithMatchingExpressionTypes(string originalFirstType, string originalSecondType)
+        [InlineData("string", "object")]
+        [InlineData("object", "string")]
+        public async Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
         {
             await TestInRegularAndScript1Async($$"""
                 class MyClass

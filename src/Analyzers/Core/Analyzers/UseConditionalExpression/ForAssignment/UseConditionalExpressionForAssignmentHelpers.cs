@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // This code can result in `_ = flag ? 5 : ""`, which immediately produces CS0173
             if (trueAssignment?.Target is IDiscardOperation &&
                 falseAssignment?.Target is IDiscardOperation &&
-                !Equals(trueAssignment.Type, falseAssignment.Type))
+                !AreEqualOrHaveImplicitConversion(trueAssignment.Type, falseAssignment.Type, trueAssignment.SemanticModel!.Compilation))
             {
                 return false;
             }
@@ -71,6 +71,27 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             isRef = trueAssignment?.IsRef == true;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
+
+            static bool AreEqualOrHaveImplicitConversion(ITypeSymbol? firstType, ITypeSymbol? secondType, Compilation compilation)
+            {
+                if (Equals(firstType, secondType))
+                    return true;
+
+                if (firstType is null || secondType is null)
+                    return false;
+
+                var conversionFromFirstToSecond = compilation.ClassifyCommonConversion(firstType, secondType);
+
+                if (conversionFromFirstToSecond.IsImplicit)
+                    return true;
+
+                var conversionFromSecondToFirst = compilation.ClassifyCommonConversion(secondType, firstType);
+
+                if (conversionFromSecondToFirst.IsImplicit)
+                    return true;
+
+                return false;
+            }
         }
 
         private static bool TryGetAssignmentOrThrow(
