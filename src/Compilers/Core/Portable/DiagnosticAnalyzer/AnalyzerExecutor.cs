@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
         /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <remarks>
         /// Note that this API doesn't execute any <see cref="CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
         /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope, CancellationToken)"/> API
@@ -293,6 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="actions"><see cref="AnalyzerActions"/> whose symbol start actions are to be executed.</param>
         /// <param name="symbolScope">Symbol scope to store the analyzer actions.</param>
         /// <param name="isGeneratedCodeSymbol">Flag indicating if the symbol being analyzed is generated code.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSymbolStartActions(
             ISymbol symbol,
             DiagnosticAnalyzer analyzer,
@@ -329,6 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="suppressor">Suppressor to be executed.</param>
         /// <param name="reportedDiagnostics">Reported analyzer/compiler diagnostics that can be suppressed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics, CancellationToken cancellationToken)
         {
             Debug.Assert(_addSuppression != null);
@@ -361,6 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilationActions">Compilation actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="compilationEvent">Compilation event.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteCompilationActions(
             ImmutableArray<CompilationAnalyzerAction> compilationActions,
             DiagnosticAnalyzer analyzer,
@@ -398,6 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
         /// <param name="isGeneratedCodeSymbol">Flag indicating if this is a generated code symbol.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSymbolActions(
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
@@ -478,6 +483,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
         /// <param name="isGeneratedCode">Flag indicating if the symbol being analyzed is generated code.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
         /// False, if there are some pending actions.
@@ -542,6 +548,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModel">Semantic model to analyze.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSemanticModelActions(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
@@ -586,6 +593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="file">Syntax tree to analyze.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSyntaxTreeActions(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
@@ -630,6 +638,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="additionalFileActions">Actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="file">Additional file to analyze.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteAdditionalFileActions(
             ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             DiagnosticAnalyzer analyzer,
