@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static partial class ClassifierHelper
     {
-        private static PooledObject<SegmentedList<ClassifiedSpan>> GetPooledList(out SegmentedList<ClassifiedSpan> classifiedSpans)
-            => Classifier.GetPooledList(out classifiedSpans);
-
         /// <summary>
         /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>. This will do this
         /// using an appropriate <see cref="IClassificationService"/> if that can be found.  <see
@@ -45,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Classification
             // name), we'll do a later merging step to get the final correct list of 
             // classifications.  For tagging, normally the editor handles this.  But as
             // we're producing the list of Inlines ourselves, we have to handles this here.
-            using var _1 = GetPooledList(out var syntaxSpans);
-            using var _2 = GetPooledList(out var semanticSpans);
+            using var _1 = Classifier.GetPooledList(out var syntaxSpans);
+            using var _2 = Classifier.GetPooledList(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
 
@@ -107,14 +104,14 @@ namespace Microsoft.CodeAnalysis.Classification
             AdjustSpans(syntaxSpans, widenedSpan);
             AdjustSpans(semanticSpans, widenedSpan);
 
-            using var _1 = GetPooledList(out var mergedSpans);
+            using var _1 = Classifier.GetPooledList(out var mergedSpans);
 
             MergeParts(syntaxSpans, semanticSpans, mergedSpans);
             Order(mergedSpans);
 
             // The classification service will only produce classifications for things it knows about.  i.e. there will
             // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
-            using var _2 = GetPooledList(out var filledInSpans);
+            using var _2 = Classifier.GetPooledList(out var filledInSpans);
             FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
             return filledInSpans.ToImmutableArray();
         }
