@@ -973,6 +973,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<Location> Locations
             => ImmutableArray<Location>.CastUp(declaration.NameLocations.ToImmutable());
 
+        public override Location? TryGetFirstLocation()
+            => declaration.Declarations[0].NameLocation;
+
         public ImmutableArray<SyntaxReference> SyntaxReferences
         {
             get
