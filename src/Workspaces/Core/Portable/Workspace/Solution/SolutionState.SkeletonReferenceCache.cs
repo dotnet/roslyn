@@ -250,7 +250,7 @@ internal partial class SolutionState
                     {
                         logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                        var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
+                        var temporaryStorageService = services.ExportProvider.GetExports<ITemporaryStorageServiceInternal>().Single().Value;
                         var storage = temporaryStorageService.CreateTemporaryStreamStorage();
 
                         stream.Position = 0;

@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public TestSerializerService(
             ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
-            SolutionServices workspaceServices,
             ITextFactoryService textFactoryService,
+            ITemporaryStorageServiceInternal storageService,
             IDocumentationProviderService documentationProviderService,
             IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
             ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
-            : base(workspaceServices, textFactoryService, documentationProviderService, analyzerAssemblyLoaderProvider, serializationServices)
+            : base(textFactoryService, storageService, documentationProviderService, analyzerAssemblyLoaderProvider, serializationServices)
         {
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
         }
@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             private readonly object _gate = new();
             private readonly ITextFactoryService _textFactoryService;
             private readonly IDocumentationProviderService _documentationProviderService;
+            private readonly ITemporaryStorageServiceInternal _storageService;
             private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider;
             private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
@@ -158,11 +159,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 IDocumentationProviderService documentationProviderService,
+                ITemporaryStorageServiceInternal storageService,
                 [Import(AllowDefault = true)] ITextFactoryService textFactoryService,
                 [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
                 [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
                 _documentationProviderService = documentationProviderService;
+                _storageService = storageService;
                 _textFactoryService = textFactoryService ?? TextFactoryService.Default;
                 _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
                 _serializationServices = serializationServices.ToImmutableArray();
@@ -171,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                 => new TestSerializerService(
-                    SharedTestGeneratorReferences, workspaceServices.SolutionServices, _textFactoryService, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
+                    SharedTestGeneratorReferences, _textFactoryService, _storageService, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
         }
     }
 }

@@ -6,11 +6,8 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -24,12 +21,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-            => CreateWorkspace(new[]
-            {
-                typeof(TestTemporaryStorageServiceFactory)
-            });
 
         private static Solution AddSingleFileCSharpProject(Solution solution, string source)
         {
@@ -54,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCSharpReferenceToZeroWidthNode()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 public class C<> 
 {
@@ -77,7 +68,7 @@ public class C<>
         [Fact]
         public void TestVisualBasicReferenceToZeroWidthNode()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 Public Class C(Of )
 End Class
@@ -99,7 +90,7 @@ End Class
         [Fact]
         public void TestCSharpReferenceToNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true || true
 public class C 
@@ -122,7 +113,7 @@ public class C
         [Fact]
         public void TestVisualBasicReferenceToNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If True Or True Then
 Public Class C
@@ -145,7 +136,7 @@ End Class
         [Fact]
         public void TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true ||
 public class C 
@@ -173,7 +164,7 @@ public class C
         [Fact]
         public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If (True Or ) Then
 Public Class C

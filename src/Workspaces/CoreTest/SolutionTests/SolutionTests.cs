@@ -2643,7 +2643,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableText();
+            using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -2662,14 +2662,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITemporaryStorageServiceInternal>());
                 observedText.AssertReleased();
             }
             else
             {
                 // If this assertion fails, it means a new target supports the true temporary storage service, and the
                 // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITemporaryStorageServiceInternal>());
             }
 
             // if we ask for the same text again we should get the original content

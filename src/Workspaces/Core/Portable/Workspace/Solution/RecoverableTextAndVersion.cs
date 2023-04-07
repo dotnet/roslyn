@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
                 : base(textAndVersion.Text)
             {
-                _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
+                _storageService = services.ExportProvider.GetExports<ITemporaryStorageServiceInternal>().Single().Value;
 
                 Version = textAndVersion.Version;
                 LoadDiagnostic = textAndVersion.LoadDiagnostic;

@@ -10,34 +10,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal partial class TemporaryStorageService
+    [Export(typeof(ITemporaryStorageServiceInternal)), Shared]
+    internal partial class TemporaryStorageServiceDispatcher : ITemporaryStorageServiceInternal
     {
-        [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Default), Shared]
-        internal partial class Factory : IWorkspaceServiceFactory
+        private readonly ITemporaryStorageServiceInternal _underlyingStorageService;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TemporaryStorageServiceDispatcher(
+            [Import(AllowDefault = true)] ITextFactoryService? textFactoryService,
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService)
         {
-            private readonly ITextFactoryService _textFactoryService;
-            private readonly IWorkspaceThreadingService? _workspaceThreadingService;
+            textFactoryService ??= TextFactoryService.Default;
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(
-                [Import(AllowDefault = true)] ITextFactoryService? textFactoryService,
-                [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService)
-            {
-                _textFactoryService = textFactoryService ?? TextFactoryService.Default;
-                _workspaceThreadingService = workspaceThreadingService;
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-                // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-                // until https://github.com/dotnet/runtime/issues/30878 is fixed.
-                return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                    ? new TemporaryStorageService(_workspaceThreadingService, _textFactoryService)
-                    : TrivialTemporaryStorageService.Instance;
-            }
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
+#pragma warning disable CA1416 // Validate platform compatibility
+            _underlyingStorageService = PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+                ? new TemporaryStorageService(workspaceThreadingService, textFactoryService)
+                : TrivialTemporaryStorageService.Instance;
+#pragma warning restore CA1416 // Validate platform compatibility
         }
+
+        public ITemporaryStreamStorageInternal CreateTemporaryStreamStorage()
+            => _underlyingStorageService.CreateTemporaryStreamStorage();
+
+        public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
+            => _underlyingStorageService.CreateTemporaryTextStorage();
     }
 }

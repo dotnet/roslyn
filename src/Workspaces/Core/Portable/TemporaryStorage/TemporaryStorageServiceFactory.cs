@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Host
         private long _offset;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
+        public TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
         {
             _workspaceThreadingService = workspaceThreadingService;
             _textFactory = textFactory;

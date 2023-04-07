@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,19 +19,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private VisualStudioMetadataReferenceManager? _singleton;
         private readonly IServiceProvider _serviceProvider;
+        private readonly TemporaryStorageService _storageService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMetadataReferenceManagerFactory(SVsServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
+        public VisualStudioMetadataReferenceManagerFactory(
+            SVsServiceProvider serviceProvider,
+            ITemporaryStorageServiceInternal storageService)
+        {
+            _serviceProvider = serviceProvider;
+            _storageService = (TemporaryStorageService)storageService;
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (_singleton == null)
             {
                 // If we're in VS we know we must be able to get a TemporaryStorageService
-                var temporaryStorage = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
-                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, temporaryStorage), null);
+                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, _storageService), null);
             }
 
             return _singleton;

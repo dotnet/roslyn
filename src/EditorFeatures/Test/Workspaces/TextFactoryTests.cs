@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!");
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 

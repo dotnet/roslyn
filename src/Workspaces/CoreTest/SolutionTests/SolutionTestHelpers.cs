@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -16,17 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspace(Type[]? additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
-        public static Workspace CreateWorkspaceWithNormalText()
-            => CreateWorkspace(new[]
-            {
-                typeof(TestTemporaryStorageServiceFactory)
-            });
-
-        public static Workspace CreateWorkspaceWithRecoverableText()
-            => CreateWorkspace();
-
         public static Workspace CreateWorkspaceWithPartialSemantics()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestTemporaryStorageServiceFactory) });
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
 
 #nullable disable
 

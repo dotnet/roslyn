@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
+            _temporaryStorageService = workspaceServices.ExportProvider.GetExports<ITemporaryStorageServiceInternal>().Single().Value;
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.

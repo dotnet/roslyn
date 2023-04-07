@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             private readonly IDocumentationProviderService _documentationProviderService;
+            private readonly ITemporaryStorageServiceInternal _storageService;
             private readonly ITextFactoryService _textFactoryService;
             private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider;
             private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
@@ -31,11 +32,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 IDocumentationProviderService documentationProviderService,
+                ITemporaryStorageServiceInternal storageService,
                 [Import(AllowDefault = true)] ITextFactoryService? textFactoryService,
                 [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider? analyzerAssemblyLoaderProvider,
                 [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
             {
                 _documentationProviderService = documentationProviderService;
+                _storageService = storageService;
                 _textFactoryService = textFactoryService ?? TextFactoryService.Default;
                 _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
                 _serializationServices = serializationServices.ToImmutableArray();
@@ -43,33 +46,31 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(workspaceServices.SolutionServices, _textFactoryService, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
+                => new SerializerService(_textFactoryService, _storageService, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
         }
 
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
-        private readonly SolutionServices _workspaceServices;
 
-        private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly ITextFactoryService _textService;
+        private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
         private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         private protected SerializerService(
-            SolutionServices workspaceServices,
             ITextFactoryService textFactoryService,
+            ITemporaryStorageServiceInternal storageService,
             IDocumentationProviderService documentationProviderService,
             IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
             ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
         {
-            _workspaceServices = workspaceServices;
-            _serializationServices = serializationServices;
-            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = textFactoryService;
+            _storageService = storageService;
             _documentationService = documentationProviderService;
             _analyzerLoaderProvider = analyzerAssemblyLoaderProvider;
+            _serializationServices = serializationServices;
         }
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
