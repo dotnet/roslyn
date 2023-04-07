@@ -1955,6 +1955,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
         [InlineData("string", "string")]
         [InlineData("string", "object")]
         [InlineData("object", "string")]
+        [InlineData("int", "long")]
+        [InlineData("long", "int")]
         public async Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
         {
             await TestInRegularAndScript1Async($$"""
