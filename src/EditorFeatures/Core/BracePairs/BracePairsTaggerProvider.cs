@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -24,7 +22,6 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BracePairs
 {
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
     [VisualStudio.Utilities.Name(nameof(BracePairsTaggerProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IBracePairTag))]
-    internal sealed class BracePairsTaggerProvider : AsynchronousViewTaggerProvider<IBracePairTag>
+    internal sealed class BracePairsTaggerProvider : AsynchronousViewportTaggerProvider<IBracePairTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,23 +54,6 @@ namespace Microsoft.CodeAnalysis.BracePairs
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer));
-        }
-
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
-
-            // Find the visible span some 100 lines +/- what's actually in view.  This way
-            // if the user scrolls up/down, we'll already have the results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-            if (visibleSpanOpt == null)
-            {
-                // Couldn't find anything visible, just fall back to tagging all brace locations
-                return base.GetSpansToTag(textView, subjectBuffer);
-            }
-
-            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, CancellationToken cancellationToken)

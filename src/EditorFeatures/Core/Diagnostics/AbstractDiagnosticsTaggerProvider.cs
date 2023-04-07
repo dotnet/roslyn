@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -80,11 +81,15 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
+        using var taggers = TemporaryArray<ITagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
-            taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(buffer));
+        {
+            var innerTagger = taggerProvider.CreateTagger<TTag>(buffer);
+            if (innerTagger != null)
+                taggers.Add(innerTagger);
+        }
 
-        var tagger = new AggregateTagger(taggers.ToImmutable());
+        var tagger = new AggregateTagger<TTag>(taggers.ToImmutableAndClear());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
