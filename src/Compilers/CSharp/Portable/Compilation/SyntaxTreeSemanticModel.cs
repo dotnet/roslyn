@@ -2380,12 +2380,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
 
-            if (symbol.TryGetFirstLocation() is null)
+            if (symbol.TryGetFirstLocation() is not Location location)
             {
                 return symbol;
             }
 
-            var location = symbol.GetFirstLocation();
             // The symbol may be from a distinct syntax tree - perhaps the
             // symbol was returned from LookupSymbols() for instance.
             if (location.SourceTree != this.SyntaxTree)
