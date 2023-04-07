@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var serializer = solutionServices.GetRequiredService<ISerializerService>();
+                    var serializer = solutionServices.ExportProvider.GetExports<ISerializerService>().Single().Value;
 
                     var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
                     var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);

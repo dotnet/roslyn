@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal interface ISerializerService : IWorkspaceService
+    internal interface ISerializerService
     {
         void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
@@ -32,5 +31,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         Checksum CreateChecksum(object value, CancellationToken cancellationToken);
         Checksum CreateParseOptionsChecksum(ParseOptions value);
+    }
+
+    internal interface ISerializerOverrideService
+    {
+        AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, Func<AnalyzerReference> baseCall, CancellationToken cancellationToken);
+        MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, Func<MetadataReference> baseCall, CancellationToken cancellationToken);
+        void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, Action baseCall, CancellationToken cancellationToken);
+        void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, Action baseCall, CancellationToken cancellationToken);
     }
 }

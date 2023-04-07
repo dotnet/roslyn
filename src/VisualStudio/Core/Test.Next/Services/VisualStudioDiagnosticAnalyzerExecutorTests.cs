@@ -221,7 +221,7 @@ End Class";
 
             // add host analyzer as global assets
             var remotableDataService = workspace.ExportProvider.GetExportedValue<ISolutionAssetStorageProvider>();
-            var serializer = workspace.Services.GetRequiredService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             // run analysis
             var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);

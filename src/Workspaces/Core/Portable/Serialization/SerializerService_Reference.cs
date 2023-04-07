@@ -61,69 +61,108 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
-            if (reference is PortableExecutableReference portable)
+            if (_serializerOverrideService != null)
             {
-                if (portable is ISupportTemporaryStorage supportTemporaryStorage)
-                {
-                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
-                    {
-                        return;
-                    }
-                }
-
-                WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+                _serializerOverrideService.WriteMetadataReferenceTo(
+                    reference, writer, context, WriteMetadataReferenceToDirect, cancellationToken);
                 return;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(reference.GetType());
-        }
+            WriteMetadataReferenceToDirect();
 
-        public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var type = reader.ReadString();
-            if (type == nameof(PortableExecutableReference))
+            void WriteMetadataReferenceToDirect()
             {
-                return ReadPortableExecutableReferenceFrom(reader, cancellationToken);
-            }
+                if (reference is PortableExecutableReference portable)
+                {
+                    if (portable is ISupportTemporaryStorage supportTemporaryStorage)
+                    {
+                        if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                        {
+                            return;
+                        }
+                    }
 
-            throw ExceptionUtilities.UnexpectedValue(type);
-        }
+                    WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+                    return;
+                }
 
-        public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            switch (reference)
-            {
-                case AnalyzerFileReference file:
-                    writer.WriteString(nameof(AnalyzerFileReference));
-                    writer.WriteString(file.FullPath);
-                    writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reference);
+                throw ExceptionUtilities.UnexpectedValue(reference.GetType());
             }
         }
 
-        public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (_serializerOverrideService != null)
+                return _serializerOverrideService.ReadMetadataReferenceFrom(reader, ReadMetadataReferenceDirect, cancellationToken);
 
-            var type = reader.ReadString();
-            if (type == nameof(AnalyzerFileReference))
+            return ReadMetadataReferenceDirect();
+
+            MetadataReference ReadMetadataReferenceDirect()
             {
-                var fullPath = reader.ReadString();
-                var shadowCopy = reader.ReadBoolean();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
-            }
+                var type = reader.ReadString();
+                if (type == nameof(PortableExecutableReference))
+                {
+                    return ReadPortableExecutableReferenceFrom(reader, cancellationToken);
+                }
 
-            throw ExceptionUtilities.UnexpectedValue(type);
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
         }
 
-        protected static void WritePortableExecutableReferenceHeaderTo(
+        public void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            if (_serializerOverrideService != null)
+            {
+                _serializerOverrideService.WriteAnalyzerReferenceTo(reference, writer, WriteAnalyzerReferenceDirect, cancellationToken);
+                return;
+            }
+
+            WriteAnalyzerReferenceDirect();
+
+            void WriteAnalyzerReferenceDirect()
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                switch (reference)
+                {
+                    case AnalyzerFileReference file:
+                        writer.WriteString(nameof(AnalyzerFileReference));
+                        writer.WriteString(file.FullPath);
+                        writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(reference);
+                }
+            }
+        }
+
+        public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            if (_serializerOverrideService != null)
+                return _serializerOverrideService.ReadAnalyzerReferenceFrom(reader, ReadAnalyzerReferenceDirect, cancellationToken);
+
+            return ReadAnalyzerReferenceDirect();
+
+            AnalyzerReference ReadAnalyzerReferenceDirect()
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var type = reader.ReadString();
+                if (type == nameof(AnalyzerFileReference))
+                {
+                    var fullPath = reader.ReadString();
+                    var shadowCopy = reader.ReadBoolean();
+                    return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
+        }
+
+        private static void WritePortableExecutableReferenceHeaderTo(
             PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteString(nameof(PortableExecutableReference));

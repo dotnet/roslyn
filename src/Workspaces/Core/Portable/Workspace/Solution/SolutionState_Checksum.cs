@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
                         })
                         .ToArray();
 
-                    var serializer = Services.GetRequiredService<ISerializerService>();
+                    var serializer = Services.ExportProvider.GetExports<ISerializerService>().Single().Value;
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;

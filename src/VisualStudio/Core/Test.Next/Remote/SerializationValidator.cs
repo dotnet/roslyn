@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var mefServices = (MefWorkspaceServices)services;
 
             AssetStorage = mefServices.HostExportProvider.GetExportedValue<ISolutionAssetStorageProvider>().AssetStorage;
-            Serializer = services.GetRequiredService<ISerializerService>();
+            Serializer = mefServices.HostExportProvider.GetExportedValue<ISerializerService>();
             Services = services;
         }
 

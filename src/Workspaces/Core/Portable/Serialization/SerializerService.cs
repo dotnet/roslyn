@@ -17,60 +17,34 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal partial class SerializerService : ISerializerService
+    [Export(typeof(ISerializerService)), Shared]
+    internal sealed partial class SerializerService : ISerializerService
     {
-        [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
-        internal sealed class Factory : IWorkspaceServiceFactory
-        {
-            private readonly IDocumentationProviderService _documentationProviderService;
-            private readonly ITemporaryStorageServiceInternal _storageService;
-            private readonly ITextFactoryService _textFactoryService;
-            private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider;
-            private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(
-                IDocumentationProviderService documentationProviderService,
-                ITemporaryStorageServiceInternal storageService,
-                [Import(AllowDefault = true)] ITextFactoryService? textFactoryService,
-                [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider? analyzerAssemblyLoaderProvider,
-                [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
-            {
-                _documentationProviderService = documentationProviderService;
-                _storageService = storageService;
-                _textFactoryService = textFactoryService ?? TextFactoryService.Default;
-                _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
-                _serializationServices = serializationServices.ToImmutableArray();
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(_textFactoryService, _storageService, _documentationProviderService, _analyzerAssemblyLoaderProvider, _serializationServices);
-        }
-
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
-
 
         private readonly ITextFactoryService _textService;
         private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
+        private readonly ISerializerOverrideService? _serializerOverrideService;
         private readonly ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> _serializationServices;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private protected SerializerService(
-            ITextFactoryService textFactoryService,
-            ITemporaryStorageServiceInternal storageService,
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SerializerService(
             IDocumentationProviderService documentationProviderService,
-            IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
-            ImmutableArray<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
+            ITemporaryStorageServiceInternal storageService,
+            [Import(AllowDefault = true)] ITextFactoryService? textFactoryService,
+            [Import(AllowDefault = true)] IAnalyzerAssemblyLoaderProvider? analyzerAssemblyLoaderProvider,
+            [Import(AllowDefault = true)] ISerializerOverrideService? serializerOverrideService,
+            [ImportMany] IEnumerable<Lazy<IOptionsSerializationService, ILanguageMetadata>> serializationServices)
         {
-            _textService = textFactoryService;
-            _storageService = storageService;
             _documentationService = documentationProviderService;
-            _analyzerLoaderProvider = analyzerAssemblyLoaderProvider;
-            _serializationServices = serializationServices;
+            _storageService = storageService;
+            _textService = textFactoryService ?? TextFactoryService.Default;
+            _analyzerLoaderProvider = analyzerAssemblyLoaderProvider ?? DefaultAnalyzerAssemblyLoaderProvider.Instance;
+            _serializerOverrideService = serializerOverrideService;
+            _serializationServices = serializationServices.ToImmutableArray();
         }
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)

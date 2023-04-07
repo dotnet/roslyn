@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
-            var serializerService = Services.GetRequiredService<ISerializerService>();
+            var serializerService = Services.SolutionServices.ExportProvider.GetExports<ISerializerService>().Single().Value;
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 

@@ -107,9 +107,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map);
 
-            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
         }
 
         [Fact]

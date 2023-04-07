@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return ChecksumCache.GetOrCreate(reference, _ =>
                 {
-                    var serializer = services.GetRequiredService<ISerializerService>();
+                    var serializer = services.ExportProvider.GetExports<ISerializerService>().Single().Value;
                     var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
                     // Include serialization format version in our checksum.  That way if the 

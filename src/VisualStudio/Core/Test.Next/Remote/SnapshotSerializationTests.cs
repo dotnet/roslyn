@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference);
 
             var assetFromStorage = CloneAsset(serializer, assetFromFile);
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void Missing_Metadata_Serialization_Test()
         {
             using var workspace = CreateWorkspace();
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             var reference = new MissingMetadataReference();
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void Missing_Analyzer_Serialization_Test()
         {
             using var workspace = CreateWorkspace();
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void Missing_Analyzer_Serialization_Desktop_Test()
         {
             using var workspace = CreateWorkspace();
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var tempRoot = new TempRoot();
             using var workspace = CreateWorkspace();
 
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             // actually shadow copy content
             var location = typeof(object).Assembly.Location;
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var tempRoot = new TempRoot();
 
             using var workspace = CreateWorkspace();
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             // actually shadow copy content
             var location = typeof(object).Assembly.Location;
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var workspace = CreateWorkspace();
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             // make sure this doesn't throw
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task EmptyAssetChecksumTest()
         {
             var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
-            var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
+            var serializer = document.Project.Solution.Services.ExportProvider.GetExportedValue<ISerializerService>();
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             // test with right serializable encoding
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
             using var workspace = CreateWorkspace();
-            var serializer = workspace.Services.GetService<ISerializerService>();
+            var serializer = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>();
 
             VerifyOptions(csharpOptions);
             VerifyOptions(vbOptions);

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.CoreUtility
                 typeof(VisualStudio.Utilities.IFeatureServiceFactory).Assembly)
             .AddParts(
-                typeof(TestSerializerService.Factory),
+                typeof(TestSerializerOverrideService),
                 typeof(TestExportJoinableTaskContext),
                 typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
                 typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Checksum GetParseOptionsChecksum()
-            => GetParseOptionsChecksum(LanguageServices.SolutionServices.GetService<ISerializerService>());
+            => GetParseOptionsChecksum(LanguageServices.SolutionServices.ExportProvider.GetExports<ISerializerService>().Single().Value);
 
         private Checksum GetParseOptionsChecksum(ISerializerService serializer)
             => this.SupportsCompilation
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                     var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
                     var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
 
-                    var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
+                    var serializer = LanguageServices.SolutionServices.ExportProvider.GetExports<ISerializerService>().Single().Value;
 
                     var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
 

@@ -50,9 +50,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
 
-            var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
             var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
@@ -80,9 +80,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map);
 
-            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
             await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
@@ -108,9 +108,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map);
 
-            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
             await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
@@ -133,9 +133,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map);
 
-            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
             await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);

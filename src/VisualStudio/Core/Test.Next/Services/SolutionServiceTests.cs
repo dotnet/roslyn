@@ -566,7 +566,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             // Syncing project 1 should just since it over.
             await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -608,7 +608,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
@@ -641,7 +641,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             // syncing P3 should since project P2 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -683,7 +683,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             // syncing project3 should since project2 and project1 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -721,7 +721,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             // syncing project3 should since project2 and project1 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -757,7 +757,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var map = new Dictionary<Checksum, object>();
             var assetProvider = new AssetProvider(
-                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
 
             // Syncing over project1 should give us 1 set of options on the OOP side.
             await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -854,9 +854,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+            var assetSource = new SimpleAssetSource(workspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>(), map);
 
-            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices.ExportProvider.GetExportedValue<ISerializerService>());
         }
 
         private class TestAnalyzerProvider : IIncrementalAnalyzerProvider

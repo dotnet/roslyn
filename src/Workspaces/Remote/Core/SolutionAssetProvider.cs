@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask GetAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _solutionAssetStorageProvider.AssetStorage;
-            var serializer = _services.GetRequiredService<ISerializerService>();
+            var serializer = _services.ExportProvider.GetExports<ISerializerService>().Single().Value;
             var scope = assetStorage.GetScope(solutionChecksum);
 
             SolutionAsset? singleAsset = null;

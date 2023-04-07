@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
                 {
-                    var serializer = workspace.Services.GetRequiredService<ISerializerService>();
+                    var serializer = workspace.Services.SolutionServices.ExportProvider.GetExports<ISerializerService>().Single().Value;
 
                     // Try to get the text associated with baseTextChecksum
                     var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
