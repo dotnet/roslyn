@@ -51,6 +51,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
         protected override TaggerTextChangeBehavior TextChangeBehavior
             => _callback.TextChangeBehavior;
 
+        protected override SpanTrackingMode SpanTrackingMode
+            => _callback.SpanTrackingMode;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
