@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
     {
         public static Metadata GetMetadata(this VisualStudioWorkspace workspace, string fullPath, DateTime snapshotTimestamp)
         {
-            var metadataReferenceProvider = workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+            var metadataReferenceProvider = workspace.Services.SolutionServices.ExportProvider.GetExports<VisualStudioMetadataReferenceManager>().Single().Value;
             return metadataReferenceProvider.GetMetadata(fullPath, snapshotTimestamp);
         }
 

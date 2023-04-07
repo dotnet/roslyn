@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly Lazy<VisualStudioMetadataReferenceManager> _referenceManager;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
-            SVsServiceProvider serviceProvider)
+            SVsServiceProvider serviceProvider,
+            Lazy<VisualStudioMetadataReferenceManager> referenceManager)
         {
             _threadingContext = threadingContext;
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
@@ -56,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
             _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
+            _referenceManager = referenceManager;
         }
 
         public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -68,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // moved off we'll need to fix up it's constructor to be free-threaded.
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+            _ = _referenceManager.Value;
 
             _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 

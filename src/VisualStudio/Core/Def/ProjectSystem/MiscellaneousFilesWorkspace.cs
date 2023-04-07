@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
-
+        private readonly Lazy<VisualStudioMetadataReferenceManager> _referenceManager;
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
         /// <summary>
@@ -66,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IThreadingContext threadingContext,
             OpenTextBufferProvider openTextBufferProvider,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-            VisualStudioWorkspace visualStudioWorkspace)
+            VisualStudioWorkspace visualStudioWorkspace,
+            Lazy<VisualStudioMetadataReferenceManager> referenceManager)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
@@ -74,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _threadingContext = threadingContext;
             _openTextBufferProvider = openTextBufferProvider;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
+            _referenceManager = referenceManager;
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
 
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IEnumerable<MetadataReference> CreateMetadataReferences()
         {
-            var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
+            var manager = _referenceManager.Value;
             var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }

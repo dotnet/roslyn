@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -14,9 +15,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -30,7 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageServiceInternal"/>.
     /// </remarks>
-    internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
+    [Export(typeof(VisualStudioMetadataReferenceManager)), Shared]
+    internal sealed partial class VisualStudioMetadataReferenceManager : IDisposable
     {
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
@@ -60,10 +63,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
-        internal VisualStudioMetadataReferenceManager(
-            IServiceProvider serviceProvider,
-            TemporaryStorageService temporaryStorageService)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioMetadataReferenceManager(
+            SVsServiceProvider serviceProvider,
+            ITemporaryStorageServiceInternal storageService)
         {
+            _temporaryStorageService = (TemporaryStorageService)storageService;
+            Assumes.Present(_temporaryStorageService);
+
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
@@ -71,9 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
             Assumes.Present(SmartOpenScopeServiceOpt);
-
-            _temporaryStorageService = temporaryStorageService;
-            Assumes.Present(_temporaryStorageService);
         }
 
         public void Dispose()
