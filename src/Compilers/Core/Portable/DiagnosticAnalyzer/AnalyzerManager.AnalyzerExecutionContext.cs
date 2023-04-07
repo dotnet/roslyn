@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Cached mapping of localizable strings in this this descriptor to any exceptions thrown while obtaining them.
             /// </summary>
-            private static ImmutableDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            private static ImmutableSegmentedDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableSegmentedDictionary<LocalizableString, Exception?>.Empty.WithComparer(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly object _gate;
@@ -344,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!localizableString.CanThrowExceptions)
                         return null;
 
-                    return ImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
+                    return RoslynImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
 
                     static Exception? computeException(LocalizableString localizableString)
                     {
