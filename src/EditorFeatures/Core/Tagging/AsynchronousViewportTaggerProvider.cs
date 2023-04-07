@@ -57,6 +57,9 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
             _viewPortToTag = viewPortToTag;
         }
 
+        protected override ImmutableArray<IOption2> Options
+            => _callback.Options;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
@@ -166,7 +169,8 @@ internal abstract class AsynchronousViewportTaggerProvider<TTag> : IViewTaggerPr
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
     // identically.
 
-    //protected abstract ImmutableArray<IOption2> Options { get; }
+    /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.Options"/>
+    protected virtual ImmutableArray<IOption2> Options => ImmutableArray<IOption2>.Empty;
     //protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray<IOption2>.Empty;
 
     //protected abstract bool TagEquals(TTag tag1, TTag tag2);
