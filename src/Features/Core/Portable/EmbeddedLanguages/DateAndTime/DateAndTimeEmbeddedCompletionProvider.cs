@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                     properties: properties.ToImmutable(),
                     rules: embeddedItem.IsDefault
                         ? s_rules.WithMatchPriority(MatchPriority.Preselect)
-                        : s_rules));
+                        : s_rules,
+                    isComplexTextEdit: !context.CompletionListSpan.Contains(textChange.Span)));
             }
 
             context.IsExclusive = true;

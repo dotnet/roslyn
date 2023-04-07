@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: symbols,
                 rules: s_conversionRules,
                 contextPosition: position,
-                properties: properties));
+                properties: properties,
+                isComplexTextEdit: true));
         }
 
         private static (ImmutableArray<ISymbol> symbols, ImmutableDictionary<string, string> properties) GetConversionSymbolsAndProperties(
