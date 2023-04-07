@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis
                         // generated in presence of diagnostics that break the build.
                         if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
                         {
-                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                         }
 
                         if (HasUnsuppressedErrors(diagnostics))
@@ -1292,18 +1292,18 @@ namespace Microsoft.CodeAnalysis
                             // GetDiagnosticsAsync is called after ReportUnusedImports
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
-                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation, cancellationToken).Result;
                             diagnostics.AddRange(hostDiagnostics);
 
                             if (!diagnostics.IsEmptyWithoutResolution)
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                             }
 
                             if (errorLogger != null)
                             {
-                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors());
+                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors(cancellationToken));
                             }
                         }
                     }
