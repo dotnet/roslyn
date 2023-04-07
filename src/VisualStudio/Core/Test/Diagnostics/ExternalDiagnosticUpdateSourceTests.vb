@@ -691,10 +691,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function ContainsDiagnostics(workspace As Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
-                Throw New NotImplementedException()
-            End Function
-
             Public Function ForceAnalyzeAsync(solution As Solution, onProjectAnalyzed As Action(Of Project), projectId As ProjectId, cancellationToken As CancellationToken) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
                 Throw New NotImplementedException()
             End Function
