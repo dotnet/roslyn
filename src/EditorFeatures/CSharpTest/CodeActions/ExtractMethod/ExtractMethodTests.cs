@@ -877,7 +877,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-        public async Task DontOverparenthesize()
+        public async Task DoNotOverparenthesize()
         {
             await TestAsync(
                 """
@@ -979,7 +979,7 @@ parseOptions: Options.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-        public async Task DontOverparenthesizeGenerics()
+        public async Task DoNotOverparenthesizeGenerics()
         {
             await TestAsync(
                 """
@@ -4365,7 +4365,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
-        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply()
+        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
         {
             var input = """
                 <Workspace>
@@ -4416,7 +4416,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
-        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply_GetName()
+        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply_GetName()
         {
             var input = """
                 <Workspace>

@@ -130,6 +130,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasPrimaryConstructor
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.HasPrimaryConstructor)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool AnyMemberHasAttributes
         {
             get
@@ -155,25 +169,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sortKey;
         }
 
-        public ImmutableArray<SourceLocation> NameLocations
+        public OneOrMany<SourceLocation> NameLocations
         {
             get
             {
                 if (Declarations.Length == 1)
-                {
-                    return ImmutableArray.Create(Declarations[0].NameLocation);
-                }
-                else
-                {
-                    var builder = ArrayBuilder<SourceLocation>.GetInstance();
-                    foreach (var decl in Declarations)
-                    {
-                        SourceLocation loc = decl.NameLocation;
-                        if (loc != null)
-                            builder.Add(loc);
-                    }
-                    return builder.ToImmutableAndFree();
-                }
+                    return OneOrMany.Create(Declarations[0].NameLocation);
+
+                var builder = ArrayBuilder<SourceLocation>.GetInstance(Declarations.Length);
+                foreach (var decl in Declarations)
+                    builder.AddIfNotNull(decl.NameLocation);
+
+                return builder.ToOneOrManyAndFree();
             }
         }
 

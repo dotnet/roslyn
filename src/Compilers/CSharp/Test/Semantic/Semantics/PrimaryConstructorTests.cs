@@ -8465,12 +8465,12 @@ class C2
 
             // No unused warnings because we detected capturing
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS0150: A constant value is expected
+                // (6,21): error CS9135: A constant value of type 'int' is expected
                 //         return x is p1 || x is p2.F;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "p1").WithLocation(6, 21),
-                // (6,32): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "p1").WithArguments("int").WithLocation(6, 21),
+                // (6,32): error CS9135: A constant value of type 'int' is expected
                 //         return x is p1 || x is p2.F;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "p2.F").WithLocation(6, 32)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "p2.F").WithArguments("int").WithLocation(6, 32)
                 );
         }
 

@@ -1306,9 +1306,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'MyClass' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1469,9 +1469,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'MyClass' is expected
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1813,9 +1813,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1884,12 +1884,12 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // (8,18): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //             case other:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "other").WithArguments("int?", "int").WithLocation(8, 18),
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2076,7 +2076,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
             };
@@ -2251,9 +2251,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case input1 ?? input2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "input1 ?? input2").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "input1 ?? input2").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2528,7 +2528,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other ?? 1:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "other ?? 1").WithLocation(8, 18)
             };
@@ -3123,9 +3123,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case 1+TakeOutParam(3, out MyClass x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+TakeOutParam(3, out MyClass x1)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+TakeOutParam(3, out MyClass x1)").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -3220,9 +3220,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case 1+(input is int x1 ? x1 : 0):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(input is int x1 ? x1 : 0)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(input is int x1 ? x1 : 0)").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -3479,9 +3479,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,20): error CS0150: A constant value is expected
+                // (8,20): error CS9135: A constant value of type 'int' is expected
                 //             case < other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 20)
             };
 
             string expectedFlowGraph = @"

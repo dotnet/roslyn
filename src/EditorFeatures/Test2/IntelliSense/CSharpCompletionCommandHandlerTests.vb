@@ -6860,7 +6860,7 @@ namespace NS1
     {
         void M()
         {
-            $$
+            Un$$
         }
     }
 }
@@ -7111,7 +7111,6 @@ public class AA
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                ' import completion is disabled, so we shouldn't have expander selected by default
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Await state.AssertCompletionItemsContain("DDProp1", "")
                 Await state.AssertCompletionItemsDoNotContainAny("DD")
@@ -7954,7 +7953,7 @@ namespace NS1
     {
         void M()
         {
-            $$
+            unimportedtype$$
         }
     }
 }
@@ -7973,16 +7972,7 @@ namespace  <%= containingNamespace %>
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
-                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
-
-                ' make sure expander is selected
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
-
-                state.SendEscape()
-                Await state.AssertNoCompletionSession()
-
-                state.SendTypeChars("unimportedtype")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.SendCommitUniqueCompletionListItemAsync()
 
                 ' make sure expander is selected
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -8021,7 +8011,7 @@ namespace NS1
     {
         void M()
         {
-            $$
+            mytask$$
         }
     }
 
@@ -8042,16 +8032,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
-                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
-
-                ' make sure expander is selected
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
-
-                state.SendEscape()
-                Await state.AssertNoCompletionSession()
-
-                state.SendTypeChars("mytask")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.SendCommitUniqueCompletionListItemAsync()
 
                 ' make sure expander is selected
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -8072,7 +8053,7 @@ namespace NS2
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -8101,7 +8082,7 @@ namespace NS
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -10449,7 +10430,7 @@ class C
         Public Async Function TestNonBlockingExpandCompletionDoesNotChangeItemOrder() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
-                                  $$
+                                  Test$$
                               </Document>,
                               extraExportedTypes:={GetType(TestProvider)}.ToList())
 
@@ -10482,7 +10463,7 @@ class C
 
                 ' Now delayed expand item task is completed, following up by typing and delete a character to trigger
                 ' update so the list would contains all items
-                Await state.SendTypeCharsAndWaitForUiRenderAsync("t")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("U")
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
@@ -10496,7 +10477,7 @@ class C
                 state.SendEscape()
                 Await state.AssertNoCompletionSession()
 
-                ' Now disable expand item delay, so intial trigger should contain full list
+                ' Now disable expand item delay, so initial trigger should contain full list
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
 
                 state.SendInvokeCompletionList()

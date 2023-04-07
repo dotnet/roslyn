@@ -29,8 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
         }
 
         <Fact>
-        Public Sub NumericTypesAfterEnumAs()
-            VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Byte",
+        Public Sub NumericTypesAndGlobalAfterEnumAs()
+            VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Global",
+                                                                        "Byte",
                                                                         "SByte",
                                                                         "Short",
                                                                         "UShort",
