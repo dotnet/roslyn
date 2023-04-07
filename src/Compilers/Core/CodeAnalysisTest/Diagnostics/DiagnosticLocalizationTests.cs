@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = (ex, a, diag, ct) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
-            var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, CancellationToken.None);
 
             Assert.Equal(1, descriptors.Length);
             Assert.Equal(descriptor.Id, descriptors[0].Id);
