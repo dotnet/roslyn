@@ -144,4 +144,10 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
 
     public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
         => GetLazyValue(options).GetValueAsync(cancellationToken);
+
+    public async ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+    {
+        var value = await GetValueAsync(options, cancellationToken).ConfigureAwait(false);
+        return value.Version;
+    }
 }

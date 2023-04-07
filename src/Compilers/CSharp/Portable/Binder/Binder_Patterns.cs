@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
                     }
 
-                    diagnostics.Add(node.Location, useSiteInfo);
+                    diagnostics.Add(node, useSiteInfo);
                     return bestSoFar;
                 }
 

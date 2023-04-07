@@ -3891,5 +3891,23 @@ class S
 }
 ");
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SpanSlice()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void M(Span<int> s)
+                    {
+                        var x = s[1..^1];
+                        var y = s[^1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
     }
 }

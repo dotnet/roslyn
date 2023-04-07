@@ -1782,7 +1782,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             UseSiteInfo<AssemblySymbol> useSiteInfo;
             Symbol memberSymbol = GetWellKnownTypeMember(compilation, member, out useSiteInfo, isOptional);
-            diagnostics.Add(useSiteInfo, location ?? syntax.Location);
+            if (syntax != null)
+                diagnostics.Add(useSiteInfo, syntax);
+            else
+                diagnostics.Add(useSiteInfo, location);
+
             return memberSymbol;
         }
 
@@ -2183,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         wasError = true;
 
-                        if (reportError)
+                        if (reportError && info != null)
                         {
                             diagnostics.Add(info, where.Location);
                         }
