@@ -517,8 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
 
-        protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.AreEquivalent(left, right);
+        protected override bool AreEquivalentLambdaBodies(SyntaxNode oldLambda, SyntaxNode oldLambdaBody, SyntaxNode newLambda, SyntaxNode newLambdaBody)
+            => SyntaxFactory.AreEquivalent(oldLambdaBody, newLambdaBody);
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
         {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent);
         }
 
-        protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+        protected override Match<SyntaxNode> ComputeBodyMatchImpl(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
@@ -1475,6 +1475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+
+        internal override bool IsGenericLocalFunction(SyntaxNode node)
+            => node is LocalFunctionStatementSyntax { TypeParameterList: not null };
 
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax;
@@ -2436,16 +2439,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newDeclarationOrBody)
+            public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newBody)
             {
-                foreach (var node in newDeclarationOrBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                foreach (var node in newBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
                 {
-                    switch (node.Kind())
+                    if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
                     {
-                        case SyntaxKind.StackAllocArrayCreationExpression:
-                        case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
-                            ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
-                            return;
+                        ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
+                        return;
                     }
                 }
             }
@@ -2466,10 +2467,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberBodyUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
+        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, SyntaxNode newBody, TextSpan? span)
         {
-            var classifier = new EditClassifier(this, diagnostics, oldNode: null, newMember, EditKind.Update, span: span);
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember);
+            var classifier = new EditClassifier(this, diagnostics, oldNode: null, newDeclaration, EditKind.Update, span: span);
+            classifier.ClassifyDeclarationBodyRudeUpdates(newBody);
         }
 
         #endregion
@@ -2487,17 +2488,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // All rude edits below only apply when inserting into an existing type (not when the type itself is inserted):
                 _ when !insertingIntoExistingContainingType => RudeEditKind.None,
 
-                // Inserting a member into an existing generic type is not allowed.
-                { ContainingType.Arity: > 0 } and not INamedTypeSymbol
-                    => RudeEditKind.InsertIntoGenericType,
+                // inserting any nested type is allowed
+                INamedTypeSymbol => RudeEditKind.None,
 
                 // Inserting virtual or interface member into an existing type is not allowed.
-                { IsVirtual: true } or { IsOverride: true } or { IsAbstract: true } and not INamedTypeSymbol
+                { IsVirtual: true } or { IsOverride: true } or { IsAbstract: true }
                     => RudeEditKind.InsertVirtual,
-
-                // Inserting generic method into an existing type is not allowed.
-                IMethodSymbol { Arity: > 0 }
-                    => RudeEditKind.InsertGenericMethod,
 
                 // Inserting destructor to an existing type is not allowed.
                 IMethodSymbol { MethodKind: MethodKind.Destructor }
@@ -2512,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     => RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
 
                 // TODO: Inserting non-virtual member to an interface (https://github.com/dotnet/roslyn/issues/37128)
-                { ContainingType.TypeKind: TypeKind.Interface } and not INamedTypeSymbol
+                { ContainingType.TypeKind: TypeKind.Interface }
                     => RudeEditKind.InsertIntoInterface,
 
                 // Inserting a field into an enum:
@@ -2684,22 +2680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
-        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
-        {
-            suspensionPoints = SyntaxUtilities.GetSuspensionPoints(body).ToImmutableArray();
-
-            kinds = StateMachineKinds.None;
-
-            if (SyntaxUtilities.IsIterator(body))
-            {
-                kinds |= StateMachineKinds.Iterator;
-            }
-
-            if (SyntaxUtilities.IsAsyncDeclaration(body.Parent))
-            {
-                kinds |= StateMachineKinds.Async;
-            }
-        }
+        internal override StateMachineInfo GetStateMachineInfo(SyntaxNode body)
+            => new(
+                IsAsync: SyntaxUtilities.IsAsyncDeclaration(body.Parent),
+                IsIterator: SyntaxUtilities.IsIterator(body),
+                HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(body).Any());
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {

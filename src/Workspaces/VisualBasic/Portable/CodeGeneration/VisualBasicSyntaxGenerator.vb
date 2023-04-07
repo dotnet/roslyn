@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, endOfLineString As String) As SyntaxNode
-            Dim node = SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(nodes))
+            Dim node = SyntaxFactory.DocumentationCommentTrivia(CType(SyntaxFactory.List(nodes), SyntaxList(Of XmlNodeSyntax)))
             node = node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia())
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
             If documentationCommentTrivia IsNot Nothing Then
-                Return SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(content))
+                Return SyntaxFactory.DocumentationCommentTrivia(CType(SyntaxFactory.List(content), SyntaxList(Of XmlNodeSyntax)))
             End If
 
             Return Nothing
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ElementBindingExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.InvocationExpression(expression:=Nothing,
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
+                SyntaxFactory.ArgumentList(CType(SyntaxFactory.SeparatedList(arguments), SeparatedSyntaxList(Of ArgumentSyntax))))
         End Function
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ObjectCreationExpression(
                 attributeLists:=Nothing,
                 DirectCast(typeName, TypeSyntax),
-                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                SyntaxFactory.ArgumentList(openParen, CType(arguments, SeparatedSyntaxList(Of ArgumentSyntax)), closeParen),
                 initializer:=Nothing)
         End Function
 
@@ -1453,7 +1453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function AsInterfaceMembers(nodes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
             If nodes IsNot Nothing Then
-                Return SyntaxFactory.List(nodes.Select(AddressOf AsInterfaceMember).Where(Function(n) n IsNot Nothing))
+                Return CType(SyntaxFactory.List(nodes.Select(AddressOf AsInterfaceMember).Where(Function(n) n IsNot Nothing)), SyntaxList(Of StatementSyntax))
             Else
                 Return Nothing
             End If

@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildTargetFrameworksNetFx)</TargetFrameworks>
     <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>

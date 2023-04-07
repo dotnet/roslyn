@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
 
             while (nodeStack.TryPop(out var node))
             {
-                // Dont' bother recursing into nodes that don't hit the requested span, they can never contribute 
+                // DoNot' bother recursing into nodes that don't hit the requested span, they can never contribute 
                 // regions of interest.
                 if (!node.Span.IntersectsWith(textSpan))
                     continue;

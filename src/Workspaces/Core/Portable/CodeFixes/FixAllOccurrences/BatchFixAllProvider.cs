@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                     var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, fixAllContext.State.CodeActionOptionsProvider, isBlocking: false, cancellationToken);
+                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
                     var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

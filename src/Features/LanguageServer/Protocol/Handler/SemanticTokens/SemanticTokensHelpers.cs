@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
             ClassificationOptions options,
-            bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
-                document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -101,41 +100,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             TextSpan textSpan,
             ClassificationOptions options,
-            bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-            // Case 1 - Generated Razor documents:
-            //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
-            //     syntactic and semantic classifications.
-            // Case 2 - C# and VB documents:
-            //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
-            //     classifications.
-            //
-            // Ideally, Razor will eventually run the classifier on their end so we can get rid of this special
-            // casing: https://github.com/dotnet/razor-tooling/issues/5850
-            if (includeSyntacticClassifications)
-            {
-                // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
-                var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+            // We always return both syntactic and semantic classifications.  If there is a syntactic classifier running on the client
+            // then the semantic token classifications will override them.
 
-                // The spans returned to us may include some empty spans, which we don't care about. We also don't care
-                // about the 'text' classification.  It's added for everything between real classifications (including
-                // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
-                // semantic tokens as it just wastes space in the result.
-                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
-                classifiedSpans.AddRange(nonEmptySpans);
-            }
-            else
-            {
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddEmbeddedLanguageClassificationsAsync(
-                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
-            }
+            // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
+            var spans = await ClassifierHelper.GetClassifiedSpansAsync(
+                document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+
+            // The spans returned to us may include some empty spans, which we don't care about. We also don't care
+            // about the 'text' classification.  It's added for everything between real classifications (including
+            // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
+            // semantic tokens as it just wastes space in the result.
+            var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
+            classifiedSpans.AddRange(nonEmptySpans);
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);

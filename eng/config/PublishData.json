@@ -145,7 +145,7 @@
       ],
       "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.6P2]"
+      "insertionTitlePrefix": "[d17.6P3]"
     },
     "main": {
       "nugetKind": [
@@ -154,18 +154,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[17.6P3]"
+      "insertionTitlePrefix": "[d17.7P1]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

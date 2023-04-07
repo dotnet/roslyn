@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     /// <summary>
     /// This factory is called to create taggers that provide information about how strings are indented.
     /// </summary>
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(StringIndentationTag))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal sealed partial class StringIndentationTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
+    internal sealed partial class StringIndentationTaggerProvider : AsynchronousViewTaggerProvider<StringIndentationTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
@@ -73,11 +73,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         protected override ITaggerEventSource CreateEventSource(
-            ITextView? textView, ITextBuffer subjectBuffer)
+            ITextView textView, ITextBuffer subjectBuffer)
         {
+            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing. 
             return TaggerEventSources.Compose(
-                new EditorFormatMapChangedEventSource(_editorFormatMap),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+                new EditorFormatMapChangedEventSource(_editorFormatMap));
+        }
+
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+        {
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
+
+            // Find the visible span some 100 lines +/- what's actually in view.  This way
+            // if the user scrolls up/down, we'll already have the results.
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+            if (visibleSpanOpt == null)
+            {
+                // Couldn't find anything visible, just fall back to tagging all brace locations
+                return base.GetSpansToTag(textView, subjectBuffer);
+            }
+
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override async Task ProduceTagsAsync(
