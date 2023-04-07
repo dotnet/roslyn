@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/26778",
                 AllowCaptures = false)]
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
             {
                 lock (_gate)
                 {
@@ -80,18 +80,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor);
+                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor, cancellationToken);
                     _lazySessionScopeTask = task;
                     return task;
 
-                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor)
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor, CancellationToken cancellationToken)
                     {
                         return Task.Run(() =>
                         {
                             var sessionScope = new HostSessionStartAnalysisScope();
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope);
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, cancellationToken);
                             return sessionScope;
-                        }, executor.CancellationToken);
+                        }, cancellationToken);
                     }
                 }
             }
@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
                 HostSessionStartAnalysisScope sessionScope,
-                AnalyzerExecutor analyzerExecutor)
+                AnalyzerExecutor analyzerExecutor,
+                CancellationToken cancellationToken)
             {
                 lock (_gate)
                 {
@@ -115,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         _lazyCompilationScopeTask = Task.Run(() =>
                         {
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope);
+                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope, cancellationToken);
                             return compilationAnalysisScope;
-                        }, analyzerExecutor.CancellationToken);
+                        }, cancellationToken);
                     }
 
                     return _lazyCompilationScopeTask;
@@ -136,14 +137,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ISymbol symbol,
                 bool isGeneratedCodeSymbol,
                 ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
-                AnalyzerExecutor analyzerExecutor)
+                AnalyzerExecutor analyzerExecutor,
+                CancellationToken cancellationToken)
             {
                 lock (_gate)
                 {
                     _lazySymbolScopeTasks ??= new Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>();
                     if (!_lazySymbolScopeTasks.TryGetValue(symbol, out var symbolScopeTask))
                     {
-                        symbolScopeTask = Task.Run(() => getSymbolAnalysisScopeCore(), analyzerExecutor.CancellationToken);
+                        symbolScopeTask = Task.Run(() => getSymbolAnalysisScopeCore(), cancellationToken);
                         _lazySymbolScopeTasks.Add(symbol, symbolScopeTask);
                     }
 
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, cancellationToken);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
                         if (symbolEndActions.SymbolEndActionsCount > 0)
@@ -242,18 +244,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public ImmutableArray<DiagnosticDescriptor> GetOrComputeDiagnosticDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
-                => GetOrComputeDescriptors(ref _lazyDiagnosticDescriptors, ComputeDiagnosticDescriptors_NoLock, analyzer, analyzerExecutor, _gate);
+            public ImmutableArray<DiagnosticDescriptor> GetOrComputeDiagnosticDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
+                => GetOrComputeDescriptors(ref _lazyDiagnosticDescriptors, ComputeDiagnosticDescriptors_NoLock, analyzer, analyzerExecutor, _gate, cancellationToken);
 
-            public ImmutableArray<SuppressionDescriptor> GetOrComputeSuppressionDescriptors(DiagnosticSuppressor suppressor, AnalyzerExecutor analyzerExecutor)
-                => GetOrComputeDescriptors(ref _lazySuppressionDescriptors, ComputeSuppressionDescriptors_NoLock, suppressor, analyzerExecutor, _gate);
+            public ImmutableArray<SuppressionDescriptor> GetOrComputeSuppressionDescriptors(DiagnosticSuppressor suppressor, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
+                => GetOrComputeDescriptors(ref _lazySuppressionDescriptors, ComputeSuppressionDescriptors_NoLock, suppressor, analyzerExecutor, _gate, cancellationToken);
 
             private static ImmutableArray<TDescriptor> GetOrComputeDescriptors<TDescriptor>(
                 ref ImmutableArray<TDescriptor> lazyDescriptors,
-                Func<DiagnosticAnalyzer, AnalyzerExecutor, ImmutableArray<TDescriptor>> computeDescriptorsNoLock,
+                Func<DiagnosticAnalyzer, AnalyzerExecutor, CancellationToken, ImmutableArray<TDescriptor>> computeDescriptorsNoLock,
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor,
-                object gate)
+                object gate,
+                CancellationToken cancellationToken)
             {
                 if (!lazyDescriptors.IsDefault)
                 {
@@ -269,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // lead to duplicate AD0001 diagnostics.
                     if (lazyDescriptors.IsDefault)
                     {
-                        lazyDescriptors = computeDescriptorsNoLock(analyzer, analyzerExecutor);
+                        lazyDescriptors = computeDescriptorsNoLock(analyzer, analyzerExecutor, cancellationToken);
                     }
 
                     return lazyDescriptors;
@@ -281,7 +284,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private static ImmutableArray<DiagnosticDescriptor> ComputeDiagnosticDescriptors_NoLock(
                 DiagnosticAnalyzer analyzer,
-                AnalyzerExecutor analyzerExecutor)
+                AnalyzerExecutor analyzerExecutor,
+                CancellationToken cancellationToken)
             {
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
@@ -305,7 +309,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
-                    argument: (object?)null);
+                    argument: (object?)null,
+                    contextInfo: null,
+                    cancellationToken);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 var onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -329,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (exception != null)
                     {
                         var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
-                        onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
+                        onAnalyzerException(exception, analyzer, diagnostic, cancellationToken);
                     }
                 }
 
@@ -356,7 +362,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors_NoLock(
                 DiagnosticAnalyzer analyzer,
-                AnalyzerExecutor analyzerExecutor)
+                AnalyzerExecutor analyzerExecutor,
+                CancellationToken cancellationToken)
             {
                 var descriptors = ImmutableArray<SuppressionDescriptor>.Empty;
 
@@ -382,7 +389,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 descriptors = descriptorsLocal;
                             }
                         },
-                        argument: (object?)null);
+                        argument: (object?)null,
+                        contextInfo: null,
+                        cancellationToken);
                 }
 
                 return descriptors;
