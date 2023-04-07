@@ -310,42 +310,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         // Compute the localizable strings once, caching any exceptions produced doing that. This helps
                         // avoid an excessive amount of string allocations loading resources.
-                        descriptor.PropertyNameToException ??= computeCachedExceptions(descriptor);
-
-                        foreach (var (_, exception) in descriptor.PropertyNameToException)
-                        {
-                            if (exception != null)
-                            {
-                                var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
-                                onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
-                            }
-                        }
+                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.Title), descriptor.Title);
+                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.MessageFormat), descriptor.MessageFormat);
+                        forceLocalizableStringExceptions(descriptor, nameof(descriptor.Description), descriptor.Description);
                     }
                 }
 
                 return supportedDiagnostics;
-                
-                static ImmutableDictionary<string, Exception> computeCachedExceptions(DiagnosticDescriptor descriptor)
-                {
-                    var builder = ImmutableDictionary.CreateBuilder<string, Exception>();
 
-                    forceLocalizableStringExceptions(builder, nameof(descriptor.Title), descriptor.Title);
-                    forceLocalizableStringExceptions(builder, nameof(descriptor.MessageFormat), descriptor.MessageFormat);
-                    forceLocalizableStringExceptions(builder, nameof(descriptor.Description), descriptor.Description);
-
-                    return builder.ToImmutable();
-                }
-
-                static void forceLocalizableStringExceptions(
-                    ImmutableDictionary<string, Exception>.Builder builder, string key, LocalizableString localizableString)
+                void forceLocalizableStringExceptions(
+                    DiagnosticDescriptor descriptor, string key, LocalizableString localizableString)
                 {
                     if (localizableString.CanThrowExceptions)
                     {
-                        EventHandler<Exception> handler = (_, ex) => builder[key] = ex;
+                        var exception = ImmutableInterlocked.GetOrAdd(
+                            ref descriptor.PropertyNameToException,
+                            key,
+                            static (key, localizableString) =>
+                            {
+                                Exception? localException = null;
+                                EventHandler<Exception> handler = (_, ex) => localException = ex;
 
-                        localizableString.OnException += handler;
-                        localizableString.ToString();
-                        localizableString.OnException -= handler;
+                                localizableString.OnException += handler;
+                                localizableString.ToString();
+                                localizableString.OnException -= handler;
+
+                                return localException;
+                            },
+                            localizableString);
+
+                        if (exception != null)
+                        {
+                            var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
+                            onAnalyzerException(exception, analyzer, diagnostic, analyzerExecutor.CancellationToken);
+                        }
                     }
                 }
             }

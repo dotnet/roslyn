@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached mapping of property names for this descriptor to any exceptions thrown while obtaining them.
         /// </summary>
-        internal ImmutableDictionary<string, Exception>? PropertyNameToException;
+        internal ImmutableDictionary<string, Exception?> PropertyNameToException = ImmutableDictionary<string, Exception?>.Empty;
 
         internal ImmutableArray<string> ImmutableCustomTags
         {
