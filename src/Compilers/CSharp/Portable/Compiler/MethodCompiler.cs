@@ -658,15 +658,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompileSynthesizedExtensionMarker(SourceExtensionTypeSymbol sourceExtension, TypeCompilationState compilationState)
         {
-            var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
+            if (!_globalHasErrors)
+            {
+                var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
                 sourceExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
                 _diagnostics);
 
-            var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
-            extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
-            Debug.Assert(!discardedDiagnostics.HasAnyErrors());
+                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
+                extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
+                Debug.Assert(!discardedDiagnostics.HasAnyErrors());
 
-            _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
+            }
         }
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
