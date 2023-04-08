@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3672,7 +3674,7 @@ public class FileModifierTests : CSharpTestBase
 
         var sourceTypeCByMetadataName = comp.GetTypeByMetadataName("C");
         Assert.NotNull(sourceTypeCByMetadataName);
-        Assert.Equal("C", sourceTypeCByMetadataName!.MetadataName);
+        Assert.Equal("C", sourceTypeCByMetadataName.MetadataName);
         Assert.False(sourceTypeCByMetadataName is SourceMemberContainerTypeSymbol { IsFileLocal: true });
 
         // from metadata
@@ -3687,7 +3689,7 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataTypeCByMetadataName = comp2.GetTypeByMetadataName("C");
         Assert.NotNull(metadataTypeCByMetadataName);
-        Assert.Equal("C", metadataTypeCByMetadataName!.MetadataName);
+        Assert.Equal("C", metadataTypeCByMetadataName.MetadataName);
     }
 
     [CombinatorialData]
