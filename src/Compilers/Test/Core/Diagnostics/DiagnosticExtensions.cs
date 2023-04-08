@@ -315,11 +315,11 @@ namespace Microsoft.CodeAnalysis
                 out var newCompilation, cancellationToken);
             Debug.Assert(newCompilation.SemanticModelProvider != null);
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
-            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;
+            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation, cancellationToken).Result;
             var allDiagnostics = includeCompilerDiagnostics ?
                 compilerDiagnostics.AddRange(analyzerDiagnostics) :
                 analyzerDiagnostics;
-            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation);
+            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation, cancellationToken);
 
             if (!reportSuppressedDiagnostics)
             {

@@ -445,9 +445,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 document,
                 SemanticTokensHelpers.TokenTypeToIndex,
                 range: null,
-                Classification.ClassificationOptions.Default,
-                includeSyntacticClassifications: true,
-                CancellationToken.None);
+                options: Classification.ClassificationOptions.Default,
+                cancellationToken: CancellationToken.None);
 
             var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);
             var semanticTokensEdge = Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory);

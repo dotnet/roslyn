@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // Definitely do not simplify us if we were told to not simplify.
-                if (typeSyntax.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                if (typeSyntax.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                 {
                     return typeSyntax;
                 }

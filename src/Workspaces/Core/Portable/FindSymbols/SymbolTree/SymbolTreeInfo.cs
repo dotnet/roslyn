@@ -183,6 +183,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
+        /// Returns <see langword="true"/> if this index contains some symbol that whose name matches <paramref
+        /// name="name"/> case <em>sensitively</em>. <see langword="false"/> otherwise.
+        /// </summary>
+        public bool ContainsSymbolWithName(string name)
+        {
+            var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(_nodes, name);
+
+            for (var index = startIndexInclusive; index < endIndexExclusive; index++)
+            {
+                var node = _nodes[index];
+
+                // The find-operation found the case-insensitive range of results.  So since the caller caller wants
+                // case-sensitive, then actually check that the node matches case-sensitively
+                if (StringComparer.Ordinal.Equals(name, node.Name))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
         private async Task<ImmutableArray<ISymbol>> FindAsync(

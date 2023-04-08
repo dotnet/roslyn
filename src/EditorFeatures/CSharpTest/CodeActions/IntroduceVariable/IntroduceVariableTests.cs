@@ -3074,7 +3074,7 @@ options: ImplicitTypingEverywhere());
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
-        public async Task DontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken()
+        public async Task DoNotRemoveParenthesesIfOperatorPrecedenceWouldBeBroken()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -8056,7 +8056,7 @@ $@"a b c"
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40381")]
-        public async Task TestIntroduceFromMethod_AllOccurences_DontIncludeStaticLocalFunctionReferences()
+        public async Task TestIntroduceFromMethod_AllOccurences_DoNotIncludeStaticLocalFunctionReferences()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -8105,7 +8105,7 @@ $@"a b c"
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40381")]
-        public async Task TestIntroduceFromMethod_AllOccurences_DontIncludeStaticLocalFunctionReferences2()
+        public async Task TestIntroduceFromMethod_AllOccurences_DoNotIncludeStaticLocalFunctionReferences2()
         {
             await TestInRegularAndScriptAsync(
                 """

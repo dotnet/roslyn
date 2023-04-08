@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnumMemberDeclarationSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var initializer = syntax.EqualsValue;
-            Debug.Assert(initializer != null);
-            return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, initializer, diagnostics);
+            return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, diagnostics);
         }
 
         public static SourceEnumConstantSymbol CreateImplicitValuedConstant(
@@ -157,21 +155,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ExplicitValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {
-            private readonly SyntaxReference _equalsValueNodeRef;
-
             public ExplicitValuedEnumConstantSymbol(
                 SourceMemberContainerTypeSymbol containingEnum,
                 EnumMemberDeclarationSyntax syntax,
-                EqualsValueClauseSyntax initializer,
                 BindingDiagnosticBag diagnostics) :
                 base(containingEnum, syntax, diagnostics)
             {
-                _equalsValueNodeRef = initializer.GetReference();
+                Debug.Assert(syntax.EqualsValue != null);
             }
 
             protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics)
             {
-                return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)_equalsValueNodeRef.GetSyntax(), dependencies, earlyDecodingWellKnownAttributes, diagnostics);
+                var syntax = this.SyntaxNode;
+                Debug.Assert(syntax.EqualsValue != null);
+
+                return ConstantValueUtils.EvaluateFieldConstant(this, syntax.EqualsValue, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
             }
         }
 

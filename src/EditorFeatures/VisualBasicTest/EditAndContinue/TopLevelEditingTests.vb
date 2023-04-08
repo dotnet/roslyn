@@ -1234,7 +1234,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub Type_Generic_InsertMembers()
+        Public Sub Type_Generic_Insert_StatelessMembers()
             Dim src1 = "
 Imports System
 Class C(Of T)
@@ -1289,20 +1289,21 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Sub M()", FeaturesResources.method),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P1(i As Integer)", FeaturesResources.property_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P2", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P3", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E1(sender As Object, e As EventArgs)", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E2", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E3", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F1", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F2", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F5(1, 2)", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F6?", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "WE As Object", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Sub M()", GetResource("method")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P1(i As Integer)", GetResource("property")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P2", "auto-property"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P3", "auto-property"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E1(sender As Object, e As EventArgs)", "event"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E2", "event"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E3", "event"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F1", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F2", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F3 As Integer", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F4 As New Object", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F5(1, 2)", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F6?", GetResource("field")),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE As Object", GetResource("WithEvents field")),
+                Diagnostic(RudeEditKind.InsertVirtual, "WE As Object", GetResource("WithEvents field")),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)"))
         End Sub
 
@@ -1630,15 +1631,9 @@ End Interface
                     DocumentResults(
                         diagnostics:=
                         {
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Structure S(Of T)"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Interface I(Of T)"),
                             Diagnostic(RudeEditKind.GenericTypeUpdate, "Sub F()"),
                             Diagnostic(RudeEditKind.GenericTypeUpdate, "Sub F()"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Sub F()"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Sub F()")
                         })
                 })
         End Sub
@@ -2427,8 +2422,7 @@ End Class
                 "Update [T]@30 -> [S]@30")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"))
+                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -2441,8 +2435,7 @@ End Class
                 "Update [T]@30 -> [In T]@30")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -2455,8 +2448,7 @@ End Class
                 "Update [Out T]@30 -> [T]@30")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -2469,8 +2461,7 @@ End Class
                 "Update [Out T]@30 -> [In T]@30")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -3164,9 +3155,7 @@ End Structure
                     DocumentResults(
                         diagnostics:=
                         {
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "Partial Class C(Of T As New)"),
-                            Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
-                            Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                            Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter)
                         }),
                     DocumentResults()
                 })
@@ -3806,7 +3795,7 @@ End Class
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"), preserveLocalVariables:=False)
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=False)
                         }),
                     DocumentResults()
                 })
@@ -3826,7 +3815,7 @@ End Class
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F"), preserveLocalVariables:=False)
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=False)
                         })
                 })
         End Sub
@@ -3844,8 +3833,7 @@ End Class
                     DocumentResults(),
                     DocumentResults(diagnostics:=
                     {
-                        Diagnostic(RudeEditKind.GenericMethodUpdate, "Sub F(Of T)()"),
-                        Diagnostic(RudeEditKind.GenericMethodUpdate, "T")
+                        Diagnostic(RudeEditKind.GenericMethodUpdate, "Sub F(Of T)()")
                     })
                 })
         End Sub
@@ -3864,8 +3852,7 @@ End Class
                     DocumentResults(),
                     DocumentResults(diagnostics:=
                     {
-                        Diagnostic(RudeEditKind.GenericMethodUpdate, "Sub F(Of T)()"),
-                        Diagnostic(RudeEditKind.GenericMethodUpdate, "T")
+                        Diagnostic(RudeEditKind.GenericMethodUpdate, "Sub F(Of T)()")
                     })
                 })
         End Sub
@@ -3984,7 +3971,8 @@ End Class
                     {
                         SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
                     })
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -4228,7 +4216,7 @@ End Structure
                 {
                     DocumentResults(diagnostics:=
                     {
-                        Diagnostic(RudeEditKind.InsertGenericMethod, "Sub F(Of T)()", FeaturesResources.method)
+                        Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Sub F(Of T)()", FeaturesResources.method)
                     }),
                     DocumentResults(semanticEdits:=
                     {
@@ -4315,7 +4303,8 @@ End Structure
                 "Update [Function F() As Task(Of String) : End Function]@11 -> [Async Function F() As Task(Of String) : End Function]@11",
                 "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -4711,7 +4700,8 @@ Imports System.Runtime.InteropServices
                 "Update [Function F() As Task(Of String) : End Function]@11 -> [Iterator Function F() As Task(Of String) : End Function]@11",
                 "Update [Function F() As Task(Of String)]@11 -> [Iterator Function F() As Task(Of String)]@11")
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -4740,7 +4730,8 @@ Imports System.Runtime.InteropServices
                 "Update [Async Function F() As Task(Of String)" & vbLf & "Return 0" & vbLf & "End Function]@11 -> " &
                        "[Async Function F() As Task(Of String)" & vbLf & "Return 1" & vbLf & "End Function]@11")
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -5223,7 +5214,8 @@ End Interface
             Dim src2 = "Class C " & vbLf & "Iterator Function M() As IEnumerable(Of Integer)" & vbLf & "Yield 2 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -5232,7 +5224,9 @@ End Interface
             Dim src2 = "Class C " & vbLf & "Iterator Function M() As IEnumerable(Of Integer)" & vbLf & "Yield 1 : Yield 2: End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)},
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -5241,7 +5235,9 @@ End Interface
             Dim src2 = "Class C " & vbLf & "Iterator Function M() As IEnumerable(Of Integer)" & vbLf & "Yield 1 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)},
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -11089,8 +11085,7 @@ End Class
                 "Update [A]@27 -> [B]@27")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "B"))
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11118,8 +11113,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "C"))
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter))
         End Sub
 #End Region
 
@@ -11191,8 +11185,7 @@ End Class
                 "Update [A]@11 -> [B]@11")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "B"))
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11220,8 +11213,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "C"))
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter))
         End Sub
 #End Region
 
@@ -11237,8 +11229,7 @@ End Class
                 "Update [T]@11 -> [T As Class]@11")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11251,8 +11242,7 @@ End Class
                 "Update [S]@11 -> [S As New]@11")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11265,8 +11255,7 @@ End Class
                 "Update [T As Class]@14 -> [T]@14")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11280,8 +11269,7 @@ End Class
                 "Update [S As New]@11 -> [S]@11")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11296,9 +11284,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"),
-                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11313,9 +11299,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"),
-                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter))
         End Sub
 
         <Fact>
@@ -11329,10 +11313,8 @@ End Class
                 "Update [T As Class]@21 -> [T As {Class}]@23",
                 "Update [U As I]@33 -> [U As {I}]@37")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "U"))
+            ' The constraints are equivalent.
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
@@ -11345,8 +11327,7 @@ End Class
                 "Update [S As {I, J}]@11 -> [S As {J, I}]@11")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "S"))
+                Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter))
         End Sub
 
 #End Region

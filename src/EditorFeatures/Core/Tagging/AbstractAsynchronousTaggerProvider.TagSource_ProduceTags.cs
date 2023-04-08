@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var spansToTag = context.SpansToTag;
                 var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
                 var newTagsByBuffer =
-                    context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
+                    context.TagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                     .ToLookup(t => t.Span.Snapshot.TextBuffer);
                 var spansTagged = context._spansTagged;
 

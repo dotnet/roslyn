@@ -111,7 +111,7 @@ Console.WriteLine(0)
         End Function
 
         <Fact>
-        Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia1() As Task
+        Public Async Function TestSingleDeclaratorDoNotRemoveLeadingTrivia1() As Task
             Dim code =
 <File>
 Imports System
@@ -145,7 +145,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545259")>
-        Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia2() As Task
+        Public Async Function TestSingleDeclaratorDoNotRemoveLeadingTrivia2() As Task
             Dim code =
 <File>
 Imports System
@@ -175,7 +175,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540330")>
-        Public Async Function TestSingleDeclaratorDontMoveNextStatement() As Task
+        Public Async Function TestSingleDeclaratorDoNotMoveNextStatement() As Task
             Dim code =
 <File>
 Module Program
@@ -1146,7 +1146,7 @@ Dim f As Func(Of Integer) = Function()
         End Function
 
         <Fact>
-        Public Async Function TestDontInlineTrailingComment() As Task
+        Public Async Function TestDoNotInlineTrailingComment() As Task
             Dim code =
 <MethodBody>
 Dim [||]i As Integer = 1 + 1 ' First
@@ -1163,7 +1163,7 @@ Console.WriteLine((1 + 1) * 2)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545544")>
-        Public Async Function TestDontRemoveLineBreakAfterComment() As Task
+        Public Async Function TestDoNotRemoveLineBreakAfterComment() As Task
             Dim code =
 <MethodBody>
 Dim [||]x = 1 ' comment
@@ -1197,7 +1197,7 @@ Console.WriteLine((1 + 1) * j)
         End Function
 
         <Fact>
-        Public Async Function TestDontInsertUnnecessaryCast1() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast1() As Task
             Dim code =
 <MethodBody>
 Dim [||]i As Object = 1 + 1
@@ -1213,7 +1213,7 @@ Dim j As Integer = 1 + 1
         End Function
 
         <Fact>
-        Public Async Function TestDontInsertUnnecessaryCast2() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast2() As Task
             Dim code =
 <MethodBody>
 Dim [||]i As Integer = 1 + 1
@@ -1231,7 +1231,7 @@ Console.WriteLine(j)
         End Function
 
         <Fact>
-        Public Async Function TestDontInsertUnnecessaryCast3() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast3() As Task
             Dim code =
 <MethodBody>
 Dim [||]x As Action = Sub()
@@ -1249,7 +1249,7 @@ Dim y As Action = Sub()
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543215")>
-        Public Async Function TestDontInsertUnnecessaryCast4() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast4() As Task
             Dim code =
 <ClassDeclaration>
 Sub S
@@ -1275,7 +1275,7 @@ End Sub
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543280")>
-        Public Async Function TestDontInsertUnnecessaryCast5() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast5() As Task
             Dim code =
 <File>
 Option Strict On
@@ -1305,7 +1305,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544973")>
-        Public Async Function TestDontInsertUnnecessaryCast6() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast6() As Task
             Dim code =
 <File>
 Option Infer On
@@ -1337,7 +1337,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545975")>
-        Public Async Function TestDontInsertUnnecessaryCast7() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast7() As Task
             Dim code =
 <File>
 Imports System
@@ -1363,7 +1363,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545846")>
-        Public Async Function TestDontInsertUnnecessaryCast8() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast8() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -1391,7 +1391,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545624"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
-        Public Async Function TestDontInsertUnnecessaryCast9() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast9() As Task
             Dim markup =
 <File>
 Imports System.Collections.Generic
@@ -1422,7 +1422,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530068")>
-        Public Async Function TestDontInsertUnnecessaryCast10() As Task
+        Public Async Function TestDoNotInsertUnnecessaryCast10() As Task
             Dim markup =
 <File>
 Imports System
@@ -2606,7 +2606,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545539")>
-        Public Async Function TestDontOverparenthesizeXmlAttributeAccessExpression() As Task
+        Public Async Function TestDoNotOverparenthesizeXmlAttributeAccessExpression() As Task
             Dim code =
 <File>
 Imports System.Xml.Linq
@@ -2649,7 +2649,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546658")>
-        Public Async Function TestDontInlineInUnterminatedBlock() As Task
+        Public Async Function TestDoNotInlineInUnterminatedBlock() As Task
             Dim markup =
 <File>
 Interface IGoo
@@ -3700,7 +3700,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
-        Public Async Function TestBugfix_718152_DontRemoveParenthesisForAwaitExpression() As Task
+        Public Async Function TestBugfix_718152_DoNotRemoveParenthesisForAwaitExpression() As Task
             Dim code =
 <File>
 Imports System
@@ -4032,7 +4032,7 @@ End With
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")>
-        Public Async Function TestDontParenthesizeInterpolatedStringWithNoInterpolation() As Task
+        Public Async Function TestDoNotParenthesizeInterpolatedStringWithNoInterpolation() As Task
             Dim code =
 <MethodBody>
 Dim [||]s1 = $"hello"
@@ -4048,7 +4048,7 @@ Dim s2 = AscW($"hello")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")>
-        Public Async Function TestDontParenthesizeInterpolatedStringWithInterpolation() As Task
+        Public Async Function TestDoNotParenthesizeInterpolatedStringWithInterpolation() As Task
             Dim code =
 <MethodBody>
 Dim x = 42

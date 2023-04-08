@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // implemented.
                 if (syntax.ConstraintClauses.Count > 0)
                 {
-                    Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
-                                                    syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    Binder.CheckFeatureAvailability(
+                        syntax.ConstraintClauses[0].WhereKeyword, MessageID.IDS_OverrideWithConstraints, diagnostics);
 
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
@@ -257,19 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Verify ExtensionAttribute is available.
                     var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-                    Location thisLocation = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation();
+
+                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
                     if ((object)attributeConstructor == null)
                     {
                         var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisLocation,
+                            thisKeyword.GetLocation(),
                             memberDescriptor.DeclaringTypeMetadataName);
                     }
                     else
                     {
-                        diagnostics.Add(useSiteInfo, thisLocation);
+                        diagnostics.Add(useSiteInfo, thisKeyword);
                     }
                 }
             }
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, cancellationToken);
         }
 
-        internal override bool IsDefinedInSourceTree(
+        public override bool IsDefinedInSourceTree(
             SyntaxTree tree,
             TextSpan? definedWithinSpan,
             CancellationToken cancellationToken = default(CancellationToken))
