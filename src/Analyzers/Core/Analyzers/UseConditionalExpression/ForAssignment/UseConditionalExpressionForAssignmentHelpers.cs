@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             static bool AreEqualOrHaveImplicitConversion(ITypeSymbol? firstType, ITypeSymbol? secondType, Compilation compilation)
             {
-                if (firstType?.Equals(secondType, SymbolEqualityComparer.Default) == true)
+                if (SymbolEqualityComparer.Default.Equals(firstType, secondType))
                     return true;
 
                 if (firstType is null || secondType is null)
