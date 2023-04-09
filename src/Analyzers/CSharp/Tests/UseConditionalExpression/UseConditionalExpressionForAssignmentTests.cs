@@ -2014,5 +2014,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        public async Task TestMissingForDiscardsWithBothImplicitConversions()
+        {
+            await TestMissingAsync("""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        if (flag)
+                        {
+                            _ = GetC();
+                        }
+                        else
+                        {
+                            _ = GetString();
+                        }
+                    }
+
+                    C GetC() => new C();
+                    string GetString() => "";
+                }
+
+                class C
+                {
+                    public static implicit operator C(string c) => new C();
+                    public static implicit operator string(C c) => "";
+                }
+                """);
+        }
     }
 }

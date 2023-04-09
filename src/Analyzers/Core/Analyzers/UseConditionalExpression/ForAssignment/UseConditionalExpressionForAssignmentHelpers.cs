@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             static bool AreEqualOrHaveImplicitConversion(ITypeSymbol? firstType, ITypeSymbol? secondType, Compilation compilation)
             {
-                if (Equals(firstType, secondType))
+                if (firstType?.Equals(secondType, SymbolEqualityComparer.Default) == true)
                     return true;
 
                 if (firstType is null || secondType is null)
                     return false;
 
                 return compilation.ClassifyCommonConversion(firstType, secondType).IsImplicit
-                    || compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
+                     ^ compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
             }
         }
 
