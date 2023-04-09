@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                                 if (resourceString.HasArguments)
                                 {
                                     RenderDocComment(language, memberIndent, strings, docCommentString);
-                                    RenderFormatMethod(memberIndent, language, strings, resourceString);
+                                    RenderFormatMethod(memberIndent, language, CompilationInformation.SupportsNullable, strings, resourceString);
                                 }
                             }
 
@@ -636,9 +636,9 @@ Imports System.Reflection
                 }
             }
 
-            private static void RenderFormatMethod(string indent, Lang language, StringBuilder strings, ResourceString resourceString)
+            private static void RenderFormatMethod(string indent, Lang language, bool supportsNullable, StringBuilder strings, ResourceString resourceString)
             {
-                strings.AppendLine($"{indent}internal static string Format{resourceString.Name}({resourceString.GetMethodParameters(language)})");
+                strings.AppendLine($"{indent}internal static string Format{resourceString.Name}({resourceString.GetMethodParameters(language, supportsNullable)})");
                 if (resourceString.UsingNamedArgs)
                 {
                     strings.AppendLine($@"{indent}   => string.Format(Culture, GetResourceString(""{resourceString.Name}"", new[] {{ {resourceString.GetArgumentNames()} }}), {resourceString.GetArguments()});");
@@ -693,12 +693,12 @@ Imports System.Reflection
 
                 public string GetArguments() => string.Join(", ", _arguments.Select(GetArgName));
 
-                public string GetMethodParameters(Lang language)
+                public string GetMethodParameters(Lang language, bool supportsNullable)
                 {
                     switch (language)
                     {
                         case Lang.CSharp:
-                            return string.Join(", ", _arguments.Select(a => "object " + GetArgName(a)));
+                            return string.Join(", ", _arguments.Select(a => $"object{(supportsNullable ? "?" : "")} " + GetArgName(a)));
                         case Lang.VisualBasic:
                             return string.Join(", ", _arguments.Select(GetArgName));
                         default:
