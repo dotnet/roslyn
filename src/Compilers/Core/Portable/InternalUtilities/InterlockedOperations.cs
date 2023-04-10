@@ -73,17 +73,20 @@ namespace Roslyn.Utilities
         /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
         /// already initialized, that value value will be returned.</returns>
         public static ImmutableArray<T> InterlockedInitialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
+            => InterlockedInitialize(ref target, static createArray => createArray(), createArray);
+
+        public static ImmutableArray<T> InterlockedInitialize<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
         {
             ImmutableInterlocked.Update(
                 ref target,
-                static (current, createArray) =>
+                static (current, tuple) =>
                 {
                     // Once initialized, never reinitialize.
                     if (!current.IsDefault)
                         return current;
 
-                    return createArray();
-                }, createArray);
+                    return tuple.createArray(tuple.arg);
+                }, (createArray, arg));
 
             return target;
         }
