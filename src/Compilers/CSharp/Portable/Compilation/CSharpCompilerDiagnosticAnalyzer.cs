@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                     }
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(
-                    ref _supportedErrorCodes,
-                    builder.ToImmutableAndFree(),
-                    current);
+                ImmutableInterlocked.InterlockedInitialize(ref _supportedErrorCodes, builder.ToImmutableAndFree());
             }
 
             Debug.Assert(!_supportedErrorCodes.IsDefault);
