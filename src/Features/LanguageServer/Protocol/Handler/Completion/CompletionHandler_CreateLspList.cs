@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.
             var resolveData = new CompletionResolveData() { ResultId = resultId };
-            var (completionItemResolveData, completionListResolvedData) = clientCapabilities.HasCompletionListDataCapability() 
+            var (completionItemResolveData, completionListResolvedData) = clientCapabilities.HasCompletionListDataCapability()
                 ? (null as CompletionResolveData, resolveData)
                 : (resolveData, null);
 
