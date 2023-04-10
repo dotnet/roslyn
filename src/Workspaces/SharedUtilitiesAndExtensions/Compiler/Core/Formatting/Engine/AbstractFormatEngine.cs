@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var nodeOperations = CreateNodeOperations(cancellationToken);
 
                 var tokenStream = new TokenStream(this.TreeData, Options, this.SpanToFormat, CreateTriviaFactory());
-
                 var tokenOperation = CreateTokenOperation(tokenStream, cancellationToken);
 
                 // initialize context
