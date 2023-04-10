@@ -23,6 +23,12 @@ internal class StarredCompletionAssemblyHelper
     private const string CompletionHelperClassFullName = "PythiaVSGreen.VSGreenCompletionHelper";
     private const string CreateCompletionProviderMethodName = "CreateCompletionProviderAsync";
 
+    private static readonly List<string> RequiredAssemblies = new List<string>
+    {
+        "Microsoft.VisualStudio.Telemetry.dll",
+        "Microsoft.VisualStudio.Utilities.Internal.dll"
+    };
+
     /// <summary>
     /// Initializes CompletionsAssemblyHelper singleton
     /// </summary>
@@ -39,6 +45,7 @@ internal class StarredCompletionAssemblyHelper
         try
         {
             var starredCompletionsALC = new AssemblyLoadContext(ALCName);
+            LoadRequiredAssemblies(starredCompletionsALC, completionsAssemblyLocation, RequiredAssemblies);
             var starredCompletionsAssembly = LoadAssembly(starredCompletionsALC, Path.Combine(completionsAssemblyLocation, CompletionsDllName));
             var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
             var completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
@@ -80,11 +87,19 @@ internal class StarredCompletionAssemblyHelper
         _logger = logger;
     }
 
+    private static void LoadRequiredAssemblies(AssemblyLoadContext alc, string assemblyLocation, List<string> requiredAssemblies)
+    {
+        foreach (var assemblyName in requiredAssemblies)
+        {
+            LoadAssembly(alc, Path.Join(assemblyLocation, assemblyName));
+        }
+    }
+
     private static Assembly LoadAssembly(AssemblyLoadContext alc, string assemblyFullPath)
     {
         if (!File.Exists(assemblyFullPath))
         {
-            throw new FileNotFoundException("Starred completions assembly could not be found");
+            throw new FileNotFoundException($"Assembly at {assemblyFullPath} could not be found");
         }
         return alc.LoadFromAssemblyPath(assemblyFullPath);
     }
