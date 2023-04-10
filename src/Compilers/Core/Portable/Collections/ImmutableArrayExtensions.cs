@@ -834,6 +834,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
+            where T : notnull
         {
             if (items.Length == 1)
             {
@@ -855,10 +856,9 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator =  new Dictionary<K, object>(items.Length, comparer);
-            for (int i = 0; i < items.Length; i++)
+            var accumulator = new Dictionary<K, object>(items.Length, comparer);
+            foreach (var item in items)
             {
-                var item = items[i];
                 var key = keySelector(item);
                 if (accumulator.TryGetValue(key, out var existingValueOrArray))
                 {
@@ -872,30 +872,25 @@ namespace Microsoft.CodeAnalysis
                         // Just a single value in the accumulator so far.  Convert to using a builder.
                         arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
                         arrayBuilder.Add((T)existingValueOrArray);
-                        arrayBuilder.Add(item!);
+                        arrayBuilder.Add(item);
                         accumulator[key] = arrayBuilder;
                     }
                 }
                 else
                 {
                     // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, item!);
+                    accumulator.Add(key, item);
                 }
             }
 
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
 
             // freeze
-            foreach (var kvp in accumulator)
+            foreach (var pair in accumulator)
             {
-                if (kvp.Value is ArrayBuilder<T> arrayBuilder)
-                {
-                    dictionary.Add(kvp.Key, arrayBuilder.ToImmutableAndFree());
-                }
-                else
-                {
-                    dictionary.Add(kvp.Key, ImmutableArray.Create((T)kvp.Value));
-                }
+                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
+                    ? arrayBuilder.ToImmutableAndFree()
+                    : ImmutableArray.Create((T)pair.Value));
             }
 
             return dictionary;
