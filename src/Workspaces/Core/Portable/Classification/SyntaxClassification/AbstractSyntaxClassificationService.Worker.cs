@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public void Dispose()
             {
-                // Deliberately do not call ClearAndFree for the set as we can easy have a set that goes past the
+                // Deliberately do not call ClearAndFree for the set as we can easily have a set that goes past the
                 // threshold simply with a single classified screen.  This allows reuse of those sets without causing
                 // lots of garbage.
                 _set.Clear();
