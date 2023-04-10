@@ -13,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
     Friend Class VisualBasicCompilerDiagnosticAnalyzer
         Inherits CompilerDiagnosticAnalyzer
 
-        Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
+        Protected Overrides ReadOnly Property MessageProvider As CommonMessageProvider
             Get
                 Return CodeAnalysis.VisualBasic.MessageProvider.Instance
             End Get
         End Property
 
-        Friend Overrides Function GetSupportedErrorCodes() As ImmutableArray(Of Integer)
+        Protected Overrides Function GetSupportedErrorCodes() As ImmutableArray(Of Integer)
             Dim errorCodes As Array = [Enum].GetValues(GetType(ERRID))
             Dim builder = ImmutableArray.CreateBuilder(Of Integer)
             For Each errorCode As Integer In errorCodes
