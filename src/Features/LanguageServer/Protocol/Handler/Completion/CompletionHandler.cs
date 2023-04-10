@@ -108,11 +108,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var snippetsSupported = completionCapabilities?.CompletionItem?.SnippetSupport ?? false;
             var itemDefaultsSupported = completionCapabilities?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
 
-            // We use the first item in the completion list as our comparison point for span
-            // and range for optimization when generating the TextEdits later on.
-            var completionChange = await completionService.GetChangeAsync(
-                document, list.ItemsList[0], cancellationToken: cancellationToken).ConfigureAwait(false);
-            var defaultSpan = completionChange.TextChange.Span;
+            // We use the default completion list span as our comparison point for optimization when generating the TextEdits later on.
+            var defaultSpan = list.Span;
             var defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan, documentText);
 
             var supportsCompletionListData = clientCapabilities.HasCompletionListDataCapability();
