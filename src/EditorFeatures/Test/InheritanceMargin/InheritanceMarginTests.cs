@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             TestWorkspace testWorkspace,
             TestHostDocument testHostDocument,
             TestInheritanceMemberItem[] memberItems,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -238,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
+            public readonly string? AssemblyName;
             public readonly Glyph? LanguageGlyph;
             public readonly string? ProjectName;
 
@@ -245,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship,
+                string? assemblyName = null,
                 Glyph? languageGlyph = null,
                 string? projectName = null)
             {
@@ -253,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Relationship = relationship;
                 LanguageGlyph = languageGlyph;
                 InMetadata = false;
+                AssemblyName = assemblyName;
                 ProjectName = projectName;
             }
 
@@ -324,17 +329,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                     Assert.True(targetInfo.LocationTags != null);
                     foreach (var testHostDocument in testWorkspace.Documents)
                     {
-                        if (targetInfo.LocationTags != null)
+                        var annotatedSpans = testHostDocument.AnnotatedSpans;
+                        foreach (var tag in targetInfo.LocationTags)
                         {
-                            var annotatedSpans = testHostDocument.AnnotatedSpans;
-
-                            foreach (var tag in targetInfo.LocationTags)
+                            if (!annotatedSpans.TryGetValue(tag, out var spans))
                             {
-                                if (annotatedSpans.TryGetValue(tag, out var spans))
-                                {
-                                    var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
-                                    builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
-                                }
+                                continue;
+                            }
+
+                            if (targetInfo.AssemblyName is null || (targetInfo.AssemblyName is not null && testHostDocument.Project.AssemblyName == targetInfo.AssemblyName))
+                            {
+                                var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
+                                builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
                             }
                         }
                     }
@@ -2295,6 +2301,82 @@ public class {|target1:C|}
 }",
                 LanguageNames.CSharp,
                 testHost);
+        }
+
+        [Fact]
+        public async Task TestLinkedFileReferenceBaseInterfaceAsync()
+        {
+            var code1 = @"
+public class {|target3:Bar|} : BaseBar, IBar
+{
+    public void {|target7:Hello|}() { }
+    public override void {|target6:World|}() { }
+}";
+            var code2 = @"
+public interface {|target1:IBar|}
+{
+    void {|target4:Hello|}();
+}
+
+public class {|target2:BaseBar|}
+{
+    public virtual void {|target5:World|}() { }
+}";
+            var workspaceFile =
+                $@"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""file1.cs"">
+            <![CDATA[
+                {code1}]]>
+        </Document>
+    </Project>
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly3</ProjectReference>
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Assembly1"" LinkFilePath=""file1.cs"">
+        </Document>
+    </Project> 
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly3"" CommonReferences=""true"">
+        <Document FilePath=""file3.cs"">
+            <![CDATA[
+                {code2}]]>
+        </Document>
+    </Project>
+</Workspace>";
+            using var testWorkspace = TestWorkspace.Create(workspaceFile, composition: EditorTestCompositions.EditorFeatures);
+
+            var cancellationToken = CancellationToken.None;
+            var file1InAssembly1 = testWorkspace.Documents.Single(d => d.Project.AssemblyName == "Assembly1" && d.Name == "file1.cs");
+            await VerifyTestMemberInDocumentAsync(
+                testWorkspace,
+                file1InAssembly1,
+                new[]
+                {
+                    new TestInheritanceMemberItem(lineNumber: 2, "class Bar",
+                        ImmutableArray.Create(
+                            new TargetInfo("IBar", InheritanceRelationship.ImplementedInterface, "target1"),
+                            new TargetInfo("BaseBar", InheritanceRelationship.BaseType, "target2"))),
+                    new TestInheritanceMemberItem(lineNumber: 4, "void Bar.Hello()",
+                        ImmutableArray.Create(new TargetInfo("IBar.Hello", InheritanceRelationship.ImplementedMember, "target4"))),
+                    new TestInheritanceMemberItem(lineNumber: 5, "override void Bar.World()",
+                        ImmutableArray.Create(new TargetInfo("BaseBar.World", InheritanceRelationship.OverriddenMember, "target5"))),
+                }, cancellationToken).ConfigureAwait(false);
+
+            var file3InAssembly3 = testWorkspace.Documents.Single(d => d.Project.AssemblyName == "Assembly3" && d.Name == "file3.cs");
+            await VerifyTestMemberInDocumentAsync(
+                testWorkspace,
+                file3InAssembly3,
+                new[]
+                {
+                    new TestInheritanceMemberItem(lineNumber: 2, "interface IBar",
+                        ImmutableArray.Create(new TargetInfo("Bar", "target3", InheritanceRelationship.ImplementingType, "Assembly1"))),
+                    new TestInheritanceMemberItem(lineNumber: 4, "void IBar.Hello()",
+                        ImmutableArray.Create(new TargetInfo("Bar.Hello", "target7", InheritanceRelationship.ImplementingMember, "Assembly1"))),
+                    new TestInheritanceMemberItem(lineNumber: 7, "class BaseBar",
+                        ImmutableArray.Create(new TargetInfo("Bar", "target3", InheritanceRelationship.DerivedType, "Assembly1"))),
+                    new TestInheritanceMemberItem(lineNumber: 9, "virtual void BaseBar.World()",
+                        ImmutableArray.Create(new TargetInfo("Bar.World", "target6", InheritanceRelationship.OverridingMember, "Assembly1"))),
+                }, cancellationToken).ConfigureAwait(false);
         }
     }
 }
