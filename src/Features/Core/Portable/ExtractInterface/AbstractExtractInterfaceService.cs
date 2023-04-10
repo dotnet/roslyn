@@ -111,8 +111,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
-            var compilation = semanticModel.Compilation;
-            var parentTrivia = extractableMembers.First().GetDocumentationComment(compilation);// .GetAncestor<DocumentationCommentTriviaSyntax>();
 
             return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
         }
@@ -184,12 +182,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions,
             CancellationToken cancellationToken)
         {
+            
             var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
+            // NOTES: The annotated symbol map seems to still include the comments?
             var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,

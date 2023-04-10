@@ -1724,7 +1724,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
         public async Task TestExtractInterface_WithComments()
         {
             var markup =
-                """
+                    """
                 public class $$Goo
                 {
                     /// <summary>

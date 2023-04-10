@@ -65,9 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // Becca 
-            var newdoc = (await newDocument.GetTextAsync()).ToString();
-
+            // NOTE: I expected generate documentation comments to just work? But it doesn't. The newTypedDocument below doesn't have comments
             var context = new CodeGenerationContext(
                 contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
                 generateMethodBodies: true,
@@ -93,9 +91,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
                 cancellationToken).ConfigureAwait(false);
-
-            // Becca 
-            var newTxt = (await newTypeDocument.GetTextAsync()).ToString();
 
             var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
