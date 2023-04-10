@@ -2651,6 +2651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            if (whereFoundField != null &&
+                PrimaryConstructor is { } primaryConstructor && primaryConstructor.GetCapturedParameters().Any() &&
+                (primaryConstructor.SyntaxRef.SyntaxTree != whereFoundField.SyntaxTree || primaryConstructor.SyntaxRef.Span != whereFoundField.Span))
+            {
+                diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, Locations[0], this);
+                return;
+            }
         }
 
         private static bool HasInstanceData(MemberDeclarationSyntax m)
