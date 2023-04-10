@@ -1477,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 
