@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class AnalyzerExecutionContext
         {
             /// <summary>
-            /// Cached mapping of localizable strings in this this descriptor to any exceptions thrown while obtaining them.
+            /// Cached mapping of localizable strings in this descriptor to any exceptions thrown while obtaining them.
             /// </summary>
             private static ImmutableSegmentedDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableSegmentedDictionary<LocalizableString, Exception?>.Empty.WithComparer(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
