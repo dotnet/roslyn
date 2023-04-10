@@ -837,10 +837,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (items.Length == 1)
             {
-                var dictionary1 = new Dictionary<K, ImmutableArray<T>>(1, comparer);
                 T value = items[0];
-                dictionary1.Add(keySelector(value), ImmutableArray.Create(value));
-                return dictionary1;
+                return new Dictionary<K, ImmutableArray<T>>(1, comparer)
+                {
+                    {  keySelector(value), ImmutableArray.Create(value) },
+                };
             }
 
             if (items.Length == 0)
@@ -872,6 +873,7 @@ namespace Microsoft.CodeAnalysis
                         arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
                         arrayBuilder.Add((T)existingValueOrArray);
                         arrayBuilder.Add(item!);
+                        accumulator[key] = arrayBuilder;
                     }
                 }
                 else
