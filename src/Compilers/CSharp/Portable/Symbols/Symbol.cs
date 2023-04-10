@@ -346,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Location GetFirstLocation()
             => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
 
+        public Location GetFirstLocationOrNone()
+            => TryGetFirstLocation() ?? Location.None;
+
         /// <summary>
         /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref
         /// name="tree"/> and is contained within <paramref name="declarationSpan"/>.  Subclasses can override this to

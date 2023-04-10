@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
                 var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
-                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.GetFirstLocationOrNone(), useSiteInfo);
                 if (!isManagedType)
                 {
                     continue;

@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType.Type);
+                diagnostics.Add(code, GetFirstLocation(), this, returnType.Type);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -265,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, GetFirstLocation(), this, parameter.Type);
                 }
             }
 
-            diagnostics.Add(Locations[0], useSiteInfo);
+            diagnostics.Add(GetFirstLocation(), useSiteInfo);
         }
 
         protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
@@ -281,14 +281,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (returnType.Type.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], returnType.Type, ContainingType);
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, ContainingType);
             }
 
             foreach (var param in parameters)
             {
                 if (param.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], param.Type, ContainingType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, ContainingType);
                 }
             }
         }

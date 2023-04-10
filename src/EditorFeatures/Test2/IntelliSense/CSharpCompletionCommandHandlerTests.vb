@@ -8178,7 +8178,7 @@ namespace NS
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
-                    rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
+                    rules:=CompletionItemRules.Default.WithMatchPriority(1000), isComplexTextEdit:=True))
                 Return Task.CompletedTask
             End Function
 

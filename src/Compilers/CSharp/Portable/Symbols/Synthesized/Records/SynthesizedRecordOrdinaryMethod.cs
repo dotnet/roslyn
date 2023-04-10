@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _memberOffset;
 
         protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, name, containingType.Locations[0], (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
+            : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
                    isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
         {
             _memberOffset = memberOffset;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsImplicitlyDeclared => true;
 
-        protected sealed override Location ReturnTypeLocation => Locations[0];
+        protected sealed override Location ReturnTypeLocation => GetFirstLocation();
 
         protected sealed override MethodSymbol? FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics) => null;
 
