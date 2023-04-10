@@ -4744,7 +4744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.ContainsKey(_name))
+                    if (typeDecl.MemberNames.Contains(_name))
                     {
                         return true;
                     }
