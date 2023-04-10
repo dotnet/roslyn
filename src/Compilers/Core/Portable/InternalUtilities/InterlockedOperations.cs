@@ -68,8 +68,9 @@ namespace Roslyn.Utilities
         /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
         /// </summary>
         /// <typeparam name="T">Elemental type of the array.</typeparam>
-        /// <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  Will
-        /// only be called at most once.  Will not be called if 'target' is not 'default'.</param>
+        /// <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  May be
+        /// called multiple times in the event of concurrent initialization of <paramref name="target"/>.  Will not be
+        /// called if 'target' is already not 'default' at the time this is called.</param>
         /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
         /// already initialized, that value value will be returned.</returns>
         public static ImmutableArray<T> InterlockedInitialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
