@@ -111,7 +111,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
-
             return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
         }
 
@@ -182,7 +181,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions,
             CancellationToken cancellationToken)
         {
-            
             var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
@@ -318,12 +316,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     cleanupOptions.SimplifierOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                formattedSolution = formattedDocument.Project.Solution;
-
-                var updatedOriginalDocument = formattedSolution.GetDocument(documentId);
-                var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
-
-                var unsimplified = (await formattedDocument.GetTextAsync()).ToString();
+                formattedSolution = simplifiedDocument.Project.Solution;
             }
 
             return formattedSolution;
@@ -369,9 +362,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
 
-                // Becca 
-                var updatedOriginalDocument = unformattedSolution.GetDocument(documentId);
-                var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
 
                 // Only update the first instance of the typedeclaration,
                 // since it's not needed in all declarations

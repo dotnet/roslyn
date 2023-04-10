@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
                                                .ToImmutableArray();
+
             if (namedType.IsRecord)
             {
                 declaration = GenerateRecordMembers(service, info, (RecordDeclarationSyntax)declaration, members, cancellationToken);
