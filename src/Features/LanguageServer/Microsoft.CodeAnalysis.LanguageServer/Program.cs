@@ -34,26 +34,18 @@ WindowsErrorReporting.SetErrorModeOnWindows();
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(
-    bool launchDebugger,
-    LogLevel minimumLogLevel,
-    string? starredCompletionPath,
-    string? telemetryLevel,
-    string? sessionId,
-    string? sharedDependenciesPath,
-    IEnumerable<string> extensionAssemblyPaths,
-    CancellationToken cancellationToken)
+static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
-        builder.SetMinimumLevel(minimumLogLevel);
+        builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
         builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
             // Add a console logger as a fallback for when the LSP server has not finished initializing.
             LoggerFactory.Create(builder =>
             {
-                builder.SetMinimumLevel(minimumLogLevel);
+                builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
                 builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
@@ -61,7 +53,7 @@ static async Task RunAsync(
         ));
     });
 
-    if (launchDebugger)
+    if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -82,11 +74,17 @@ static async Task RunAsync(
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, sharedDependenciesPath, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
+
+    // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
+    Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+
+    // Initialize the server configuration MEF exported value.
+    exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
 
     // Initialize the fault handler if it's available
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-    RoslynLogger.Initialize(telemetryReporter, telemetryLevel, sessionId);
+    RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
     // Create the workspace first, since right now the language server will assume there's at least one Workspace
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
@@ -99,7 +97,7 @@ static async Task RunAsync(
     await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBrokerFactory);
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
 
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
@@ -152,6 +150,16 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
+    var dotnetPathOption = new Option<string?>("--dotnetPath")
+    {
+        Description = "The path to the dotnet folder that should be used when shelling out to the dotnet CLI.",
+        IsRequired = false,
+    };
+    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
+    {
+        Description = "The directory where we should write log files to",
+        IsRequired = true,
+    };
 
     var sessionIdOption = new Option<string?>("--sessionId")
     {
@@ -177,10 +185,12 @@ static Parser CreateCommandLineParser()
         brokeredServicePipeNameOption,
         logLevelOption,
         starredCompletionsPathOption,
+        dotnetPathOption,
         telemetryLevelOption,
         sessionIdOption,
         sharedDependenciesOption,
         extensionAssemblyPathsOption,
+        extensionLogDirectoryOption
     };
     rootCommand.SetHandler(context =>
     {
@@ -188,12 +198,25 @@ static Parser CreateCommandLineParser()
         var launchDebugger = context.ParseResult.GetValueForOption(debugOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
+        var dotnetPath = context.ParseResult.GetValueForOption(dotnetPathOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
         var sessionId = context.ParseResult.GetValueForOption(sessionIdOption);
         var sharedDependenciesPath = context.ParseResult.GetValueForOption(sharedDependenciesOption);
         var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionLogDirectory = context.ParseResult.GetValueForOption(extensionLogDirectoryOption)!;
 
-        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, sessionId, sharedDependenciesPath, extensionAssemblyPaths, cancellationToken);
+        var serverConfiguration = new ServerConfiguration(
+            LaunchDebugger: launchDebugger,
+            MinimumLogLevel: logLevel,
+            StarredCompletionsPath: starredCompletionsPath,
+            DotnetPath: dotnetPath,
+            TelemetryLevel: telemetryLevel,
+            SessionId: sessionId,
+            SharedDependenciesPath: sharedDependenciesPath,
+            ExtensionAssemblyPaths: extensionAssemblyPaths,
+            ExtensionLogDirectory: extensionLogDirectory);
+
+        return RunAsync(serverConfiguration, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
