@@ -850,26 +850,50 @@ namespace Microsoft.CodeAnalysis
 
             // bucketize
             // prevent reallocation. it may not have 'count' entries, but it won't have more. 
-            var accumulator = new Dictionary<K, ArrayBuilder<T>>(items.Length, comparer);
+            //
+            // We store a mapping from keys to either a single item (very common in practice as this is used from
+            // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
+
+            var accumulator =  new Dictionary<K, object>(items.Length, comparer);
             for (int i = 0; i < items.Length; i++)
             {
                 var item = items[i];
                 var key = keySelector(item);
-                if (!accumulator.TryGetValue(key, out var bucket))
+                if (accumulator.TryGetValue(key, out var existingValueOrArray))
                 {
-                    bucket = ArrayBuilder<T>.GetInstance();
-                    accumulator.Add(key, bucket);
+                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
+                    {
+                        // Already a builder in the accumulator, just add to that.
+                        arrayBuilder.Add(item);
+                    }
+                    else
+                    {
+                        // Just a single value in the accumulator so far.  Convert to using a builder.
+                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                        arrayBuilder.Add((T)existingValueOrArray);
+                        arrayBuilder.Add(item!);
+                    }
                 }
-
-                bucket.Add(item);
+                else
+                {
+                    // Nothing in the dictionary so far.  Add the item directly.
+                    accumulator.Add(key, item!);
+                }
             }
 
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
 
             // freeze
-            foreach (var pair in accumulator)
+            foreach (var kvp in accumulator)
             {
-                dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
+                if (kvp.Value is ArrayBuilder<T> arrayBuilder)
+                {
+                    dictionary.Add(kvp.Key, arrayBuilder.ToImmutableAndFree());
+                }
+                else
+                {
+                    dictionary.Add(kvp.Key, ImmutableArray.Create((T)kvp.Value));
+                }
             }
 
             return dictionary;
