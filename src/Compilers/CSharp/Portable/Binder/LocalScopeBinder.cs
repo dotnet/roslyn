@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             declaredInThisScope |= newSymbolKind == SymbolKind.Local && this.Locals.Contains((LocalSymbol)newSymbol);
             declaredInThisScope |= newSymbolKind == SymbolKind.Method && this.LocalFunctions.Contains((LocalFunctionSymbol)newSymbol);
 
-            if (declaredInThisScope && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
+            if (declaredInThisScope && newLocation.SourceSpan.Start >= local.GetFirstLocation().SourceSpan.Start)
             {
                 // A local variable or function named '{0}' is already defined in this scope
                 diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);

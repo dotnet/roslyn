@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsExtensionMethod)
             {
-                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
+                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, GetFirstLocation());
             }
 
             foreach (var param in syntax.ParameterList.Parameters)

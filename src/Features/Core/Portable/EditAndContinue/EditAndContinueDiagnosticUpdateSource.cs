@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(data => data.DocumentId!))
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(static data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (projectDiagnostics.Length > 0)
             {
-                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(data => data.ProjectId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(static data => data.ProjectId!))
                 {
                     var diagnosticGroupId = (this, projectId);
 

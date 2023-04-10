@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
             Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
 
-            Location location = this.Locations[0];
+            Location location = this.GetFirstLocation();
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
             bool isExplicitInterfaceImplementationInInterface = ContainingType.IsInterface && IsExplicitInterfaceImplementation;
 
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
-            var location = this.Locations[0];
+            var location = this.GetFirstLocation();
 
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!otherAccessor.IsImplementable() && thisAccessor is object)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.Locations[0], thisAccessor, explicitlyImplementedEvent);
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.GetFirstLocation(), thisAccessor, explicitlyImplementedEvent);
             }
         }
     }
