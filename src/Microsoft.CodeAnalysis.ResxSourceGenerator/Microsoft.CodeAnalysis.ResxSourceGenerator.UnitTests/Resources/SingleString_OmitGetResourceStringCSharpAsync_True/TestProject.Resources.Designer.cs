@@ -12,7 +12,7 @@ namespace TestProject
         internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));
 
         /// <summary>value</summary>
-        internal static string? @Name => GetResourceString("Name");
+        internal static string @Name => GetResourceString("Name")!;
 
     }
 }

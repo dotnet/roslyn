@@ -290,7 +290,16 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             }
                             else
                             {
-                                strings.AppendLine($"{memberIndent}internal static {(ResourceInformation.IncludeDefaultValues || !CompilationInformation.SupportsNullable ? "string" : "string?")} @{identifier} => GetResourceString(\"{name}\"{defaultValue});");
+                                var needSuppression = false;
+                                if (CompilationInformation.SupportsNullable)
+                                {
+                                    // We need a suppression unless default values are included and the NotNullIfNotNull
+                                    // attribute has been applied to eliminated the need for a suppression
+                                    if (!ResourceInformation.IncludeDefaultValues || !CompilationInformation.HasNotNullIfNotNull)
+                                        needSuppression = true;
+                                }
+
+                                strings.AppendLine($"{memberIndent}internal static string @{identifier} => GetResourceString(\"{name}\"{defaultValue}){(needSuppression ? "!" : "")};");
                             }
 
                             if (ResourceInformation.EmitFormatMethods)

@@ -15,7 +15,7 @@ namespace TestProject
         [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("defaultValue")]
         internal static string? GetResourceString(string resourceKey, string? defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;
         /// <summary>value</summary>
-        internal static string? @Name => GetResourceString("Name");
+        internal static string @Name => GetResourceString("Name")!;
 
     }
 }

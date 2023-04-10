@@ -29,7 +29,7 @@ namespace TestProject
         }
 
         /// <summary>value {x}</summary>
-        internal static string? @Name => GetResourceString("Name");
+        internal static string @Name => GetResourceString("Name")!;
         /// <summary>value {x}</summary>
         internal static string FormatName(object? x)
            => string.Format(Culture, GetResourceString("Name", new[] { "x" }), x);
