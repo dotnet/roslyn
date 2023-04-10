@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -61,6 +62,30 @@ namespace Roslyn.Utilities
             Debug.Assert(!initializedValue.IsDefault);
             var oldValue = ImmutableInterlocked.InterlockedCompareExchange(ref target, initializedValue, default(ImmutableArray<T>));
             return oldValue.IsDefault ? initializedValue : oldValue;
+        }
+
+        /// <summary>
+        /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
+        /// </summary>
+        /// <typeparam name="T">Elemental type of the array.</typeparam>
+        /// <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  Will
+        /// only be called at most once.  Will not be called if 'target' is not 'default'.</param>
+        /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
+        /// already initialized, that value value will be returned.</returns>
+        public static ImmutableArray<T> InterlockedInitialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
+        {
+            ImmutableInterlocked.Update(
+                ref target,
+                static (current, createArray) =>
+                {
+                    // Once initialized, never reinitialize.
+                    if (!current.IsDefault)
+                        return current;
+
+                    return createArray();
+                }, createArray);
+
+            return target;
         }
     }
 }
