@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
 
         protected abstract CommonMessageProvider MessageProvider { get; }
-        protected abstract ImmutableArray<int> GetSupportedErrorCodes();
+
+        // internal as this is called from tests
+        internal abstract ImmutableArray<int> GetSupportedErrorCodes();
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => InterlockedOperations.InterlockedInitialize(
@@ -27,10 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var errorCodes = @this.GetSupportedErrorCodes();
                     var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance(errorCodes.Length);
                     foreach (var errorCode in errorCodes)
-                    {
-                        var descriptor = DiagnosticInfo.GetDescriptor(errorCode, messageProvider);
-                        builder.Add(descriptor);
-                    }
+                        builder.Add(DiagnosticInfo.GetDescriptor(errorCode, messageProvider));
 
                     builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
                     return builder.ToImmutableAndFree();

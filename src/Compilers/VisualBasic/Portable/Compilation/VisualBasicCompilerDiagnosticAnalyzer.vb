@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function GetSupportedErrorCodes() As ImmutableArray(Of Integer)
+        Friend Overrides Function GetSupportedErrorCodes() As ImmutableArray(Of Integer)
             Dim errorCodes As Array = [Enum].GetValues(GetType(ERRID))
             Dim builder = ImmutableArray.CreateBuilder(Of Integer)
             For Each errorCode As Integer In errorCodes

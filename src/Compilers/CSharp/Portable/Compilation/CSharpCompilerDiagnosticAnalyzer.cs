@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
         protected override CommonMessageProvider MessageProvider
             => CodeAnalysis.CSharp.MessageProvider.Instance;
 
-        protected override ImmutableArray<int> GetSupportedErrorCodes()
+        internal override ImmutableArray<int> GetSupportedErrorCodes()
         {
             var errorCodes = Enum.GetValues(typeof(ErrorCode));
             var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
