@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((access & (access - 1)) != 0)
             {   // more than one access modifier
                 if ((modifiers & DeclarationModifiers.Partial) != 0)
-                    diagnostics.Add(ErrorCode.ERR_PartialModifierConflict, Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_PartialModifierConflict, GetFirstLocation(), this);
                 access = access & ~(access - 1); // narrow down to one access modifier
                 modifiers &= ~DeclarationModifiers.AccessibilityMask; // remove them all
                 modifiers |= (DeclarationModifiers)access; // except the one
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var containingType = this.ContainingType;
             if (containingType?.IsSealed == true && this.DeclaredAccessibility.HasProtected())
             {
-                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), Locations[0], this);
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), GetFirstLocation(), this);
             }
 
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
@@ -349,13 +349,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & DeclarationModifiers.Abstract) != 0 &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
             {
-                diagnostics.Add(ErrorCode.ERR_AbstractSealedStatic, Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_AbstractSealedStatic, GetFirstLocation(), this);
             }
 
             if (!modifierErrors &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Static))
             {
-                diagnostics.Add(ErrorCode.ERR_SealedStaticClass, Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
             switch (typeKind)
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if ((result & DeclarationModifiers.File) != 0)
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, GetFirstLocation(), this);
             }
 
             if (missingPartial)
@@ -973,6 +973,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<Location> Locations
             => ImmutableArray<Location>.CastUp(declaration.NameLocations.ToImmutable());
 
+        public override Location? TryGetFirstLocation()
+            => declaration.Declarations[0].NameLocation;
+
         public ImmutableArray<SyntaxReference> SyntaxReferences
         {
             get
@@ -1316,11 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (t.IsPartial && other.IsPartial)
                             {
-                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.Locations[0], t);
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.GetFirstLocation(), t);
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.Locations[0], this, t.Name);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.GetFirstLocation(), this, t.Name);
                             }
                         }
                     }
@@ -1336,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var t in symbols)
                     {
-                        Binder.CheckFeatureAvailability(t.DeclaringSyntaxReferences[0].GetSyntax(), MessageID.IDS_DefaultInterfaceImplementation, diagnostics, t.Locations[0]);
+                        Binder.CheckFeatureAvailability(t.DeclaringSyntaxReferences[0].GetSyntax(), MessageID.IDS_DefaultInterfaceImplementation, diagnostics, t.GetFirstLocation());
                     }
                 }
 
@@ -1359,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     if (member.Name == this.Name)
                     {
-                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.Locations[0], this.Name);
+                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.Name);
                     }
                     break;
                 case TypeKind.Interface:
@@ -1714,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportRequiredMembers(diagnostics);
             }
 
-            var location = Locations[0];
+            var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
             if (this.IsRefLikeType)
@@ -1838,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in GetMembers("Clone"))
             {
-                diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.GetFirstLocation());
             }
         }
 
@@ -1947,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // The type '{0}' already contains a definition for '{1}'
                                 if (Locations.Length == 1 || IsPartial)
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.Locations[0], this, symbol.Name);
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.GetFirstLocation(), this, symbol.Name);
                                 }
                             }
 
@@ -1977,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!conversionsAsConversions.Add(conversion))
                         {
                             // CS0557: Duplicate user-defined conversion in type 'C'
-                            diagnostics.Add(ErrorCode.ERR_DuplicateConversionInClass, conversion.Locations[0], this);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateConversionInClass, conversion.GetFirstLocation(), this);
                         }
                         else
                         {
@@ -2063,7 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // '{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'
                     var methodKind = method1.MethodKind == MethodKind.Constructor ? MessageID.IDS_SK_CONSTRUCTOR : MessageID.IDS_SK_METHOD;
-                    diagnostics.Add(ErrorCode.ERR_OverloadRefKind, method1.Locations[0], this, methodKind.Localize(), refKind1.ToParameterDisplayString(), refKind2.ToParameterDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_OverloadRefKind, method1.GetFirstLocation(), this, methodKind.Localize(), refKind1.ToParameterDisplayString(), refKind2.ToParameterDisplayString());
 
                     return;
                 }
@@ -2075,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (method1.IsConstructor() ? this.Name : method1.Name);
 
             // Type '{1}' already defines a member called '{0}' with the same parameter types
-            diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
+            diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.GetFirstLocation(), methodName, this);
         }
 
         private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
@@ -2117,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             string indexerName = indexer.MetadataName;
                             if (typeParameterNames.Contains(indexerName))
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.GetFirstLocation(), this, indexerName);
                                 continue;
                             }
                         }
@@ -2148,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // there will only be one error because only one indexer has a different
                     // name from the previous one.
 
-                    diagnostics.Add(ErrorCode.ERR_InconsistentIndexerNames, indexer.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_InconsistentIndexerNames, indexer.GetFirstLocation());
                 }
 
                 lastIndexerName = indexerName;
@@ -2159,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
                         Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
-                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
+                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.GetFirstLocation(), this, indexerName);
                     }
                 }
             }
@@ -2168,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 // NOTE: Dev10 prints "this" as the name of the indexer.
-                diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, indexer.Locations[0], SyntaxFacts.GetText(SyntaxKind.ThisKeyword), this);
+                diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, indexer.GetFirstLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), this);
             }
             else
             {
@@ -2202,7 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var dup in GetMembers(tp.Name))
                     {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
+                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.GetFirstLocation(), this, tp.Name);
                     }
                 }
             }
@@ -2301,7 +2304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (field is SynthesizedPrimaryConstructorParameterBackingFieldSymbol { ParameterSymbol: var parameterSymbol })
                         {
-                            diagnostics.Add(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, parameterSymbol.Locations[0], parameterSymbol, type);
+                            diagnostics.Add(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, parameterSymbol.GetFirstLocation(), parameterSymbol, type);
                         }
                         else
                         {
@@ -2309,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var symbol = field.AssociatedSymbol ?? field;
 
                             // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
-                            diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, symbol.Locations[0], symbol, type);
+                            diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, symbol.GetFirstLocation(), symbol, type);
                         }
                         return true;
                     }
@@ -2340,7 +2343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (member.Kind != SymbolKind.Method || ((MethodSymbol)member).MethodKind != MethodKind.Destructor)
                         {
-                            diagnostics.Add(ErrorCode.ERR_ProtectedInStatic, member.Locations[0], member);
+                            diagnostics.Add(ErrorCode.ERR_ProtectedInStatic, member.GetFirstLocation(), member);
                         }
                     }
                 }
@@ -2404,13 +2407,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void reportOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
             {
                 // CS0216: The operator 'C.operator true(C)' requires a matching operator 'false' to also be defined
-                diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.Locations[0], op1,
+                diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.GetFirstLocation(), op1,
                     SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName2)));
             }
 
             static void reportCheckedOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
             {
-                diagnostics.Add(ErrorCode.ERR_CheckedOperatorNeedsMatch, op1.Locations[0], op1);
+                diagnostics.Add(ErrorCode.ERR_CheckedOperatorNeedsMatch, op1.GetFirstLocation(), op1);
             }
         }
 
@@ -2488,19 +2491,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (overridesEquals && !overridesGHC)
                 {
                     // CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                    diagnostics.Add(ErrorCode.WRN_EqualsWithoutGetHashCode, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.WRN_EqualsWithoutGetHashCode, this.GetFirstLocation(), this);
                 }
 
                 if (hasOp && !overridesEquals)
                 {
                     // CS0660: 'C' defines operator == or operator != but does not override Object.Equals(object o)
-                    diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutEquals, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutEquals, this.GetFirstLocation(), this);
                 }
 
                 if (hasOp && !overridesGHC)
                 {
                     // CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
-                    diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.GetFirstLocation(), this);
                 }
             }
         }
@@ -2510,17 +2513,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (HasDeclaredRequiredMembers)
             {
                 // Ensure that an error is reported if the required constructor isn't present.
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor, diagnostics, Locations[0]);
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor, diagnostics, GetFirstLocation());
             }
 
             if (HasAnyRequiredMembers)
             {
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, Locations[0]);
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
 
                 if (this.IsRecord)
                 {
                     // Copy constructors need to emit SetsRequiredMembers on the ctor
-                    _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor, diagnostics, Locations[0]);
+                    _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor, diagnostics, GetFirstLocation());
                 }
             }
 
@@ -2534,7 +2537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-                    diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
+                    diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.GetFirstLocation(), BaseTypeNoUseSiteDiagnostics);
                 }
             }
         }
@@ -2548,7 +2551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (member.IsRequired())
                 {
                     // Required members are not allowed on the top level of a script or submission.
-                    diagnostics.Add(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, member.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, member.GetFirstLocation());
                 }
             }
         }
@@ -2579,7 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
                 {
                     // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
-                    diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, f.Locations[0], f, type);
+                    diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, f.GetFirstLocation(), f, type);
                     //this.KnownCircularStruct = true;
                     return;
                 }
@@ -2643,7 +2646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (whereFoundField != null && whereFoundField != syntaxRef)
                         {
-                            diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, Locations[0], this);
+                            diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, GetFirstLocation(), this);
                             return;
                         }
 
@@ -3485,13 +3488,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             (prevPart.IsPartialImplementation || (prevPart.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != methodPart)))
                         {
                             // A partial method may not have multiple implementing declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, methodPart.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, methodPart.GetFirstLocation());
                         }
                         else if (methodPart.IsPartialDefinition &&
                                  (prevPart.IsPartialDefinition || (prevPart.OtherPartOfPartial is MethodSymbol otherDefinition && (object)otherDefinition != methodPart)))
                         {
                             // A partial method may not have multiple defining declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, methodPart.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, methodPart.GetFirstLocation());
                         }
                         else
                         {
@@ -3515,11 +3518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // partial implementations not paired with a definition
                     if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
                     }
                     else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.GetFirstLocation(), method);
                     }
                 }
             }
@@ -3659,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Location GetAccessorOrPropertyLocation(PropertySymbol propertySymbol, bool getNotSet)
         {
             var locationFrom = (Symbol)(getNotSet ? propertySymbol.GetMethod : propertySymbol.SetMethod) ?? propertySymbol;
-            return locationFrom.Locations[0];
+            return locationFrom.GetFirstLocation();
         }
 
         /// <summary>
@@ -3668,7 +3671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Location GetAccessorOrEventLocation(EventSymbol propertySymbol, bool isAdder)
         {
             var locationFrom = (Symbol?)(isAdder ? propertySymbol.AddMethod : propertySymbol.RemoveMethod) ?? propertySymbol;
-            return locationFrom.Locations[0];
+            return locationFrom.GetFirstLocation();
         }
 
         /// <summary>
@@ -3798,14 +3801,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (meth.MethodKind)
                     {
                         case MethodKind.Constructor:
-                            diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.GetFirstLocation());
                             break;
                         case MethodKind.Conversion:
                             break;
                         case MethodKind.UserDefinedOperator:
                             break;
                         case MethodKind.Destructor:
-                            diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, member.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, member.GetFirstLocation());
                             break;
                         case MethodKind.ExplicitInterfaceImplementation:
                         //CS0541 is handled in SourcePropertySymbol
@@ -3845,7 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
-                        var location = m.Locations[0];
+                        var location = m.GetFirstLocation();
                         if (isEnum)
                         {
                             diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, location);
@@ -3881,13 +3884,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     hasInitializers = true;
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
-                    MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
+                    MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.GetFirstLocation());
                 }
             }
 
             if (hasInitializers && !builder.NonTypeMembers.Any(member => member is MethodSymbol { MethodKind: MethodKind.Constructor }))
             {
-                diagnostics.Add(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, GetFirstLocation());
             }
         }
 
@@ -4001,7 +4004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
             {
-                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.GetFirstLocation(), declaration.Name);
             }
 
             var printMembers = addPrintMembersMethod(membersSoFar);
@@ -4053,17 +4056,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (deconstruct.DeclaredAccessibility != Accessibility.Public)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, deconstruct.Locations[0], deconstruct);
+                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, deconstruct.GetFirstLocation(), deconstruct);
                     }
 
                     if (deconstruct.ReturnType.SpecialType != SpecialType.System_Void && !deconstruct.ReturnType.IsErrorType())
                     {
-                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, deconstruct.Locations[0], deconstruct, targetMethod.ReturnType);
+                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, deconstruct.GetFirstLocation(), deconstruct, targetMethod.ReturnType);
                     }
 
                     if (deconstruct.IsStatic)
                     {
-                        diagnostics.Add(ErrorCode.ERR_StaticAPIInRecord, deconstruct.Locations[0], deconstruct);
+                        diagnostics.Add(ErrorCode.ERR_StaticAPIInRecord, deconstruct.GetFirstLocation(), deconstruct);
                     }
                 }
             }
@@ -4097,7 +4100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (primaryAndCopyCtorAmbiguity)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RecordAmbigCtor, copyCtor.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RecordAmbigCtor, copyCtor.GetFirstLocation());
                     }
                 }
                 else
@@ -4106,7 +4109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!this.IsSealed && (constructor.DeclaredAccessibility != Accessibility.Public && constructor.DeclaredAccessibility != Accessibility.Protected))
                     {
-                        diagnostics.Add(ErrorCode.ERR_CopyConstructorWrongAccessibility, constructor.Locations[0], constructor);
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorWrongAccessibility, constructor.GetFirstLocation(), constructor);
                     }
                 }
             }
@@ -4150,19 +4153,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (printMembersMethod.DeclaredAccessibility != Accessibility.Private)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NonPrivateAPIInRecord, printMembersMethod.Locations[0], printMembersMethod);
+                            diagnostics.Add(ErrorCode.ERR_NonPrivateAPIInRecord, printMembersMethod.GetFirstLocation(), printMembersMethod);
                         }
                     }
                     else if (printMembersMethod.DeclaredAccessibility != Accessibility.Protected)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, printMembersMethod.Locations[0], printMembersMethod);
+                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, printMembersMethod.GetFirstLocation(), printMembersMethod);
                     }
 
                     if (!printMembersMethod.ReturnType.Equals(targetMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
                     {
                         if (!printMembersMethod.ReturnType.IsErrorType())
                         {
-                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, printMembersMethod.Locations[0], printMembersMethod, targetMethod.ReturnType);
+                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, printMembersMethod.GetFirstLocation(), printMembersMethod, targetMethod.ReturnType);
                         }
                     }
                     else if (isRecordClass)
@@ -4198,11 +4201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (baseToStringMethod.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
                     {
-                        var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
+                        var languageVersion = ((CSharpParseOptions)this.GetFirstLocation().SourceTree!.Options).LanguageVersion;
                         var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
                         diagnostics.Add(
                             ErrorCode.ERR_InheritingFromRecordWithSealedToString,
-                            this.Locations[0],
+                            this.GetFirstLocation(),
                             languageVersion.ToDisplayString(),
                             new CSharpRequiredLanguageVersion(requiredVersion));
                     }
@@ -4227,7 +4230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
                                 diagnostics,
                                 this.DeclaringCompilation,
-                                toStringMethod.Locations[0]);
+                                toStringMethod.GetFirstLocation());
                         }
                     }
                 }
@@ -4311,7 +4314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
+                            param.GetFirstLocation(),
                             new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
                             param.TypeWithAnnotations,
                             param.Name);
@@ -4338,7 +4341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
                     {
-                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.Locations[0], symbol);
+                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.GetFirstLocation(), symbol);
                         return false;
                     }
                     return true;
@@ -4378,7 +4381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     getHashCode = (MethodSymbol)existingHashCodeMethod;
                     if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialMember.System_Object__GetHashCode, diagnostics) && getHashCode.IsSealed && !IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.Locations[0], getHashCode);
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.GetFirstLocation(), getHashCode);
                     }
                 }
                 return getHashCode;
@@ -4412,19 +4415,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (equalityContract.DeclaredAccessibility != Accessibility.Private)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NonPrivateAPIInRecord, equalityContract.Locations[0], equalityContract);
+                            diagnostics.Add(ErrorCode.ERR_NonPrivateAPIInRecord, equalityContract.GetFirstLocation(), equalityContract);
                         }
                     }
                     else if (equalityContract.DeclaredAccessibility != Accessibility.Protected)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, equalityContract.Locations[0], equalityContract);
+                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, equalityContract.GetFirstLocation(), equalityContract);
                     }
 
                     if (!equalityContract.Type.Equals(targetProperty.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         if (!equalityContract.Type.IsErrorType())
                         {
-                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, equalityContract.Locations[0], equalityContract, targetProperty.Type);
+                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, equalityContract.GetFirstLocation(), equalityContract, targetProperty.Type);
                         }
                     }
                     else
@@ -4434,7 +4437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (equalityContract.GetMethod is null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_EqualityContractRequiresGetter, equalityContract.Locations[0], equalityContract);
+                        diagnostics.Add(ErrorCode.ERR_EqualityContractRequiresGetter, equalityContract.GetFirstLocation(), equalityContract);
                     }
 
                     reportStaticOrNotOverridableAPIInRecord(equalityContract, diagnostics);
@@ -4477,12 +4480,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (thisEquals.DeclaredAccessibility != Accessibility.Public)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, thisEquals.Locations[0], thisEquals);
+                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, thisEquals.GetFirstLocation(), thisEquals);
                     }
 
                     if (thisEquals.ReturnType.SpecialType != SpecialType.System_Boolean && !thisEquals.ReturnType.IsErrorType())
                     {
-                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.Locations[0], thisEquals, targetMethod.ReturnType);
+                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.GetFirstLocation(), thisEquals, targetMethod.ReturnType);
                     }
 
                     reportStaticOrNotOverridableAPIInRecord(thisEquals, diagnostics);
@@ -4497,11 +4500,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     !IsSealed &&
                     ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
                 {
-                    diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.Locations[0], symbol);
+                    diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.GetFirstLocation(), symbol);
                 }
                 else if (symbol.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_StaticAPIInRecord, symbol.Locations[0], symbol);
+                    diagnostics.Add(ErrorCode.ERR_StaticAPIInRecord, symbol.GetFirstLocation(), symbol);
                 }
             }
 

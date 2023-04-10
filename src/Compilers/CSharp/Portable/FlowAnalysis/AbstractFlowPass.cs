@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                location = method.Locations[0];
+                location = method.GetFirstLocation();
                 return true;
             }
         }

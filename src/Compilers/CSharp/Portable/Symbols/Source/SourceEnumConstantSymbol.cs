@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Report an error if the value is immediately
                     // outside the range, but not otherwise.
-                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.GetFirstLocation(), this);
                 }
                 return value;
             }
