@@ -258,7 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var args = new ConstraintsHelper.CheckConstraintsArgsBoxed(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+            using var pooledArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.Create(
+                DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+
+            var args = pooledArgs.BoxedArgs;
             foreach (var constraintType in constraintTypes)
             {
                 if (!diagnostics.ReportUseSite(constraintType.Type, args.Args.Location))
