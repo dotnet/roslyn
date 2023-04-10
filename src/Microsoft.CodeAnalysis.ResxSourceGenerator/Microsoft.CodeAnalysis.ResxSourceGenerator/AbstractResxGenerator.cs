@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             var compilationInformation = context.CompilationProvider.Select(
                 (compilation, cancellationToken) =>
                 {
-                    var methodImplOptions = compilation.GetOrCreateTypeByMetadataName(typeof(MethodImplOptions).FullName);
+                    var methodImplOptions = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesMethodImplOptions);
                     var hasAggressiveInlining = methodImplOptions?.MemberNames.Contains(nameof(MethodImplOptions.AggressiveInlining)) ?? false;
-                    var hasNotNullIfNotNull = compilation.GetOrCreateTypeByMetadataName("System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute") is not null;
+                    var hasNotNullIfNotNull = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsCodeAnalysisNotNullIfNotNullAttribute) is not null;
 
                     return new CompilationInformation(
                         AssemblyName: compilation.AssemblyName,
