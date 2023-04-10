@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         HasAggressiveInlining: hasAggressiveInlining,
                         HasNotNullIfNotNull: hasNotNullIfNotNull);
                 });
-            var resourceFilesToGenerateSource = resourceFiles.Combine(context.AnalyzerConfigOptionsProvider).Combine(compilationInformation).SelectMany(
+            var resourceFilesToGenerateSource = resourceFiles.Combine(context.AnalyzerConfigOptionsProvider.Combine(compilationInformation)).SelectMany(
                 static (resourceFileAndOptions, cancellationToken) =>
                 {
-                    var ((resourceFile, optionsProvider), compilationInfo) = resourceFileAndOptions;
+                    var (resourceFile, (optionsProvider, compilationInfo)) = resourceFileAndOptions;
                     var options = optionsProvider.GetOptions(resourceFile);
                     if (options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
                         && !string.IsNullOrEmpty(generateSourceText)
