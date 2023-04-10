@@ -244,7 +244,8 @@ namespace Roslyn.Test.Utilities
             string? textEditText = null,
             string? sortText = null,
             string? filterText = null,
-            long resultId = 0)
+            long resultId = 0,
+            bool vsResolveTextEditOnCommit = false)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -264,7 +265,8 @@ namespace Roslyn.Test.Utilities
                 {
                     ResultId = resultId,
                 }),
-                Preselect = preselect
+                Preselect = preselect,
+                VsResolveTextEditOnCommit = vsResolveTextEditOnCommit
             };
 
             if (tags != null)

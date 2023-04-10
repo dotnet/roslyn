@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, location)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
@@ -1510,12 +1510,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
 
@@ -1533,12 +1533,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ImmutableArray<CustomModifier> refCustomModifiers,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 

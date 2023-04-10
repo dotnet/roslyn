@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             }
             else
             {
+                Debug.Assert(completionChangeSpan == defaultSpan || item.IsComplexTextEdit);
                 lspItem.TextEdit = new LSP.TextEdit()
                 {
                     NewText = newText,

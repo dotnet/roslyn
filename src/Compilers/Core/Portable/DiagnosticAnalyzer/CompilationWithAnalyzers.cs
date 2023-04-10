@@ -301,9 +301,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
-                var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
+                var analyzerDiags = await driver.GetDiagnosticsAsync(compilation, cancellationToken).ConfigureAwait(false);
                 var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
-                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation, cancellationToken);
             }
         }
 
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Wait for analyzer execution to complete.
                     await driver.WhenCompletedTask.ConfigureAwait(false);
 
-                    _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts);
+                    _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
                 }
                 else
                 {
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Update the diagnostic results based on the diagnostics reported on the driver.
                     foreach (var (scope, _) in builder)
                     {
-                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts);
+                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
                     }
                 }
             }
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
                 onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(wrappedOnAnalyzerException, analyzerManager);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, analysisScope: null, severityFilter: SeverityFilter.None);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, analysisScope: null, severityFilter: SeverityFilter.None, CancellationToken.None);
         }
 
         /// <summary>

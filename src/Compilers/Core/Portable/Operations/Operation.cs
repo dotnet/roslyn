@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(), nq}}")]
     internal abstract partial class Operation : IOperation
     {
         protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
@@ -190,7 +189,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
-            new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
+        private string GetDebuggerDisplay() => $"{GetType().Name} Type: {(Type is null ? "null" : Type)}";
     }
 }
