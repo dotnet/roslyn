@@ -114,7 +114,11 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 {
                     try
                     {
-                        ProcessResourceFile(context, resourceInformation);
+                        var impl = new Impl(resourceInformation);
+                        if (impl.Execute(context.CancellationToken))
+                        {
+                            context.AddSource(impl.OutputTextHintName, impl.OutputText);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -124,15 +128,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         context.AddSource($"{Path.GetFileName(resourceInformation.ResourceFile.Path)}.Error", errorText);
                     }
                 });
-        }
-
-        private static void ProcessResourceFile(SourceProductionContext context, ResourceInformation resourceFile)
-        {
-            var impl = new Impl(resourceFile);
-            if (impl.Execute(context.CancellationToken))
-            {
-                context.AddSource(impl.OutputTextHintName!, impl.OutputText);
-            }
         }
 
         /// <summary>
@@ -251,7 +246,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 }
 
                 var strings = new StringBuilder();
-                foreach (var node in XDocument.Parse(text.ToString()).Descendants("data"))
+                foreach (var node in XDocument.Load(new SourceTextReader(text)).Descendants("data"))
                 {
                     var name = node.Attribute("name")?.Value;
                     if (name == null)
@@ -716,6 +711,26 @@ Imports System.Reflection
                 }
 
                 private string GetArgName(string name) => UsingNamedArgs ? name : 'p' + name;
+            }
+        }
+
+        private sealed class SourceTextReader : TextReader
+        {
+            private readonly SourceText _text;
+            private int _position;
+
+            public SourceTextReader(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override int Read(char[] buffer, int index, int count)
+            {
+                var remaining = _text.Length - _position;
+                var charactersToRead = Math.Min(remaining, count);
+                _text.CopyTo(_position, buffer, index, charactersToRead);
+                _position += charactersToRead;
+                return charactersToRead;
             }
         }
     }
