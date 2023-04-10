@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpCompilerDiagnosticAnalyzer : CompilerDiagnosticAnalyzer
     {
+        private ImmutableArray<int> _supportedErrorCodes;
+
         internal override CommonMessageProvider MessageProvider
         {
             get
@@ -27,19 +30,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
 
         internal override ImmutableArray<int> GetSupportedErrorCodes()
         {
-            var errorCodes = Enum.GetValues(typeof(ErrorCode));
-            var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
-            foreach (ErrorCode errorCode in errorCodes)
+            var current = _supportedErrorCodes;
+            if (current.IsDefault)
             {
-                // Compiler diagnostic analyzer does not support build-only diagnostics.
-                if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
-                    errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
+                var errorCodes = Enum.GetValues(typeof(ErrorCode));
+                var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
+                foreach (ErrorCode errorCode in errorCodes)
                 {
-                    builder.Add((int)errorCode);
+                    // Compiler diagnostic analyzer does not support build-only diagnostics.
+                    if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
+                        errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
+                    {
+                        builder.Add((int)errorCode);
+                    }
                 }
+
+                ImmutableInterlocked.InterlockedCompareExchange(
+                    ref _supportedErrorCodes,
+                    builder.ToImmutableAndFree(),
+                    current);
             }
 
-            return builder.ToImmutableAndFree();
+            Debug.Assert(!_supportedErrorCodes.IsDefault);
+            return _supportedErrorCodes;
         }
     }
 }
