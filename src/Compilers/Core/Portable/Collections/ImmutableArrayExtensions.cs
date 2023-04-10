@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator =  new Dictionary<K, object>(items.Length, comparer);
+            var accumulator = new Dictionary<K, object>(items.Length, comparer);
             foreach (var item in items)
             {
                 var key = keySelector(item);
