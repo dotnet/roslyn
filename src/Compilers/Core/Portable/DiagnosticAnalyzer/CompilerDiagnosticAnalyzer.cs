@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,29 +13,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal abstract partial class CompilerDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        internal abstract CommonMessageProvider MessageProvider { get; }
-        internal abstract ImmutableArray<int> GetSupportedErrorCodes();
+        private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
+
+        protected abstract CommonMessageProvider MessageProvider { get; }
+        protected abstract ImmutableArray<int> GetSupportedErrorCodes();
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                // DiagnosticAnalyzer.SupportedDiagnostics should be invoked only once per analyzer, 
-                // so we don't need to store the computed descriptors array into a field.
-
-                var messageProvider = this.MessageProvider;
-                var errorCodes = this.GetSupportedErrorCodes();
-                var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>(errorCodes.Length);
-                foreach (var errorCode in errorCodes)
+            => InterlockedOperations.InterlockedInitialize(
+                ref _supportedDiagnostics,
+                static @this =>
                 {
-                    var descriptor = DiagnosticInfo.GetDescriptor(errorCode, messageProvider);
-                    builder.Add(descriptor);
-                }
+                    var messageProvider = @this.MessageProvider;
+                    var errorCodes = @this.GetSupportedErrorCodes();
+                    var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance(errorCodes.Length);
+                    foreach (var errorCode in errorCodes)
+                    {
+                        var descriptor = DiagnosticInfo.GetDescriptor(errorCode, messageProvider);
+                        builder.Add(descriptor);
+                    }
 
-                builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
-                return builder.ToImmutable();
-            }
-        }
+                    builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
+                    return builder.ToImmutableAndFree();
+                }, this);
 
         public sealed override void Initialize(AnalysisContext context)
         {

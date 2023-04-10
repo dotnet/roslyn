@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,41 +15,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpCompilerDiagnosticAnalyzer : CompilerDiagnosticAnalyzer
     {
-        private ImmutableArray<int> _supportedErrorCodes;
+        protected override CommonMessageProvider MessageProvider
+            => CodeAnalysis.CSharp.MessageProvider.Instance;
 
-        internal override CommonMessageProvider MessageProvider
+        protected override ImmutableArray<int> GetSupportedErrorCodes()
         {
-            get
+            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
+            foreach (ErrorCode errorCode in errorCodes)
             {
-                return CodeAnalysis.CSharp.MessageProvider.Instance;
-            }
-        }
-
-        internal override ImmutableArray<int> GetSupportedErrorCodes()
-        {
-            var current = _supportedErrorCodes;
-            if (current.IsDefault)
-            {
-                var errorCodes = Enum.GetValues(typeof(ErrorCode));
-                var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
-                foreach (ErrorCode errorCode in errorCodes)
+                // Compiler diagnostic analyzer does not support build-only diagnostics.
+                if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
+                    errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
                 {
-                    // Compiler diagnostic analyzer does not support build-only diagnostics.
-                    if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
-                        errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
-                    {
-                        builder.Add((int)errorCode);
-                    }
+                    builder.Add((int)errorCode);
                 }
-
-                ImmutableInterlocked.InterlockedCompareExchange(
-                    ref _supportedErrorCodes,
-                    builder.ToImmutableAndFree(),
-                    current);
             }
 
-            Debug.Assert(!_supportedErrorCodes.IsDefault);
-            return _supportedErrorCodes;
+            return builder.ToImmutableAndFree();
         }
     }
 }
