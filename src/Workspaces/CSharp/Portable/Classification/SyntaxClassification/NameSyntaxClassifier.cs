@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (syntax is NameSyntax name)
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (symbolInfo.CandidateReason is
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
@@ -334,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
                 symbolInfo.Symbol.IsImplicitValueParameter())
@@ -347,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         private static bool TryClassifyNameOfIdentifier(
-            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+            NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
         {
             var symbol = symbolInfo.GetAnySymbol();
 

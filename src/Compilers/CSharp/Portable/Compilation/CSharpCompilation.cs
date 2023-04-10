@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)

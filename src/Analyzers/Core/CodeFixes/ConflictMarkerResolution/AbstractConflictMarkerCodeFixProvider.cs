@@ -281,20 +281,29 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var endPos = endLine.Start;
 
             context.RegisterCodeFix(
-                CodeAction.Create(takeTopText,
+                CreateCodeAction(takeTopText,
                     c => TakeTopAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeTopEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(takeBottomText,
+                CreateCodeAction(takeBottomText,
                     c => TakeBottomAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(CodeFixesResources.Take_both,
+                CreateCodeAction(CodeFixesResources.Take_both,
                     c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
+
+            static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Document>> action, string equivalenceKey)
+            {
+#if CODE_STYLE
+                return CodeAction.Create(title, action, equivalenceKey);
+#else
+                return CodeAction.DocumentChangeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+#endif
+            }
         }
 
         private static async Task<Document> AddEditsAsync(

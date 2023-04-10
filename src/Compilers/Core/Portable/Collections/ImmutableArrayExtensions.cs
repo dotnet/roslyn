@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
         {
             switch (array.Length)
             {
@@ -787,6 +787,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
 
                 case 2:
+                    comparer ??= EqualityComparer<T>.Default;
                     return comparer.Equals(array[0], array[1]);
 
                 default:

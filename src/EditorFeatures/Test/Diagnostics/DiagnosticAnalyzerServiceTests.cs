@@ -1067,7 +1067,7 @@ class A
             var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
                 document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
                 AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-                reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 cancellationToken: CancellationToken.None);
             Assert.False(analyzer2.ReceivedSymbolCallback);
 
@@ -1121,12 +1121,12 @@ class A
             try
             {
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
-            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            catch (OperationCanceledException) when (analyzer.CancellationToken.IsCancellationRequested)
             {
             }
 
@@ -1134,7 +1134,7 @@ class A
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
             var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();

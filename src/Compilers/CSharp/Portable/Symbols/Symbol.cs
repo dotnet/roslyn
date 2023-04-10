@@ -318,10 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
+            var firstLocation = this.TryGetFirstLocation();
+            if (firstLocation is null)
+                return LexicalSortKey.NotInSource;
+
             var declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
+            return new LexicalSortKey(firstLocation, declaringCompilation);
         }
 
         /// <summary>
@@ -330,6 +333,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// location.
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
+
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+
+#nullable disable
 
         /// <summary>
         /// <para>
@@ -797,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
-        internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             var declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)

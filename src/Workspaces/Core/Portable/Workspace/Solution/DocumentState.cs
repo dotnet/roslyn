@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+        public override async ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
             if (_treeSource == null)
             {

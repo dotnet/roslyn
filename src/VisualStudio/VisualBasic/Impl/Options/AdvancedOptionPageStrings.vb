@@ -145,9 +145,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
 
-        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
-            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
-
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open
 
@@ -380,5 +377,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
             ServicesVSResources.Show_UI_as_dashboard_in_top_right
+
+        Public ReadOnly Property Document_Outline As String =
+            ServicesVSResources.Document_Outline
+
+        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
+            ServicesVSResources.Enable_document_outline_experimental_requires_restart
     End Module
 End Namespace

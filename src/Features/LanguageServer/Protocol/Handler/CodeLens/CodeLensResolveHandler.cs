@@ -33,12 +33,13 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     public bool RequiresLSPSolution => true;
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLens request)
-        => GetCacheEntry(request).CacheEntry.TextDocumentIdentifier;
+        => GetCodeLensResolveData(request).TextDocument;
 
     public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-        var (cacheEntry, memberToResolve) = GetCacheEntry(request);
+        var resolveData = GetCodeLensResolveData(request);
+        var (cacheEntry, memberToResolve) = GetCacheEntry(resolveData);
 
         var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
@@ -61,7 +62,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments = new object[]
                 {
-                        cacheEntry.TextDocumentIdentifier.Uri,
+                        resolveData.TextDocument.Uri,
                         request.Range.Start
                 }
             };
@@ -71,14 +72,18 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         return request;
     }
 
-    private (CodeLensCache.CodeLensCacheEntry CacheEntry, CodeLensMember MemberToResolve) GetCacheEntry(LSP.CodeLens request)
+    private (CodeLensCache.CodeLensCacheEntry CacheEntry, CodeLensMember MemberToResolve) GetCacheEntry(CodeLensResolveData resolveData)
     {
-        var resolveData = (request.Data as JToken)?.ToObject<CodeLensResolveData>();
-        Contract.ThrowIfNull(resolveData, "Missing data for code lens resolve request");
-
         var cacheEntry = _codeLensCache.GetCachedEntry(resolveData.ResultId);
         Contract.ThrowIfNull(cacheEntry, "Missing cache entry for code lens resolve request");
         return (cacheEntry, cacheEntry.CodeLensMembers[resolveData.ListIndex]);
+    }
+
+    private static CodeLensResolveData GetCodeLensResolveData(LSP.CodeLens codeLens)
+    {
+        var resolveData = (codeLens.Data as JToken)?.ToObject<CodeLensResolveData>();
+        Contract.ThrowIfNull(resolveData, "Missing data for code lens resolve request");
+        return resolveData;
     }
 }
 

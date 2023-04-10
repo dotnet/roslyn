@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             IsSimpleProgram = 1 << 9,
 
             HasRequiredMembers = 1 << 10,
+
+            HasPrimaryConstructor = 1 << 11,
         }
 
         internal SingleTypeDeclaration(
@@ -192,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
+
+        public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {

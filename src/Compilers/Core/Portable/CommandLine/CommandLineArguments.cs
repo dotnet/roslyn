@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
@@ -502,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
-                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
+                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, compilationOptions);
 
                 if (diagnostic != null)
                 {

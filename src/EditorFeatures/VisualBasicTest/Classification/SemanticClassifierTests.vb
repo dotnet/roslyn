@@ -263,13 +263,13 @@ q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("Fro ", testHost)
         End Function
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = Fro "
@@ -281,7 +281,7 @@ q = Fro "
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = From"
@@ -293,7 +293,7 @@ Dim q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = 3
@@ -1211,5 +1211,33 @@ End Try"
                 [Class]("Exception"),
                 Local("ex"))
         End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeFourBytesCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = ""𠀀𠀁𠣶𤆐𥽠𪛕""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = """"""""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost,
+                Escape(""""""))
+        End Function
+
     End Class
 End Namespace
