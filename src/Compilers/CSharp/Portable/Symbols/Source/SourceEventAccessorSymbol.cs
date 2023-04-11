@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 

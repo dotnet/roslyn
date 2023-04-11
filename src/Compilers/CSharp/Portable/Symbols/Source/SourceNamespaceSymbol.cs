@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Location TryGetFirstLocation()
+            => _mergedDeclaration.Declarations[0].NameLocation;
+
         private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
             new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
 
@@ -366,13 +369,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // no error
                                 break;
                             case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
-                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
-                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
                                 break;
                         }
                     }
@@ -385,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
                         if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations.FirstOrNone());
+                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.GetFirstLocationOrNone());
                         }
                     }
                 }
