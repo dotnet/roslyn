@@ -25621,6 +25621,39 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67697")]
+        public void UnscopedRefAttribute_NestedAccess_MethodOrProperty(
+            [CombinatorialValues("", "()")] string first,
+            [CombinatorialValues("", "()")] string second)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                var c = new C();
+                c.Value() = 12;
+                System.Console.WriteLine(c.Value());
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value() => ref s1.S2{{first}}.Value{{second}};
+                }
+
+                struct S1
+                {
+                    private S2 s2;
+                    [UnscopedRef] public ref S2 S2{{first}} => ref s2;
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value{{second}} => ref value;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Theory]
         [InlineData(0)]
