@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -38,11 +39,9 @@ namespace Microsoft.CodeAnalysis
         private readonly NonReentrantLock _dataLock = new();
 
         /// <summary>
-        /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
-        /// fully-computed. Projects which are not referenced by any other project do not have a key in this map (i.e.
-        /// they are omitted, as opposed to including them with an empty value).
+        /// The lazily populated map of projects to projects which reference them.
         /// </summary>
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? _lazyReverseReferencesMap;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _lazyReverseReferencesMap;
 
         // These are computed fully on demand. ImmutableArray.IsDefault indicates the item needs to be realized
         private ImmutableArray<ProjectId> _lazyTopologicallySortedProjects;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             _projectIds = projectIds;
             _referencesMap = referencesMap;
-            _lazyReverseReferencesMap = reverseReferencesMap;
+            _lazyReverseReferencesMap = reverseReferencesMap ?? ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
             _transitiveReferencesMap = transitiveReferencesMap;
             _reverseTransitiveReferencesMap = reverseTransitiveReferencesMap;
             _lazyTopologicallySortedProjects = topologicallySortedProjects;
@@ -167,44 +166,29 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            if (_lazyReverseReferencesMap == null)
-            {
-                using (_dataLock.DisposableWait())
-                {
-                    return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
-                }
-            }
-            else
-            {
-                // okay, because its only ever going to be computed and assigned once
-                return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
-            }
+            return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
         }
 
         private ImmutableHashSet<ProjectId> GetProjectsThatDirectlyDependOnThisProject_NoLock(ProjectId projectId)
         {
-            if (_lazyReverseReferencesMap == null)
+            return ImmutableInterlocked.GetOrAdd(
+                ref _lazyReverseReferencesMap,
+                projectId,
+                static (projectId, referencesMap) => ComputeReverseReferences(referencesMap, projectId),
+                _referencesMap);
+
+            static ImmutableHashSet<ProjectId> ComputeReverseReferences(ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap, ProjectId requestedProjectId)
             {
-                _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
-                ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
+                using var _ = PooledHashSet<ProjectId>.GetInstance(out var hashSet);
+
+                foreach (var (projectId, references) in referencesMap)
+                {
+                    if (references.Contains(requestedProjectId))
+                        hashSet.Add(projectId);
+                }
+
+                return hashSet.Count > 0 ? hashSet.ToImmutableHashSet() : ImmutableHashSet<ProjectId>.Empty;
             }
-
-            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
-        }
-
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
-        {
-            var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
-
-            foreach (var (projectId, references) in _referencesMap)
-            {
-                foreach (var referencedId in references)
-                    reverseReferencesMap.MultiAdd(referencedId, projectId);
-            }
-
-            return reverseReferencesMap
-                .Select(kvp => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
-                .ToImmutableDictionary();
         }
 
         /// <summary>
