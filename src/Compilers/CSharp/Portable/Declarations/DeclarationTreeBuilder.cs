@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            ImmutableSegmentedHashSet<string> previousMemberNames)
+            ImmutableSegmentedHashSet<string> previousMemberNames = default)
         {
             var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());

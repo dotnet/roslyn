@@ -355,6 +355,73 @@ public class b
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        [Fact]
+        public void TestMemberNamesReused()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int z, y, x;
+        }
+    }
+}
+");
+            var thirdTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int z, y, x, w;
+        }
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames == type2.MergedDeclaration.Declarations[0].MemberNames);
+
+            compilation = compilation.ReplaceSyntaxTree(secondTree, thirdTree);
+
+            var type3 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type3.MergedDeclaration.Declarations[0].MemberNames.SetEquals(new[] { "w", "x", "y", "z" }));
+
+            Assert.False(type1.MergedDeclaration.Declarations[0].MemberNames == type3.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
         /// <remarks>
         /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
         /// to see whether the syntax tree has top-level statements will increment the counter.

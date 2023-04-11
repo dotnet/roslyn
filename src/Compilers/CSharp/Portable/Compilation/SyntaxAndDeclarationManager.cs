@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, ref declTable);
             }
 
-            AddSyntaxTreeToDeclarationMapAndTable(tree, scriptClassName, isSubmission, declMapBuilder, ref declTable);
+            AddSyntaxTreeToDeclarationMapAndTable(tree, scriptClassName, isSubmission, declMapBuilder, ref declTable, previousRootNamespaceDeclaration: null);
 
             treesBuilder.Add(tree);
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
             ref DeclarationTable declTable,
-            Lazy<RootSingleNamespaceDeclaration> oldRootNamespaceDeclaration)
+            Lazy<RootSingleNamespaceDeclaration> previousRootNamespaceDeclaration)
         {
             // Most files will just have a single type in it.  And most types will keep all the same members names
             // before/after an edit.  So attempt to use the same set instance to lower the garbage created here.
@@ -285,11 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableSegmentedHashSet<string> getPreviousTopLevelTypeMemberNames()
             {
                 // only bother doing this if we have the old root namespace already realized.
-                if (oldRootNamespaceDeclaration is null || !oldRootNamespaceDeclaration.IsValueCreated)
+                if (previousRootNamespaceDeclaration is null || !previousRootNamespaceDeclaration.IsValueCreated)
                     return default;
 
                 // Walk down the namespaces as long as it's just a single chain of them.
-                SingleNamespaceDeclaration current = oldRootNamespaceDeclaration.Value;
+                SingleNamespaceDeclaration current = previousRootNamespaceDeclaration.Value;
                 while (current is SingleNamespaceDeclaration { Children: [SingleNamespaceDeclaration childNamespace] })
                     current = childNamespace;
 
