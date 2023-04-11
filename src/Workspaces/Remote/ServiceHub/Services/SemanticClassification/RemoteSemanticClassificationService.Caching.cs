@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(arguments)
         {
             _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions)>(
-                DelayTimeSpan.Short,
+                DelayTimeSpan.NonFocus,
                 CacheClassificationsAsync,
                 EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
