@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : SpecialType.None;
 
             _flags = new Flags(specialType, typeKind, declaration.HasPrimaryConstructor);
+            Debug.Assert(typeKind is TypeKind.Struct or TypeKind.Class || !HasPrimaryConstructor);
 
             var containingType = this.ContainingType;
             if (containingType?.IsSealed == true && this.DeclaredAccessibility.HasProtected())
@@ -3200,20 +3201,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool HasPrimaryConstructor => this._flags.HasPrimaryConstructor;
+
         internal SynthesizedPrimaryConstructor? PrimaryConstructor
         {
             get
             {
-                if (!this._flags.HasPrimaryConstructor)
+                if (!HasPrimaryConstructor)
                     return null;
 
                 var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+                SynthesizedPrimaryConstructor? result;
                 if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
-                    return declared.PrimaryConstructor;
+                    result = declared.PrimaryConstructor;
+                }
+                else
+                {
+                    result = GetMembersAndInitializers().PrimaryConstructor;
                 }
 
-                return GetMembersAndInitializers().PrimaryConstructor;
+                Debug.Assert(result is object);
+                return result;
             }
         }
 

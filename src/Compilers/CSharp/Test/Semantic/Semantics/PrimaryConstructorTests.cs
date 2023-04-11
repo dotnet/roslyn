@@ -3064,6 +3064,370 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_01([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+" + declaration + @" C
+    ();
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+
+            if (declaration is "class" or "struct")
+            {
+                comp.VerifyDiagnostics(
+                    // (9,5): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     ();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(9, 5)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (7,2): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // [method: A]
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "method").WithArguments("primary constructors").WithLocation(7, 2)
+                    );
+            }
+
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+                Assert.Empty(c.GetAttributes());
+                Assert.True(c.HasPrimaryConstructor);
+                Assert.Equal("A", c.PrimaryConstructor.GetAttributes().Single().ToString());
+                Assert.True(c.Constructors.Where(ctor => ctor != c.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_02([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[return: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type, method'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type, method").WithLocation(7, 2)
+                );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Empty(c.GetAttributes());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(c.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_03()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+interface I();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2),
+                // (9,12): error CS9122: Unexpected parameter list.
+                // interface I();
+                Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "()").WithLocation(9, 12)
+                );
+
+            var i = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("I");
+            Assert.Empty(i.GetAttributes());
+            Assert.False(i.HasPrimaryConstructor);
+            Assert.Null(i.PrimaryConstructor);
+            Assert.Empty(i.Constructors);
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_04()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+enum E();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2),
+                // (9,7): error CS1514: { expected
+                // enum E();
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(9, 7),
+                // (9,7): error CS1513: } expected
+                // enum E();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(9, 7),
+                // (9,7): error CS8803: Top-level statements must precede namespace and type declarations.
+                // enum E();
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "();").WithLocation(9, 7),
+                // (9,8): error CS1525: Invalid expression term ')'
+                // enum E();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 8)
+                );
+
+            var e = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("E");
+            Assert.Empty(e.GetAttributes());
+            Assert.False(e.HasPrimaryConstructor);
+            Assert.Null(e.PrimaryConstructor);
+            Assert.True(e.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(e.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_05([CombinatorialValues("class C;", "struct C;", "record C;", "record class C;", "record struct C;", "interface C;", "enum C;")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2)
+                );
+
+            var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.Empty(c.GetAttributes());
+            Assert.False(c.HasPrimaryConstructor);
+            Assert.Null(c.PrimaryConstructor);
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(c.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_06([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[type: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Equal("A", c.GetAttributes().Single().ToString());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_07([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Equal("A", c.GetAttributes().Single().ToString());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_08([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[method: A]
+partial " + declaration + @" C1();
+
+[method: B]
+partial " + declaration + @" C1;
+
+[method: B]
+partial " + declaration + @" C2;
+
+[method: A]
+partial " + declaration + @" C2();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(15, 2),
+                // (18,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(18, 2)
+                );
+
+            var c1 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.Empty(c1.GetAttributes());
+            Assert.True(c1.HasPrimaryConstructor);
+            Assert.Equal("A", c1.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c1.Constructors.Where(ctor => ctor != c1.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+
+            var c2 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            Assert.Empty(c2.GetAttributes());
+            Assert.True(c2.HasPrimaryConstructor);
+            Assert.Equal("A", c2.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c2.Constructors.Where(ctor => ctor != c2.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_09([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[method: A]
+partial " + declaration + @" C1();
+
+#line 100
+[method: B]
+partial " + declaration + @" C1
+#line 200
+    ();
+
+[method: B]
+partial " + declaration + @" C2();
+
+#line 300
+[method: A]
+partial " + declaration + @" C2
+#line 400
+    ();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (100,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(100, 2),
+                // (200,5): error CS8863: Only a single partial type declaration may have a parameter list
+                //     ();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(200, 5),
+                // (300,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(300, 2),
+                // (400,5): error CS8863: Only a single partial type declaration may have a parameter list
+                //     ();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(400, 5)
+                );
+
+            var c1 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.Empty(c1.GetAttributes());
+            Assert.True(c1.HasPrimaryConstructor);
+            Assert.Equal("A", c1.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c1.Constructors.Where(ctor => ctor != c1.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+
+            var c2 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            Assert.Empty(c2.GetAttributes());
+            Assert.True(c2.HasPrimaryConstructor);
+            Assert.Equal("B", c2.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c2.Constructors.Where(ctor => ctor != c2.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_10_NameofParameter()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+    public A(string x){}
+}
+
+[method: A(nameof(someParam))]
+class C(int someParam)
+{
+    int X = someParam;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
         [Fact]
         public void AnalyzerActions_01_Class()
         {
