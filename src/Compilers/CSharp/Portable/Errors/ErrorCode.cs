@@ -2204,6 +2204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorMustReferToStartOfTokenPosition = 27010,
         ERR_InterceptorMustHaveMatchingThisParameter = 27011,
         ERR_InterceptorMustNotHaveThisParameter = 27012,
+        ERR_InterceptorFilePathCannotBeNull = 27013,
+        ERR_InterceptorNameNotInvoked = 27014,
+        ERR_InterceptorNonUniquePath = 27015,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

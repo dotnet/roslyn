@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 var c = new C();
 c.InterceptableMethod(1); // (L1,C1): prints "interceptor 1"
 c.InterceptableMethod(1); // (L2,C2): prints "other interceptor 1"
+c.InterceptableMethod(2); // (L3,C3): prints "other interceptor 2"
 c.InterceptableMethod(1); // prints "interceptable 1"
 
 class C
@@ -35,6 +36,7 @@ static class D
     }
 
     [InterceptsLocation("Program.cs", line: /*L2*/, character: /*C2*/)] // refers to the call at (L2, C2)
+    [InterceptsLocation("Program.cs", line: /*L3*/, character: /*C3*/)] // refers to the call at (L3, C3)
     public static void OtherInterceptorMethod(this C c, int param)
     {
         Console.WriteLine($"other interceptor {param}");
@@ -115,12 +117,17 @@ Interceptors cannot have type parameters or be declared in generic types at any 
 
 ### Signature matching
 
+PROTOTYPE(ic): It is suggested to permit nullability differences and other comparable differences. Perhaps we can revisit the matching requirements of "partial methods" and imitate them here.
+
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:
 - When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the `this` modifier is compared to the instance method `this` parameter.
 - The returns and parameters, including the `this` parameter, must have the same ref kinds and types, except that reference types with oblivious nullability can match either annotated or unannotated reference types.
 - Method names and parameter names are not required to match.
 - Parameter default values are not required to match. When intercepting, default values on the interceptor method are ignored.
-- `scoped` modifiers and `[UnscopedRefAttribute]` must be equivalent.
+- `params` modifiers are not required to match.
+- `scoped` modifiers and `[UnscopedRef]` must be equivalent.
+- In general, attributes which normally affect the behavior of the call site, such as `[CallerLineNumber]` are ignored on the interceptor of an intercepted call.
+  - The only exception to this is when the attribute affects "capabilities" of the method in a way that affects safety, such as with `[UnscopedRef]`. In this case, attributes are required to match across interceptable and interceptor methods.
 
 Arity does not need to match between intercepted and interceptor methods. In other words, it is permitted to intercept a generic method with a non-generic interceptor.
 

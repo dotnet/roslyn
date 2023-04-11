@@ -852,6 +852,11 @@
         <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="new">Interceptor cannot have a 'null' file path.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineOutOfRange">
         <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
         <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
@@ -875,6 +880,16 @@
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
         <source>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</source>
         <target state="new">The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="new">Possible method name '{0}' cannot be intercepted because it is not being invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="new">Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorPathNotInCompilation">
@@ -2133,13 +2148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallNotInterceptable">
-        <source>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
+        <source>Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallNotInterceptable_Title">
-        <source>Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
+        <source>Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
+        <target state="new">Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

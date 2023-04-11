@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public void InterceptCallAndAdjustArguments(
+        private void InterceptCallAndAdjustArguments(
             ref MethodSymbol method,
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add assertions for the possible shapes of calls which could come through this method.
             // When the BoundCall shape changes in the future, force developer to decide what to do here.
 
+            // PROTOTYPE: perhaps a 'TryGet' pattern is more suitable here.
             if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
             {
                 // The call was not intercepted.
@@ -191,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     break;
-
             }
 
             if (needToReduce)
@@ -226,20 +226,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
 
             MethodSymbol method = node.Method;
-            BoundExpression? receiverOpt = node.ReceiverOpt;
-            ImmutableArray<BoundExpression> arguments = node.Arguments;
             ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
             ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
             bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
 
             // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(receiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
 
             ArrayBuilder<LocalSymbol>? temps = null;
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
                 captureReceiverMode: ReceiverCaptureMode.Default,
-                arguments,
+                node.Arguments,
                 method,
                 argsToParamsOpt,
                 argRefKindsOpt,

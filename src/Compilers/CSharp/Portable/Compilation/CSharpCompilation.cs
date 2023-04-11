@@ -2262,10 +2262,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            var sourceTree = callLocation.SourceTree;
+            Debug.Assert(sourceTree is not null);
+            var callLineColumn = callLocation.GetLineSpan().Span.Start;
             foreach (var (interceptsLocation, interceptor) in _interceptions)
             {
-                var callLineColumn = callLocation.GetLineSpan().Span.Start;
-                if (interceptsLocation.FilePath == callLocation.SourceTree!.FilePath
+                if (interceptsLocation.FilePath == sourceTree.FilePath
                     && interceptsLocation.Line == callLineColumn.Line
                     && interceptsLocation.Character == callLineColumn.Character)
                 {
@@ -2276,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void BuildInterceptorsMap()
+        private void BuildInterceptionsMap()
         {
             // PROTOTYPE(ic): build a map where we can quickly lookup with a location and get a symbol.
             // At this time, should report any duplicate interception diagnostics.
@@ -3273,7 +3275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                BuildInterceptorsMap();
+                BuildInterceptionsMap();
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
                 // behavior as when calling GetDiagnostics()

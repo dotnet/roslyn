@@ -7506,10 +7506,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="WRN_CallNotInterceptable" xml:space="preserve">
-    <value>Cannot intercept a call to '{0}' because it is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
+    <value>Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
   </data>
   <data name="WRN_CallNotInterceptable_Title" xml:space="preserve">
-    <value>Cannot intercept a call to a method which is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
+    <value>Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
   </data>
   <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
@@ -7546,5 +7546,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InterceptorMustNotHaveThisParameter" xml:space="preserve">
     <value>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</value>
+  </data>
+  <data name="ERR_InterceptorFilePathCannotBeNull" xml:space="preserve">
+    <value>Interceptor cannot have a 'null' file path.</value>
+  </data>
+  <data name="ERR_InterceptorNameNotInvoked" xml:space="preserve">
+    <value>Possible method name '{0}' cannot be intercepted because it is not being invoked.</value>
+  </data>
+  <data name="ERR_InterceptorNonUniquePath" xml:space="preserve">
+    <value>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</value>
   </data>
 </root>

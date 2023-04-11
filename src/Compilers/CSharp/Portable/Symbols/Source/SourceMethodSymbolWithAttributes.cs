@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!arguments.Attribute.HasErrors);
             var attributeArguments = arguments.Attribute.CommonConstructorArguments;
             if (attributeArguments is not [
-                { Kind: not TypedConstantKind.Array, Value: string filePath },
+                { Type.SpecialType: SpecialType.System_String },
                 { Kind: not TypedConstantKind.Array, Value: int displayLineNumber },
                 { Kind: not TypedConstantKind.Array, Value: int displayCharacterNumber }])
             {
@@ -956,14 +956,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable();
             }
 
-            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
-            int lineNumber = displayLineNumber - 1;
-            int characterNumber = displayCharacterNumber - 1;
-
-            // PROTOTYPE(ic): test with zero or negative display line/character numbers.
-
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             var attributeLocation = arguments.AttributeSyntaxOpt.Location;
+
+            var filePath = (string?)attributeArguments[0].Value;
+            if (filePath is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeLocation);
+                return;
+            }
+
             if (Arity != 0 || ContainingType.IsGenericType)
             {
                 // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
@@ -981,8 +983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-            var matchingTree = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, filePath);
-            if (matchingTree == null)
+            var matchingTrees = syntaxTrees.WhereAsArray(static (tree, filePath) => tree.FilePath == filePath, filePath);
+            if (matchingTrees is [])
             {
                 var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
                 if (suffixMatch != null)
@@ -996,6 +998,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return;
             }
+
+            if (matchingTrees is not [var matchingTree])
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeLocation, filePath);
+                return;
+            }
+
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            // PROTOTYPE(ic): test with zero or negative display line/character numbers.
+            int lineNumber = displayLineNumber - 1;
+            int characterNumber = displayCharacterNumber - 1;
 
             var referencedLines = matchingTree.GetText().Lines;
             var referencedLineCount = referencedLines.Count;
@@ -1022,6 +1035,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
                     // happy case
                     break;
+                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
                 default:
                     diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
                     return;
