@@ -60,23 +60,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote
             var project = context.Solution?.GetAdditionalDocument(request.TextDocument)?.Project;
             if (project is not null)
             {
-                var runResult = await project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
-                if (runResult is not null)
-                {
-                    var generatorResult = runResult.Results.FirstOrDefault(r => r.Generator.GetGeneratorType().FullName == request.GeneratorName);
-                    var hostOutputs = generatorResult.GetHostOutputs();
+                output = await GetHostOutputAsync(project, request.GeneratorName, request.RequestedOutput, cancellationToken).ConfigureAwait(false);
+            }
+            return new HostOutputResponse() { Output = output };
+        }
 
-                    foreach (var (key, value) in hostOutputs)
+        public static async Task<string?> GetHostOutputAsync(Project project, string generatorName, string requestedOutput, CancellationToken cancellationToken)
+        {
+            var runResult = await project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
+            if (runResult is not null)
+            {
+                var generatorResult = runResult.Results.FirstOrDefault(r => r.Generator.GetGeneratorType().FullName == generatorName);
+                var hostOutputs = generatorResult.GetHostOutputs();
+
+                foreach (var (key, value) in hostOutputs)
+                {
+                    if (key == requestedOutput)
                     {
-                        if (key == request.RequestedOutput)
-                        {
-                            output = value;
-                            break;
-                        }
+                        return value;
                     }
                 }
             }
-            return new HostOutputResponse() { Output = output };
+
+            return null;
         }
     }
 }
