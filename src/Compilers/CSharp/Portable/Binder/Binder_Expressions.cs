@@ -1358,29 +1358,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Called when an "attribute-dependent" type such as 'dynamic', 'string?', etc. is not permitted.</summary>
-        private void CheckDisallowedAttributeDependentType(TypeWithAnnotations typeArgument, Location errorLocation, BindingDiagnosticBag diagnostics)
+        private void CheckDisallowedAttributeDependentType(TypeWithAnnotations typeArgument, NameSyntax attributeName, BindingDiagnosticBag diagnostics)
         {
             typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
             {
-                var (errorLocation, diagnostics) = arg;
+                var (attributeName, diagnostics) = arg;
                 var type = typeWithAnnotations.Type;
                 if (type.IsDynamic()
                     || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
                     || type.IsNativeIntegerWrapperType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type);
+                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, attributeName.GetLocation(), type);
                     return true;
                 }
 
                 if (type.IsUnboundGenericType() || type.Kind == SymbolKind.TypeParameter)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type);
+                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, attributeName.GetLocation(), type);
                     return true;
                 }
 
                 return false;
-            }, typePredicate: null, arg: (errorLocation, diagnostics));
+            }, typePredicate: null, arg: (attributeName, diagnostics));
         }
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)

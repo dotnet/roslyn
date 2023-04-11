@@ -317,13 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             BindingDiagnosticBag diagnostics,
-            SyntaxNode syntax,
+            SyntaxNodeOrToken syntax,
             Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
-            if (diag is object)
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree!.Options) is { } diagInfo)
             {
-                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                diagnostics.Add(diagInfo, location ?? syntax.GetLocation()!);
                 return false;
             }
             return true;
@@ -332,13 +331,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             DiagnosticBag diagnostics,
-            SyntaxNode syntax,
+            SyntaxNodeOrToken syntax,
             Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
-            if (diag is object)
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree!.Options) is { } diagInfo)
             {
-                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                diagnostics.Add(diagInfo, location ?? syntax.GetLocation());
                 return false;
             }
             return true;
