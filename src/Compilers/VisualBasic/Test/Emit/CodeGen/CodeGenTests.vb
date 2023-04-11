@@ -14012,7 +14012,7 @@ Public Class TestClass
         Dim x as New TestClass()
         x._rotation = 1
         x.CalculateDimensions()
-        System.Console.WriteLine(x._rotation)
+        System.Console.WriteLine(x._rotation.ToString(CultureInfo.InvariantCulture))
     End Sub
 End Class
     </file>
