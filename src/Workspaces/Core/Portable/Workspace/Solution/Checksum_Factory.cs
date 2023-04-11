@@ -13,14 +13,24 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
     // various factory methods. all these are just helper methods
     internal partial class Checksum
     {
+        // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
+        private const int SHA256HashSizeBytes = 256 / 8;
+
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+
+        // Dedicated pools for the byte[]s we use to create checksums from two or three existing checksums. Sized to
+        // exactly the space needed to splat the existing checksum data into the array and then hash it.
+
+        private static readonly ObjectPool<byte[]> s_twoChecksumByteArrayPool = new(() => new byte[HashSize * 2]);
+        private static readonly ObjectPool<byte[]> s_threeChecksumByteArrayPool = new(() => new byte[HashSize * 3]);
 
         public static Checksum Create(IEnumerable<string> values)
         {
@@ -98,32 +108,76 @@ namespace Microsoft.CodeAnalysis
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2)
         {
-            using var stream = SerializableBytes.CreateWritableStream();
-
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
-            {
-                checksum1.WriteTo(writer);
-                checksum2.WriteTo(writer);
-            }
-
-            stream.Position = 0;
-            return Create(stream);
+#if NET
+            return CreateUsingSpans(checksum1, checksum2);
+#else
+            return CreateUsingByteArrays(checksum1, checksum2);
+#endif
         }
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            using var stream = SerializableBytes.CreateWritableStream();
-
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
-            {
-                checksum1.WriteTo(writer);
-                checksum2.WriteTo(writer);
-                checksum3.WriteTo(writer);
-            }
-
-            stream.Position = 0;
-            return Create(stream);
+#if NET
+            return CreateUsingSpans(checksum1, checksum2, checksum3);
+#else
+            return CreateUsingByteArrays(checksum1, checksum2, checksum3);
+#endif
         }
+
+        private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+        {
+            using var hash = s_incrementalHashPool.GetPooledObject();
+            using var bytes = s_twoChecksumByteArrayPool.GetPooledObject();
+
+            var bytesSpan = bytes.Object.AsSpan();
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+
+            hash.Object.AppendData(bytes.Object);
+
+            return From(hash.Object.GetHashAndReset());
+        }
+
+        private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            using var hash = s_incrementalHashPool.GetPooledObject();
+            using var bytes = s_threeChecksumByteArrayPool.GetPooledObject();
+
+            var bytesSpan = bytes.Object.AsSpan();
+            checksum1.WriteTo(bytesSpan);
+            checksum2.WriteTo(bytesSpan.Slice(HashSize));
+            checksum3.WriteTo(bytesSpan.Slice(2 * HashSize));
+
+            hash.Object.AppendData(bytes.Object);
+
+            return From(hash.Object.GetHashAndReset());
+        }
+
+#if NET
+
+        // Optimized helpers that do not need to allocate any arrays to combine hashes.
+
+        private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
+        {
+            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum };
+            Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
+
+            SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);
+
+            return From(hashResultSpan);
+        }
+
+        private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum, checksum3._checksum };
+            Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
+
+            SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);
+
+            return From(hashResultSpan);
+        }
+
+#endif
 
         public static Checksum Create(IEnumerable<Checksum> checksums)
         {
@@ -196,6 +250,25 @@ namespace Microsoft.CodeAnalysis
 
                 index += toCopy;
             }
+        }
+
+        public static class TestAccessor
+        {
+            public static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
+                => Checksum.CreateUsingByteArrays(checksum1, checksum2);
+
+            public static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+                => Checksum.CreateUsingByteArrays(checksum1, checksum2, checksum3);
+
+#if NET
+
+            public static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
+                => Checksum.CreateUsingSpans(checksum1, checksum2);
+
+            public static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+                => Checksum.CreateUsingSpans(checksum1, checksum2, checksum3);
+
+#endif
         }
     }
 }

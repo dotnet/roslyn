@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -74,11 +75,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetAssemblyQualifiedName(type);
         }
 
+        /// <summary>
+        /// Cache of a <see cref="Type"/> to its <see cref="Type.AssemblyQualifiedName"/>.  We cache this as the latter
+        /// computes and allocates expensively every time it is called.
+        /// </summary>
+        private static ImmutableSegmentedDictionary<Type, string> s_typeToAssemblyQualifiedName = ImmutableSegmentedDictionary<Type, string>.Empty;
+
         private static string GetAssemblyQualifiedName(Type type)
         {
             // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
             // so we need to consider them.
-            return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
+            return RoslynImmutableInterlocked.GetOrAdd(
+                ref s_typeToAssemblyQualifiedName,
+                type,
+                static type => type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type));
         }
 
         public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(

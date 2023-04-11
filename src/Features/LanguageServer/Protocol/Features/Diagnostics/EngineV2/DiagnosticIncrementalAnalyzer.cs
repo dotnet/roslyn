@@ -87,13 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54400", Constraint = "Avoid calling GetAllHostStateSets on this hot path.")]
-        public bool ContainsDiagnostics(ProjectId projectId)
-        {
-            return _stateManager.HasAnyHostStateSet(static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId)
-                || _stateManager.HasAnyProjectStateSet(projectId, static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId);
-        }
-
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
             if (e.Removed.Length == 0)
@@ -216,10 +209,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind);
 
         private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
             => project.GetDependentVersionAsync(cancellationToken);

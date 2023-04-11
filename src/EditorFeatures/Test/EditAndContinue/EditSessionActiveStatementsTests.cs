@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return debuggingSession.EditSession;
         }
 
-        private static Solution AddDefaultTestSolution(TestWorkspace workspace, string[] markedSources)
+        private static async Task<Solution> AddDefaultTestSolutionAsync(TestWorkspace workspace, string[] markedSources)
         {
             var solution = workspace.CurrentSolution;
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 solution = solution.AddDocument(id, name, text, filePath: Path.Combine(TempRoot.Root, name));
             }
 
-            workspace.ChangeSolution(solution);
+            await workspace.ChangeSolutionAsync(solution);
             return solution;
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             using var workspace = new TestWorkspace(composition: s_composition);
 
-            var solution = AddDefaultTestSolution(workspace, markedSources);
+            var solution = await AddDefaultTestSolutionAsync(workspace, markedSources);
             var projectId = solution.ProjectIds.Single();
             var dummyProject = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
             solution = dummyProject.Solution.AddDocument(DocumentId.CreateNewId(dummyProject.Id, NoCompilationConstants.LanguageName), "a.dummy", "");
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, new[] { baseSource });
+            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { baseSource });
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }.ToImmutableDictionary();
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, new[] { markedSourceV2 });
+            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { markedSourceV2 });
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, markedSources);
+            var solution = await AddDefaultTestSolutionAsync(workspace, markedSources);
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 

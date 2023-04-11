@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact]
-        public async Task DontBreakOverloadResolution_Case5()
+        public async Task DoNotBreakOverloadResolution_Case5()
         {
             var code = """
                 class C
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact]
-        public async Task DontTouchUnrelatedBlocks()
+        public async Task DoNotTouchUnrelatedBlocks()
         {
             var code = """
                 class C
@@ -2440,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544563")]
-        public async Task DontInlineStackAlloc()
+        public async Task DoNotInlineStackAlloc()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -2733,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545103")]
-        public async Task DontInsertCastForTypeThatNoLongerBindsToTheSameType()
+        public async Task DoNotInsertCastForTypeThatNoLongerBindsToTheSameType()
         {
             await TestAsync(
             """
@@ -2799,7 +2799,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545523")]
-        public async Task DontInsertCastForObjectCreationIfUnneeded()
+        public async Task DoNotInsertCastForObjectCreationIfUnneeded()
         {
             await TestInRegularAndScriptAsync(
             """
@@ -2827,7 +2827,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact]
-        public async Task DontInsertCastInForeachIfUnneeded01()
+        public async Task DoNotInsertCastInForeachIfUnneeded01()
         {
             await TestInRegularAndScriptAsync(
             """
@@ -4009,7 +4009,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation_CSharp7()
+        public async Task DoNotParenthesizeInterpolatedStringWithNoInterpolation_CSharp7()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -4090,7 +4090,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4583")]
-        public async Task DontParenthesizeInterpolatedStringWithInterpolation_CSharp7()
+        public async Task DoNotParenthesizeInterpolatedStringWithInterpolation_CSharp7()
         {
             await TestInRegularAndScriptAsync(
                 """
@@ -4116,7 +4116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/4583")]
-        public async Task DontParenthesizeInterpolatedStringWithInterpolation()
+        public async Task DoNotParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestInRegularAndScriptAsync(
                 """

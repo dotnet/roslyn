@@ -234,12 +234,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 return false;
-
-                static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
-                {
-                    var position = applicableToSpan.GetStartPoint(snapshot).Position;
-                    return position > 0 && snapshot[position - 1] == '.';
-                }
             }
 
             private void AddCompletionItems(List<MatchResult> list, ThreadLocal<PatternMatchHelper> threadLocalPatternMatchHelper, CancellationToken cancellationToken)
