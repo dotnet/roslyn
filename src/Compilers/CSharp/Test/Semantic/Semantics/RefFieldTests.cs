@@ -25622,9 +25622,7 @@ public class A
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67697")]
-        public void UnscopedRefAttribute_NestedAccess_MethodOrProperty(
-            [CombinatorialValues("", "()")] string first,
-            [CombinatorialValues("", "()")] string second)
+        public void UnscopedRefAttribute_NestedAccess_MethodOrProperty(bool firstMethod, bool secondMethod)
         {
             var source = $$"""
                 using System.Diagnostics.CodeAnalysis;
@@ -25636,22 +25634,38 @@ public class A
                 class C
                 {
                     private S1 s1;
-                    public ref int Value() => ref s1.S2{{first}}.Value{{second}};
+                    public ref int Value() => ref s1.S2{{csharp(firstMethod)}}.Value{{csharp(secondMethod)}};
                 }
 
                 struct S1
                 {
                     private S2 s2;
-                    [UnscopedRef] public ref S2 S2{{first}} => ref s2;
+                    [UnscopedRef] public ref S2 S2{{csharp(firstMethod)}} => ref s2;
                 }
 
                 struct S2
                 {
                     private int value;
-                    [UnscopedRef] public ref int Value{{second}} => ref value;
+                    [UnscopedRef] public ref int Value{{csharp(secondMethod)}} => ref value;
                 }
                 """;
-            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Value", $$"""
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  // sequence point: s1.S2{{csharp(firstMethod)}}.Value{{csharp(secondMethod)}}
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldflda     "S1 C.s1"
+                  IL_0006:  call       "ref S2 S1.S2{{il(firstMethod)}}"
+                  IL_000b:  call       "ref int S2.Value{{il(secondMethod)}}"
+                  IL_0010:  ret
+                }
+                """);
+
+            static string csharp(bool method) => method ? "()" : "";
+            static string il(bool method) => method ? "()" : ".get";
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
