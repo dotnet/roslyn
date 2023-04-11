@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
         protected delegate TIndex IndexCreator(ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
-        private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentStateToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentToIndex = new();
         private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
 
         protected AbstractSyntaxIndex(Checksum? checksum)
@@ -51,17 +51,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
-            if (!s_documentStateToIndex.TryGetValue(document, out var index))
+            if (!s_documentToIndex.TryGetValue(document, out var index))
             {
                 index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
                 if (index == null)
                     return null;
+
+                // Populate our caches with this data.
+                s_documentToIndex.GetValue(document, _ => index);
+                s_documentIdToIndex.Remove(document.Id);
+                s_documentIdToIndex.GetValue(document.Id, _ => index);
             }
 
-            // cache and return index after computing it.
-            return s_documentStateToIndex.GetValue(document, _ => index);
+            return index;
         }
 
         private static async Task<TIndex?> GetIndexWorkerAsync(
@@ -87,22 +91,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
             index = await LoadAsync(solutionKey, project, document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
-            if (index == null && !loadOnly)
-            {
-                // alright, we don't have cached information, re-calculate them here.
-                index = await CreateIndexAsync(project, document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
+            if (index != null || loadOnly)
+                return index;
 
-                // okay, persist this info
-                await index.SaveAsync(solutionKey, project, document, cancellationToken).ConfigureAwait(false);
-            }
+            // alright, we don't have cached information, re-calculate them here.
+            index = await CreateIndexAsync(project, document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
 
-            // Store the index with this doc id.  We'll try to reuse it in situations where the pp directives change for
-            // a project, but it would not affect how a document parses.
-            if (index != null)
-            {
-                s_documentIdToIndex.Remove(document.Id);
-                s_documentIdToIndex.GetValue(document.Id, _ => index);
-            }
+            // okay, persist this info
+            await index.SaveAsync(solutionKey, project, document, cancellationToken).ConfigureAwait(false);
 
             return index;
         }
