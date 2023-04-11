@@ -444,7 +444,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                                 parameter,
                                 static (write, arg) =>
                                 {
-                                    arg.self.SymbolsWriteBuilder[(arg.parameter, write)] = true;
+                                    if (write != null)
+                                    {
+                                        arg.self.SymbolsWriteBuilder[(arg.parameter, write)] = true;
+                                    }
                                 },
                                 (parameter, self: this));
                         }
