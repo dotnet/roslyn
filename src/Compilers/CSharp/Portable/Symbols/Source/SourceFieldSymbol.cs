@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -232,12 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>(_syntaxReference);
-            }
-        }
+            => ImmutableArray.Create(_syntaxReference);
+
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+            => IsDefinedInSourceTree(_syntaxReference, tree, definedWithinSpan);
 
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
