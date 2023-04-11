@@ -15794,5 +15794,279 @@ struct S3(char A)
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(6, 27)
                 );
         }
+
+        [Fact]
+        public void StructLayout_01()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+struct S(int x, int y)
+{
+    int X = x;
+    int Y => y;
+
+    [FieldOffset(8)]
+    int Z = 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // We might want to adjust the warning depending on what we decide to do for
+                // https://github.com/dotnet/csharplang/blob/main/proposals/primary-constructors.md#field-targeting-attributes-for-captured-primary-constructor-parameters.
+                //
+                // If we decide to support attributes for capture fields, consider testing
+                //     ERR_MarshalUnmanagedTypeNotValidForFields
+                //     ERR_StructOffsetOnBadStruct
+                //     ERR_DoNotUseFixedBufferAttr
+
+                // (5,21): error CS0625: 'S.<y>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // struct S(int x, int y)
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "y").WithArguments("S.<y>P").WithLocation(5, 21),
+                // (7,9): error CS0625: 'S.X': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //     int X = x;
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "X").WithArguments("S.X").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_02()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    public int Y;
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate3);
+            verify1(source2 + source1, "", validate3);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics(
+                    // 0.cs(2,23): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'S'. To specify an ordering, all instance fields must be in the same declaration.
+                    // public partial struct S(int x)
+                    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "S").WithArguments("S").WithLocation(2, 23)
+                    );
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("<x>P", fields[0].Name);
+                Assert.Equal("Y", fields[1].Name);
+            }
+
+            void validate3(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("Y", fields[0].Name);
+                Assert.Equal("<x>P", fields[1].Name);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_03()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    int X = x;
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate2);
+            verify1(source2 + source1, "", validate2);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics();
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                Assert.Equal(1, m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().Count());
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_04()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+    public int Y;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate2);
+            verify1(source2 + source1, "", validate2);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics();
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("<x>P", fields[0].Name);
+                Assert.Equal("Y", fields[1].Name);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_05()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    public int Y;
+}
+";
+            string source3 = @"
+public partial struct S
+{
+    public int Z;
+}
+";
+            verify1(source1, source2, source3);
+            verify1(source1 + source2, source3, "");
+            verify1(source1 + source2 + source3, "", "");
+
+            verify1(source1, source3, source2);
+            verify1(source1 + source3, source2, "");
+            verify1(source1 + source3 + source2, "", "");
+
+            verify1(source2, source1, source3);
+            verify1(source2 + source1, source3, "");
+            verify1(source2 + source1 + source3, "", "");
+
+            verify1(source2, source3, source1);
+            verify1(source2 + source3, source1, "");
+            verify1(source2 + source3 + source1, "", "");
+
+            verify1(source3, source1, source2);
+            verify1(source3 + source1, source2, "");
+            verify1(source3 + source1 + source2, "", "");
+
+            verify1(source3, source2, source1);
+            verify1(source3 + source2, source1, "");
+            verify1(source3 + source2 + source1, "", "");
+
+            void verify1(string source1, string source2, string source3)
+            {
+                var comp = CreateCompilation(new[] { source1, source2, source3 });
+                comp.VerifyDiagnostics(
+                    // 0.cs(2,23): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'S'. To specify an ordering, all instance fields must be in the same declaration.
+                    // public partial struct S(int x)
+                    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "S").WithArguments("S").WithLocation(2, 23)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RestrictedType_01([CombinatorialValues("class", "struct")] string declaration)
+        {
+            var src1 = @"
+" + declaration + @" C1
+(System.ArgIterator a)
+{
+    void M()
+    {
+        _ = a;
+    }
+}
+
+" + declaration + @" C2
+(System.ArgIterator b)
+{
+    void M()
+    {
+        System.Action d = () => _ = b;
+    }
+}
+
+" + declaration + @" C3
+(System.ArgIterator c)
+{
+    System.Action d = () => _ = c;
+}
+
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'z' is unread.
+" + declaration + @" C4(System.ArgIterator z)
+{
+}
+";
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS9136: Cannot use primary constructor parameter of type 'ArgIterator' inside an instance member
+                //         _ = a;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny, "a").WithArguments("System.ArgIterator").WithLocation(7, 13),
+                // (16,37): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
+                //         System.Action d = () => _ = b;
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "b").WithArguments("System.ArgIterator").WithLocation(16, 37),
+                // (23,33): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
+                //     System.Action d = () => _ = c;
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c").WithArguments("System.ArgIterator").WithLocation(23, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RestrictedType_02([CombinatorialValues("record", "record class", "record struct")] string keyword)
+        {
+            var src1 = @"
+" + keyword + @" C1
+(System.ArgIterator x)
+{
+}
+";
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // (System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 2)
+                );
+        }
     }
 }
