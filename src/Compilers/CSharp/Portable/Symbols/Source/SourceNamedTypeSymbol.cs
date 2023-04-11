@@ -1615,7 +1615,7 @@ next:;
 
                 if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
-                    attributes = addPoisonAttributes(ref attributes, compilation, hasObsolete,
+                    addPoisonAttributes(ref attributes, compilation, hasObsolete,
                         PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs));
                 }
             }
@@ -1623,7 +1623,7 @@ next:;
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
-                attributes = addPoisonAttributes(ref attributes, compilation, hasObsolete,
+                addPoisonAttributes(ref attributes, compilation, hasObsolete,
                     PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes));
             }
 
@@ -1677,7 +1677,7 @@ next:;
 
             return;
 
-            static ArrayBuilder<SynthesizedAttributeData> addPoisonAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
+            static void addPoisonAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
                 bool hasObsolete, string marker, string compilerFeature)
             {
                 // If user specified an Obsolete attribute, we cannot emit ours.
@@ -1697,8 +1697,6 @@ next:;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
                     ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, compilerFeature)),
                     isOptionalUse: true));
-
-                return attributes;
             }
         }
 

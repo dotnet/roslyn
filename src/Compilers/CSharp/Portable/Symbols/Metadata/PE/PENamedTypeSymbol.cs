@@ -498,9 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol GetDeclaredBaseType(bool skipTransformsIfNecessary)
         {
+            if (TypeKind is TypeKind.Extension)
+            {
+                return null;
+            }
+
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                var baseType = MakeDeclaredBaseType();
+                var baseType = MakeBaseTypeFromMetadata();
                 if (baseType is object)
                 {
                     if (skipTransformsIfNecessary)
@@ -539,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyDeclaredInterfaces;
         }
 
-        private NamedTypeSymbol MakeDeclaredBaseType()
+        private NamedTypeSymbol MakeBaseTypeFromMetadata()
         {
             if (!_flags.IsInterface())
             {
@@ -1840,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType(skipTransformsIfNecessary: true);
+                        TypeSymbol @base = mayBeExtension() ? MakeBaseTypeFromMetadata() : _lazyDeclaredBaseType;
 
                         result = TypeKind.Class;
 
@@ -1887,6 +1892,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return result;
+
+                bool mayBeExtension()
+                {
+                    return ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType) ||
+                        ReferenceEquals(_lazyDeclaredBaseType, null);
+                }
             }
         }
 
@@ -1953,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (foundUnderlyingType is null)
                 {
-                    foundUnderlyingType = new UnsupportedMetadataTypeSymbol();
+                    foundUnderlyingType = ErrorTypeSymbol.UnknownResultType;
                 }
 
                 if (baseExtensions.IsDefault)

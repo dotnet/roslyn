@@ -662,9 +662,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
                 sourceExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
-                _diagnostics);
+                    _diagnostics);
 
-                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
+#if DEBUG
+                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+#else
+                var discardedDiagnostics = BindingDiagnosticBag.Discarded;
+#endif
                 extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
                 Debug.Assert(!discardedDiagnostics.HasAnyErrors());
 
