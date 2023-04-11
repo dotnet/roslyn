@@ -25,6 +25,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
+        private sealed class NoSessionException : InvalidOperationException
+        {
+            public NoSessionException()
+                : base("Internal error: no session.")
+            {
+                // unique enough HResult to distinguish from other exceptions
+                HResult = unchecked((int)0x801315087);
+            }
+        }
+
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -69,11 +79,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
+            => _debuggingSession ?? throw new NoSessionException();
 
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
             => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
