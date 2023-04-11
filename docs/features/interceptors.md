@@ -155,7 +155,7 @@ There's a concern on the ASP.NET side that if the user needs to opt-in to someth
 ### Implementation strategy
 
 During the binding phase, `InterceptsLocationAttribute` usages are decoded and the related data for each usage are collected in a `ConcurrentSet` on the compilation:
-- attribute arguments
+- intercepted file-path and location
 - attribute location
 - attributed method symbol
 PROTOTYPE(ic): the exact collection used to collect the attribute usages, and the exact way it is used, are not finalized. The main concern is to ensure we can scale to large numbers of interceptors without issue, and that we can report diagnostics for duplicate interception of the same location in a deterministic way.
