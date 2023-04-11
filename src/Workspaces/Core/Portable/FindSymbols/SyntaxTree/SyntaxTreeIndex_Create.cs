@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
+        private static readonly ConditionalWeakTable<ProjectState, StringTable> s_projectStringTable = new();
 
         private static SyntaxTreeIndex CreateIndex(
             Project project, SyntaxNode root, Checksum checksum, CancellationToken _)
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static StringTable GetStringTable(Project project)
+        public static StringTable GetStringTable(ProjectState project)
             => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)

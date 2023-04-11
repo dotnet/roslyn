@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private sealed class ProjectIndex
         {
-            private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>> s_projectToIndex = new();
+            private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<ProjectIndex>> s_projectToIndex = new();
 
             public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject;
             public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ValueTypes;
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public static Task<ProjectIndex> GetIndexAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                if (!s_projectToIndex.TryGetValue(project, out var lazyIndex))
+                if (!s_projectToIndex.TryGetValue(project.State, out var lazyIndex))
                 {
                     lazyIndex = s_projectToIndex.GetValue(
-                        project, p => new AsyncLazy<ProjectIndex>(
-                            c => ProjectIndex.CreateIndexAsync(p, c), cacheResult: true));
+                        project.State, p => new AsyncLazy<ProjectIndex>(
+                            c => ProjectIndex.CreateIndexAsync(project, c), cacheResult: true));
                 }
 
                 return lazyIndex.GetValueAsync(cancellationToken);

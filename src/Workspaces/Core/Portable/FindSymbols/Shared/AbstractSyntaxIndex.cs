@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
         protected delegate TIndex IndexCreator(Project project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
-        private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentStateToIndex = new();
 
         protected AbstractSyntaxIndex(Checksum? checksum)
         {
@@ -56,8 +56,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
 
             // Populate our caches with this data.
-            s_documentIdToIndex.Remove(documentId);
-            s_documentIdToIndex.GetValue(documentId, _ => index);
+            var documentState = project.State.DocumentStates.GetRequiredState(documentId);
+            s_documentStateToIndex.Remove(documentState);
+            s_documentStateToIndex.GetValue(documentState, _ => index);
 
             return index;
         }
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Check if we have an index for a previous version of this document.  If our
             // checksums match, we can just use that.
-            if (s_documentIdToIndex.TryGetValue(documentId, out var index) &&
+            if (s_documentStateToIndex.TryGetValue(documentId, out var index) &&
                 (index?.Checksum == textChecksum || index?.Checksum == textAndDirectivesChecksum))
             {
                 // The previous index we stored with this documentId is still valid.  Just

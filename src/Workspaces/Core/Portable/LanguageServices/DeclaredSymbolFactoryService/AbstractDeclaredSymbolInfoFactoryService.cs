@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             CancellationToken cancellationToken)
         {
-            var stringTable = SyntaxTreeIndex.GetStringTable(project);
+            var stringTable = SyntaxTreeIndex.GetStringTable(project.State);
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions!);
 
             using var _1 = PooledDictionary<string, string?>.GetInstance(out var aliases);

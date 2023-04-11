@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var storageService = project.Solution.Services.GetPersistentStorageService();
             var documentKey = DocumentKey.ToDocumentKey(project, documentId);
-            var stringTable = SyntaxTreeIndex.GetStringTable(project);
+            var stringTable = SyntaxTreeIndex.GetStringTable(project.State);
 
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
             // then we may match it using textChecksum.  If there were pp directives, then we may match is using
