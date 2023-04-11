@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,7 +26,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
-                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+                : ProtocolConversions.GetUriFromFilePath(document.FilePath!);
+        }
+
+        public static Uri GetUriFromName(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+            Contract.ThrowIfNull(document.Name);
+
+            var directoryName = Path.GetDirectoryName(document.FilePath);
+            Contract.ThrowIfNull(directoryName);
+            var path = Path.Combine(directoryName, document.Name);
+            return document is SourceGeneratedDocument
+                ? ProtocolConversions.GetUriFromPartialFilePath(path)
+                : ProtocolConversions.GetUriFromFilePath(path!);
+        }
+
+        public static Uri GetUriFromContainingFolders(this TextDocument document)
+        {
+            Contract.ThrowIfTrue(document.Folders.Count == 0);
+            Contract.ThrowIfNull(document.Name);
+
+            var path = Path.Combine(document.Folders.Concat(document.Name).AsArray());
+            return document is SourceGeneratedDocument
+                ? ProtocolConversions.GetUriFromPartialFilePath(path)
+                : ProtocolConversions.GetUriFromFilePath(path!);
         }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
