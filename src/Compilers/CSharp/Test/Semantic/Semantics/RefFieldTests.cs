@@ -25668,6 +25668,51 @@ public class A
             static string il(bool method) => method ? "()" : ".get";
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67626")]
+        public void UnscopedRefAttribute_NestedAccess_Indexer()
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                var c = new C();
+                c.Value(0) = 12;
+                System.Console.WriteLine(c.Value(0));
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value(int i) => ref s1[i].Value;
+                }
+
+                struct S1
+                {
+                    private S2 s2;
+                    [UnscopedRef] public ref S2 this[int i] => ref s2;
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Value", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  // sequence point: s1[i].Value
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldflda     "S1 C.s1"
+                  IL_0006:  ldarg.1
+                  IL_0007:  call       "ref S2 S1.this[int].get"
+                  IL_000c:  call       "ref int S2.Value.get"
+                  IL_0011:  ret
+                }
+                """);
+        }
+
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Theory]
         [InlineData(0)]
