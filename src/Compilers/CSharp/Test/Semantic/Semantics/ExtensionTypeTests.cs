@@ -2937,6 +2937,7 @@ explicit extension R2 for (int a, int b)  : R { }
         var src3 = """
 explicit extension R3 for (int, int) : R { }
 """;
+        // PROTOTYPE consider warning instead, when revisiting rules for variance of underlying types
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() });
         comp3.VerifyDiagnostics(
             // (1,20): error CS9216: Extension 'R3' has underlying type '(int, int)' but a base extension has underlying type '(int a, int b)'.
@@ -4002,10 +4003,9 @@ public explicit extension R1 for R2.Nested2
         comp1 = CreateCompilation(src1_updated, references: new[] { comp2.EmitToImageReference() }, assemblyName: "first");
         comp1.VerifyDiagnostics();
 
-        //var r = comp.GlobalNamespace.GetTypeMember("R");
-        //Assert.Equal("R", r.ToTestDisplayString());
-        //Assert.True(r.IsExtension);
-        //Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
+        var r1 = comp1.GlobalNamespace.GetTypeMember("R1");
+        Assert.True(r1.IsExtension);
+        Assert.Equal("R2.Nested2", r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
     [Fact]

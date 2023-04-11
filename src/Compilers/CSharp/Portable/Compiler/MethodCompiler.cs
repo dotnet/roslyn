@@ -474,12 +474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilationState.Emitting)
                 {
-                    CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
-
                     if (containingType.IsExtension)
                     {
                         CompileSynthesizedExtensionMarker((SourceExtensionTypeSymbol)containingType, compilationState);
                     }
+
+                    CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
                 }
             }
 

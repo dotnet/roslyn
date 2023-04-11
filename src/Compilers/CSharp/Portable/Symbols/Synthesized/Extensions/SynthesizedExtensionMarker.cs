@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -20,25 +20,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// - whether the extension type is implicit or explicit (PROTOTYPE)
     /// - the underlying type (first parameter type)
     /// - the base extensions (subsequent parameter types)
+    ///
+    /// For example: 'implicit extension R for UnderlyingType : BaseExtension1, BaseExtension2' yield
+    /// 'private static void &lt;Extension>$(UnderlyingType, BaseExtension1, BaseExtension2, ...)'. // PROTOTYPE
     /// </summary>
-    internal sealed class SynthesizedExtensionMarker : SourceMemberMethodSymbol
+    internal sealed class SynthesizedExtensionMarker : SynthesizedMethodSymbol
     {
+        private readonly SourceExtensionTypeSymbol _extensionType;
         private readonly TypeSymbol _returnType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal SynthesizedExtensionMarker(SourceMemberContainerTypeSymbol containingType,
+        internal SynthesizedExtensionMarker(SourceExtensionTypeSymbol extensionType,
             TypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensionTypes, BindingDiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: containingType.SyntaxReferences[0], containingType.Locations[0], isIterator: false)
         {
-            this.MakeFlags(
-                MethodKind.Ordinary,
-                DeclarationModifiers.Static | DeclarationModifiers.Private,
-                returnsVoid: true,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: false,
-                isMetadataVirtualIgnoringModifiers: false);
-
-            _returnType = Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_Void, containingType.Locations[0], diagnostics);
+            _extensionType = extensionType;
+            _returnType = Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_Void, extensionType.GetFirstLocation(), diagnostics);
 
             var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(baseExtensionTypes.Length);
             parameters.Add(makeParameter(0, underlyingType));
@@ -79,39 +75,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public sealed override bool IsImplicitlyDeclared
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
-
         internal sealed override bool GenerateDebugInfo => false;
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+        public override MethodKind MethodKind => MethodKind.Ordinary;
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
-            => throw ExceptionUtilities.Unreachable();
+        public override Accessibility DeclaredAccessibility => Accessibility.Private;
 
-        internal override bool IsExpressionBodied
-            => throw ExceptionUtilities.Unreachable();
+        public override bool IsStatic => true;
 
-        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-            => throw ExceptionUtilities.Unreachable();
+        public override bool IsVirtual => false;
 
-        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-            => throw ExceptionUtilities.Unreachable();
+        public override bool IsOverride => false;
 
-        protected override object MethodChecksLockObject
-            => throw ExceptionUtilities.Unreachable();
+        public override bool IsAbstract => false;
 
-        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
-            => throw ExceptionUtilities.Unreachable();
+        public override bool IsSealed => false;
 
-        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
-            => throw new System.NotImplementedException("PROTOTYPE"); // PROTOTYPE
+        public override bool IsExtern => false;
 
-        internal sealed override bool SynthesizesLoweredBoundBody
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+        internal override bool IsMetadataFinal => false;
+
+        internal override bool IsInitOnly => false;
+
+        public override int Arity => 0;
+
+        public override bool IsExtensionMethod => false;
+
+        internal override bool HasSpecialName => true;
+
+        internal override bool HasDeclarativeSecurity => false;
+
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
+
+        internal override bool RequiresSecurityObject => false;
+
+        public override bool HidesBaseMethodsByName => false;
+
+        public override bool ReturnsVoid => true;
+
+        public override bool IsAsync => false;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
+
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        public override Symbol? AssociatedSymbol => null;
+
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal override CallingConvention CallingConvention => CallingConvention.Default;
+
+        public override Symbol ContainingSymbol => _extensionType;
+
+        public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
@@ -119,13 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             F.CloseMethod(F.Return());
         }
 
-        public override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
-            => null;
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+            => "";
 
-        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-            => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
+        public override DllImportData? GetDllImportData() => null;
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
             => throw ExceptionUtilities.Unreachable();
+
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+            => ImmutableArray<string>.Empty;
+
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
     }
 }

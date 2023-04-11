@@ -11,13 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// A base class for synthesized methods that want a this parameter.
-    /// </summary>
-    internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
+    // TODO2 move to separate file once reviewed
+    internal abstract class SynthesizedMethodSymbol : MethodSymbol
     {
-        private ParameterSymbol _lazyThisParameter;
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -40,19 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ContainingType.AreLocalsZeroed;
             }
-        }
-
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
-        {
-            Debug.Assert(!IsStatic);
-
-            if ((object)_lazyThisParameter == null)
-            {
-                Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
-            }
-
-            thisParameter = _lazyThisParameter;
-            return true;
         }
 
         /// <summary>
@@ -82,5 +65,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+    }
+
+    /// <summary>
+    /// A base class for synthesized methods that want a this parameter.
+    /// </summary>
+    internal abstract class SynthesizedInstanceMethodSymbol : SynthesizedMethodSymbol
+    {
+        private ParameterSymbol _lazyThisParameter;
+
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        {
+            Debug.Assert(!IsStatic);
+
+            if ((object)_lazyThisParameter == null)
+            {
+                Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
+            }
+
+            thisParameter = _lazyThisParameter;
+            return true;
+        }
     }
 }
