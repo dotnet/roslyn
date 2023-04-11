@@ -245,7 +245,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     continue;
                 }
 
-
                 hasDesignerCategoryType ??= await HasDesignerCategoryTypeAsync(project, cancellationToken).ConfigureAwait(false);
                 var data = await ComputeDesignerAttributeDataAsync(project, documentId, filePath, hasDesignerCategoryType.Value).ConfigureAwait(false);
                 if (data.Category != existingInfo.category)
