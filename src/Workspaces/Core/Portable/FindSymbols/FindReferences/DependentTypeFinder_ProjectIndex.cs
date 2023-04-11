@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     lazyIndex = s_projectToIndex.GetValue(
                         project.State, p => new AsyncLazy<ProjectIndex>(
-                            c => ProjectIndex.CreateIndexAsync(project, c), cacheResult: true));
+                            c => CreateIndexAsync(project, c), cacheResult: true));
                 }
 
                 return lazyIndex.GetValueAsync(cancellationToken);
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namedTypes = new MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)>(
                     project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
-                foreach (var documentId in project.DocumentIds)
+                foreach (var (documentId, document) in project.State.DocumentStates.States)
                 {
-                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(project, documentId, cancellationToken).ConfigureAwait(false);
+                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(project, document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)

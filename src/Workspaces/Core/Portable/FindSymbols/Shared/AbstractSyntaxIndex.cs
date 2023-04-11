@@ -25,47 +25,46 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Checksum = checksum;
         }
 
-        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Project project, DocumentState document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
         {
-            var index = await GetIndexAsync(project, documentId, read, create, cancellationToken).ConfigureAwait(false);
+            var index = await GetIndexAsync(project, document, read, create, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(index);
             return index;
         }
 
-        protected static ValueTask<TIndex?> GetIndexAsync(Project project, DocumentId documentId, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
-            => GetIndexAsync(project, documentId, loadOnly: false, read, create, cancellationToken);
+        protected static ValueTask<TIndex?> GetIndexAsync(Project project, DocumentState document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+            => GetIndexAsync(project, document, loadOnly: false, read, create, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<TIndex?> GetIndexAsync(
             Project project,
-            DocumentId documentId,
+            DocumentState document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
             CancellationToken cancellationToken)
         {
-            if (!project.SupportsCompilation)
+            if (!document.SupportsSyntaxTree)
                 return null;
 
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
-            var index = await GetIndexWorkerAsync(project, documentId, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
+            var index = await GetIndexWorkerAsync(project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
             if (index == null && loadOnly)
                 return null;
 
             // Populate our caches with this data.
-            var documentState = project.State.DocumentStates.GetRequiredState(documentId);
-            s_documentStateToIndex.Remove(documentState);
-            s_documentStateToIndex.GetValue(documentState, _ => index);
+            s_documentStateToIndex.Remove(document);
+            s_documentStateToIndex.GetValue(document, _ => index);
 
             return index;
         }
 
         private static async Task<TIndex?> GetIndexWorkerAsync(
             Project project,
-            DocumentId documentId,
+            DocumentState document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
@@ -74,11 +73,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!project.SupportsCompilation)
                 return null;
 
-            var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(project, documentId, cancellationToken).ConfigureAwait(false);
+            var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(project, document, cancellationToken).ConfigureAwait(false);
 
             // Check if we have an index for a previous version of this document.  If our
             // checksums match, we can just use that.
-            if (s_documentStateToIndex.TryGetValue(documentId, out var index) &&
+            if (s_documentStateToIndex.TryGetValue(document, out var index) &&
                 (index?.Checksum == textChecksum || index?.Checksum == textAndDirectivesChecksum))
             {
                 // The previous index we stored with this documentId is still valid.  Just
@@ -87,22 +86,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
-            index = await LoadAsync(project, documentId, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
+            index = await LoadAsync(project, document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
             if (index != null || loadOnly)
                 return index;
 
             // alright, we don't have cached information, re-calculate them here.
-            index = await CreateIndexAsync(project, documentId, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
+            index = await CreateIndexAsync(project, document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
 
             // okay, persist this info
-            await index.SaveAsync(project, documentId, cancellationToken).ConfigureAwait(false);
+            await index.SaveAsync(project, document, cancellationToken).ConfigureAwait(false);
 
             return index;
         }
 
         private static async Task<TIndex> CreateIndexAsync(
             Project project,
-            DocumentId documentId,
+            DocumentState document,
             Checksum textChecksum,
             Checksum textAndDirectivesChecksum,
             IndexCreator create,
@@ -110,8 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            var documentState = project.State.DocumentStates.GetRequiredState(documentId);
-            var syntaxTree = await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = project.GetRequiredLanguageService<ISyntaxKindsService>();
 

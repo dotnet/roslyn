@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         protected static async Task<TIndex?> LoadAsync(
             Project project,
-            DocumentId documentId,
+            DocumentState document,
             Checksum textChecksum,
             Checksum textAndDirectivesChecksum,
             IndexReader read,
             CancellationToken cancellationToken)
         {
             var storageService = project.Solution.Services.GetPersistentStorageService();
-            var documentKey = DocumentKey.ToDocumentKey(project, documentId);
+            var documentKey = DocumentKey.ToDocumentKey(project, document.Id);
             var stringTable = SyntaxTreeIndex.GetStringTable(project.State);
 
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
@@ -84,7 +84,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static async ValueTask<(Checksum textOnlyChecksum, Checksum textAndDirectivesChecksum)> GetChecksumsAsync(
-            Project project, DocumentId documentId, CancellationToken cancellationToken)
+            Project project,
+            DocumentState document,
+            CancellationToken cancellationToken)
         {
             // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change any time the
             // SyntaxTree could have changed.  Right now, that can only happen if the text of the document changes, or
@@ -109,8 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //
             // We also want the checksum to change any time our serialization format changes.  If the format has
             // changed, all previous versions should be invalidated.
-            var docState = project.State.DocumentStates.GetRequiredState(documentId);
-            var documentChecksumState = await docState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var documentChecksumState = await document.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             var directivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
@@ -122,22 +123,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return (textChecksum, textAndDirectivesChecksum);
         }
 
-        private Task<bool> SaveAsync(
-            Project project, DocumentId documentId, CancellationToken cancellationToken)
+        private async Task<bool> SaveAsync(
+            Project project, DocumentState document, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var persistentStorageService = solution.Services.GetPersistentStorageService();
-            return SaveAsync(project, documentId, persistentStorageService, cancellationToken);
-        }
-
-        public async Task<bool> SaveAsync(
-            Project project,
-            DocumentId documentId,
-            IChecksummedPersistentStorageService persistentStorageService,
-            CancellationToken cancellationToken)
-        {
-            var solution = project.Solution;
-
             try
             {
                 var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
@@ -154,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     stream.Position = 0;
                     return await storage.WriteStreamAsync(
-                        DocumentKey.ToDocumentKey(project, documentId), s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                        DocumentKey.ToDocumentKey(project, document.Id), s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
