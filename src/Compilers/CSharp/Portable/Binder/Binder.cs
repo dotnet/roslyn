@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
                                                                : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
                                                            symbol),
-                                syntax.GetLocation()!);
+                                location);
             }
         }
 
