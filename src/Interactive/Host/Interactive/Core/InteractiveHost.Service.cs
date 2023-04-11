@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
-                    documentationCommentsCulture: CultureInfo.CurrentCulture);
+                    documentationCommentsCulture: CultureInfo.CurrentUICulture);
 
                 var assemblyLoader = new InteractiveAssemblyLoader(metadataFileProvider);
                 var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
