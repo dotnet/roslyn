@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
 
-                if (container is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+                if (container is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
                 {
                     foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
                     {
