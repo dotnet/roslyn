@@ -18,9 +18,6 @@
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
-
-    <!-- Work around https://github.com/dotnet/roslyn-analyzers/issues/6059 --> 
-    <NoWarn Condition="'$(TargetFramework)' == 'net7.0'">$(NoWarn);RS0016;RS0017</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
