@@ -3106,7 +3106,7 @@ class C
             Assert.Equal(2, comp.Assembly.Modules.Length);
         }
 
-        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        [ConditionalFact(typeof(IsEnglishLocal)), WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
         public void NetModuleReference_AssemblySpecifiedAsModule()
         {
             var module = CreateCompilation(string.Empty);
@@ -3125,7 +3125,7 @@ class C
             Assert.Equal(1, comp.Assembly.Modules.Length);
         }
 
-        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        [ConditionalFact(typeof(IsEnglishLocal)), WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
         public void NetModuleReference_ModuleSpecifiedAsAssembly()
         {
             var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
