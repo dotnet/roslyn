@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IndexCreator create,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(project.SupportsCompilation);
+            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
