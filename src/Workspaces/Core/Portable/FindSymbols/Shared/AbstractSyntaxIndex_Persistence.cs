@@ -124,13 +124,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return (textChecksum, textAndDirectivesChecksum);
         }
 
-        private async Task<bool> SaveAsync(
+        private Task<bool> SaveAsync(
             SolutionKey solutionKey,
             ProjectState project,
             DocumentState document,
             CancellationToken cancellationToken)
         {
             var persistentStorageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
+            return SaveAsync(solutionKey, project, document, persistentStorageService, cancellationToken);
+        }
+
+        public Task<bool> SaveAsync(
+            Document document, IChecksummedPersistentStorageService persistentStorageService)
+        {
+            return SaveAsync(
+                SolutionKey.ToSolutionKey(document.Project.Solution),
+                document.Project.State,
+                (DocumentState)document.State,
+                persistentStorageService,
+                CancellationToken.None);
+        }
+
+        private async Task<bool> SaveAsync(
+            SolutionKey solutionKey,
+            ProjectState project,
+            DocumentState document,
+            IChecksummedPersistentStorageService persistentStorageService,
+            CancellationToken cancellationToken)
+        {
             try
             {
                 var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
