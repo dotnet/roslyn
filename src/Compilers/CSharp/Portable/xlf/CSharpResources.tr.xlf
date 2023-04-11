@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
+        <target state="new">Only a single record partial declaration may have a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Parametre listesiyle bir “kayıt yapısı”nda bildirilen bir oluşturucu, birincil oluşturucuyu veya açıkça bildirilen bir oluşturucuyu çağıran bir “this” başlatıcısına sahip olmalıdır.</target>
+        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -2399,7 +2399,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Parametre listesi içeren bir kayıtta bildirilen bir oluşturucu, 'this' oluşturucu başlatıcısına sahip olmalıdır.</target>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -10221,22 +10221,22 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">Belirtilen sürüm dizesi gereken biçime uymuyor - major[.minor[.build[.revision]]]</target>
+        <target state="new">The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">Belirtilen sürüm dizesi gerekircilikle uyumlu olmayan joker karakterler içeriyor. Joker karakterleri sürüm dizesinden kaldırın veya bu derleme için gerekirciliği devre dışı bırakın</target>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">Belirtilen sürüm dizesi gerekli biçime uygun değil - ana.ikincil.derleme.düzeltme (joker karakter olmadan)</target>
+        <target state="new">The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
