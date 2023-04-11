@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
+            // Defer computing location to avoid unnecessary allocations in most cases.
+            Location? returnTypeLocation = null;
             var compilation = DeclaringCompilation;
-
-            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (RefKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -264,10 +264,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            Location getReturnTypeLocation()
+            {
+                returnTypeLocation ??= this.ReturnTypeLocation;
+                return returnTypeLocation;
+            }
         }
 
         protected abstract void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
