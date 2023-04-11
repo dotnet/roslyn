@@ -302,7 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             using var builder = new NameToSymbolMapBuilder();
             foreach (var declaration in _mergedDeclaration.Children)
+            {
                 builder.Add(BuildSymbol(declaration, diagnostics));
+            }
 
             var result = builder.CreateMap();
 
