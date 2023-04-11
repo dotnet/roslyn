@@ -4684,6 +4684,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return propertyRefKind == RefKind.Ref ||
                            (IsAnyReadOnly(addressKind) && propertyRefKind == RefKind.RefReadOnly);
 
+                case BoundKind.IndexerAccess:
+                    var indexerRefKind = ((BoundIndexerAccess)expression).Indexer.RefKind;
+                    return indexerRefKind == RefKind.Ref ||
+                           (IsAnyReadOnly(addressKind) && indexerRefKind == RefKind.RefReadOnly);
+
                 case BoundKind.Dup:
                     //NB: Dup represents locals that do not need IL slot
                     var dupRefKind = ((BoundDup)expression).RefKind;
