@@ -26,63 +26,66 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Checksum = checksum;
         }
 
-        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Document document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, Document? document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
         {
-            var index = await GetIndexAsync(document, read, create, cancellationToken).ConfigureAwait(false);
+            var index = await GetIndexAsync(project, documentId, document, read, create, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(index);
             return index;
         }
 
-        protected static ValueTask<TIndex?> GetIndexAsync(Document document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly: false, read, create, cancellationToken);
+        protected static ValueTask<TIndex?> GetIndexAsync(Project project, DocumentId documentId, Document? document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, document, loadOnly: false, read, create, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<TIndex?> GetIndexAsync(
-            Document document,
+            Project project,
+            DocumentId documentId,
+            Document? document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
             CancellationToken cancellationToken)
         {
-            if (!document.SupportsSyntaxTree)
+            if (!project.SupportsCompilation)
                 return null;
+
+            if (document != null && s_documentToIndex.TryGetValue(document, out var index))
+                return index;
 
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
-            if (!s_documentToIndex.TryGetValue(document, out var index))
-            {
-                index = await GetIndexWorkerAsync(document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
+            index = await GetIndexWorkerAsync(project, documentId, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
-                if (index == null && loadOnly)
-                {
-                    return null;
-                }
+            if (index == null && loadOnly)
+                return null;
 
-                // Populate our caches with this data.
-                s_documentToIndex.GetValue(document, _ => index);
-                s_documentIdToIndex.Remove(document.Id);
-                s_documentIdToIndex.GetValue(document.Id, _ => index);
-            }
+            // Populate our caches with this data.
+            document ??= project.GetRequiredDocument(documentId);
+            s_documentToIndex.GetValue(document, _ => index);
+            s_documentIdToIndex.Remove(document.Id);
+            s_documentIdToIndex.GetValue(document.Id, _ => index);
 
             return index;
         }
 
         private static async Task<TIndex?> GetIndexWorkerAsync(
-            Document document,
+            Project project,
+            DocumentId documentId,
+            Document? document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
             CancellationToken cancellationToken)
         {
-            if (!document.SupportsSyntaxTree)
+            if (!project.SupportsCompilation)
                 return null;
 
-            var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
+            var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(project, documentId, cancellationToken).ConfigureAwait(false);
 
             // Check if we have an index for a previous version of this document.  If our
             // checksums match, we can just use that.
-            if (s_documentIdToIndex.TryGetValue(document.Id, out var index) &&
+            if (s_documentIdToIndex.TryGetValue(documentId, out var index) &&
                 (index?.Checksum == textChecksum || index?.Checksum == textAndDirectivesChecksum))
             {
                 // The previous index we stored with this documentId is still valid.  Just
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
-            index = await LoadAsync(document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
+            index = await LoadAsync(project, documentId, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
             if (index != null || loadOnly)
                 return index;
 

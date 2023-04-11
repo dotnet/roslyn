@@ -44,13 +44,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => _extensionMethodInfo.ContainsExtensionMethod;
 
         public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetRequiredIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
+            => GetRequiredIndexAsync(document.Project, document.Id, document, cancellationToken);
+
+        public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, CancellationToken cancellationToken)
+            => GetRequiredIndexAsync(project, documentId, document: null, ReadIndex, CreateIndex, cancellationToken);
 
         public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
+            => GetIndexAsync(document.Project, document.Id, document, cancellationToken);
 
-        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(Project project, DocumentId documentId, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, doucment: null, ReadIndex, CreateIndex, cancellationToken);
+
         public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
+            => GetIndexAsync(document.Project, document.Id, document, loadOnly, cancellationToken);
+
+        public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(Project project, DocumentId documentId, bool loadOnly, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, document: null, loadOnly, ReadIndex, CreateIndex, cancellationToken);
     }
 }

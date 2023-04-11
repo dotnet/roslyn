@@ -29,15 +29,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public readonly Checksum? Checksum;
 
         protected static async Task<TIndex?> LoadAsync(
-            Document document,
+            Project project,
+            DocumentId documentId,
             Checksum textChecksum,
             Checksum textAndDirectivesChecksum,
             IndexReader read,
             CancellationToken cancellationToken)
         {
-            var storageService = document.Project.Solution.Services.GetPersistentStorageService();
-            var documentKey = DocumentKey.ToDocumentKey(document);
-            var stringTable = SyntaxTreeIndex.GetStringTable(document.Project);
+            var storageService = project.Solution.Services.GetPersistentStorageService();
+            var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(project), project.State.DocumentStates.GetRequiredState(documentId));
+            var stringTable = SyntaxTreeIndex.GetStringTable(project);
 
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
             // then we may match it using textChecksum.  If there were pp directives, then we may match is using
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static async ValueTask<(Checksum textOnlyChecksum, Checksum textAndDirectivesChecksum)> GetChecksumsAsync(
-            Document document, CancellationToken cancellationToken)
+            Project project, DocumentId documentId, CancellationToken cancellationToken)
         {
             // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change any time the
             // SyntaxTree could have changed.  Right now, that can only happen if the text of the document changes, or
@@ -108,9 +109,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //
             // We also want the checksum to change any time our serialization format changes.  If the format has
             // changed, all previous versions should be invalidated.
-            var project = document.Project;
-
-            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var docState = project.State.DocumentStates.GetRequiredState(documentId);
+            var documentChecksumState = await docState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             var directivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
