@@ -25668,6 +25668,39 @@ public class A
             static string il(bool method) => method ? "()" : ".get";
         }
 
+        [Fact]
+        public void UnscopedRefAttribute_NestedAccess_Properties_Invalid()
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value() => ref s1.S2.Value;
+                }
+                
+                struct S1
+                {
+                    private S2 s2;
+                    public S2 S2 => s2;
+                }
+                
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+                // 0.cs(6,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     public ref int Value() => ref s1.S2.Value;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1.S2").WithLocation(6, 35),
+                // 0.cs(11,16): warning CS0649: Field 'S1.s2' is never assigned to, and will always have its default value 
+                //     private S2 s2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s2").WithArguments("S1.s2", "").WithLocation(11, 16));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67626")]
         public void UnscopedRefAttribute_NestedAccess_Indexer()
         {
@@ -25711,6 +25744,39 @@ public class A
                   IL_0011:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_NestedAccess_Indexer_Invalid()
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value(int i) => ref s1[i].Value;
+                }
+
+                struct S1
+                {
+                    private S2 s2;
+                    public S2 this[int i] => s2;
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+                // 0.cs(6,40): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     public ref int Value(int i) => ref s1[i].Value;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1[i]").WithLocation(6, 40),
+                // 0.cs(11,16): warning CS0649: Field 'S1.s2' is never assigned to, and will always have its default value 
+                //     private S2 s2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s2").WithArguments("S1.s2", "").WithLocation(11, 16));
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
