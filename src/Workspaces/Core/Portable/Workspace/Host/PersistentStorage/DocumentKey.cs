@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.Storage
         public static DocumentKey ToDocumentKey(Document document)
             => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
 
+        public static DocumentKey ToDocumentKey(Project project, DocumentId documentId)
+            => ToDocumentKey(ProjectKey.ToProjectKey(project), project.State.DocumentStates.GetRequiredState(documentId));
+
         public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
             => new(projectKey, state.Id, state.FilePath, state.Name);
 

@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken _)
+            Project project, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 

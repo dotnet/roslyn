@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         where TIndex : AbstractSyntaxIndex<TIndex>
     {
         protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
-        protected delegate TIndex IndexCreator(Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
+        protected delegate TIndex IndexCreator(Project project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
-        private static readonly ConditionalWeakTable<Document, TIndex?> s_documentToIndex = new();
         private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
 
         protected AbstractSyntaxIndex(Checksum? checksum)
@@ -26,21 +25,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Checksum = checksum;
         }
 
-        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, Document? document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+        protected static async ValueTask<TIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
         {
-            var index = await GetIndexAsync(project, documentId, document, read, create, cancellationToken).ConfigureAwait(false);
+            var index = await GetIndexAsync(project, documentId, read, create, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(index);
             return index;
         }
 
-        protected static ValueTask<TIndex?> GetIndexAsync(Project project, DocumentId documentId, Document? document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
-            => GetIndexAsync(project, documentId, document, loadOnly: false, read, create, cancellationToken);
+        protected static ValueTask<TIndex?> GetIndexAsync(Project project, DocumentId documentId, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, loadOnly: false, read, create, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<TIndex?> GetIndexAsync(
             Project project,
             DocumentId documentId,
-            Document? document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
@@ -49,22 +47,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!project.SupportsCompilation)
                 return null;
 
-            if (document != null && s_documentToIndex.TryGetValue(document, out var index))
-                return index;
-
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
-            index = await GetIndexWorkerAsync(project, documentId, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
+            var index = await GetIndexWorkerAsync(project, documentId, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
             if (index == null && loadOnly)
                 return null;
 
             // Populate our caches with this data.
-            document ??= project.GetRequiredDocument(documentId);
-            s_documentToIndex.GetValue(document, _ => index);
-            s_documentIdToIndex.Remove(document.Id);
-            s_documentIdToIndex.GetValue(document.Id, _ => index);
+            s_documentIdToIndex.Remove(documentId);
+            s_documentIdToIndex.GetValue(documentId, _ => index);
 
             return index;
         }
@@ -72,7 +65,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<TIndex?> GetIndexWorkerAsync(
             Project project,
             DocumentId documentId,
-            Document? document,
             bool loadOnly,
             IndexReader read,
             IndexCreator create,
@@ -99,25 +91,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return index;
 
             // alright, we don't have cached information, re-calculate them here.
-            index = await CreateIndexAsync(document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
+            index = await CreateIndexAsync(project, documentId, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
 
             // okay, persist this info
-            await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await index.SaveAsync(project, documentId, cancellationToken).ConfigureAwait(false);
 
             return index;
         }
 
         private static async Task<TIndex> CreateIndexAsync(
-            Document document,
+            Project project,
+            DocumentId documentId,
             Checksum textChecksum,
             Checksum textAndDirectivesChecksum,
             IndexCreator create,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
+            Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+            var documentState = project.State.DocumentStates.GetRequiredState(documentId);
+            var syntaxTree = await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxKinds = project.GetRequiredLanguageService<ISyntaxKindsService>();
 
             // if the tree contains `#if`-directives, then include the directives-checksum info in the checksum we
             // produce. We don't want to consider the data reusable if the user changes their parse-option pp-directives
@@ -133,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var checksum = root.ContainsDirectives && ContainsIfDirective(root, ifDirectiveKind) ? textAndDirectivesChecksum : textChecksum;
 
-            return create(document, root, checksum, cancellationToken);
+            return create(project, root, checksum, cancellationToken);
         }
 
         private static bool ContainsIfDirective(SyntaxNode node, int ifDirectiveKind)

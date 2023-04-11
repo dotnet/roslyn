@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -31,13 +30,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetRequiredIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
+            => GetRequiredIndexAsync(document.Project, document.Id, cancellationToken);
+
+        public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Project project, DocumentId documentId, CancellationToken cancellationToken)
+            => GetRequiredIndexAsync(project, documentId, ReadIndex, CreateIndex, cancellationToken);
 
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly: false, cancellationToken);
+            => GetIndexAsync(document.Project, document.Id, cancellationToken); 
 
-        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Project project, DocumentId documentId, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, loadOnly: false, cancellationToken);
+
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
+            => GetIndexAsync(document.Project, document.Id, loadOnly, cancellationToken);
+
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Project project, DocumentId documentId, bool loadOnly, CancellationToken cancellationToken)
+            => GetIndexAsync(project, documentId, loadOnly, ReadIndex, CreateIndex, cancellationToken);
     }
 }

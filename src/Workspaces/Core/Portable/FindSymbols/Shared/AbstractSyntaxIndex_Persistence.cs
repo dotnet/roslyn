@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var storageService = project.Solution.Services.GetPersistentStorageService();
-            var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(project), project.State.DocumentStates.GetRequiredState(documentId));
+            var documentKey = DocumentKey.ToDocumentKey(project, documentId);
             var stringTable = SyntaxTreeIndex.GetStringTable(project);
 
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
@@ -123,17 +123,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private Task<bool> SaveAsync(
-            Document document, CancellationToken cancellationToken)
+            Project project, DocumentId documentId, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
+            var solution = project.Solution;
             var persistentStorageService = solution.Services.GetPersistentStorageService();
-            return SaveAsync(persistentStorageService, document, cancellationToken);
+            return SaveAsync(project, documentId, persistentStorageService, cancellationToken);
         }
 
         public async Task<bool> SaveAsync(
-            IChecksummedPersistentStorageService persistentStorageService, Document document, CancellationToken cancellationToken)
+            Project project,
+            DocumentId documentId,
+            IChecksummedPersistentStorageService persistentStorageService,
+            CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
+            var solution = project.Solution;
 
             try
             {
@@ -150,7 +153,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     stream.Position = 0;
-                    return await storage.WriteStreamAsync(document, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                    return await storage.WriteStreamAsync(
+                        DocumentKey.ToDocumentKey(project, documentId), s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
