@@ -261,19 +261,19 @@ namespace RunTests
                 var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", displayWindow: false, cancellationToken: cancellationToken).Result;
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.OutputLines));
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
-            }
 
-            if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
-            {
-                ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-
-                var counter = 0;
-                foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
                 {
-                    var dumpDir = options.LogFilesDirectory;
-                    var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
-                    counter++;
+                    ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+
+                    var counter = 0;
+                    foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                    {
+                        var dumpDir = options.LogFilesDirectory;
+                        var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
+                        await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
+                        counter++;
+                    }
                 }
             }
 
