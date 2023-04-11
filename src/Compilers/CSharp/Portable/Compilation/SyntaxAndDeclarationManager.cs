@@ -271,11 +271,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             string scriptClassName,
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ref DeclarationTable declTable)
+            ref DeclarationTable declTable,
+            Lazy<RootSingleNamespaceDeclaration> oldRootNamespaceDeclaration)
         {
-            var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission));
+            // Most files will just have a single type in it.  And most types will keep all the same members names
+            // before/after an edit.  So attempt to use the same set instance to lower the garbage created here.
+            var previousMemberNames = getPreviousTopLevelTypeMemberNames();
+
+            var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, previousMemberNames));
             declMapBuilder.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
             declTable = declTable.AddRootDeclaration(lazyRoot);
+
+            ImmutableSegmentedHashSet<string> getPreviousTopLevelTypeMemberNames()
+            {
+                // only bother doing this if we have the old root namespace already realized.
+                if (oldRootNamespaceDeclaration is null || !oldRootNamespaceDeclaration.IsValueCreated)
+                    return default;
+
+                // Walk down the namespaces as long as it's just a single chain of them.
+                SingleNamespaceDeclaration current = oldRootNamespaceDeclaration.Value;
+                while (current is SingleNamespaceDeclaration { Children: [SingleNamespaceDeclaration childNamespace] })
+                    current = childNamespace;
+
+                // return the member names for the single top level type if we find one.
+                return current is SingleNamespaceDeclaration { Children: [SingleTypeDeclaration childType] }
+                    ? childType.MemberNames
+                    : default;
+            }
         }
 
         public SyntaxAndDeclarationManager RemoveSyntaxTrees(HashSet<SyntaxTree> trees)
@@ -470,6 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadedSyntaxTreeMapBuilder = loadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
             var declTable = state.DeclarationTable;
+            var oldRootNamespaceDeclaration = declMapBuilder[oldTree];
+
             foreach (var tree in removeSet)
             {
                 loadDirectiveMapBuilder.Remove(tree);
@@ -530,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, ref declTable);
+                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, ref declTable, oldRootNamespaceDeclaration);
 
                 if (newLoadDirectivesSyntax.Any())
                 {

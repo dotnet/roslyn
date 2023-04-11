@@ -23,25 +23,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
 
+        // Cleared once we hit the first type.
+        private ImmutableSegmentedHashSet<string> _previousMemberNames;
+
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
         /// For example <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
         /// </summary>
         private QuickAttributes _nonGlobalAliasedQuickAttributes;
 
-        private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
+        private DeclarationTreeBuilder(
+            SyntaxTree syntaxTree,
+            string scriptClassName,
+            bool isSubmission,
+            ImmutableSegmentedHashSet<string> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
             _isSubmission = isSubmission;
+            _previousMemberNames = previousMemberNames;
         }
 
         public static RootSingleNamespaceDeclaration ForTree(
             SyntaxTree syntaxTree,
             string scriptClassName,
-            bool isSubmission)
+            bool isSubmission,
+            ImmutableSegmentedHashSet<string> previousMemberNames)
         {
-            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission);
+            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
         }
 
@@ -596,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
-        private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
+        private SingleTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
                 ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
@@ -826,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToImmutableAndFree(memberNamesBuilder);
         }
 
-        private static ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
+        private ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false, bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
@@ -882,6 +891,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (anyRequiredMembers)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
+            }
+
+            // See if we have the member names from the last time a type-decl was created for this tree. If so, reuse
+            // that if the same names were produced this time around (the common case).
+
+            var previousMemberNames = _previousMemberNames;
+            _previousMemberNames = default;
+
+            if (!previousMemberNames.IsDefault && previousMemberNames.SetEquals(memberNameBuilder))
+            {
+                memberNameBuilder.Clear();
+                s_memberNameBuilderPool.Free(memberNameBuilder);
+                return previousMemberNames;
             }
 
             return ToImmutableAndFree(memberNameBuilder);
