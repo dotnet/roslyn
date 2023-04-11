@@ -1036,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsImplicitlyDeclared)
                             {
                                 // CS0669: A class with the ComImport attribute cannot have a user-defined constructor
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.Locations[0]);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.GetFirstLocation());
                             }
 
                             break;
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, ContainingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.GetFirstLocation(), this, ContainingType);
                             }
 
                             break;
@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
                         ErrorCode.WRN_ExternCtorNoImplementation :
                         ErrorCode.WRN_ExternMethodNoImplementation;
-                    diagnostics.Add(errorCode, this.Locations[0], this);
+                    diagnostics.Add(errorCode, this.GetFirstLocation(), this);
                 }
             }
 
@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
         {
-            AsyncMethodChecks(verifyReturnType: true, this.Locations[0], diagnostics);
+            AsyncMethodChecks(verifyReturnType: true, this.GetFirstLocation(), diagnostics);
         }
 
         protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -17,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private sealed class AnalyzerExecutionContext
         {
+            /// <summary>
+            /// Cached mapping of localizable strings in this descriptor to any exceptions thrown while obtaining them.
+            /// </summary>
+            private static ImmutableSegmentedDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableSegmentedDictionary<LocalizableString, Exception?>.Empty.WithComparer(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly object _gate;
 
@@ -309,24 +315,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
-                Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
+                var onAnalyzerException = analyzerExecutor.OnAnalyzerException;
                 if (onAnalyzerException != null)
                 {
-                    var handler = new EventHandler<Exception>((sender, ex) =>
-                    {
-                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                        onAnalyzerException(ex, analyzer, diagnostic, cancellationToken);
-                    });
-
                     foreach (var descriptor in supportedDiagnostics)
                     {
-                        ForceLocalizableStringExceptions(descriptor.Title, handler);
-                        ForceLocalizableStringExceptions(descriptor.MessageFormat, handler);
-                        ForceLocalizableStringExceptions(descriptor.Description, handler);
+                        // Compute the localizable strings once, caching any exceptions produced doing that. This helps
+                        // avoid an excessive amount of string allocations loading resources.
+                        forceLocalizableStringExceptions(descriptor.Title);
+                        forceLocalizableStringExceptions(descriptor.MessageFormat);
+                        forceLocalizableStringExceptions(descriptor.Description);
                     }
                 }
 
                 return supportedDiagnostics;
+
+                void forceLocalizableStringExceptions(LocalizableString localizableString)
+                {
+                    var exception = getAndCacheToStringException(localizableString);
+                    if (exception != null)
+                    {
+                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, exception);
+                        onAnalyzerException(exception, analyzer, diagnostic, cancellationToken);
+                    }
+                }
+
+                static Exception? getAndCacheToStringException(LocalizableString localizableString)
+                {
+                    if (!localizableString.CanThrowExceptions)
+                        return null;
+
+                    return RoslynImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
+
+                    static Exception? computeException(LocalizableString localizableString)
+                    {
+                        Exception? localException = null;
+                        EventHandler<Exception> handler = (_, ex) => localException = ex;
+
+                        localizableString.OnException += handler;
+                        localizableString.ToString();
+                        localizableString.OnException -= handler;
+
+                        return localException;
+                    }
+                }
             }
 
             private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors_NoLock(
