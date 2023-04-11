@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly string s_persistenceName = typeof(TIndex).Name;
         private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("37");
 
+        public readonly Checksum? Checksum;
+
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
         /// within.  Useful so we don't have to continually reenumerate and regenerate the checksum given how rarely
@@ -26,19 +28,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
 
-        public readonly Checksum? Checksum;
-
         protected static async Task<TIndex?> LoadAsync(
-            Project project,
+            SolutionKey solutionKey,
+            ProjectState project,
             DocumentState document,
             Checksum textChecksum,
             Checksum textAndDirectivesChecksum,
             IndexReader read,
             CancellationToken cancellationToken)
         {
-            var storageService = project.Solution.Services.GetPersistentStorageService();
-            var documentKey = DocumentKey.ToDocumentKey(project, document.Id);
-            var stringTable = SyntaxTreeIndex.GetStringTable(project.State);
+            var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
+            var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
+            var stringTable = SyntaxTreeIndex.GetStringTable(project);
 
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
             // then we may match it using textChecksum.  If there were pp directives, then we may match is using
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static async ValueTask<(Checksum textOnlyChecksum, Checksum textAndDirectivesChecksum)> GetChecksumsAsync(
-            Project project,
+            ProjectState project,
             DocumentState document,
             CancellationToken cancellationToken)
         {
@@ -124,13 +125,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task<bool> SaveAsync(
-            Project project, DocumentState document, CancellationToken cancellationToken)
+            SolutionKey solutionKey,
+            ProjectState project,
+            DocumentState document,
+            CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
-            var persistentStorageService = solution.Services.GetPersistentStorageService();
+            var persistentStorageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
             try
             {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+                var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 using (var stream = SerializableBytes.CreateWritableStream())
@@ -143,8 +146,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     stream.Position = 0;
-                    return await storage.WriteStreamAsync(
-                        DocumentKey.ToDocumentKey(project, document.Id), s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+
+                    var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
+                    return await storage.WriteStreamAsync(documentKey, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))

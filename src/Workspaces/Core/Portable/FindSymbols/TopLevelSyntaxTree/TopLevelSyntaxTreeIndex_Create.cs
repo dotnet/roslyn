@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class TopLevelSyntaxTreeIndex
     {
         private static TopLevelSyntaxTreeIndex CreateIndex(
-            Project project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+            ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
         {
-            var infoFactory = project.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
+            var infoFactory = project.LanguageServices.GetRequiredService<IDeclaredSymbolInfoFactoryService>();
 
             using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
             using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);

@@ -150,13 +150,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
         }
 
         public void AddDeclaredSymbolInfos(
-            Project project,
+            ProjectState project,
             SyntaxNode root,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             CancellationToken cancellationToken)
         {
-            var stringTable = SyntaxTreeIndex.GetStringTable(project.State);
+            var stringTable = SyntaxTreeIndex.GetStringTable(project);
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions!);
 
             using var _1 = PooledDictionary<string, string?>.GetInstance(out var aliases);

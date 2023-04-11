@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -60,9 +61,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namedTypes = new MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)>(
                     project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
+                // Avoid realizing actual Document instances here.  We don't need them, and it can allocate a lot of
+                // memory as we do background indexing.
                 foreach (var (documentId, document) in project.State.DocumentStates.States)
                 {
-                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(project, document, cancellationToken).ConfigureAwait(false);
+                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(
+                        SolutionKey.ToSolutionKey(project.Solution), project.State, document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)
