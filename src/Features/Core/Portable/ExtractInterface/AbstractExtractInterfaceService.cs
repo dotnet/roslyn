@@ -9,12 +9,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -410,7 +412,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             name: method.Name,
                             typeParameters: method.TypeParameters,
                             parameters: method.Parameters,
-                            isInitOnly: method.IsInitOnly));
+                            isInitOnly: method.IsInitOnly,
+                            documentationCommentXml: method.GetDocumentationCommentXml()));
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
@@ -425,7 +428,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             parameters: property.Parameters,
                             getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
                             setMethod: property.SetMethod == null ? null : (property.SetMethod.DeclaredAccessibility == Accessibility.Public ? property.SetMethod : null),
-                            isIndexer: property.IsIndexer));
+                            isIndexer: property.IsIndexer,
+                            documentationCommentXml: property.GetDocumentationCommentXml()));
                         break;
                     default:
                         Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));

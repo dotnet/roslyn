@@ -1726,7 +1726,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
             var markup =
                     """
                 public class $$Goo
-                {
+                {                
+                    /// <summary>
+                    /// Comment 
+                    /// </summary>
+                    public bool MyBool { get; set; }
+
                     /// <summary>
                     /// Comment
                     /// </summary>
@@ -1740,9 +1745,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 """
                 public interface IGoo
                 {
-                    /// <summary>
-                    /// Comment
-                    /// </summary>
+                    /// 
+                    /// <member name="P:Goo.MyBool">
+                    ///     <summary>
+                    ///     Comment 
+                    ///     </summary>
+                    /// </member>
+                    /// 
+                    bool MyBool { get; set; }
+                    /// 
+                    /// <member name="M:Goo.Test">
+                    ///     <summary>
+                    ///     Comment
+                    ///     </summary>
+                    /// </member>
+                    /// 
                     void Test();
                 }
                 """;

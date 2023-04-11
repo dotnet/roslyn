@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol? getMethod,
             IMethodSymbol? setMethod,
             bool isIndexer = false,
-            SyntaxNode? initializer = null)
+            SyntaxNode? initializer = null,
+            string documentationCommentXml = null)
         {
             var result = new CodeGenerationPropertySymbol(
                 containingType,
@@ -71,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 isIndexer,
                 parameters,
                 getMethod,
-                setMethod);
+                setMethod,
+                documentationCommentXml);
             CodeGenerationPropertyInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, initializer);
             return result;
         }
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
             ITypeSymbol type, RefKind refKind, ImmutableArray<IPropertySymbol> explicitInterfaceImplementations, string name,
             ImmutableArray<IParameterSymbol> parameters, IMethodSymbol? getMethod, IMethodSymbol? setMethod,
-            bool isIndexer = false)
+            bool isIndexer = false, string documentationCommentXml = null)
         {
             return CreatePropertySymbol(
                 containingType: null,
@@ -97,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 parameters: parameters,
                 getMethod: getMethod,
                 setMethod: setMethod,
-                isIndexer: isIndexer);
+                isIndexer: isIndexer,
+                documentationCommentXml: documentationCommentXml);
         }
 
         /// <summary>
@@ -163,9 +166,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
             MethodKind methodKind = MethodKind.Ordinary,
-            bool isInitOnly = false)
+            bool isInitOnly = false,
+            string documentationCommentXml = null)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml: null, methodKind, isInitOnly);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml, methodKind, isInitOnly);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }
@@ -184,9 +188,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
             MethodKind methodKind = MethodKind.Ordinary,
-            bool isInitOnly = false)
+            bool isInitOnly = false,
+            string documentationCommentXml = null)
         {
-            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly);
+            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly, documentationCommentXml);
         }
 
         /// <summary>
