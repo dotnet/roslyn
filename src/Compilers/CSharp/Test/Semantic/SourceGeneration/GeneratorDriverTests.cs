@@ -485,7 +485,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(IsEnglishLocal), Reason = "Desktop CLR displays argument exceptions differently")]
         public void Generator_HintName_MustBe_Unique_Across_Outputs()
         {
             var source = @"
@@ -758,7 +758,7 @@ class C
             Assert.Same(oldDriver, driver);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(IsEnglishLocal), Reason = "Desktop CLR displays argument exceptions differently")]
         public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
         {
             var source = @"
@@ -1471,7 +1471,7 @@ class C { }
             Assert.Equal(e, runResults.Results[0].Exception);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67386")]
+        [ConditionalFact(typeof(IsEnglishLocal)), WorkItem("https://github.com/dotnet/roslyn/issues/67386")]
         public void Incremental_Generators_Exception_In_Comparer()
         {
             var source = """

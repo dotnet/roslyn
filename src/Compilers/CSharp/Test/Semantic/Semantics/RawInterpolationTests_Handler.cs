@@ -3727,7 +3727,7 @@ public ref struct S
 ");
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(IsEnglishLocal))]
     [InlineData(@"$""""""{new S { Field = """"""Field"""""" }}""""""")]
     [InlineData(@"$""""""{new S { Field = """"""Field"""""" }}"""""" + $""""""
 
@@ -4052,7 +4052,7 @@ public partial struct CustomHandler
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Func<bool, string>)", "C.M(System.Func<bool, CustomHandler>)").WithLocation(3, 3));
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(IsEnglishLocal))]
     [InlineData(@"$""""""{1}""""""")]
     [InlineData(@"$""""""{1}"""""" + $""""""{2}""""""")]
     public void LambdaInference_AmbiguousInOlderLangVersions(string expression)
