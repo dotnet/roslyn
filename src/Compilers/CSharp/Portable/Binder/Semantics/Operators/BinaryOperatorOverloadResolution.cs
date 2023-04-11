@@ -771,21 +771,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BinaryOperatorAnalysisResult> results,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            // do an initial pass first to try to find applicable candidates.
+
             bool hadApplicableCandidate = false;
             foreach (var op in operators)
             {
-                var convLeft = Conversions.ClassifyConversionFromExpression(left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
-                var convRight = Conversions.ClassifyConversionFromExpression(right, op.RightType, isChecked: isChecked, ref useSiteInfo);
+                // Avoid excess allocations by passing 'defaultOnFailure' for the common path where we are checking all
+                // built in binary operators against these expressions.
+                var convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: true, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                var convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: true, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                 if (convLeft.IsImplicit && convRight.IsImplicit)
                 {
+                    // There were implicit conversions, so classify the conversions again, this time getting the true conversions with all information.
+                    convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                    convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                     results.Add(BinaryOperatorAnalysisResult.Applicable(op, convLeft, convRight));
                     hadApplicableCandidate = true;
                 }
-                else
+            }
+
+            if (!hadApplicableCandidate)
+            {
+                // Ok, we failed to find anything good.  now do an expensive pass where we collect all the full failure
+                // information so we can report good errors.
+                foreach (var op in operators)
                 {
+                    var convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                    var convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                     results.Add(BinaryOperatorAnalysisResult.Inapplicable(op, convLeft, convRight));
                 }
             }
+
             return hadApplicableCandidate;
         }
 
