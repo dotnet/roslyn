@@ -3406,6 +3406,29 @@ partial " + declaration + @" C2
         }
 
         [Fact]
+        public void AttributesOnPrimaryConstructor_10_NameofParameter()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+    public A(string x){}
+}
+
+[method: A(nameof(someParam))]
+class C(int someParam)
+{
+    int X = someParam;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
+        [Fact]
         public void AnalyzerActions_01_Class()
         {
             var text1 = @"
