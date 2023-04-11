@@ -49,11 +49,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!document.SupportsSyntaxTree)
                 return null;
 
-            // See if we already have this index cached for this doc state.
+            // See if we already cached an index with this direct document index.  If so we can just
+            // return it with no additional work.
             if (!s_documentStateToIndex.TryGetValue(document, out var index))
             {
-                // See if we already cached an index with this direct document index.  If so we can just
-                // return it with no additional work.
                 index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
