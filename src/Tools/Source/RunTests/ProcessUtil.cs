@@ -10,12 +10,13 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Versioning;
 
 namespace RunTests
 {
+    [SupportedOSPlatform("windows")]
     internal static class ProcessUtil
     {
-        [SupportedOSPlatform("windows")]
         internal static int? TryGetParentProcessId(Process p)
         {
             try
@@ -38,7 +39,6 @@ namespace RunTests
         /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
         /// the building of this list.
         /// </remarks>
-        [SupportedOSPlatform("windows")]
         internal static List<Process> GetProcessChildren(Process process) => GetProcessChildrenCore(process, Process.GetProcesses());
 
         private static List<Process> GetProcessChildrenCore(Process parentProcess, IEnumerable<Process> processes)
@@ -64,7 +64,6 @@ namespace RunTests
         /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
         /// the building of this list.
         /// </remarks>
-        [SupportedOSPlatform("windows")]
         internal static List<Process> GetProcessTree(Process process)
         {
             var processes = Process.GetProcesses();
