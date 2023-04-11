@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
-                : ProtocolConversions.GetUriFromFilePath(document.FilePath!);
+                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
         public static Uri GetUriFromName(this TextDocument document)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var path = Path.Combine(directoryName, document.Name);
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(path)
-                : ProtocolConversions.GetUriFromFilePath(path!);
+                : ProtocolConversions.GetUriFromFilePath(path);
         }
 
         public static Uri GetUriFromContainingFolders(this TextDocument document)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var path = Path.Combine(document.Folders.Concat(document.Name).AsArray());
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(path)
-                : ProtocolConversions.GetUriFromFilePath(path!);
+                : ProtocolConversions.GetUriFromFilePath(path);
         }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)

@@ -265,8 +265,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(newTextDoc);
 
                     var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newTextDocumentEdits = CopyDocumentToNewLocation(newTextDoc.GetURI(), newText);
-                    textDocumentEdits.AddRange(newTextDocumentEdits);
+                    CopyDocumentToNewLocation(newTextDoc.GetURI(), newText, textDocumentEdits);
                 }
             }
 
@@ -324,36 +323,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         if (oldDocumentAttribute.FilePath != newDocumentAttribute.FilePath)
                         {
                             var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            var newTextDocumentEdits = CopyDocumentToNewLocation(newTextDoc.GetURI(), newText);
-                            textDocumentEdits.AddRange(newTextDocumentEdits);
-                            textDocumentEdits.Add(new DeleteFile() { Uri = oldTextDoc.GetURI() });
+                            CutDocumentToNewLocation(newTextDoc.GetURI(), oldTextDoc.GetURI(), newText, textDocumentEdits);
                         }
 
                         // folder change
                         if (!oldDocumentAttribute.Folders.SequenceEqual(newDocumentAttribute.Folders))
                         {
                             var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            var newTextDocumentEdits = CopyDocumentToNewLocation(newTextDoc.GetUriFromContainingFolders(), newText);
-                            textDocumentEdits.AddRange(newTextDocumentEdits);
-                            textDocumentEdits.Add(new DeleteFile() { Uri = oldTextDoc.GetURI() });
+                            CutDocumentToNewLocation(newTextDoc.GetUriFromContainingFolders(), oldTextDoc.GetUriFromContainingFolders(), newText, textDocumentEdits);
                         }
                     }
                 }
             }
 
-            static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] CopyDocumentToNewLocation(Uri newLocation, SourceText sourceText)
+            static void CutDocumentToNewLocation(
+                Uri newLocation,
+                Uri oldLocation,
+                SourceText sourceText,
+                ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> textDocumentEdits)
             {
-                using var _ = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(capacity: 2, out var edits);
+                CopyDocumentToNewLocation(newLocation, sourceText, textDocumentEdits);
+                textDocumentEdits.Add(new DeleteFile() { Uri = oldLocation });
+            }
 
+            static void CopyDocumentToNewLocation(
+                Uri newLocation,
+                SourceText sourceText,
+                ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> textDocumentEdits)
+            {
                 // Create the document as empty
-                edits.Add(new CreateFile() { Uri = newLocation });
+                textDocumentEdits.Add(new CreateFile() { Uri = newLocation });
 
                 // And then give it content
                 var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                 var edit = new TextEdit { Range = emptyDocumentRange, NewText = sourceText.ToString() };
                 var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newLocation };
-                edits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
-                return edits.ToArray();
+                textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
             }
         }
     }
