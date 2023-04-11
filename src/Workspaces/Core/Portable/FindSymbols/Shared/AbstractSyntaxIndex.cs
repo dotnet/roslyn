@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         protected delegate TIndex IndexCreator(ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
         private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentStateToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
 
         protected AbstractSyntaxIndex(Checksum? checksum)
         {
@@ -48,19 +49,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!document.SupportsSyntaxTree)
                 return null;
 
-            // See if we already cached an index with this direct document index.  If so we can just
-            // return it with no additional work.
-            var index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
+            // See if we already have this index cached for this doc state.
+            if (!s_documentStateToIndex.TryGetValue(document, out var index))
+            {
+                // See if we already cached an index with this direct document index.  If so we can just
+                // return it with no additional work.
+                index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
-            if (index == null && loadOnly)
-                return null;
+                if (index == null)
+                    return null;
+            }
 
-            // Populate our caches with this data.
-            s_documentStateToIndex.Remove(document);
-            s_documentStateToIndex.GetValue(document, _ => index);
-
-            return index;
+            // cache and return index after computing it.
+            return s_documentStateToIndex.GetValue(document, _ => index);
         }
 
         private static async Task<TIndex?> GetIndexWorkerAsync(
@@ -74,9 +76,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(project, document, cancellationToken).ConfigureAwait(false);
 
-            // Check if we have an index for a previous version of this document.  If our
+            // Check if we have an index for a another version of this document.  If our
             // checksums match, we can just use that.
-            if (s_documentStateToIndex.TryGetValue(document, out var index) &&
+            if (s_documentIdToIndex.TryGetValue(document.Id, out var index) &&
                 (index?.Checksum == textChecksum || index?.Checksum == textAndDirectivesChecksum))
             {
                 // The previous index we stored with this documentId is still valid.  Just
@@ -86,14 +88,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
             index = await LoadAsync(solutionKey, project, document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
-            if (index != null || loadOnly)
-                return index;
+            if (index == null && !loadOnly)
+            {
+                // alright, we don't have cached information, re-calculate them here.
+                index = await CreateIndexAsync(project, document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
 
-            // alright, we don't have cached information, re-calculate them here.
-            index = await CreateIndexAsync(project, document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
+                // okay, persist this info
+                await index.SaveAsync(solutionKey, project, document, cancellationToken).ConfigureAwait(false);
+            }
 
-            // okay, persist this info
-            await index.SaveAsync(solutionKey, project, document, cancellationToken).ConfigureAwait(false);
+            // Store the index with this doc id.  We'll try to reuse it in situations where the pp directives change for
+            // a project, but it would not affect how a document parses.
+            if (index != null)
+            {
+                s_documentIdToIndex.Remove(document.Id);
+                s_documentIdToIndex.GetValue(document.Id, _ => index);
+            }
 
             return index;
         }
