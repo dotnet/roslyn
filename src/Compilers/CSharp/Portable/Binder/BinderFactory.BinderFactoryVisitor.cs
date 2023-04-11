@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sym.Kind == SymbolKind.Method)
                     {
-                        if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
-                            if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
                                 result = implementation;
                                 return true;

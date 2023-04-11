@@ -5,13 +5,16 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
@@ -25,6 +28,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             bool itemDefaultsSupported,
             TextSpan defaultSpan,
             CompletionItem item,
+            CancellationToken cancellationToken);
+
+        Task<LSP.CompletionItem> ResolveAsync(
+            LSP.CompletionItem completionItem,
+            CompletionItem selectedItem,
+            Document document,
+            LSP.ClientCapabilities clientCapabilities,
+            CompletionService completionService,
+            CompletionOptions completionOptions,
+            SymbolDescriptionOptions symbolDescriptionOptions,
             CancellationToken cancellationToken);
     }
 
@@ -47,9 +60,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             var completionItem = new LSP.CompletionItem();
+            await PopulateTextEditAsync(document, documentText, itemDefaultsSupported, defaultSpan, item, completionItem, cancellationToken).ConfigureAwait(false);
+            return completionItem;
+        }
 
-            await PopulateTextEditAsync(
-                document, documentText, itemDefaultsSupported, defaultSpan, item, completionItem, cancellationToken).ConfigureAwait(false);
+        public async Task<LSP.CompletionItem> ResolveAsync(
+            LSP.CompletionItem completionItem,
+            CompletionItem selectedItem,
+            Document document,
+            LSP.ClientCapabilities clientCapabilities,
+            CompletionService completionService,
+            CompletionOptions completionOptions,
+            SymbolDescriptionOptions symbolDescriptionOptions,
+            CancellationToken cancellationToken)
+        {
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
+            if (description != null)
+            {
+                var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
+                completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+            }
 
             return completionItem;
         }
