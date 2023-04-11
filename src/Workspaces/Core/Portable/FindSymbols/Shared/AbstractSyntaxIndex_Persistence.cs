@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly string s_persistenceName = typeof(TIndex).Name;
         private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("37");
 
-        public readonly Checksum? Checksum;
-
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
         /// within.  Useful so we don't have to continually reenumerate and regenerate the checksum given how rarely
         /// these ever change.
         /// </summary>
         private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
+
+        public readonly Checksum? Checksum;
 
         protected static async Task<TIndex?> LoadAsync(
             SolutionKey solutionKey,
