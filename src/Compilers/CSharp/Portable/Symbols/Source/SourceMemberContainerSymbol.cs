@@ -2656,7 +2656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PrimaryConstructor is { } primaryConstructor && primaryConstructor.GetCapturedParameters().Any() &&
                 (primaryConstructor.SyntaxRef.SyntaxTree != whereFoundField.SyntaxTree || primaryConstructor.SyntaxRef.Span != whereFoundField.Span))
             {
-                diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, Locations[0], this);
+                diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, GetFirstLocation(), this);
                 return;
             }
         }
