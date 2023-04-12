@@ -39,7 +39,7 @@ internal class StarredCompletionAssemblyHelper
         try
         {
             var starredCompletionsALC = new AssemblyLoadContext(ALCName);
-            var starredCompletionsAssembly = LoadSuggestionsAssemblyAndDependencies(starredCompletionsALC, completionsAssemblyLocation, logger);
+            var starredCompletionsAssembly = LoadSuggestionsAssemblyAndDependencies(starredCompletionsALC, completionsAssemblyLocation);
             var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
             var completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
                     createCompletionProviderMethodInfo,
@@ -80,7 +80,7 @@ internal class StarredCompletionAssemblyHelper
         _logger = logger;
     }
 
-    private static Assembly LoadSuggestionsAssemblyAndDependencies(AssemblyLoadContext alc, string assemblyLocation, ILogger logger)
+    private static Assembly LoadSuggestionsAssemblyAndDependencies(AssemblyLoadContext alc, string assemblyLocation)
     {
         Assembly? starredSuggestionsAssembly = null;
         var directory = new DirectoryInfo(assemblyLocation);
