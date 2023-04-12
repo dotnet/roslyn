@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Formatting
     //             that would create too big graph. key for this approach is how to reduce size of graph.
     internal abstract partial class AbstractFormatEngine
     {
+        // Intentionally do not trim the capacities of these collections down.  We will repeatedly try to format large
+        // files as we edit them and this will produce a lot of garbage as we free the internal array backing the list
+        // over and over again.
+        private static readonly ObjectPool<SegmentedList<SyntaxNode>> s_nodeIteratorPool = new(() => new(), trimOnFree: false);
+        private static readonly ObjectPool<SegmentedList<TokenPairWithOperations>> s_tokenPairListPool = new(() => new(), trimOnFree: false);
+
         private readonly ChainedFormattingRules _formattingRules;
 
         private readonly SyntaxNode _commonRoot;
@@ -88,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var nodeOperations = CreateNodeOperations(cancellationToken);
 
                 var tokenStream = new TokenStream(this.TreeData, Options, this.SpanToFormat, CreateTriviaFactory());
-                var tokenOperation = CreateTokenOperation(tokenStream, cancellationToken);
+                using var tokenOperations = s_tokenPairListPool.GetPooledObject();
+                AddTokenOperations(tokenStream, tokenOperations.Object, cancellationToken);
 
                 // initialize context
                 var context = CreateFormattingContext(tokenStream, cancellationToken);
@@ -101,8 +109,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 ApplyBeginningOfTreeTriviaOperation(context, cancellationToken);
 
-                ApplyTokenOperations(context, nodeOperations,
-                    tokenOperation, cancellationToken);
+                ApplyTokenOperations(context, nodeOperations, tokenOperations.Object, cancellationToken);
 
                 ApplyTriviaOperations(context, cancellationToken);
 
@@ -126,19 +133,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             cancellationToken.ThrowIfCancellationRequested();
 
             // iterating tree is very expensive. do it once and cache it to list
-            SegmentedList<SyntaxNode> nodeIterator;
+            using var pooledIterator = s_nodeIteratorPool.GetPooledObject();
+
+            var nodeIterator = pooledIterator.Object;
             using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
             {
                 const int magicLengthToNodesRatio = 5;
-                var result = new SegmentedList<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
+                nodeIterator.Capacity = Math.Max(nodeIterator.Capacity, Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
 
                 foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    result.Add(node);
+                    nodeIterator.Add(node);
                 }
-
-                nodeIterator = result;
             }
 
             // iterate through each operation using index to not create any unnecessary object
@@ -196,17 +203,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operations;
         }
 
-        private SegmentedArray<TokenPairWithOperations> CreateTokenOperation(
+        private void AddTokenOperations(
             TokenStream tokenStream,
+            SegmentedList<TokenPairWithOperations> list,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
             {
-                // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
-                var list = new SegmentedArray<TokenPairWithOperations>(tokenStream.TokenCount - 1);
-
                 foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -214,17 +219,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                     var spaceOperation = _formattingRules.GetAdjustSpacesOperation(currentToken, nextToken);
                     var lineOperation = _formattingRules.GetAdjustNewLinesOperation(currentToken, nextToken);
 
-                    list[index] = new TokenPairWithOperations(tokenStream, index, spaceOperation, lineOperation);
+                    list.Add(new TokenPairWithOperations(tokenStream, index, spaceOperation, lineOperation));
                 }
-
-                return list;
             }
         }
 
         private void ApplyTokenOperations(
             FormattingContext context,
             NodeOperations nodeOperations,
-            SegmentedArray<TokenPairWithOperations> tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             CancellationToken cancellationToken)
         {
             var applier = new OperationApplier(context, _formattingRules);
@@ -352,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplyAnchorOperations(
             FormattingContext context,
-            SegmentedArray<TokenPairWithOperations> tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -364,9 +367,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (!AnchorOperationCandidate(p))
-                    {
                         continue;
-                    }
 
                     var pairIndex = p.PairIndex;
                     applier.ApplyAnchorIndentation(pairIndex, previousChangesMap, cancellationToken);
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
-            SegmentedArray<TokenPairWithOperations> tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -417,9 +418,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // go through each token pairs and apply operations
                 foreach (var operationPair in tokenOperations)
-                {
                     ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken);
-                }
             }
         }
 
