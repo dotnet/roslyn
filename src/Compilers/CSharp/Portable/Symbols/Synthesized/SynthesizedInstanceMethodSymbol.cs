@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // TODO2 move to separate file once reviewed
     internal abstract class SynthesizedMethodSymbol : MethodSymbol
     {
+        public abstract override bool IsStatic { get; }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -74,10 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ParameterSymbol _lazyThisParameter;
 
+        public override bool IsStatic => false;
+
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            Debug.Assert(!IsStatic);
-
             if ((object)_lazyThisParameter == null)
             {
                 Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);

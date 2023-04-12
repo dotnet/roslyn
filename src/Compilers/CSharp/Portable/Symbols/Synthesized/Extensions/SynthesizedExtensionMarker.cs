@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtensionMethod => false;
 
-        internal override bool HasSpecialName => true;
+        internal override bool HasSpecialName => false; // PROTOTYPE
+
+        internal override bool HasRuntimeSpecialName => false; // PROTOTYPE
 
         internal override bool HasDeclarativeSecurity => false;
 
