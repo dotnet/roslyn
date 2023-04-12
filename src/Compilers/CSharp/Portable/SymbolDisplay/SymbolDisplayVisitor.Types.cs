@@ -751,7 +751,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case TypeKind.Extension:
-                            // PROTOTYPE consider adding `implicit`/`explicit` too
+                            var extensionType = (NamedTypeSymbol)((Symbols.PublicModel.NamedTypeSymbol)symbol).UnderlyingSymbol;
+                            AddKeyword(extensionType.IsExplicitExtension ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                            AddSpace();
                             AddKeyword(SyntaxKind.ExtensionKeyword);
                             AddSpace();
                             break;

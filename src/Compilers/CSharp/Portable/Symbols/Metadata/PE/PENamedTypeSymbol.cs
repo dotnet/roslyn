@@ -149,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
 
+            internal ThreeState lazyIsExplicitExtension = ThreeState.Unknown;
+            // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
             internal TypeSymbol lazyDeclaredExtensionUnderlyingType = null;
             internal ImmutableArray<NamedTypeSymbol> lazyDeclaredBaseExtensions = default;
             internal ImmutableArray<NamedTypeSymbol> lazyBaseExtensions = default;
@@ -170,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasRequiredMembers.HasValue() &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
+                    !lazyIsExplicitExtension.HasValue() &&
                     lazyDeclaredExtensionUnderlyingType is null &&
                     lazyDeclaredBaseExtensions.IsDefault &&
                     lazyBaseExtensions.IsDefault;
@@ -638,10 +641,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         internal sealed override bool IsExtension => TypeKind == TypeKind.Extension;
 
+        internal sealed override bool IsExplicitExtension
+        {
+            get
+            {
+                if (this.TypeKind != TypeKind.Extension)
+                    return false;
+
+                var uncommon = GetUncommonProperties();
+                Debug.Assert(uncommon != s_noUncommonProperties);
+
+                if (!uncommon.lazyIsExplicitExtension.HasValue())
+                {
+                    EnsureExtensionTypeDecoded(uncommon);
+                }
+
+                return uncommon.lazyIsExplicitExtension.Value();
+            }
+        }
+
         internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
         {
             get
             {
+                // No cycles are possible because the extended type cannot be an extension type.
                 return GetDeclaredExtensionUnderlyingType();
             }
         }
@@ -699,7 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureExtensionTypeDecoded(UncommonProperties uncommon)
         {
-            DecodeExtensionType(out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions);
+            DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions);
+            uncommon.lazyIsExplicitExtension = isExplicit.ToThreeState();
             Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
             ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyDeclaredBaseExtensions, baseExtensions, default);
         }
@@ -1929,7 +1953,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
                     var methodName = module.GetMethodDefNameOrThrow(methodHandle);
-                    if (methodName == WellKnownMemberNames.ExtensionMarkerMethodName)
+
+                    if (methodName is WellKnownMemberNames.ImplicitExtensionMarkerMethodName
+                        or WellKnownMemberNames.ExplicitExtensionMarkerMethodName)
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
@@ -1949,13 +1975,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return default;
         }
 
-        private void DecodeExtensionType(out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+        private void DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
         {
-            // PROTOTYPE we should also decode `implicit` vs. `explicit`
             // PROTOTYPE consider optimizing/caching
 
             TypeSymbol? foundUnderlyingType;
-            if (!tryDecodeExtensionType(out foundUnderlyingType, out baseExtensions))
+            if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType, out baseExtensions))
             {
                 if (foundUnderlyingType is null)
                 {
@@ -1972,26 +1997,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return;
 
-            bool tryDecodeExtensionType([NotNullWhen(true)] out TypeSymbol? underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+            bool tryDecodeExtensionType(out bool isExplicit, [NotNullWhen(true)] out TypeSymbol? underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
             {
                 var markerMethod = TryGetExtensionMarkerMethod();
                 Debug.Assert(!markerMethod.IsNil);
                 var moduleSymbol = this.ContainingPEModule;
 
+                isExplicit = false;
                 underlyingType = null;
                 baseExtensions = default;
 
                 MethodAttributes localFlags;
                 try
                 {
-                    moduleSymbol.Module.GetMethodDefPropsOrThrow(markerMethod, name: out _, implFlags: out _, out localFlags, rva: out _);
+                    moduleSymbol.Module.GetMethodDefPropsOrThrow(markerMethod, out var name, implFlags: out _, out localFlags, rva: out _);
+                    isExplicit = name is WellKnownMemberNames.ExplicitExtensionMarkerMethodName;
                 }
                 catch (BadImageFormatException)
                 {
                     return false;
                 }
 
-                // PROTOTYPE do we want to tighten the flags check further?
+                // PROTOTYPE do we want to tighten the flags check further? (require that type be sealed?)
                 if ((localFlags & MethodAttributes.Private) == 0 ||
                     (localFlags & MethodAttributes.Static) == 0)
                 {

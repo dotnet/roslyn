@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 #nullable enable
         internal override bool IsExtension => false;
+        internal override bool IsExplicitExtension => false;
         internal override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
         internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => ImmutableArray<NamedTypeSymbol>.Empty;
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();

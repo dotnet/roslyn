@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override string Name => WellKnownMemberNames.ExtensionMarkerMethodName;
+        public override string Name => _extensionType.IsExplicitExtension
+            ? WellKnownMemberNames.ExplicitExtensionMarkerMethodName
+            : WellKnownMemberNames.ImplicitExtensionMarkerMethodName;
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes => default;
 

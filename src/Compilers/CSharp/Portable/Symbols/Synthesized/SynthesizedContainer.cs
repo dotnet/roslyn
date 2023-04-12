@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecordStruct => false;
 #nullable enable
         internal sealed override bool IsExtension => false;
+        internal sealed override bool IsExplicitExtension => false;
 
         internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
         internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics

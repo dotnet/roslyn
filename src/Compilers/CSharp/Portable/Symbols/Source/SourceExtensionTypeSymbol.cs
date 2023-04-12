@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceExtensionTypeSymbol : SourceNamedTypeSymbol
     {
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
+        // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions;
 
@@ -39,6 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExtension => true;
+
+        internal override bool IsExplicitExtension
+            => ((ExtensionDeclarationSyntax)this.declaration.Declarations[0].SyntaxReference.GetSyntax()).ImplicitOrExplicitKeyword
+                .IsKind(SyntaxKind.ExplicitKeyword);
 
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {

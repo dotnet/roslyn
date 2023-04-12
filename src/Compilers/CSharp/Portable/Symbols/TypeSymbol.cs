@@ -2469,6 +2469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal abstract bool IsExtension { get; }
+        internal abstract bool IsExplicitExtension { get; }
 
         internal abstract TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics { get; }
 

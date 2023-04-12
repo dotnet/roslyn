@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,16 +22,22 @@ public class ExtensionTypeTests : CompilingTestBase
     {
         Assert.True(type is T, $"Found type '{type.GetType()}'");
         Assert.False(type.IsExtension);
+        Assert.False(type.IsExplicitExtension);
         Assert.Null(type.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
         Assert.Empty(type.BaseExtensionsNoUseSiteDiagnostics);
     }
 
     // Verify things that are common for all extension types
-    private static void VerifyExtension<T>(TypeSymbol type, SpecialType specialType = SpecialType.None) where T : TypeSymbol
+    private static void VerifyExtension<T>(TypeSymbol type, bool? isExplicit, SpecialType specialType = SpecialType.None) where T : TypeSymbol
     {
         var namedType = (NamedTypeSymbol)type;
         Assert.True(namedType is T);
         Assert.True(namedType.IsExtension);
+        if (isExplicit.HasValue)
+        {
+            Assert.Equal(isExplicit.Value, namedType.IsExplicitExtension);
+        }
+
         Assert.Null(namedType.BaseTypeNoUseSiteDiagnostics);
         Assert.False(namedType.IsSealed);
         Assert.False(namedType.IsRecord);
@@ -63,14 +70,14 @@ public class ExtensionTypeTests : CompilingTestBase
 
         if (namedType != (object)namedType.OriginalDefinition)
         {
-            VerifyExtension<TypeSymbol>(namedType.OriginalDefinition);
+            VerifyExtension<TypeSymbol>(namedType.OriginalDefinition, isExplicit);
         }
 
         foreach (var baseExtension in namedType.BaseExtensionsNoUseSiteDiagnostics)
         {
             if (baseExtension.IsExtension)
             {
-                VerifyExtension<TypeSymbol>(baseExtension);
+                VerifyExtension<TypeSymbol>(baseExtension, isExplicit: null);
             }
             else
             {
@@ -103,12 +110,12 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
-    public void ForClass(bool useImageReference)
+    public void ForClass(bool useImageReference, bool isExplicit)
     {
-        var src = """
+        var src = $$"""
 interface I { }
 public class UnderlyingClass : I { }
-public explicit extension R for UnderlyingClass
+public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClass
 {
     public static int StaticField = 42;
     public const string Const = "hello";
@@ -138,7 +145,7 @@ public explicit extension R for UnderlyingClass
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
-        verifier.VerifyIL("R.<Extension>$(UnderlyingClass)", """
+        verifier.VerifyIL($$"""R.{{ExtensionMarkerName(isExplicit)}}(UnderlyingClass)""", """
 {
   // Code size        1 (0x1)
   .maxstack  0
@@ -153,18 +160,18 @@ explicit extension R2 for UnderlyingClass : R { }
         comp2.VerifyDiagnostics();
         return;
 
-        static void validate(ModuleSymbol module)
+        void validate(ModuleSymbol module)
         {
             bool inSource = module is SourceModuleSymbol;
             var r = module.GlobalNamespace.GetTypeMember("R");
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: isExplicit);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -425,7 +432,7 @@ class ContainingType
 
         var r = comp.GlobalNamespace.GetTypeMember("ContainingType").GetTypeMember("R");
         Assert.Equal("ContainingType.R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("ContainingType", r.ContainingType.ToTestDisplayString());
     }
 
@@ -478,7 +485,7 @@ explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         AssertEx.Equal(new[]
             {
                 "System.Int32 R.field",
@@ -521,11 +528,11 @@ explicit extension R for UnderlyingClass
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             AssertEx.Equal(new[]
@@ -557,7 +564,7 @@ explicit extension R for C
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         AssertEx.Equal(new[] { "void R.R()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
@@ -576,7 +583,7 @@ explicit extension R for C
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         AssertEx.Equal(new[] { "void R.C()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
@@ -748,7 +755,7 @@ static explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
@@ -1808,11 +1815,11 @@ explicit extension R for UnderlyingStruct
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("UnderlyingStruct", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -1828,12 +1835,12 @@ explicit extension R for UnderlyingStruct
         }
     }
 
-    [Fact]
-    public void ForTypeParameter()
+    [Theory, CombinatorialData]
+    public void ForTypeParameter(bool isExplicit)
     {
-        var src = """
+        var src = $$"""
 interface I { }
-explicit extension R<T> for T where T : I
+{{(isExplicit ? "explicit" : "implicit")}} extension R<T> for T where T : I
 {
 }
 """;
@@ -1842,18 +1849,18 @@ explicit extension R<T> for T where T : I
         CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
         return;
 
-        static void validate(ModuleSymbol module)
+        void validate(ModuleSymbol module)
         {
             bool inSource = module is SourceModuleSymbol;
             var r = module.GlobalNamespace.GetTypeMember("R");
             Assert.Equal("R<T>", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: isExplicit);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("T", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -1869,12 +1876,12 @@ explicit extension R<T> for T where T : I
         }
     }
 
-    [Fact]
-    public void ForEnum()
+    [Theory, CombinatorialData]
+    public void ForEnum(bool isExplicit)
     {
-        var src = """
+        var src = $$"""
 enum E { }
-explicit extension R for E
+{{(isExplicit ? "explicit" : "implicit")}} extension R for E
 {
 }
 """;
@@ -1883,18 +1890,18 @@ explicit extension R for E
         CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
         return;
 
-        static void validate(ModuleSymbol module)
+        void validate(ModuleSymbol module)
         {
             bool inSource = module is SourceModuleSymbol;
             var r = module.GlobalNamespace.GetTypeMember("R");
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: isExplicit);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("E", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -1923,7 +1930,7 @@ explicit extension R for object
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("System.Object", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1956,11 +1963,11 @@ explicit extension R<U> for C<U>
             Assert.Equal("R<U>", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("C<U>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -1996,11 +2003,11 @@ explicit extension R for (int, int)
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("(System.Int32, System.Int32)", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -2036,11 +2043,11 @@ explicit extension R for int[]
             Assert.Equal("R", r.ToTestDisplayString());
             if (inSource)
             {
-                VerifyExtension<SourceExtensionTypeSymbol>(r);
+                VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("System.Int32[]", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
@@ -2097,7 +2104,7 @@ explicit extension R<T1, T2> for UnderlyingClass
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(new[] { "T1", "T2" }, r.TypeParameters.ToTestDisplayStrings());
         Assert.True(r.IsGenericType);
         Assert.Equal(2, r.Arity);
@@ -2236,7 +2243,7 @@ static explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -2253,7 +2260,7 @@ static explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -2270,7 +2277,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics(
@@ -2291,7 +2298,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsSealed);
         comp.VerifyDiagnostics();
@@ -2549,7 +2556,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2588,7 +2595,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2629,7 +2636,7 @@ explicit extension R3 for C<System.IntPtr> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<nint>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2668,7 +2675,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<dynamic>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2722,7 +2729,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object?>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2776,7 +2783,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object!>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2833,7 +2840,7 @@ explicit extension R4 for (int a, int other) : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("(System.Int32 a, System.Int32 b)", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         }
@@ -2857,7 +2864,7 @@ unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
     }
@@ -2877,7 +2884,7 @@ explicit extension R for ref int
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("System.Int32", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -2917,7 +2924,7 @@ explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i").WithLocation(8, 23)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
     }
 
@@ -2957,7 +2964,7 @@ explicit extension R for dynamic
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
     }
@@ -2998,7 +3005,7 @@ public explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
 
@@ -3017,7 +3024,7 @@ explicit extension R for RS { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Empty(r.GetMembers());
     }
 
@@ -3700,7 +3707,7 @@ explicit extension Y for S : Z { }
 explicit extension Z for S : X { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib40);
         comp.VerifyDiagnostics(
             // (2,20): error CS9211: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
             // explicit extension X for S : Y { }
@@ -3750,12 +3757,12 @@ public explicit extension Y for S : X { }
             assemblyName: "second", targetFramework: TargetFramework.Net70);
         comp2.VerifyDiagnostics();
 
-        var src1updated = """
+        var src1Updated = """
 public struct S { }
 public explicit extension X for S : Y { }
 """;
 
-        comp1 = CreateCompilation(src1updated, references: new[] { comp2.EmitToImageReference() },
+        comp1 = CreateCompilation(src1Updated, references: new[] { comp2.EmitToImageReference() },
             assemblyName: "first", targetFramework: TargetFramework.Net70);
         comp1.VerifyDiagnostics(
             // (2,27): error CS9211: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
@@ -3770,6 +3777,26 @@ public explicit extension X for S : Y { }
 
         var y = comp1.GlobalNamespace.GetTypeMember("Y");
         var yBaseExtension = y.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("X", yBaseExtension.ToTestDisplayString());
+        Assert.True(yBaseExtension.IsErrorType());
+
+        var retargetingComp = CreateCompilation(src1Updated, references: new[] { comp2.ToMetadataReference() },
+            assemblyName: "first", targetFramework: TargetFramework.Net70);
+        retargetingComp.VerifyDiagnostics(
+            // (2,27): error CS9211: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
+            // public explicit extension X for S : Y { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "X").WithArguments("X", "Y").WithLocation(2, 27)
+            );
+
+        x = retargetingComp.GlobalNamespace.GetTypeMember("X");
+        VerifyExtension<SourceExtensionTypeSymbol>(x, isExplicit: true);
+        xBaseExtension = x.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("Y", xBaseExtension.ToTestDisplayString());
+        Assert.True(xBaseExtension.IsErrorType());
+
+        y = retargetingComp.GlobalNamespace.GetTypeMember("Y");
+        VerifyExtension<RetargetingNamedTypeSymbol>(y, isExplicit: true);
+        yBaseExtension = y.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("X", yBaseExtension.ToTestDisplayString());
         Assert.True(yBaseExtension.IsErrorType());
     }
@@ -3803,6 +3830,56 @@ explicit extension R2 for object : R
         Assert.Equal("System.Object", r2.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r2.BaseExtensionsNoUseSiteDiagnostics.Single().IsErrorType());
+    }
+
+    [Fact]
+    public void TypeDepends_CircularityViaUnderlyingType_Metadata()
+    {
+        var src1 = """
+public struct R1 { }
+""";
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+public explicit extension R2 for R1 { }
+""";
+        var comp2 = CreateCompilation(src2, references: new[] { comp1.EmitToImageReference() },
+            targetFramework: TargetFramework.Net70, assemblyName: "second");
+        comp2.VerifyDiagnostics();
+
+        var src3 = """
+public struct R2 { }
+""";
+        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70, assemblyName: "second");
+        comp1.VerifyDiagnostics();
+
+        var src4 = """
+public explicit extension R1 for R2 { }
+""";
+        var comp4 = CreateCompilation(src4, references: new[] { comp3.EmitToImageReference() },
+            targetFramework: TargetFramework.Net70, assemblyName: "first");
+        comp4.VerifyDiagnostics();
+
+        var comp5 = CreateCompilation("", references: new[] { comp2.EmitToImageReference(), comp4.EmitToImageReference() },
+            targetFramework: TargetFramework.Net70);
+        comp5.VerifyDiagnostics();
+
+        var r1 = comp5.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        var r2FromR1 = (ExtendedErrorTypeSymbol)r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+        Assert.Equal("R2", r2FromR1.ToTestDisplayString());
+        AssertEx.Equal("error CS9222: Extension marker method on type 'R1' is malformed.", r2FromR1.ErrorInfo.ToString());
+
+        var comp6 = CreateCompilation("", references: new[] { comp2.ToMetadataReference(), comp4.ToMetadataReference() },
+            targetFramework: TargetFramework.Net70);
+        comp6.VerifyDiagnostics();
+
+        r1 = comp6.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<RetargetingNamedTypeSymbol>(r1, isExplicit: true);
+        r2FromR1 = (ExtendedErrorTypeSymbol)r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+        Assert.True(r2FromR1.IsErrorType());
+        AssertEx.Equal("error CS0268: Imported type 'R2' is invalid. It contains a circular base type dependency.", r2FromR1.ErrorInfo.ToString());
     }
 
     [Fact]
@@ -3927,7 +4004,7 @@ public explicit extension R1 for R2.Nested2<R2>
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(valuetype R2 '') cil managed
+    .method private hidebysig static void '<ExplicitExtension>$'(valuetype R2 '') cil managed
     {
         IL_0000: ret
     }
@@ -3937,7 +4014,7 @@ public explicit extension R1 for R2.Nested2<R2>
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(valuetype R1 '') cil managed
+    .method private hidebysig static void '<ExplicitExtension>$'(valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -3976,7 +4053,7 @@ public explicit extension R3 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '', valuetype R2 '') cil managed
+    .method private hidebysig static void '<ExplicitExtension>$'(object '', valuetype R2 '') cil managed
     {
         IL_0000: ret
     }
@@ -3986,7 +4063,7 @@ public explicit extension R3 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object o, valuetype R1 '') cil managed
+    .method private hidebysig static void '<ExplicitExtension>$'(object o, valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -4864,7 +4941,7 @@ partial explicit extension R
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
@@ -4884,7 +4961,7 @@ explicit extension R for C { }
             Diagnostic(ErrorCode.ERR_MissingPartial, "R").WithArguments("R").WithLocation(3, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("C", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -4904,7 +4981,7 @@ unsafe explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
@@ -4921,7 +4998,7 @@ unsafe explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -4946,7 +5023,7 @@ explicit extension DerivedExtension for UnderlyingClass : BaseExtension
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("DerivedExtension").GetTypeMember("R");
         Assert.Equal("DerivedExtension.R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass2", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         // PROTOTYPE verify hiding in usages/lookups
     }
@@ -4963,7 +5040,7 @@ public explicit extension R for UnderlyingStruct
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -4987,7 +5064,7 @@ protected explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 30)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Protected, r.DeclaredAccessibility);
     }
 
@@ -5025,7 +5102,7 @@ class C
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Protected, r.DeclaredAccessibility);
         Assert.Equal("C", r.ContainingType.ToTestDisplayString());
         // PROTOTYPE verify accessibility from source and metadata references
@@ -5043,7 +5120,7 @@ internal explicit extension R for UnderlyingStruct
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -5067,7 +5144,7 @@ protected internal explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 39)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.ProtectedOrInternal, r.DeclaredAccessibility);
     }
 
@@ -5086,7 +5163,7 @@ class C
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.ProtectedOrInternal, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -5107,7 +5184,7 @@ private explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_NoNamespacePrivate, "R").WithLocation(2, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Private, r.DeclaredAccessibility);
     }
 
@@ -5127,7 +5204,7 @@ class C
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Private, r.DeclaredAccessibility);
     }
 
@@ -5144,7 +5221,7 @@ file explicit extension R for UnderlyingStruct
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
         // PROTOTYPE verify visibility from source references, in name or extension lookup
     }
@@ -5166,7 +5243,7 @@ file internal explicit extension R for UnderlyingStruct
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
     }
 
@@ -5239,7 +5316,7 @@ internal internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "internal").WithArguments("internal").WithLocation(2, 10)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
     }
@@ -5263,7 +5340,7 @@ public internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
@@ -5287,7 +5364,7 @@ internal public explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
@@ -5308,7 +5385,7 @@ abstract explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("abstract").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -5328,7 +5405,7 @@ readonly explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5376,7 +5453,7 @@ volatile explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("volatile").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5395,7 +5472,7 @@ extern explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("extern").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5453,7 +5530,7 @@ virtual explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("virtual").WithLocation(2, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5472,7 +5549,7 @@ override explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("override").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5491,7 +5568,7 @@ async explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("async").WithLocation(2, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5527,7 +5604,7 @@ required explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("required").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
     }
 
     [Fact]
@@ -5734,7 +5811,7 @@ class C
         Assert.True(comp.GetSpecialType(SpecialType.System_IntPtr).IsErrorType());
 
         var intPtr = comp.GetTypeByMetadataName("System.IntPtr");
-        VerifyExtension<SourceExtensionTypeSymbol>(intPtr, SpecialType.System_IntPtr);
+        VerifyExtension<SourceExtensionTypeSymbol>(intPtr, isExplicit: true, SpecialType.System_IntPtr);
     }
 
     [Fact]
@@ -5786,7 +5863,7 @@ class C
         Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType());
 
         var valueTuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
-        VerifyExtension<SourceExtensionTypeSymbol>(valueTuple);
+        VerifyExtension<SourceExtensionTypeSymbol>(valueTuple, isExplicit: true);
     }
 
     [Fact]
@@ -5798,32 +5875,110 @@ unsafe class C
     int* M() => throw null;
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
-            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // unsafe class C
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14)
-            );
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics();
         var m = comp.GetMember<MethodSymbol>("C.M");
         VerifyNotExtension<PointerTypeSymbol>(m.ReturnType);
     }
 
     [Fact]
-    public void IsExtension_SubstitutedNamedTypeSymbol()
+    public void NotExtension_FunctionPointerTypeSymbol()
     {
         var src = $$"""
-explicit extension E1<T> for int { }
+unsafe class C
+{
+    delegate*<void> M() => throw null;
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics();
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        VerifyNotExtension<FunctionPointerTypeSymbol>(m.ReturnType);
+    }
+
+    [Theory, CombinatorialData]
+    public void IsExtension_SubstitutedNamedTypeSymbol(bool isExplicit)
+    {
+        var src = $$"""
+{{(isExplicit ? "explicit" : "implicit")}} extension E1<T> for int { }
 explicit extension E2 for int : E1<object> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        var e2 = comp.GlobalNamespace.GetTypeMembers("E2").Single();
-        var substE1 = e2.BaseExtensionsNoUseSiteDiagnostics.Single();
-        Assert.Equal("E1<object>", substE1.ToDisplayString());
-        VerifyExtension<SubstitutedNamedTypeSymbol>(substE1);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        return;
 
-        Assert.False(substE1.IsDefinition);
-        Assert.Equal("E1<T>", substE1.OriginalDefinition.ToTestDisplayString());
+        void validate(ModuleSymbol module)
+        {
+            var e2 = module.GlobalNamespace.GetTypeMember("E2");
+            var substE1 = e2.BaseExtensionsNoUseSiteDiagnostics.Single();
+            Assert.Equal("E1<object>", substE1.ToDisplayString());
+            VerifyExtension<SubstitutedNamedTypeSymbol>(substE1, isExplicit: isExplicit);
+
+            Assert.False(substE1.IsDefinition);
+            Assert.Equal("E1<T>", substE1.OriginalDefinition.ToTestDisplayString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void IsExtension_NestedNamedTypeSymbol(bool isExplicit, bool isExplicit2)
+    {
+        var src = $$"""
+{{(isExplicit ? "explicit" : "implicit")}} extension E1 for int
+{
+    {{(isExplicit2 ? "explicit" : "implicit")}} extension E2 for int { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        return;
+
+        void validate(ModuleSymbol module)
+        {
+            var e2 = module.GlobalNamespace.GetTypeMember("E1").GetTypeMember("E2");
+            VerifyExtension<NamedTypeSymbol>(e2.ContainingType, isExplicit: isExplicit);
+            VerifyExtension<NamedTypeSymbol>(e2, isExplicit: isExplicit2);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void IsExtension_Retargeting(bool isExplicit)
+    {
+        var src = $$"""
+public explicit extension E0 for int { }
+public {{(isExplicit ? "explicit" : "implicit")}} extension E1 for int : E0 { }
+""";
+        var comp1 = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib40);
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+explicit extension E2 for int : E1 { }
+""";
+
+        var comp2 = CreateCompilation(src2, references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+        comp2.VerifyDiagnostics();
+
+        var e1 = comp2.GlobalNamespace.GetTypeMember("E1");
+        VerifyExtension<RetargetingNamedTypeSymbol>(e1, isExplicit: isExplicit);
+        Assert.Equal("System.Int32", e1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal(new[] { "E0" }, e1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void NotExtension_Retargeting()
+    {
+        var src = $$"""
+class C { }
+""";
+        var comp1 = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib40);
+        comp1.VerifyDiagnostics();
+
+        var comp2 = CreateCompilation("", references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+        var c = comp2.GlobalNamespace.GetTypeMember("C");
+        VerifyNotExtension<RetargetingNamedTypeSymbol>(c);
+        Assert.Null(c.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
+        Assert.Empty(c.BaseExtensionsNoUseSiteDiagnostics);
     }
 
     [Fact]
@@ -6154,10 +6309,15 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
             );
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_Baseline()
+    private string ExtensionMarkerName(bool isExplicit)
     {
-        var ilSource = """
+        return isExplicit ? "<ExplicitExtension>$" : "<ImplicitExtension>$";
+    }
+
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_Baseline(bool isExplicit)
+    {
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
@@ -6169,7 +6329,7 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
         73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
         70 69 6c 65 72 2e 00 00
     )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6184,21 +6344,21 @@ public explicit extension R2 for object : R1 { }
         comp.VerifyDiagnostics();
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_NotByValueParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_NotByValueParameter(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object& '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object& '') cil managed
     {
         IL_0000: ret
     }
@@ -6218,25 +6378,25 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithModoptOnReturn()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModoptOnReturn(bool isExplicit)
     {
         // PROTOTYPE consider allowing modopts in extension marker methods
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void modopt(object) '<Extension>$'(object '') cil managed
+    .method private hidebysig static void modopt(object) '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6256,21 +6416,21 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithModreqOnReturn()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModreqOnReturn(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void modreq(object) '<Extension>$'(object '') cil managed
+    .method private hidebysig static void modreq(object) '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6290,22 +6450,19 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
-
-        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithModoptOnFirstParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModoptOnFirstParameter(bool isExplicit)
     {
         // PROTOTYPE consider allowing modopts in extension marker methods
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object modopt(object) '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -6325,25 +6482,25 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithModreqOnFirstParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModreqOnFirstParameter(bool isExplicit)
     {
         // PROTOTYPE consider allowing modopts in extension marker methods
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object modreq(object) '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modreq(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -6363,25 +6520,26 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
-        var r1ExtendedType = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        var r1ExtendedType = (ExtendedErrorTypeSymbol) r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
+        AssertEx.Equal("error CS9222: Extension marker method on type 'R1' is malformed.", r1ExtendedType.ErrorInfo.ToString());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithModoptOnSecondParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModoptOnSecondParameter(bool isExplicit)
     {
         // PROTOTYPE consider allowing modopts in extension marker methods
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6391,7 +6549,7 @@ public explicit extension R2 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '', valuetype R2 modopt(object) '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '', valuetype R2 modopt(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -6410,16 +6568,16 @@ public explicit extension R3 for object : R2 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<PENamedTypeSymbol>(r2);
+        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: isExplicit);
         var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R2", r2BaseExtension.ToTestDisplayString());
         Assert.True(r2BaseExtension.IsErrorType());
 
         var r3 = comp.GlobalNamespace.GetTypeMember("R3");
-        VerifyExtension<SourceExtensionTypeSymbol>(r3);
+        VerifyExtension<SourceExtensionTypeSymbol>(r3, isExplicit: true);
     }
 
     [Fact]
@@ -6448,13 +6606,13 @@ public explicit extension R2 for object : R1 { }
         VerifyNotExtension<PENamedTypeSymbol>(r1);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_Overloaded()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_Overloaded(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
@@ -6467,11 +6625,11 @@ public explicit extension R2 for object : R1 { }
         70 69 6c 65 72 2e 01 00 00
     )
 
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
-    .method private hidebysig static void '<Extension>$'(string '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(string '') cil managed
     {
         IL_0000: ret
     }
@@ -6496,25 +6654,89 @@ public explicit extension R2 for object : R1 { }
         VerifyNotExtension<PENamedTypeSymbol>(r1);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
 
         comp = CreateCompilationWithIL(src, ilSource,
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-        Assert.Equal(new[] { "R1..ctor()", "void R1.<Extension>$(System.Object A_0)", "void R1.<Extension>$(System.String A_0)" },
+        Assert.Equal(new[]
+            {
+                "R1..ctor()",
+                $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.Object A_0)""",
+                $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.String A_0)"""
+            },
             comp.GlobalNamespace.GetTypeMember("R1").GetMembers().ToTestDisplayStrings());
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_ExtensionMethod()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_Overloaded_DifferentExplicitness(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 01 00 00
+    )
+
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .method private hidebysig static void '{{ExtensionMarkerName(!isExplicit)}}'(string '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+public explicit extension R2 for object : R1 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,43): error CS0619: 'R1' is obsolete: 'Extension type are not supported in this version of your compiler.'
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "R1").WithArguments("R1", PEModule.ExtensionMarker).WithLocation(1, 43),
+            // (1,43): error CS9207: A base extension must be an extension type.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R1").WithLocation(1, 43)
+            );
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyNotExtension<PENamedTypeSymbol>(r1);
+
+        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+
+        comp = CreateCompilationWithIL(src, ilSource,
+            options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+        Assert.Equal(new[]
+            {
+                "R1..ctor()",
+                $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.Object A_0)""",
+                $$"""void R1.{{ExtensionMarkerName(!isExplicit)}}(System.String A_0)"""
+            },
+            comp.GlobalNamespace.GetTypeMember("R1").GetMembers().ToTestDisplayStrings());
+    }
+
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_ExtensionMethod(bool isExplicit)
+    {
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
@@ -6534,21 +6756,21 @@ static class OtherExtension
         comp.VerifyDiagnostics();
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithThisParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithThisParameter(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 01 )
         IL_0000: ret
@@ -6563,18 +6785,18 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithDynamicFirstParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithDynamicFirstParameter(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .param [1]
         .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 )
@@ -6596,25 +6818,25 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1Underyling = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("dynamic", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_WithExtensionFirstParameter()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithExtensionFirstParameter(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R0
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6624,7 +6846,7 @@ public explicit extension R2 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(valuetype R0 '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(valuetype R0 '') cil managed
     {
         IL_0000: ret
     }
@@ -6645,25 +6867,26 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
-        var r1Underyling = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        var r1Underyling = (ExtendedErrorTypeSymbol)r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("R0", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
+        AssertEx.Equal("error CS9222: Extension marker method on type 'R1' is malformed.", r1Underyling.ErrorInfo.ToString());
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
     public void ExtensionMarkerMethod_WithSelfExtensionFirstParameter()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(valuetype R1 '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -6684,25 +6907,25 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         var r1Underyling = r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
         Assert.Equal("R1", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
     public void ExtensionMarkerMethod_WithNonExtensionSecondParameter()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '', object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', object '') cil managed
     {
         IL_0000: ret
     }
@@ -6721,13 +6944,13 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         var r1BaseExtension = r1.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("System.Object", r1BaseExtension.ToTestDisplayString());
         Assert.True(r1BaseExtension.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceNamedTypeSymbol>(r2);
+        VerifyExtension<SourceNamedTypeSymbol>(r2, isExplicit: true);
         var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R1", r2BaseExtension.ToTestDisplayString());
         Assert.False(r2BaseExtension.IsErrorType());
@@ -6736,12 +6959,12 @@ public explicit extension R2 for object : R1 { }
     [Fact]
     public void ExtensionMarkerMethod_WithSelfReferentialSecondParameter()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '', valuetype R1 '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -6762,13 +6985,13 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         var r1BaseExtension = r1.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R1", r1BaseExtension.ToTestDisplayString());
         Assert.True(r1BaseExtension.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
         var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R1", r2BaseExtension.ToTestDisplayString());
         Assert.False(r2BaseExtension.IsErrorType());
@@ -6777,12 +7000,12 @@ public explicit extension R2 for object : R1 { }
     [Fact]
     public void ExtensionMarkerMethod_WithDuplicateSecondAndThirdParameters()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6792,7 +7015,7 @@ public explicit extension R2 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '', valuetype R1 '', valuetype R1 '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '', valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -6809,16 +7032,16 @@ public explicit extension R3 for object : R2 { }
         comp.VerifyDiagnostics();
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<PENamedTypeSymbol>(r2);
+        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: true);
         Assert.Equal(new[] { "R1", "R1" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r2.BaseExtensionsNoUseSiteDiagnostics.All(b => !b.IsErrorType()));
 
         var r3 = comp.GlobalNamespace.GetTypeMember("R3");
-        VerifyExtension<SourceExtensionTypeSymbol>(r3);
+        VerifyExtension<SourceExtensionTypeSymbol>(r3, isExplicit: true);
         var r3BaseExtensions = r3.BaseExtensionsNoUseSiteDiagnostics;
         Assert.Equal("R2", r3BaseExtensions.Single().ToTestDisplayString());
         Assert.False(r3BaseExtensions.Single().IsErrorType());
@@ -6827,7 +7050,7 @@ public explicit extension R3 for object : R2 { }
     [Fact]
     public void ExtensionMarkerMethod_MissingIsByRefLikeAttribute()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
@@ -6839,7 +7062,7 @@ public explicit extension R3 for object : R2 { }
         70 69 6c 65 72 2e 01 00 00
     )
 
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -6864,7 +7087,7 @@ public explicit extension R2 for object : R1 { }
         VerifyNotExtension<PENamedTypeSymbol>(r1);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
@@ -7093,13 +7316,13 @@ class C2 : C
     [Fact]
     public void ObsoleteExtensionMarker_WrongString()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = ( 01 00 02 68 69 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7118,21 +7341,21 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_NotPrivate()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_NotPrivate(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method public hidebysig static void '<Extension>$'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7152,22 +7375,22 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_NotStatic()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_NotStatic(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig void '<Extension>$'(object '') cil managed
+    .method private hidebysig void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7187,22 +7410,22 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
     public void ExtensionMarkerMethod_NotHideBySig()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private static void '<Extension>$'(object '') cil managed
+    .method private static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7217,22 +7440,22 @@ public explicit extension R2 for object : R1 { }
         comp.VerifyDiagnostics();
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         Assert.False(r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_NoParameters()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_NoParameters(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'() cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'() cil managed
     {
         IL_0000: ret
     }
@@ -7252,22 +7475,22 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_NotVoidReturn()
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_NotVoidReturn(bool isExplicit)
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static int32 '<Extension>$'(object '') cil managed
+    .method private hidebysig static int32 '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -7287,22 +7510,22 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
     public void ExtensionMarkerMethod_GenericMethod()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'<T>(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'<T>(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7322,10 +7545,10 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Fact]
@@ -7522,13 +7745,13 @@ public explicit extension R2 for object : R1<nint> { }
     [Fact]
     public void BadMember_ExtensionMethod()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7558,7 +7781,7 @@ static class OtherExtension
     [Fact]
     public void BadMember_InstanceField()
     {
-        var ilSource = """
+        var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
@@ -7572,7 +7795,7 @@ static class OtherExtension
         70 69 6c 65 72 2e 01 00 00
     )
 
-    .method private hidebysig static void '<Extension>$'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }

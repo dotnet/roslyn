@@ -400,8 +400,13 @@ namespace Microsoft.CodeAnalysis
         public const string TopLevelStatementsEntryPointTypeName = "Program";
 
         /// <summary>
-        /// The name of marker method for an extension type.
+        /// The name of marker method for an implicit extension type.
         /// </summary>
-        internal const string ExtensionMarkerMethodName = "<Extension>$"; // PROTOTYPE confirm name with WG
+        internal const string ImplicitExtensionMarkerMethodName = "<ImplicitExtension>$"; // PROTOTYPE confirm name with WG
+
+        /// <summary>
+        /// The name of marker method for an explicit extension type.
+        /// </summary>
+        internal const string ExplicitExtensionMarkerMethodName = "<ExplicitExtension>$"; // PROTOTYPE confirm name with WG
     }
 }
