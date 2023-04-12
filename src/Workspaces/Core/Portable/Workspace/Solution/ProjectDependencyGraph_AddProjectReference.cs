@@ -87,7 +87,10 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var referencedProject in referencedProjectIds)
             {
-                builder.MultiAdd(referencedProject, projectId);
+                if (builder.ContainsKey(referencedProject))
+                {
+                    builder.MultiAdd(referencedProject, projectId);
+                }
             }
 
             return builder.ToImmutable();

@@ -454,11 +454,8 @@ namespace Microsoft.CodeAnalysis
         private static void ValidateReverseReferences(
             ImmutableHashSet<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> forwardReferencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? reverseReferencesMap)
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseReferencesMap)
         {
-            if (reverseReferencesMap is null)
-                return;
-
             Debug.Assert(projectIds.Count >= reverseReferencesMap.Count);
             Debug.Assert(reverseReferencesMap.Keys.All(projectIds.Contains));
 
@@ -466,18 +463,19 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var referencedProject in referencedProjects)
                 {
-                    Debug.Assert(reverseReferencesMap.ContainsKey(referencedProject));
-                    Debug.Assert(reverseReferencesMap[referencedProject].Contains(project));
+                    if (reverseReferencesMap.TryGetValue(referencedProject, out var reverseReferences))
+                    {
+                        Debug.Assert(reverseReferences.Contains(project));
+                    }
                 }
             }
 
             foreach (var (project, referencingProjects) in reverseReferencesMap)
             {
-                Debug.Assert(!referencingProjects.IsEmpty, "Unexpected empty value in the reverse references map.");
                 foreach (var referencingProject in referencingProjects)
                 {
-                    Debug.Assert(forwardReferencesMap.ContainsKey(referencingProject));
-                    Debug.Assert(forwardReferencesMap[referencingProject].Contains(project));
+                    Debug.Assert(forwardReferencesMap.TryGetValue(referencingProject, out var forwardReferences));
+                    Debug.Assert(forwardReferences.Contains(project));
                 }
             }
         }
