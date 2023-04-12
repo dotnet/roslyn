@@ -304,6 +304,7 @@ class X
                         case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                        case ErrorCode.WRN_CallNotInterceptable:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -2937,6 +2938,10 @@ class Program
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
+                    case ErrorCode.WRN_CallNotInterceptable:
+                    case ErrorCode.ERR_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                    case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

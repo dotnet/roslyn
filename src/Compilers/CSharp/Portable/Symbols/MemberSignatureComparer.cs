@@ -129,6 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// This instance is used to determine if an interceptor can be applied to an interceptable method.
+        /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
+        /// </summary>
+        public static readonly MemberSignatureComparer InterceptorsComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            considerArity: false,
+            typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
+
+        /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition,
         /// including differences ignored by the runtime.
         /// </summary>
@@ -336,6 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Compare the type constraints
         private readonly bool _considerTypeConstraints;
 
+        // Compare the arity (type parameter count)
+        private readonly bool _considerArity;
+
         // Compare the full calling conventions.  Still compares varargs if false.
         private readonly bool _considerCallingConvention;
 
@@ -352,9 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefKindDifferences,
+            bool considerArity = true, // PROTOTYPE(ic): remove default value?
             TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
+            Debug.Assert(!considerTypeConstraints || considerArity, "If you consider type constraints, you must also consider arity");
 
             _considerName = considerName;
             _considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
@@ -362,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerTypeConstraints = considerTypeConstraints;
             _considerCallingConvention = considerCallingConvention;
             _considerRefKindDifferences = considerRefKindDifferences;
+            _considerArity = considerArity;
             _typeComparison = typeComparison;
             Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
                          $"Rely on the {nameof(considerRefKindDifferences)} flag to set this to ensure all cases are handled.");
@@ -404,9 +424,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // NB: up to, and including, this check, we have not actually forced the (type) parameters
             // to be expanded - we're only using the counts.
-            int arity = member1.GetMemberArity();
-            if ((arity != member2.GetMemberArity()) ||
-                (member1.GetParameterCount() != member2.GetParameterCount()))
+            if (_considerArity && (member1.GetMemberArity() != member2.GetMemberArity()))
+            {
+                return false;
+            }
+
+            if (member1.GetParameterCount() != member2.GetParameterCount())
             {
                 return false;
             }

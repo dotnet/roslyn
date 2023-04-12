@@ -591,6 +591,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptableAttribute))
+            {
+                if (MethodKind != MethodKind.Ordinary)
+                {
+                    // PROTOTYPE(ic): consider relaxing this in future.
+                    diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                }
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasInterceptableAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptsLocationAttribute))
+            {
+                DecodeInterceptsLocationAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -929,6 +942,125 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            Debug.Assert(!arguments.Attribute.HasErrors);
+            var attributeArguments = arguments.Attribute.CommonConstructorArguments;
+            if (attributeArguments is not [
+                { Type.SpecialType: SpecialType.System_String },
+                { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
+                { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
+            {
+                // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeLocation = arguments.AttributeSyntaxOpt.Location;
+
+            var filePath = (string?)attributeArguments[0].Value;
+            if (filePath is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeLocation);
+                return;
+            }
+
+            if (Arity != 0 || ContainingType.IsGenericType)
+            {
+                // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
+                // eventually, we could consider doing a type argument inference, seeing if the interceptor's type constraints are met, etc...
+                // but let's not bother unless somebody actually needs it.
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, this);
+                return;
+            }
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                // PROTOTYPE(ic): consider relaxing this in future.
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return;
+            }
+
+            var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+            var matchingTrees = syntaxTrees.WhereAsArray(static (tree, filePath) => tree.FilePath == filePath, filePath);
+            if (matchingTrees is [])
+            {
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
+                if (suffixMatch != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeLocation, filePath, suffixMatch.FilePath);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeLocation, filePath);
+                }
+
+                return;
+            }
+
+            if (matchingTrees is not [var matchingTree])
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeLocation, filePath);
+                return;
+            }
+
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            // PROTOTYPE(ic): test with zero or negative display line/character numbers.
+            int lineNumberZeroBased = lineNumberOneBased - 1;
+            int characterNumberZeroBased = characterNumberOneBased - 1;
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+            if (lineNumberZeroBased >= referencedLineCount)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLineCount, lineNumberOneBased);
+                return;
+            }
+
+            var line = referencedLines[lineNumberZeroBased];
+            var lineLength = line.End - line.Start;
+            if (characterNumberZeroBased >= lineLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, characterNumberOneBased);
+                return;
+            }
+
+            var referencedPosition = line.Start + characterNumberZeroBased;
+            var root = matchingTree.GetRoot();
+            var referencedToken = root.FindToken(referencedPosition);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
+            }
+
+            // Did they actually refer to the start of the token, not the middle, or in leading trivia?
+            var tokenPositionDifference = referencedPosition - referencedToken.Span.Start;
+            if (tokenPositionDifference != 0)
+            {
+                // PROTOTYPE(ic): when a token's leading trivia spans multiple lines, this doesn't suggest a valid position.
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, characterNumberOneBased - tokenPositionDifference);
+                return;
+            }
+
+            // PROTOTYPE(ic): The attribute should probably be expected to contain "display locations" (1-indexed) a la Diagnostic.ToString().
+            // But to do this, we would want to expose helper API for source generators, to produce "display locations" to put in the attribute.
+            // We would normalize to 0-indexed in this step. all our location-oriented complaints are made here, so we shouldn't need to convert back to "display location" after that point.
+            DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation), this);
+        }
+
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
@@ -1238,6 +1370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
+
+        internal sealed override bool IsInterceptable => GetDecodedWellKnownAttributeData()?.HasInterceptableAttribute == true;
 
         internal override bool RequiresSecurityObject
         {

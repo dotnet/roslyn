@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool IsInterceptable => UnderlyingMethod.IsInterceptable;
+
         public sealed override Symbol AssociatedSymbol
         {
             get

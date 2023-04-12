@@ -69,6 +69,19 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        internal static bool ContainsAllValues<T>(long mask) where T : struct, Enum, IConvertible
+        {
+            foreach (T value in GetValues<T>())
+            {
+                long val = value.ToInt64(null);
+                if ((val & mask) != val)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         internal static bool ContainsValue<T>(T value) where T : struct, Enum
         {
             return Array.IndexOf(GetValues<T>(), value) >= 0;

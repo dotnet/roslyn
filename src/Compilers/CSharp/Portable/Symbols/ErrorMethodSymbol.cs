@@ -276,6 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
 
+        internal override bool IsInterceptable => false;
+
         protected override bool HasSetsRequiredMembersImpl
         {
             get

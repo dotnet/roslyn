@@ -2189,6 +2189,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadStaticAfterUnsafe = 9133,
 
         ERR_BadCaseInSwitchArm = 9134,
+
+        // PROTOTYPE(ic): pack errors
+        WRN_CallNotInterceptable = 27000,
+        ERR_InterceptorCannotBeGeneric = 27001,
+        ERR_InterceptorPathNotInCompilation = 27002,
+        ERR_InterceptorPathNotInCompilationWithCandidate = 27003,
+        ERR_InterceptorPositionBadToken = 27004,
+        ERR_InterceptorLineOutOfRange = 27005,
+        ERR_InterceptorCharacterOutOfRange = 27006,
+        ERR_InterceptorSignatureMismatch = 27007,
+        ERR_InterceptableMethodMustBeOrdinary = 27008,
+        ERR_InterceptorMethodMustBeOrdinary = 27009,
+        ERR_InterceptorMustReferToStartOfTokenPosition = 27010,
+        ERR_InterceptorMustHaveMatchingThisParameter = 27011,
+        ERR_InterceptorMustNotHaveThisParameter = 27012,
+        ERR_InterceptorFilePathCannotBeNull = 27013,
+        ERR_InterceptorNameNotInvoked = 27014,
+        ERR_InterceptorNonUniquePath = 27015,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

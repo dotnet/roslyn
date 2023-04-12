@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 
@@ -236,6 +237,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Method;
+            }
+        }
+
+        public Location? InterceptableLocation
+        {
+            get
+            {
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+                // we probably want to treat it similarly to a MemberAccessExpression.
+                // However, we don't expect to encounter it.
+                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+                return syntax.Expression switch
+                {
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
+                    SimpleNameSyntax name => name.Location,
+                    _ => null
+                };
             }
         }
     }
