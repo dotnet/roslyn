@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.TypeParameterList != null);
 
-            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList, syntax.TypeParameterList.LessThanToken.GetLocation());
+            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
 
             OverriddenMethodTypeParameterMapBase typeMap = null;
             if (this.IsOverride)
