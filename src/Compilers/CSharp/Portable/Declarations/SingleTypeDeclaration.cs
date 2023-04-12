@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
+            ImmutableSegmentedHashSet<string> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics,
             QuickAttributes quickAttributes)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableSegmentedDictionary<string, VoidResult> MemberNames { get; }
+        public ImmutableSegmentedHashSet<string> MemberNames { get; }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
