@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
             return AnalysisResultWrapper.FromInstance(s_getTaskOfAnalysisResultResult(getAnalysisResultTask));
         }
 
-        public static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> CreateCompilationWithAnalyzers = BuildCreateCompilationWithAnalyzersFunc();
+        public static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, bool, CancellationToken, CompilationWithAnalyzers> CreateCompilationWithAnalyzers = BuildCreateCompilationWithAnalyzersFunc();
 
-        private static bool IsTestingDiagnosticSuppressors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        public static bool ContainsDiagnosticSuppressors(this ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             if (s_frameworkMajorVersion < 4 || s_suppressorType == null)
             {
@@ -64,24 +64,20 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
             return analyzers.Any(analyzer => s_suppressorType.IsInstanceOfType(analyzer));
         }
 
-        private static Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> BuildCreateCompilationWithAnalyzersFunc()
+        private static Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, bool, CancellationToken, CompilationWithAnalyzers> BuildCreateCompilationWithAnalyzersFunc()
         {
             if (s_optionsType != null && s_frameworkMajorVersion >= 4)
             {
-                return (compilation, analyzers, options, cancellationToken) =>
+                return (compilation, analyzers, options, reportSuppressedDiagnostics, cancellationToken) =>
                 {
-                    if (!IsTestingDiagnosticSuppressors(analyzers))
-                    {
-                        return compilation.WithAnalyzers(analyzers, options, cancellationToken);
-                    }
-
-                    var compilationWithAnalyzersOptions = Activator.CreateInstance(s_optionsType, options, null, true, false, true);
+                    // "https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.diagnostics.compilationwithanalyzersoptions.-ctor?view=roslyn-dotnet-4.3.0#microsoft-codeanalysis-diagnostics-compilationwithanalyzersoptions-ctor(microsoft-codeanalysis-diagnostics-analyzeroptions-system-action((system-exception-microsoft-codeanalysis-diagnostics-diagnosticanalyzer-microsoft-codeanalysis-diagnostic))-system-boolean-system-boolean-system-boolean)"
+                    var compilationWithAnalyzersOptions = Activator.CreateInstance(s_optionsType, options, null, true, false, reportSuppressedDiagnostics);
 
                     return (CompilationWithAnalyzers)Activator.CreateInstance(s_compilationType, compilation, analyzers, compilationWithAnalyzersOptions)!;
                 };
             }
 
-            return (compilation, analyzers, options, cancellationToken) => compilation.WithAnalyzers(analyzers, options, cancellationToken);
+            return (compilation, analyzers, options, reportSuppressedDiagnostics, cancellationToken) => compilation.WithAnalyzers(analyzers, options, cancellationToken);
         }
     }
 }
