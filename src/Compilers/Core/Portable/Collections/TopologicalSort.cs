@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TNode">The type of the node</typeparam>
         /// <param name="nodes">Any subset of the nodes that includes all nodes with no predecessors</param>
-        /// <param name="addSuccessors">A function that adds successor nodes to the provided <see cref="ArrayBuilder{TNode}"/>.</param>
+        /// <param name="addSuccessors">A function that adds successor nodes to a provided <see cref="TemporaryArray{TNode}"/>.</param>
         /// <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
         /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
         public static bool TryIterativeSort<TNode>(
