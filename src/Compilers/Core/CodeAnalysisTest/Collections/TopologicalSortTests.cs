@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,6 +15,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class TopologicalSortTests
     {
+        private TopologicalSortAddSuccessors<int> GetAddSuccessorsFunction(int[][] successors)
+            => GetAddSuccessorsFunction(successors, i => i);
+
+        private static TopologicalSortAddSuccessors<T> GetAddSuccessorsFunction<T>(T[][] successors, Func<T, int> toInt)
+            => (ref TemporaryArray<T> builder, T value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
+
         [Fact]
         public void Test01()
         {
@@ -38,11 +41,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(6, sorted.Length);
             AssertEx.Equal(new[] { 4, 5, 2, 3, 1, 0 }, sorted);
         }
-        private TopologicalSortAddSuccessors<int> GetAddSuccessorsFunction(int[][] successors)
-            => GetAddSuccessorsFunction(successors, i => i);
-
-        private static TopologicalSortAddSuccessors<T> GetAddSuccessorsFunction<T>(T[][] successors, Func<T, int> toInt)
-            => (ref TemporaryArray<T> builder, T value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
 
         [Fact]
         public void Test01b()
@@ -211,7 +209,7 @@ However, we are keeping it in the source as it may be useful to developers who c
             }
         }
 
-        private void AssertTopologicallySorted<T>(ImmutableArray<T> sorted, TopologicalSortAddSuccessors<T> addSuccessors, string message = null)
+        private void AssertTopologicallySorted<T>(ImmutableArray<T> sorted, TopologicalSortAddSuccessors<T> addSuccessors, string? message = null)
         {
             var seen = new HashSet<T>();
             using var successors = TemporaryArray<T>.Empty;
