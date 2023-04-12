@@ -1347,7 +1347,7 @@ public class InterceptorsTests : CSharpTestBase
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "PROTOTYPE(ic): diagnostic message differs depending on the size of line endings")]
     public void InterceptsLocationBadPosition_07()
     {
         var source = """
