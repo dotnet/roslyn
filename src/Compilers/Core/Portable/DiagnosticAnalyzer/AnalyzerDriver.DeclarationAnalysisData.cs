@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AnalyzerDriver
     {
-        internal readonly ref struct DeclarationAnalysisData
+        internal readonly struct DeclarationAnalysisData : IDisposable
         {
             /// <summary>
             /// GetSyntax() for the given SyntaxReference.
