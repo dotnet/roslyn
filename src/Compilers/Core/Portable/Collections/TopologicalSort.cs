@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal delegate void TopologicalSortAddSuccessors<TNode>(ref TemporaryArray<TNode> builder, TNode node);
+
     /// <summary>
     /// A helper class that contains a topological sort algorithm.
     /// </summary>
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool TryIterativeSort<TNode>(
             TNode node,
-            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
+            TopologicalSortAddSuccessors<TNode> addSuccessors,
             out ImmutableArray<TNode> result)
             where TNode : notnull
         {
@@ -39,14 +40,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
         public static bool TryIterativeSort<TNode>(
             IEnumerable<TNode> nodes,
-            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
+            TopologicalSortAddSuccessors<TNode> addSuccessors,
             out ImmutableArray<TNode> result)
             where TNode : notnull
         {
             // First, count the predecessors of each node
             PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, addSuccessors, out ImmutableArray<TNode> allNodes);
 
-            var successors = ArrayBuilder<TNode>.GetInstance();
+            using var successors = TemporaryArray<TNode>.Empty;
 
             // Initialize the ready set with those nodes that have no predecessors
             var ready = ArrayBuilder<TNode>.GetInstance();
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                 resultBuilder.Add(node);
 
                 successors.Clear();
-                addSuccessors(successors, node);
+                addSuccessors(ref successors.AsRef(), node);
 
                 foreach (var succ in successors)
                 {
@@ -87,14 +88,13 @@ namespace Microsoft.CodeAnalysis
             predecessorCounts.Free();
             ready.Free();
             resultBuilder.Free();
-            successors.Free();
 
             return !hadCycle;
         }
 
         private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(
             IEnumerable<TNode> nodes,
-            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
+            TopologicalSortAddSuccessors<TNode> addSuccessors,
             out ImmutableArray<TNode> allNodes)
             where TNode : notnull
         {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             var counted = PooledHashSet<TNode>.GetInstance();
             var toCount = ArrayBuilder<TNode>.GetInstance();
             var allNodesBuilder = ArrayBuilder<TNode>.GetInstance();
-            var successors = ArrayBuilder<TNode>.GetInstance();
+            using var successors = TemporaryArray<TNode>.Empty;
 
             toCount.AddRange(nodes);
             while (toCount.Count != 0)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 successors.Clear();
-                addSuccessors(successors, n);
+                addSuccessors(ref successors.AsRef(), n);
 
                 foreach (var succ in successors)
                 {
@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            successors.Free();
             counted.Free();
             toCount.Free();
             allNodes = allNodesBuilder.ToImmutableAndFree();

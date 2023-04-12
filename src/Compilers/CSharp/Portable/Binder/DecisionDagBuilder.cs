@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -1575,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A successor function used to topologically sort the DagState set.
             /// </summary>
-            private static void AddSuccessor(ArrayBuilder<DagState> builder, DagState state)
+            private static void AddSuccessor(ref TemporaryArray<DagState> builder, DagState state)
             {
                 builder.AddIfNotNull(state.TrueBranch);
                 builder.AddIfNotNull(state.FalseBranch);

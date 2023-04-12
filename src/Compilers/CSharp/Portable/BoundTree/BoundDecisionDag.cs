@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
-        internal static void AddSuccessors(ArrayBuilder<BoundDecisionDagNode> builder, BoundDecisionDagNode node)
+        internal static void AddSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode node)
         {
             switch (node)
             {

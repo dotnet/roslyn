@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
 
-            void addNonNullSuccessors(ArrayBuilder<BoundDecisionDagNode> builder, BoundDecisionDagNode n)
+            static void addNonNullSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode n)
             {
                 switch (n)
                 {
@@ -121,11 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 builder.Add(p.WhenFalse);
                                 return;
                             default:
-                                BoundDecisionDag.AddSuccessors(builder, n);
+                                BoundDecisionDag.AddSuccessors(ref builder, n);
                                 return;
                         }
                     default:
-                        BoundDecisionDag.AddSuccessors(builder, n);
+                        BoundDecisionDag.AddSuccessors(ref builder, n);
                         return;
                 }
             }
