@@ -1317,14 +1317,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
         protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            return TestStage switch
+            var reportSuppressedDiagnostics = TestStage switch
             {
-                // During the diagnostic check we may need to switch on 'reporting suppressed diagnostics'
-                TestStage.Diagnostic => CompilationWithAnalyzersExtensions.CreateCompilationWithAnalyzers(compilation, analyzers, options, cancellationToken),
+                // During the diagnostic check we need to switch on 'reporting suppressed diagnostics' when we are testing a suppressor.
+                TestStage.Diagnostic => analyzers.ContainsDiagnosticSuppressors(),
 
                 // All other checks assume 'reporting suppressed diagnostics' is off by default
-                _ => compilation.WithAnalyzers(analyzers, options, cancellationToken),
+                _ => false,
             };
+
+            return CompilationWithAnalyzersExtensions.CreateCompilationWithAnalyzers(compilation, analyzers, options, reportSuppressedDiagnostics, cancellationToken);
         }
 
         /// <summary>
