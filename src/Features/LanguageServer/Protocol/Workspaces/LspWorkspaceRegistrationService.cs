@@ -14,8 +14,6 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     private readonly object _gate = new();
     private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
 
-    public abstract string GetHostWorkspaceKind();
-
     public ImmutableArray<Workspace> GetAllRegistrations()
     {
         lock (_gate)

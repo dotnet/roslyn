@@ -11792,8 +11792,8 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass21_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info, CancellationToken cancellationToken)
 -----
 Analyzer 'TestAnalyzer' threw the following exception:
 'System.NotImplementedException: 28
@@ -14582,6 +14582,46 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
         public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void CanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // supressed
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+
+            // elevated
+            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/warnAsError:CS8034" }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS8034", output, StringComparison.Ordinal);
+        }
+
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void GlobalAnalyzerConfigCanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var globalconfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+dotnet_diagnostic.CS8034.severity = none
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // suppresssed via global analyzer config
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

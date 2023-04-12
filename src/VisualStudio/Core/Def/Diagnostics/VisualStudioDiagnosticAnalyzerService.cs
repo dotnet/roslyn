@@ -384,19 +384,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
                 {
-                    // Compute diagnostics by overidding project's RunCodeAnalysis flag to true.
+                    // Compute diagnostics by overriding project's RunCodeAnalysis flag to true.
                     var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];
                         project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
                         tasks[index] = Task.Run(
-                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id));
+                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null,
+                                        includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None));
                     }
 
                     Task.WhenAll(tasks).Wait();
 
-                    // Report new host diagostics.
+                    // Report new host diagnostics.
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];

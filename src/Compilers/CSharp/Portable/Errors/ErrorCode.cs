@@ -2189,6 +2189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadStaticAfterUnsafe = 9133,
 
         ERR_BadCaseInSwitchArm = 9134,
+        ERR_ConstantValueOfTypeExpected = 9135,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         // PROTOTYPE(ic): pack errors
         WRN_CallNotInterceptable = 27000,

@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // implemented.
                 if (syntax.ConstraintClauses.Count > 0)
                 {
-                    Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
-                                                    syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    Binder.CheckFeatureAvailability(
+                        syntax.ConstraintClauses[0].WhereKeyword, MessageID.IDS_OverrideWithConstraints, diagnostics);
 
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
@@ -257,19 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Verify ExtensionAttribute is available.
                     var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-                    Location thisLocation = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation();
+
+                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
                     if ((object)attributeConstructor == null)
                     {
                         var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisLocation,
+                            thisKeyword.GetLocation(),
                             memberDescriptor.DeclaringTypeMetadataName);
                     }
                     else
                     {
-                        diagnostics.Add(useSiteInfo, thisLocation);
+                        diagnostics.Add(useSiteInfo, thisKeyword);
                     }
                 }
             }
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var syntax = GetSyntax();
             return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, GetFirstLocation(), diagnostics, out _);
         }
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, cancellationToken);
         }
 
-        internal override bool IsDefinedInSourceTree(
+        public override bool IsDefinedInSourceTree(
             SyntaxTree tree,
             TextSpan? definedWithinSpan,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -656,48 +657,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasTypeDifferences = !constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
             if (hasTypeDifferences)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.GetFirstLocation());
             }
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
             {
                 hasTypeDifferences = true;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.GetFirstLocation(), definition, implementation);
             }
 
             if (definition.RefKind != implementation.RefKind)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsStatic != implementation.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsDeclaredReadOnly != implementation.IsDeclaredReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsExtensionMethod != implementation.IsExtensionMethod)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.GetFirstLocation());
             }
 
             if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
                 || definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsVirtual != implementation.IsVirtual
@@ -705,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || definition.IsSealed != implementation.IsSealed
                 || definition.IsNew != implementation.IsNew)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.GetFirstLocation());
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
                 extraArgument: (object)null,
                 allowVariance: false,
@@ -733,11 +734,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                 {
                     // report only if this is an unsafe *nullability* difference
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.GetFirstLocation());
                 },
                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
                 extraArgument: (object)null))
             {
@@ -747,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)) ||
                 hasDifferencesInParameterOrTypeParameterName(definition, implementation))
             {
-                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
+                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.GetFirstLocation(),
                     new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
@@ -785,11 +786,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.GetFirstLocation(), implementation, typeParameter2.Name);
                 }
                 else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.GetFirstLocation(), implementation, typeParameter2.Name);
                 }
             }
         }

@@ -1772,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
                     if (mainType is null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct && !mainType.IsInterface))
                     {
-                        diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
+                        diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.GetFirstLocation(), mainTypeOrNamespace);
                         return null;
                     }
 
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (main is not SynthesizedSimpleProgramEntryPointSymbol)
                             {
-                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.GetFirstLocation(), main);
                             }
                         }
 
@@ -1821,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!isCandidate)
                     {
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.GetFirstLocation(), candidate);
                         noMainFoundDiagnostics.AddRange(specificDiagnostics);
                         return false;
                     }
@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.GetFirstLocation(), candidate);
                         return false;
                     }
                     return true;
@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.GetFirstLocation());
                             }
                             else
                             {
@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
                 {
                     var taskCandidates = taskEntryPoints.SelectAsArray(s => (Symbol)s.Candidate);
-                    var taskLocations = taskCandidates.SelectAsArray(s => s.Locations[0]);
+                    var taskLocations = taskCandidates.SelectAsArray(s => s.GetFirstLocation());
 
                     foreach (var candidate in taskCandidates)
                     {
@@ -1889,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              args: new object[] { candidate, viableEntryPoints[0] },
                              symbols: taskCandidates,
                              additionalLocations: taskLocations);
-                        diagnostics.Add(new CSDiagnostic(info, candidate.Locations[0]));
+                        diagnostics.Add(new CSDiagnostic(info, candidate.GetFirstLocation()));
                     }
                 }
 
@@ -1931,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
+                        diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.GetFirstLocation(), mainType);
                     }
                 }
                 else
@@ -1942,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
+                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.GetFirstLocation());
                         }
                     }
 
@@ -1953,9 +1953,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                              ErrorCode.ERR_MultipleEntryPoints,
                              args: Array.Empty<object>(),
                              symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                             additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+                             additionalLocations: viableEntryPoints.Select(m => m.GetFirstLocation()).OfType<Location>().AsImmutable());
 
-                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().GetFirstLocation()));
                     }
                     else
                     {
@@ -3368,7 +3368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
                 if (symbol.AssociatedFileIdentifier is not null)
                 {
-                    var location = symbol.Locations[0];
+                    var location = symbol.GetFirstLocation();
                     var filePath = location.SourceTree?.FilePath;
                     if (_duplicatePaths.Contains(filePath!))
                     {
@@ -4485,7 +4485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
@@ -4784,7 +4784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.ContainsKey(_name))
+                    if (typeDecl.MemberNames.Contains(_name))
                     {
                         return true;
                     }
