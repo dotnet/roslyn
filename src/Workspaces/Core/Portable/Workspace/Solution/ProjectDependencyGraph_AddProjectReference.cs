@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the addition of additional project references.
         /// </summary>
-        /// <param name="existingReverseReferencesMap">The previous <see cref="_lazyReverseReferencesMap"/>, or
+        /// <param name="existingReverseReferencesMap">The previous <see cref="_lazyReverseReferencesMap"/></param>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForAdditionalProjectReferences(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
             ProjectId projectId,
