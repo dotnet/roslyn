@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Formatting
     //             that would create too big graph. key for this approach is how to reduce size of graph.
     internal abstract partial class AbstractFormatEngine
     {
+        // Intentionally do not trim the capacities of these collections down.  We will repeatedly try to format large
+        // files as we edit them and this will produce a lot of garbage as we free the internal array backing the list
+        // over and over again.
+        private static readonly ObjectPool<SegmentedList<SyntaxNode>> s_nodeIteratorPool = new(() => new(), trimOnFree: false);
+
         private readonly ChainedFormattingRules _formattingRules;
 
         private readonly SyntaxNode _commonRoot;
@@ -126,19 +132,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             cancellationToken.ThrowIfCancellationRequested();
 
             // iterating tree is very expensive. do it once and cache it to list
-            SegmentedList<SyntaxNode> nodeIterator;
+            using var pooledIterator = s_nodeIteratorPool.GetPooledObject();
+
+            var nodeIterator = pooledIterator.Object;
             using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
             {
                 const int magicLengthToNodesRatio = 5;
-                var result = new SegmentedList<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
+                nodeIterator.Capacity = Math.Max(nodeIterator.Capacity, Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
 
                 foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    result.Add(node);
+                    nodeIterator.Add(node);
                 }
-
-                nodeIterator = result;
             }
 
             // iterate through each operation using index to not create any unnecessary object
