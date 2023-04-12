@@ -715,7 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ArrayBuilder<StateForCase> cases)
         {
             // Build the state machine underlying the decision dag
-            DecisionDag decisionDag = MakeDecisionDag(cases);
+            var allStates = ArrayBuilder<DagState>.GetInstance();
+            DecisionDag decisionDag = MakeDecisionDag(cases, allStates);
 
             // Note: It is useful for debugging the dag state table construction to set a breakpoint
             // here and view `decisionDag.Dump()`.
@@ -730,7 +731,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(rootDecisionDagNode != null);
 
             // release the entire intermediary tree.  We no longer need it.
-            decisionDag.RootNode.FreeAll();
+            foreach (var state in allStates)
+                state.Free();
+
+            allStates.Free();
+
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
@@ -778,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
         /// and return the node for the root.
         /// </summary>
-        private DecisionDag MakeDecisionDag(ArrayBuilder<StateForCase> casesForRootNode)
+        private DecisionDag MakeDecisionDag(ArrayBuilder<StateForCase> casesForRootNode, ArrayBuilder<DagState> allStates)
         {
             // A work list of DagStates whose successors need to be computed
             var workList = ArrayBuilder<DagState>.GetInstance();
@@ -795,12 +800,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
                 DagState uniquifyState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
                 {
-                    var state = new DagState(cases, remainingValues);
+                    var state = DagState.Create(allStates, cases, remainingValues);
                     if (uniqueState.TryGetValue(state, out DagState? existingState))
                     {
-                        // Already had a matching state.  Free the one we just created as we don't need it anymore.
-                        state.Free();
-
                         // We found an existing state that matches.  Update its set of possible remaining values
                         // of each temp by taking the union of the sets on each incoming edge.
                         var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
@@ -1779,30 +1781,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public ArrayBuilder<StateForCase> Cases;
 
-            public DagState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            private DagState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 this.Cases = cases;
                 this.RemainingValues = remainingValues;
             }
 
+            public static DagState Create(ArrayBuilder<DagState> allStates, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            {
+                var state = new DagState(cases, remainingValues);
+                allStates.Add(state);
+                return state;
+            }
+
             public void Free()
             {
                 Cases?.Free();
-                Cases = null;
-            }
-
-            public void FreeAll()
-            {
-                this.Free();
-
-                var trueBranch = TrueBranch;
-                var falseBranch = FalseBranch;
-
-                TrueBranch = null;
-                FalseBranch = null;
-
-                trueBranch?.FreeAll();
-                falseBranch?.FreeAll();
+                Cases = null!;
             }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
