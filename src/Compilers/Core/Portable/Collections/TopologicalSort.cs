@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var node = ready.Pop();
                 resultBuilder.Add(node);
-                
+
                 successors.Clear();
                 addSuccessors(successors, node);
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // At this point all the nodes should have been output, otherwise there was a cycle
             bool hadCycle = predecessorCounts.Count != resultBuilder.Count;
             result = hadCycle ? ImmutableArray<TNode>.Empty : resultBuilder.ToImmutable();
-            
+
             predecessorCounts.Free();
             ready.Free();
             resultBuilder.Free();
