@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </para>
     /// <para>
     /// In order to build this automaton, we start (in
-    /// <see cref="MakeBoundDecisionDag(SyntaxNode, ImmutableArray{DecisionDagBuilder.StateForCase})"/>
+    /// <see cref="MakeBoundDecisionDag(SyntaxNode, ArrayBuilder{StateForCase})"/>
     /// by computing a description of the initial state in a <see cref="DagState"/>, and then
     /// for each such state description we decide what the test or evaluation will be at
     /// that state, and compute the successor state descriptions.
@@ -132,7 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            return MakeBoundDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
+            var builder = ArrayBuilder<StateForCase>.GetInstance(1);
+            builder.Add(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel));
+            var result = MakeBoundDecisionDag(syntax, builder);
+            builder.Free();
+            return result;
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -154,7 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return MakeBoundDecisionDag(syntax, builder.ToImmutableAndFree());
+            var result = MakeBoundDecisionDag(syntax, builder);
+            builder.Free();
+            return result;
         }
 
         /// <summary>
@@ -171,7 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (BoundSwitchExpressionArm arm in switchArms)
                 builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
 
-            return MakeBoundDecisionDag(syntax, builder.ToImmutableAndFree());
+            var result = MakeBoundDecisionDag(syntax, builder);
+            builder.Free();
+            return result;
         }
 
         /// <summary>
@@ -704,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// decision when no decision appears to match. This implementation is nonrecursive to avoid
         /// overflowing the compiler's evaluation stack when compiling a large switch statement.
         /// </summary>
-        private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
+        private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ArrayBuilder<StateForCase> cases)
         {
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
@@ -767,155 +775,160 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
         /// and return the node for the root.
         /// </summary>
-        private DecisionDag MakeDecisionDag(ImmutableArray<StateForCase> casesForRootNode)
+        private DecisionDag MakeDecisionDag(ArrayBuilder<StateForCase> casesForRootNode)
         {
             // A work list of DagStates whose successors need to be computed
             var workList = ArrayBuilder<DagState>.GetInstance();
-
-            // A mapping used to make each DagState unique (i.e. to de-dup identical states).
-            var uniqueState = new Dictionary<DagState, DagState>(DagStateEquivalence.Instance);
-
-            // We "intern" the states, so that we only have a single object representing one
-            // semantic state. Because the decision automaton may contain states that have more than one
-            // predecessor, we want to represent each such state as a reference-unique object
-            // so that it is processed only once. This object identity uniqueness will be important later when we
-            // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
-            // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-            DagState uniqifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            try
             {
-                var state = new DagState(cases, remainingValues);
-                if (uniqueState.TryGetValue(state, out DagState? existingState))
+                // A mapping used to make each DagState unique (i.e. to de-dup identical states).
+                var uniqueState = new Dictionary<DagState, DagState>(DagStateEquivalence.Instance);
+
+                // We "intern" the states, so that we only have a single object representing one
+                // semantic state. Because the decision automaton may contain states that have more than one
+                // predecessor, we want to represent each such state as a reference-unique object
+                // so that it is processed only once. This object identity uniqueness will be important later when we
+                // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
+                // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
+                DagState uniquifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
                 {
-                    // We found an existing state that matches.  Update its set of possible remaining values
-                    // of each temp by taking the union of the sets on each incoming edge.
-                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
-                    foreach (var (dagTemp, valuesForTemp) in remainingValues)
+                    var state = new DagState(cases, remainingValues);
+                    if (uniqueState.TryGetValue(state, out DagState? existingState))
                     {
-                        // If one incoming edge does not have a set of possible values for the temp,
-                        // that means the temp can take on any value of its type.
-                        if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                        // We found an existing state that matches.  Update its set of possible remaining values
+                        // of each temp by taking the union of the sets on each incoming edge.
+                        var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
+                        foreach (var (dagTemp, valuesForTemp) in remainingValues)
                         {
-                            var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
+                            // If one incoming edge does not have a set of possible values for the temp,
+                            // that means the temp can take on any value of its type.
+                            if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                            {
+                                var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
+                                newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
+                            }
                         }
-                    }
 
-                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
-                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
-                    {
-                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
-                        if (!workList.Contains(existingState))
-                            workList.Push(existingState);
-                    }
+                        if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                            !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
+                        {
+                            existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
+                            if (!workList.Contains(existingState))
+                                workList.Push(existingState);
+                        }
 
-                    return existingState;
-                }
-                else
-                {
-                    // When we add a new unique state, we add it to a work list so that we
-                    // will process it to compute its successors.
-                    uniqueState.Add(state, state);
-                    workList.Push(state);
-                    return state;
-                }
-            }
-
-            // Simplify the initial state based on impossible or earlier matched cases
-            var rewrittenCases = ArrayBuilder<StateForCase>.GetInstance(casesForRootNode.Length);
-            foreach (var state in casesForRootNode)
-            {
-                var rewrittenCase = state.RewriteNestedLengthTests();
-                if (rewrittenCase.IsImpossible)
-                    continue;
-                rewrittenCases.Add(rewrittenCase);
-                if (rewrittenCase.IsFullyMatched)
-                    break;
-            }
-
-            var initialState = uniqifyState(rewrittenCases.ToImmutableAndFree(), ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
-
-            // Go through the worklist of DagState nodes for which we have not yet computed
-            // successor states.
-            while (workList.Count != 0)
-            {
-                DagState state = workList.Pop();
-                RoslynDebug.Assert(state.SelectedTest == null);
-                RoslynDebug.Assert(state.TrueBranch == null);
-                RoslynDebug.Assert(state.FalseBranch == null);
-                if (state.Cases.IsDefaultOrEmpty)
-                {
-                    // If this state has no more cases that could possibly match, then
-                    // we know there is no case that will match and this node represents a "default"
-                    // decision. We do not need to compute a successor, as it is a leaf node
-                    continue;
-                }
-
-                StateForCase first = state.Cases[0];
-
-                Debug.Assert(!first.IsImpossible);
-                if (first.PatternIsSatisfied)
-                {
-                    if (first.IsFullyMatched)
-                    {
-                        // The first of the remaining cases has fully matched, as there are no more tests to do.
-                        // The language semantics of the switch statement and switch expression require that we
-                        // execute the first matching case.  There is no when clause to evaluate here,
-                        // so this is a leaf node and required no further processing.
+                        return existingState;
                     }
                     else
                     {
-                        // There is a when clause to evaluate.
-                        // In case the when clause fails, we prepare for the remaining cases.
-                        var stateWhenFails = state.Cases.RemoveAt(0);
-                        state.FalseBranch = uniqifyState(stateWhenFails, state.RemainingValues);
+                        // When we add a new unique state, we add it to a work list so that we
+                        // will process it to compute its successors.
+                        uniqueState.Add(state, state);
+                        workList.Push(state);
+                        return state;
                     }
                 }
-                else
-                {
-                    // Select the next test to do at this state, and compute successor states
-                    switch (state.SelectedTest = state.ComputeSelectedTest())
-                    {
-                        case BoundDagAssignmentEvaluation e when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues):
-                            Debug.Assert(e.Input.IsEquivalentTo(e.Target));
-                            // Update the target temp entry with current values. Note that even though we have determined that the two are the same,
-                            // we don't need to update values for the current input. We will emit another assignment node with this temp as the target
-                            // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
-                            if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
-                            {
-                                // Take the intersection of entries as we have ruled out any impossible
-                                // values for each alias of an element, and now we're dealiasing them.
-                                currentValues = currentValues.Intersect(targetValues);
-                            }
-                            state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
-                            break;
-                        case BoundDagEvaluation e:
-                            state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues);
-                            // An evaluation is considered to always succeed, so there is no false branch
-                            break;
-                        case BoundDagTest d:
-                            bool foundExplicitNullTest = false;
-                            SplitCases(state, d,
-                                out ImmutableArray<StateForCase> whenTrueDecisions,
-                                out ImmutableArray<StateForCase> whenFalseDecisions,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
-                                ref foundExplicitNullTest);
-                            state.TrueBranch = uniqifyState(whenTrueDecisions, whenTrueValues);
-                            state.FalseBranch = uniqifyState(whenFalseDecisions, whenFalseValues);
-                            if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
-                            {
-                                // Turn an "implicit" non-null test into an explicit one
-                                state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
-                            }
-                            break;
-                        case var n:
-                            throw ExceptionUtilities.UnexpectedValue(n.Kind);
-                    }
-                }
-            }
 
-            workList.Free();
-            return new DecisionDag(initialState);
+                // Simplify the initial state based on impossible or earlier matched cases
+                var rewrittenCases = ArrayBuilder<StateForCase>.GetInstance(casesForRootNode.Count);
+                foreach (var state in casesForRootNode)
+                {
+                    var rewrittenCase = state.RewriteNestedLengthTests();
+                    if (rewrittenCase.IsImpossible)
+                        continue;
+                    rewrittenCases.Add(rewrittenCase);
+                    if (rewrittenCase.IsFullyMatched)
+                        break;
+                }
+
+                var initialState = uniquifyState(rewrittenCases.ToImmutableAndFree(), ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+
+                // Go through the worklist of DagState nodes for which we have not yet computed
+                // successor states.
+                while (workList.Count != 0)
+                {
+                    DagState state = workList.Pop();
+                    RoslynDebug.Assert(state.SelectedTest == null);
+                    RoslynDebug.Assert(state.TrueBranch == null);
+                    RoslynDebug.Assert(state.FalseBranch == null);
+                    if (state.Cases.IsDefaultOrEmpty)
+                    {
+                        // If this state has no more cases that could possibly match, then
+                        // we know there is no case that will match and this node represents a "default"
+                        // decision. We do not need to compute a successor, as it is a leaf node
+                        continue;
+                    }
+
+                    StateForCase first = state.Cases[0];
+
+                    Debug.Assert(!first.IsImpossible);
+                    if (first.PatternIsSatisfied)
+                    {
+                        if (first.IsFullyMatched)
+                        {
+                            // The first of the remaining cases has fully matched, as there are no more tests to do.
+                            // The language semantics of the switch statement and switch expression require that we
+                            // execute the first matching case.  There is no when clause to evaluate here,
+                            // so this is a leaf node and required no further processing.
+                        }
+                        else
+                        {
+                            // There is a when clause to evaluate.
+                            // In case the when clause fails, we prepare for the remaining cases.
+                            var stateWhenFails = state.Cases.RemoveAt(0);
+                            state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
+                        }
+                    }
+                    else
+                    {
+                        // Select the next test to do at this state, and compute successor states
+                        switch (state.SelectedTest = state.ComputeSelectedTest())
+                        {
+                            case BoundDagAssignmentEvaluation e when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues):
+                                Debug.Assert(e.Input.IsEquivalentTo(e.Target));
+                                // Update the target temp entry with current values. Note that even though we have determined that the two are the same,
+                                // we don't need to update values for the current input. We will emit another assignment node with this temp as the target
+                                // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
+                                if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
+                                {
+                                    // Take the intersection of entries as we have ruled out any impossible
+                                    // values for each alias of an element, and now we're dealiasing them.
+                                    currentValues = currentValues.Intersect(targetValues);
+                                }
+                                state.TrueBranch = uniquifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
+                                break;
+                            case BoundDagEvaluation e:
+                                state.TrueBranch = uniquifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues);
+                                // An evaluation is considered to always succeed, so there is no false branch
+                                break;
+                            case BoundDagTest d:
+                                bool foundExplicitNullTest = false;
+                                SplitCases(state, d,
+                                    out ImmutableArray<StateForCase> whenTrueDecisions,
+                                    out ImmutableArray<StateForCase> whenFalseDecisions,
+                                    out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+                                    out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+                                    ref foundExplicitNullTest);
+                                state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
+                                state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
+                                if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
+                                {
+                                    // Turn an "implicit" non-null test into an explicit one
+                                    state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
+                                }
+                                break;
+                            case var n:
+                                throw ExceptionUtilities.UnexpectedValue(n.Kind);
+                        }
+                    }
+                }
+
+                return new DecisionDag(initialState);
+            }
+            finally
+            {
+                workList.Free();
+            }
         }
 
         /// <summary>
@@ -1821,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// As part of the description of a node of the decision automaton, we keep track of what tests
         /// remain to be done for each case.
         /// </summary>
-        private sealed class StateForCase
+        private readonly struct StateForCase
         {
             /// <summary>
             /// A number that is distinct for each case and monotonically increasing from earlier to later cases.
@@ -1875,9 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We do not include Syntax, Bindings, WhereClause, or CaseLabel
                 // because once the Index is the same, those must be the same too.
-                return this == other ||
-                    other != null &&
-                    this.Index == other.Index &&
+                return this.Index == other.Index &&
                     this.RemainingTests.Equals(other.RemainingTests);
             }
 
