@@ -49,18 +49,12 @@ namespace Microsoft.CodeAnalysis
         /// or <see langword="null"/> if the reverse references map was not computed for the prior graph.</param>
         /// <param name="projectId">The project ID from which a project reference is being removed.</param>
         /// <param name="referencedProjectId">The target of the project reference which is being removed.</param>
-        /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
-        /// map could not be incrementally updated.</returns>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
+        /// <returns>The updated reverse references map.</returns>
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForRemovedProjectReference(
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
-            if (existingReverseReferencesMap is null)
-            {
-                return null;
-            }
-
             return existingReverseReferencesMap.MultiRemove(referencedProjectId, projectId);
         }
 

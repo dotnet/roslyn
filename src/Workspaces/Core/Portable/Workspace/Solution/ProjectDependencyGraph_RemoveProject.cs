@@ -50,21 +50,18 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="_referencesMap"/> for the project dependency graph once the project is removed.</returns>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
             ProjectId removedProjectId)
         {
             var builder = existingForwardReferencesMap.ToBuilder();
 
-            if (existingReverseReferencesMap is object)
+            if (existingReverseReferencesMap.TryGetValue(removedProjectId, out var referencingProjects))
             {
                 // We know all the projects directly referencing 'projectId', so remove 'projectId' from the set of
                 // references in each of those cases directly.
-                if (existingReverseReferencesMap.TryGetValue(removedProjectId, out var referencingProjects))
+                foreach (var id in referencingProjects)
                 {
-                    foreach (var id in referencingProjects)
-                    {
-                        builder.MultiRemove(id, removedProjectId);
-                    }
+                    builder.MultiRemove(id, removedProjectId);
                 }
             }
             else
@@ -87,18 +84,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal,
         /// or <see langword="null"/> if the value prior to removal was not computed for the graph.</param>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProject(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
             ProjectId removedProjectId)
         {
-            if (existingReverseReferencesMap is null)
-            {
-                // The map was never calculated for the previous graph, so there is nothing to update.
-                return null;
-            }
-
-            if (!existingForwardReferencesMap.TryGetValue(removedProjectId, out var forwardReferences))
+            if (!existingForwardReferencesMap.TryGetValue(removedProjectId, out var forwardReferences) ||
+                forwardReferences.IsEmpty)
             {
                 // The removed project did not reference any other projects, so we simply remove it.
                 return existingReverseReferencesMap.Remove(removedProjectId);

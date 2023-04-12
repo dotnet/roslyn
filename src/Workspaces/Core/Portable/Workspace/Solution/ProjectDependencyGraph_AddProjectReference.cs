@@ -74,15 +74,11 @@ namespace Microsoft.CodeAnalysis
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the addition of additional project references.
         /// </summary>
         /// <param name="existingReverseReferencesMap">The previous <see cref="_lazyReverseReferencesMap"/>, or
-        /// <see langword="null"/> if the reverse references map was not computed for the previous graph.</param>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForAdditionalProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForAdditionalProjectReferences(
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
             ProjectId projectId,
             IReadOnlyList<ProjectId> referencedProjectIds)
         {
-            if (existingReverseReferencesMap is null)
-                return null;
-
             var builder = existingReverseReferencesMap.ToBuilder();
 
             foreach (var referencedProject in referencedProjectIds)

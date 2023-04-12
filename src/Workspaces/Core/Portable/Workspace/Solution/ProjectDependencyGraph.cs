@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             : this(
                   projectIds,
                   RemoveItemsWithEmptyValues(referencesMap),
-                  reverseReferencesMap: null,
+                  reverseReferencesMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
                   transitiveReferencesMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
                   reverseTransitiveReferencesMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
                   default,
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         private ProjectDependencyGraph(
             ImmutableHashSet<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? reverseReferencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseTransitiveReferencesMap,
             ImmutableArray<ProjectId> topologicallySortedProjects,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             _projectIds = projectIds;
             _referencesMap = referencesMap;
-            _lazyReverseReferencesMap = reverseReferencesMap ?? ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
+            _lazyReverseReferencesMap = reverseReferencesMap;
             _transitiveReferencesMap = transitiveReferencesMap;
             _reverseTransitiveReferencesMap = reverseTransitiveReferencesMap;
             _lazyTopologicallySortedProjects = topologicallySortedProjects;
