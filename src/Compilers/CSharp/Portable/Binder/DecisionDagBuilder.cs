@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // There is a when clause to evaluate.
                             // In case the when clause fails, we prepare for the remaining cases.
                             var stateWhenFails = ArrayBuilder<StateForCase>.GetInstance(state.Cases.Count - 1);
-                            for (int i = 0, n = state.Cases.Count; i < n; i++)
+                            for (int i = 1, n = state.Cases.Count; i < n; i++)
                                 stateWhenFails.Add(state.Cases[i]);
 
                             state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
