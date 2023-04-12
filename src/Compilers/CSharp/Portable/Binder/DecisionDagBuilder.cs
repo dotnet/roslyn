@@ -1774,6 +1774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
+            /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
+            /// However, despite being mutable, it will not be mutated once hte DagState is created.
             /// </summary>
             public readonly ArrayBuilder<StateForCase> Cases;
 
