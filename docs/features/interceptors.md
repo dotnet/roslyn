@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature.
+*Interceptors* are an experimental compiler feature planned to ship in .NET 8. The feature may be subject to breaking changes or removal in a future release.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -49,9 +49,9 @@ static class D
 
 ### InterceptableAttribute
 
-A method must indicate that its calls can be *intercepted* by including `[Interceptable]` on its declaration.
+A method can indicate that its calls can be *intercepted* by including `[Interceptable]` on its declaration.
 
-If a call is intercepted to a method which lacks this attribute, a warning is reported, and interception still occurs. This may be changed to an error in the future.
+PROTOTYPE(ic): For now, if a call is intercepted to a method which lacks this attribute, a warning is reported, and interception still occurs. This may be changed to an error in the future.
 
 ```cs
 namespace System.Runtime.CompilerServices
@@ -75,23 +75,17 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
-PROTOTYPE(ic): open question in https://github.com/dotnet/roslyn/pull/67432#discussion_r1147822738
+`[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
-Are the `[InterceptsLocation]` attributes dropped when emitting the methods to metadata?
-
-No. We could consider:
-
-* having the compiler drop the attributes automatically (treating them as pseudo-custom attributes, perhaps)
-* making the attribute declaration in the framework "conditional" on some debug symbol which is not usually provided.
-* deliberately keeping them there. I can't think of any good reason to do this.
-
-Perhaps the first option would be best.
+PROTOTYPE(ic): We may want to recognize `file class InterceptsLocationAttribute` as a valid declaration of the attribute, to allow generators to bring the attribute in without conflicting with other generators which may also be bringing the attribute in. See open question in [User opt-in](#user-opt-in).
 
 #### File paths
 
 File paths used in `[InterceptsLocation]` must exactly match the paths on the syntax trees they refer to by ordinal comparison. `SyntaxTree.FilePath` has already applied `/pathmap` substitution, so the paths used in the attribute will be less environment-specific in many projects.
 
 The compiler does not map `#line` directives when determining if an `[InterceptsLocation]` attribute intercepts a particular call in syntax.
+
+PROTOTYPE(ic): editorconfig support matches paths in cross-platform fashion (e.g. normalizing slashes). We should revisit how that works and consider if the same matching strategy should be used instead of ordinal comparison.
 
 #### Position
 
@@ -109,7 +103,7 @@ We should provide samples of recommended coding patterns for generator authors t
 
 Conversion to delegate type, address-of, etc. usages of methods cannot be intercepted.
 
-Interception can only occur for calls to ordinary member methods--not constructors, delegates, properties, local functions, etc.
+Interception can only occur for calls to ordinary member methods--not constructors, delegates, properties, local functions, operators, etc. Support for more member kinds may be added in the future.
 
 ### Arity
 
@@ -141,9 +135,11 @@ If an `[InterceptsLocation]` attribute is found in the compilation which does no
 
 An interceptor must be accessible at the location where interception is occurring. PROTOTYPE(ic): This enforcement is not yet implemented.
 
-We imagine it will be common to want to discourage explicit use of interceptor methods. For this use case, should consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation, and encouraging generator authors to use it to prevent interceptors from appearing in lookup, etc.
+An interceptor contained in a file-local type is permitted to intercept a call in another file, even though the interceptor is not normally *visible* at the call site.
 
-PROTOTYPE(ic): Generators often want to put things not intended to be user-visible in file-local types. This reduces the need to defend against name conflicts with other types in the user's project. A file-local type is not present in lookup outside of the file it is declared in. But, the type is *accessible* from the runtime point of view presently. Should we permit interceptors declared in file types to refer to other files?
+This allows generator authors to avoid *polluting lookup* with interceptors, helps avoid name conflicts, and prevents use of interceptors in *unintended positions* from the interceptor author's point-of-view.
+
+We may also want to consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation.
 
 ### Editor experience
 
@@ -151,13 +147,9 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-PROTOTYPE(ic): design an opt-in step which meets the needs of the generators consuming this, and permits usage of the feature in the key NativeAOT scenarios we are targeting.
+Although interceptors are an experimental feature, there will be no explicit opt-in step needed to use them. We won't publicize the feature (e.g. in blog posts) as something generator authors should onboard to in .NET 8.
 
-Because this is a generator-oriented feature, we'd like to have an opt-in step during the *experimental* phase which permits generators to opt-in without the end user needing to take additional steps.
-
-Question: can a generator opt-in to a preview feature on behalf of the user? If not, is it fine to ask the user to take an additional step here?
-
-There's a concern on the ASP.NET side that if the user needs to opt-in to something which is "preview/experimental" then they will need to use their non-interceptors codegen strategy *as well as* the interceptors one for NativeAOT, depending on whether the user did the gesture to enable the feature.
+PROTOTYPE(ic): The BCL might not ship the attributes required by this feature, instead requiring them to be declared in some library brought in by a package reference, or in the user's project. But we haven't confirmed this.
 
 ### Implementation strategy
 

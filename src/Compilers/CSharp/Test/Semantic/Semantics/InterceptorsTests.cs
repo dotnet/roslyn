@@ -173,7 +173,6 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ic): Consider if an error should be reported here. It's not possible to directly use 'Interceptor1' at the location of the intercepted call.
         var verifier = CompileAndVerify(new[] { (source1, "Program.cs"), (source2, "Other.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
     }
