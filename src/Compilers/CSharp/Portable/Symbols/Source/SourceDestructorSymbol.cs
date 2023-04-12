@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType, syntax.GetReference(), syntax.Identifier.GetLocation(), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             const MethodKind methodKind = MethodKind.Destructor;
-            Location location = this.Locations[0];
+            Location location = this.GetFirstLocation();
 
             bool modifierErrors;
             var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);

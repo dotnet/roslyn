@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None || type.IsRefLikeType)
+            if (refKind != RefKind.None || type.IsRestrictedType())
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -1899,7 +1899,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
                                 isError = true;
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
+
+                                if (localSymbol.RefKind == RefKind.None && type.IsRestrictedType(ignoreSpanLikeTypes: true))
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, type);
+                                }
+                                else
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
+                                }
                             }
                         }
 
@@ -1931,7 +1939,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
                             {
                                 isError = true;
-                                Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_AnonDelegateCantUseRefLike : ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+
+                                if (parameter.RefKind != RefKind.None)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                }
+                                else if (parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, parameter.Type);
+                                }
+                                else
+                                {
+                                    Debug.Assert(parameter.Type.IsRefLikeType);
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseRefLike, node, parameter.Name);
+                                }
                             }
                             else if (primaryCtor is not null)
                             {
@@ -1939,10 +1960,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool capture = (this.ContainingMember() is MethodSymbol containingMethod && (object)primaryCtor != containingMethod);
 
                                 if (capture &&
-                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRefLikeType) &&
+                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRestrictedType()) &&
                                     !IsInsideNameof)
                                 {
-                                    Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike : ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, node, parameter.Name);
+                                    if (parameter.RefKind != RefKind.None)
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, node, parameter.Name);
+                                    }
+                                    else if (parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny, node, parameter.Type);
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(parameter.Type.IsRefLikeType);
+                                        Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, node, parameter.Name);
+                                    }
                                 }
                                 else if (primaryCtor is { ThisParameter.RefKind: not RefKind.None } &&
                                          this.ContainingMemberOrLambda is MethodSymbol { MethodKind: MethodKind.AnonymousFunction or MethodKind.LocalFunction } &&
@@ -2019,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
             {
-                Location localSymbolLocation = localSymbol.Locations[0];
+                Location localSymbolLocation = localSymbol.GetFirstLocation();
 
                 if (node.SyntaxTree == localSymbolLocation.SourceTree)
                 {
@@ -4162,7 +4195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.Locations[0], containingType);
+                            diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.GetFirstLocation(), containingType);
                             return new BoundBadExpression(
                                 syntax: initializerArgumentListOpt.Parent,
                                 resultKind: LookupResultKind.Empty,
@@ -4173,7 +4206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (initializerArgumentListOpt != null && containingType.TypeKind == TypeKind.Struct)
                     {
-                        diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.Locations[0], containingType);
+                        diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.GetFirstLocation(), containingType);
                         return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
@@ -4208,7 +4241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
                         nonNullSyntax = constructor.GetNonNullSyntaxNode();
-                        errorLocation = constructor.Locations[0];
+                        errorLocation = constructor.GetFirstLocation();
                         enableCallerInfo = false;
                         break;
                 }

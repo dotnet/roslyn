@@ -8282,6 +8282,32 @@ class Test
         }
 
         [Fact]
+        public void MethodUpdate_AttributeWithTypeAtConstructor()
+        {
+            var src1 = "using System; [AttributeUsage(AttributeTargets.All)] public class AAttribute : Attribute { public AAttribute(Type t) { } } class C { [A(typeof(C))] public void M() { Console.WriteLine(\"2\"); } }";
+            var src2 = "using System; [AttributeUsage(AttributeTargets.All)] public class AAttribute : Attribute { public AAttribute(Type t) { } } class C { [A(typeof(C))] public void M() { Console.WriteLine(\"1\"); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [[A(typeof(C))] public void M() { Console.WriteLine(""2""); }]@133 -> [[A(typeof(C))] public void M() { Console.WriteLine(""1""); }]@133");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_AttributeWithTypeAtConstructor2()
+        {
+            var src1 = "using System; [AttributeUsage(AttributeTargets.All)] public class AAttribute : Attribute { public AAttribute(Type t) { } } class C { [A(typeof(object))] public void M() { Console.WriteLine(\"2\"); } }";
+            var src2 = "using System; [AttributeUsage(AttributeTargets.All)] public class AAttribute : Attribute { public AAttribute(Type t) { } } class C { [A(typeof(dynamic))] public void M() { Console.WriteLine(\"1\"); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [[A(typeof(object))] public void M() { Console.WriteLine(""2""); }]@133 -> [[A(typeof(dynamic))] public void M() { Console.WriteLine(""1""); }]@133");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void MethodUpdate_AddAttribute_SupportedByRuntime()
         {
             var src1 = @"

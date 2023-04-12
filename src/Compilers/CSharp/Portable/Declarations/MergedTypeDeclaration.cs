@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Keys);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 
