@@ -1777,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
             /// However, despite being mutable, it will not be mutated once hte DagState is created.
             /// </summary>
-            public readonly ArrayBuilder<StateForCase> Cases;
+            public ArrayBuilder<StateForCase> Cases;
 
             public DagState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
@@ -1787,14 +1787,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void Free()
             {
-                Cases.Free();
+                Cases?.Free();
+                Cases = null;
             }
 
             public void FreeAll()
             {
                 this.Free();
-                TrueBranch?.FreeAll();
-                FalseBranch?.FreeAll();
+
+                var trueBranch = TrueBranch;
+                var falseBranch = FalseBranch;
+
+                TrueBranch = null;
+                FalseBranch = null;
+
+                trueBranch?.FreeAll();
+                falseBranch?.FreeAll();
             }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
