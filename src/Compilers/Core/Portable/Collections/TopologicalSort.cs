@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class TopologicalSort
     {
-
         public static bool TryIterativeSort<TNode>(
             TNode node,
             Action<ArrayBuilder<TNode>, TNode> addSuccessors,
