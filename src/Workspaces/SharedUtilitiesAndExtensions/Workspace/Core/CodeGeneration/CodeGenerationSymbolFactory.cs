@@ -37,9 +37,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IMethodSymbol? addMethod = null,
             IMethodSymbol? removeMethod = null,
-            IMethodSymbol? raiseMethod = null)
+            IMethodSymbol? raiseMethod = null,
+            string documentationCommentXml = null)
         {
-            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod);
+            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod, documentationCommentXml);
             CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
             return result;
         }

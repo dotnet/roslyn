@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            // NOTE: When we get here, the Symbol and the context don't have the comment anymore!
             if (!info.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
             {
                 return node;

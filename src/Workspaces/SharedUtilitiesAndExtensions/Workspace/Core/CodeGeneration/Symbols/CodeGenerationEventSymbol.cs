@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IMethodSymbol? addMethod,
             IMethodSymbol? removeMethod,
-            IMethodSymbol? raiseMethod)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+            IMethodSymbol? raiseMethod,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             this.Type = type;
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();

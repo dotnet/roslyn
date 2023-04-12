@@ -9,14 +9,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -189,7 +186,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
-            // NOTES: The annotated symbol map seems to still include the comments?
             var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
@@ -364,7 +360,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
 
-
                 // Only update the first instance of the typedeclaration,
                 // since it's not needed in all declarations
                 break;
@@ -398,7 +393,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
                             explicitInterfaceImplementations: default,
-                            name: @event.Name));
+                            name: @event.Name, 
+                            documentationCommentXml: @event.GetDocumentationCommentXml()));
                         break;
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;

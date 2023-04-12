@@ -1720,6 +1720,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestExtractInterface_WithComments()
         {
@@ -1732,11 +1733,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                     /// </summary>
                     public bool MyBool { get; set; }
 
+                            
+                    /// <summary>
+                    /// Event comment
+                    /// </summary>
+                    public event Action MyEvent;
+
                     /// <summary>
                     /// Comment
                     /// </summary>
                     public void Test()
                     {
+                      // The body of the method
                     }
                 }
                 """;
@@ -1753,6 +1761,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                     /// </member>
                     /// 
                     bool MyBool { get; set; }
+                    /// 
+                    /// <member name="E:Goo.MyEvent">
+                    ///     <summary>
+                    ///     Event comment
+                    ///     </summary>
+                    /// </member>
+                    /// 
+                    event Action MyEvent;
                     /// 
                     /// <member name="M:Goo.Test">
                     ///     <summary>
