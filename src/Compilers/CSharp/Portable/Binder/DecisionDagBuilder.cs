@@ -730,9 +730,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
 
-            // release the entire intermediary tree.  We no longer need it.
+            // Place all the dag states we allocated back into the pool.
             foreach (var state in allStates)
-                state.Free();
+                state.ClearAndFree();
 
             allStates.Free();
 
@@ -1764,6 +1764,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DagState
         {
+            private static readonly ObjectPool<DagState> s_dagStatePool = new ObjectPool<DagState>(() => new DagState());
+
             /// <summary>
             /// For each dag temp of a type for which we track such things (the integral types, floating-point types, and bool),
             /// the possible values it can take on when control reaches this state.
@@ -1772,33 +1774,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// as the set of possible values can affect successor states.
             /// A <see cref="BoundDagTemp"/> absent from this dictionary means that all values of the type are possible.
             /// </summary>
-            public ImmutableDictionary<BoundDagTemp, IValueSet> RemainingValues { get; private set; }
+            public ImmutableDictionary<BoundDagTemp, IValueSet> RemainingValues { get; private set; } = null!;
 
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
             /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
             /// However, despite being mutable, it will not be mutated once hte DagState is created.
             /// </summary>
-            public ArrayBuilder<StateForCase> Cases;
-
-            private DagState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
-            {
-                this.Cases = cases;
-                this.RemainingValues = remainingValues;
-            }
-
-            public static DagState Create(ArrayBuilder<DagState> allStates, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
-            {
-                var state = new DagState(cases, remainingValues);
-                allStates.Add(state);
-                return state;
-            }
-
-            public void Free()
-            {
-                Cases?.Free();
-                Cases = null!;
-            }
+            public ArrayBuilder<StateForCase> Cases = null!;
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
             // decision automaton.
@@ -1812,6 +1795,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // After the entire graph of DagState objects is complete, we translate each into its Dag node.
             public BoundDecisionDagNode? Dag;
+
+            private DagState()
+            {
+            }
+
+            /// <summary>
+            /// Created an instance of <see cref="DagState"/>.  Will take ownership of <paramref name="cases"/>.  That
+            /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
+            /// called on this.
+            /// </summary>
+            public static DagState Create(ArrayBuilder<DagState> allStates, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            {
+                var dagState = s_dagStatePool.Allocate();
+
+                Debug.Assert(dagState.Cases is null);
+                Debug.Assert(dagState.RemainingValues is null);
+                Debug.Assert(dagState.SelectedTest is null);
+                Debug.Assert(dagState.TrueBranch is null);
+                Debug.Assert(dagState.FalseBranch is null);
+                Debug.Assert(dagState.Dag is null);
+
+                dagState.Cases = cases;
+                dagState.RemainingValues = remainingValues;
+                allStates.Add(dagState);
+
+                return dagState;
+            }
+
+            public void ClearAndFree()
+            {
+                Cases?.Free();
+                Cases = null!;
+                RemainingValues = null!;
+                SelectedTest = null;
+                TrueBranch = null;
+                FalseBranch = null;
+                Dag = null;
+
+                s_dagStatePool.Free(this);
+            }
 
             /// <summary>
             /// Decide on what test to use at this node of the decision dag. This is the principal
