@@ -279,10 +279,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(newTextDoc);
 
                     // Create the document as empty
-                    textDocumentEdits.Add(new CreateFile() { Uri = newTextDoc.GetURI() });
+                    textDocumentEdits.Add(new CreateFile { Uri = newTextDoc.GetURI() });
 
                     var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                     // And then give it content
                     var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                     var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
@@ -304,8 +303,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
-                    // If the document has text change.
 
+                    // If the document has text change.
                     var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     IEnumerable<TextChange> textChanges;
@@ -333,14 +332,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
                     }
                 }
-            }
-
-            static void CopyDocumentToNewLocation(
-                Uri newLocation,
-                SourceText sourceText,
-                ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> textDocumentEdits)
-            {
-
             }
         }
 
