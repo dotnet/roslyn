@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
             result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
-            var readonlyToken = modifiers.FirstOrDefault(static t => t.Kind() == SyntaxKind.ReadOnlyKeyword);
+            var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
                 modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
 

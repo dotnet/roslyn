@@ -239,16 +239,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
         }
 
-        private static void ForceLocalizableStringExceptions(LocalizableString localizableString, EventHandler<Exception> handler)
-        {
-            if (localizableString.CanThrowExceptions)
-            {
-                localizableString.OnException += handler;
-                localizableString.ToString();
-                localizableString.OnException -= handler;
-            }
-        }
-
         /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>

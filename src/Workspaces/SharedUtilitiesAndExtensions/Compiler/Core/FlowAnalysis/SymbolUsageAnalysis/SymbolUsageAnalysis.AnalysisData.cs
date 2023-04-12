@@ -185,11 +185,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 // Mark all the current reaching writes of symbol as read.
                 if (SymbolsWriteBuilder.Count != 0)
                 {
-                    var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(symbol);
-                    foreach (var write in currentWrites)
-                    {
-                        SymbolsWriteBuilder[(symbol, write)] = true;
-                    }
+                    CurrentBlockAnalysisData.ForEachCurrentWrite(
+                        symbol,
+                        static (write, arg) =>
+                        {
+                            arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
+                        },
+                        (symbol, self: this));
                 }
 
                 // Mark the current symbol as read.
