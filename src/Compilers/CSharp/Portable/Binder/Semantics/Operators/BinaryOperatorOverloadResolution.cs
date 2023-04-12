@@ -776,15 +776,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hadApplicableCandidate = false;
             foreach (var op in operators)
             {
-                // Avoid excess allocations by passing 'defaultOnFailure' for the common path where we are checking all
+                // Avoid excess allocations by passing 'noConversionOnFailure' for the common path where we are checking all
                 // built in binary operators against these expressions.
-                var convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: true, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
-                var convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: true, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
+                var convLeft = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: true, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                var convRight = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: true, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                 if (convLeft.IsImplicit && convRight.IsImplicit)
                 {
                     // There were implicit conversions, so classify the conversions again, this time getting the true conversions with all information.
-                    convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
-                    convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
+                    convLeft = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                    convRight = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                     results.Add(BinaryOperatorAnalysisResult.Applicable(op, convLeft, convRight));
                     hadApplicableCandidate = true;
                 }
@@ -796,8 +796,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // information so we can report good errors.
                 foreach (var op in operators)
                 {
-                    var convLeft = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
-                    var convRight = Conversions.ClassifyConversionFromExpression(defaultOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
+                    var convLeft = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: false, left, op.LeftType, isChecked: isChecked, ref useSiteInfo);
+                    var convRight = Conversions.ClassifyConversionFromExpression(noConversionOnFailure: false, right, op.RightType, isChecked: isChecked, ref useSiteInfo);
                     results.Add(BinaryOperatorAnalysisResult.Inapplicable(op, convLeft, convRight));
                 }
             }

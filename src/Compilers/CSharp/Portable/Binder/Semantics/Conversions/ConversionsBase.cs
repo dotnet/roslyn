@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// any built-in or user-defined implicit conversion.
         /// </summary>
         public Conversion ClassifyImplicitConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            => ClassifyImplicitConversionFromExpression(defaultOnFailure: false, sourceExpression, destination, ref useSiteInfo);
+            => ClassifyImplicitConversionFromExpression(noConversionOnFailure: false, sourceExpression, destination, ref useSiteInfo);
 
-        public Conversion ClassifyImplicitConversionFromExpression(bool defaultOnFailure, BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ClassifyImplicitConversionFromExpression(bool noConversionOnFailure, BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null);
             Debug.Assert(Compilation != null);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetImplicitUserDefinedConversion(defaultOnFailure, sourceExpression, sourceType, destination, ref useSiteInfo);
+            conversion = GetImplicitUserDefinedConversion(noConversionOnFailure, sourceExpression, sourceType, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In that circumstance, this method classifies the conversion as the implicit conversion or explicit depending on "forCast"
         /// </remarks>
         public Conversion ClassifyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
-            => ClassifyConversionFromExpression(defaultOnFailure: false, sourceExpression, destination, isChecked, ref useSiteInfo, forCast);
+            => ClassifyConversionFromExpression(noConversionOnFailure: false, sourceExpression, destination, isChecked, ref useSiteInfo, forCast);
 
-        public Conversion ClassifyConversionFromExpression(bool defaultOnFailure, BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
+        public Conversion ClassifyConversionFromExpression(bool noConversionOnFailure, BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
         {
             Debug.Assert(sourceExpression != null);
             Debug.Assert(Compilation != null);
@@ -293,13 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ClassifyConversionFromExpressionForCast(sourceExpression, destination, isChecked: isChecked, ref useSiteInfo);
             }
 
-            var result = ClassifyImplicitConversionFromExpression(defaultOnFailure, sourceExpression, destination, ref useSiteInfo);
+            var result = ClassifyImplicitConversionFromExpression(noConversionOnFailure, sourceExpression, destination, ref useSiteInfo);
             if (result.Exists)
             {
                 return result;
             }
 
-            return ClassifyExplicitOnlyConversionFromExpression(defaultOnFailure, sourceExpression, destination, isChecked: isChecked, ref useSiteInfo, forCast: false);
+            return ClassifyExplicitOnlyConversionFromExpression(noConversionOnFailure, sourceExpression, destination, isChecked: isChecked, ref useSiteInfo, forCast: false);
         }
 
         /// <summary>
@@ -758,18 +758,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion GetImplicitUserDefinedConversion(bool defaultOnFailure, BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitUserDefinedConversion(bool noConversionOnFailure, BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var conversionResult = AnalyzeImplicitUserDefinedConversions(sourceExpression, source, destination, ref useSiteInfo);
-            if (defaultOnFailure && conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
-                return default;
+            if (noConversionOnFailure && conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
+                return Conversion.NoConversion;
 
             return new Conversion(conversionResult, isImplicit: true);
         }
 
         private Conversion GetImplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return GetImplicitUserDefinedConversion(defaultOnFailure: false, sourceExpression: null, source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedConversion(noConversionOnFailure: false, sourceExpression: null, source, destination, ref useSiteInfo);
         }
 
         private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
@@ -846,18 +846,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion GetExplicitUserDefinedConversion(bool defaultOnFailure, BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetExplicitUserDefinedConversion(bool noConversionOnFailure, BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             UserDefinedConversionResult conversionResult = AnalyzeExplicitUserDefinedConversions(sourceExpression, source, destination, isChecked: isChecked, ref useSiteInfo);
-            if (defaultOnFailure && conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
-                return default;
+            if (noConversionOnFailure && conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
+                return Conversion.NoConversion;
 
             return new Conversion(conversionResult, isImplicit: false);
         }
 
         private Conversion GetExplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return GetExplicitUserDefinedConversion(defaultOnFailure: false, sourceExpression: null, source, destination, isChecked, ref useSiteInfo);
+            return GetExplicitUserDefinedConversion(noConversionOnFailure: false, sourceExpression: null, source, destination, isChecked, ref useSiteInfo);
         }
 
         private Conversion DeriveStandardExplicitFromOppositeStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1337,9 +1337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
 
         private Conversion ClassifyExplicitOnlyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
-            => ClassifyExplicitOnlyConversionFromExpression(defaultOnFailure: false, sourceExpression, destination, isChecked, ref useSiteInfo, forCast);
+            => ClassifyExplicitOnlyConversionFromExpression(noConversionOnFailure: false, sourceExpression, destination, isChecked, ref useSiteInfo, forCast);
 
-        private Conversion ClassifyExplicitOnlyConversionFromExpression(bool defaultOnFailure, BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion ClassifyExplicitOnlyConversionFromExpression(bool noConversionOnFailure, BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
             Debug.Assert(sourceExpression != null);
             Debug.Assert(Compilation != null);
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetExplicitUserDefinedConversion(defaultOnFailure, sourceExpression, sourceType, destination, isChecked: isChecked, ref useSiteInfo);
+            return GetExplicitUserDefinedConversion(noConversionOnFailure, sourceExpression, sourceType, destination, isChecked: isChecked, ref useSiteInfo);
         }
 
         private static bool HasImplicitEnumerationConversion(BoundExpression source, TypeSymbol destination)
