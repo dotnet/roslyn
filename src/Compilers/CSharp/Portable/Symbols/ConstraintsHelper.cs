@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -546,17 +547,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal ref struct PooledCheckConstraintsArgsBoxed
             {
-                public readonly CheckConstraintsArgsBoxed BoxedArgs;
+                private CheckConstraintsArgsBoxed _boxedArgs;
 
                 public PooledCheckConstraintsArgsBoxed(CheckConstraintsArgsBoxed checkConstraintsArgs)
                 {
-                    BoxedArgs = checkConstraintsArgs;
+                    _boxedArgs = checkConstraintsArgs;
+                }
+
+                public CheckConstraintsArgsBoxed BoxedArgs
+                {
+                    get
+                    {
+                        Debug.Assert(_boxedArgs != null);
+                        return _boxedArgs;
+                    }
                 }
 
                 public void Dispose()
                 {
-                    BoxedArgs.Args = default;
-                    s_checkConstraintsArgsBoxedPool.Free(BoxedArgs);
+                    var boxedArgs = Interlocked.Exchange(ref _boxedArgs, null);
+                    if (boxedArgs != null)
+                    {
+                        boxedArgs.Args = default;
+                        s_checkConstraintsArgsBoxedPool.Free(boxedArgs);
+                    }
                 }
             }
         }
