@@ -1575,24 +1575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A successor function used to topologically sort the DagState set.
             /// </summary>
-            private static ImmutableArray<DagState> Successor(DagState state)
+            private static void AddSuccessor(ArrayBuilder<DagState> builder, DagState state)
             {
-                if (state.TrueBranch != null && state.FalseBranch != null)
-                {
-                    return ImmutableArray.Create(state.FalseBranch, state.TrueBranch);
-                }
-                else if (state.TrueBranch != null)
-                {
-                    return ImmutableArray.Create(state.TrueBranch);
-                }
-                else if (state.FalseBranch != null)
-                {
-                    return ImmutableArray.Create(state.FalseBranch);
-                }
-                else
-                {
-                    return ImmutableArray<DagState>.Empty;
-                }
+                builder.AddIfNotNull(state.TrueBranch);
+                builder.AddIfNotNull(state.FalseBranch);
             }
 
             /// <summary>
@@ -1602,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns>True if the graph was acyclic.</returns>
             public bool TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> result)
             {
-                return TopologicalSort.TryIterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor, out result);
+                return TopologicalSort.TryIterativeSort(this.RootNode, AddSuccessor, out result);
             }
 
 #if DEBUG

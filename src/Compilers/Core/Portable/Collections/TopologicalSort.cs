@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,6 +17,16 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class TopologicalSort
     {
+
+        public static bool TryIterativeSort<TNode>(
+            TNode node,
+            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
+            out ImmutableArray<TNode> result)
+            where TNode : notnull
+        {
+            return TryIterativeSort(SpecializedCollections.SingletonEnumerable(node), addSuccessors, out result);
+        }
+
         /// <summary>
         /// Produce a topological sort of a given directed acyclic graph, given a set of nodes which include all nodes
         /// that have no predecessors. Any nodes not in the given set, but reachable through successors, will be added
@@ -24,14 +35,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TNode">The type of the node</typeparam>
         /// <param name="nodes">Any subset of the nodes that includes all nodes with no predecessors</param>
-        /// <param name="successors">A function mapping a node to its set of successors</param>
+        /// <param name="addSuccessors">A function that adds successor nodes to the provided <see cref="ArrayBuilder{TNode}"/>.</param>
         /// <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
         /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
-        public static bool TryIterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors, out ImmutableArray<TNode> result)
+        public static bool TryIterativeSort<TNode>(
+            IEnumerable<TNode> nodes,
+            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
+            out ImmutableArray<TNode> result)
             where TNode : notnull
         {
             // First, count the predecessors of each node
-            PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
+            PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, addSuccessors, out ImmutableArray<TNode> allNodes);
+
+            var successors = ArrayBuilder<TNode>.GetInstance();
 
             // Initialize the ready set with those nodes that have no predecessors
             var ready = ArrayBuilder<TNode>.GetInstance();
@@ -49,7 +65,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var node = ready.Pop();
                 resultBuilder.Add(node);
-                foreach (var succ in successors(node))
+                
+                successors.Clear();
+                addSuccessors(successors, node);
+
+                foreach (var succ in successors)
                 {
                     var count = predecessorCounts[succ];
                     Debug.Assert(count != 0);
@@ -64,15 +84,18 @@ namespace Microsoft.CodeAnalysis
             // At this point all the nodes should have been output, otherwise there was a cycle
             bool hadCycle = predecessorCounts.Count != resultBuilder.Count;
             result = hadCycle ? ImmutableArray<TNode>.Empty : resultBuilder.ToImmutable();
+            
             predecessorCounts.Free();
             ready.Free();
             resultBuilder.Free();
+            successors.Free();
+
             return !hadCycle;
         }
 
         private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(
             IEnumerable<TNode> nodes,
-            Func<TNode, ImmutableArray<TNode>> successors,
+            Action<ArrayBuilder<TNode>, TNode> addSuccessors,
             out ImmutableArray<TNode> allNodes)
             where TNode : notnull
         {
@@ -80,6 +103,8 @@ namespace Microsoft.CodeAnalysis
             var counted = PooledHashSet<TNode>.GetInstance();
             var toCount = ArrayBuilder<TNode>.GetInstance();
             var allNodesBuilder = ArrayBuilder<TNode>.GetInstance();
+            var successors = ArrayBuilder<TNode>.GetInstance();
+
             toCount.AddRange(nodes);
             while (toCount.Count != 0)
             {
@@ -95,7 +120,10 @@ namespace Microsoft.CodeAnalysis
                     predecessorCounts.Add(n, 0);
                 }
 
-                foreach (var succ in successors(n))
+                successors.Clear();
+                addSuccessors(successors, n);
+
+                foreach (var succ in successors)
                 {
                     toCount.Push(succ);
                     if (predecessorCounts.TryGetValue(succ, out int succPredecessorCount))
@@ -109,6 +137,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            successors.Free();
             counted.Free();
             toCount.Free();
             allNodes = allNodesBuilder.ToImmutableAndFree();
