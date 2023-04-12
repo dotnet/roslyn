@@ -728,6 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
+
+            // release the entire intermediary tree.  We no longer need it.
+            decisionDag.RootNode.FreeAll();
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
@@ -790,11 +793,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so that it is processed only once. This object identity uniqueness will be important later when we
                 // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
                 // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-                DagState uniquifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+                DagState uniquifyState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
                 {
                     var state = new DagState(cases, remainingValues);
                     if (uniqueState.TryGetValue(state, out DagState? existingState))
                     {
+                        // Already had a matching state.  Free the one we just created as we don't need it anymore.
+                        state.Free();
+
                         // We found an existing state that matches.  Update its set of possible remaining values
                         // of each temp by taking the union of the sets on each incoming edge.
                         var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
@@ -841,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                var initialState = uniquifyState(rewrittenCases.ToImmutableAndFree(), ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+                var initialState = uniquifyState(rewrittenCases, ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
 
                 // Go through the worklist of DagState nodes for which we have not yet computed
                 // successor states.
@@ -851,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RoslynDebug.Assert(state.SelectedTest == null);
                     RoslynDebug.Assert(state.TrueBranch == null);
                     RoslynDebug.Assert(state.FalseBranch == null);
-                    if (state.Cases.IsDefaultOrEmpty)
+                    if (state.Cases.Count == 0)
                     {
                         // If this state has no more cases that could possibly match, then
                         // we know there is no case that will match and this node represents a "default"
@@ -875,7 +881,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // There is a when clause to evaluate.
                             // In case the when clause fails, we prepare for the remaining cases.
-                            var stateWhenFails = state.Cases.RemoveAt(0);
+                            var stateWhenFails = ArrayBuilder<StateForCase>.GetInstance(state.Cases.Count - 1);
+                            for (int i = 0, n = state.Cases.Count; i < n; i++)
+                                stateWhenFails.Add(state.Cases[i]);
+
                             state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
                         }
                     }
@@ -904,8 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundDagTest d:
                                 bool foundExplicitNullTest = false;
                                 SplitCases(state, d,
-                                    out ImmutableArray<StateForCase> whenTrueDecisions,
-                                    out ImmutableArray<StateForCase> whenFalseDecisions,
+                                    out var whenTrueDecisions,
+                                    out var whenFalseDecisions,
                                     out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
                                     out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
                                     ref foundExplicitNullTest);
@@ -966,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
-                if (state.Cases.IsDefaultOrEmpty)
+                if (state.Cases.Count == 0)
                 {
                     state.Dag = defaultDecision;
                     continue;
@@ -1048,15 +1057,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SplitCases(
             DagState state,
             BoundDagTest test,
-            out ImmutableArray<StateForCase> whenTrue,
-            out ImmutableArray<StateForCase> whenFalse,
+            out ArrayBuilder<StateForCase> whenTrue,
+            out ArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
-            ImmutableArray<StateForCase> cases = state.Cases;
-            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
-            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            var cases = state.Cases;
+            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
+            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             (whenTrueValues, whenFalseValues, bool whenTruePossible, bool whenFalsePossible) = SplitValues(state.RemainingValues, test);
             // whenTruePossible means the test could possibly have succeeded.  whenFalsePossible means it could possibly have failed.
             // Tests that are either impossible or tautological (i.e. either of these false) given
@@ -1081,8 +1090,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenFalseBuilder.Add(whenFalseState);
             }
 
-            whenTrue = whenTrueBuilder.ToImmutableAndFree();
-            whenFalse = whenFalseBuilder.ToImmutableAndFree();
+            whenTrue = whenTrueBuilder;
+            whenFalse = whenFalseBuilder;
         }
 
         private static (
@@ -1167,9 +1176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (OriginalInput(input), lengthTemp, index);
         }
 
-        private static ImmutableArray<StateForCase> RemoveEvaluation(ImmutableArray<StateForCase> cases, BoundDagEvaluation e)
+        private static ArrayBuilder<StateForCase> RemoveEvaluation(ArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
         {
-            var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             foreach (var stateForCase in cases)
             {
                 var remainingTests = stateForCase.RemainingTests.RemoveEvaluation(e);
@@ -1187,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder;
         }
 
         /// <summary>
@@ -1655,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (DagState state in allStates)
                 {
-                    bool isFail = state.Cases.IsEmpty;
+                    bool isFail = state.Cases.Count == 0;
                     bool starred = isFail || state.Cases.First().PatternIsSatisfied;
                     result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : ""));
                     var remainingValues = state.RemainingValues.Select(kvp => $"{tempName(kvp.Key)}:{kvp.Value}");
@@ -1766,12 +1775,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
             /// </summary>
-            public readonly ImmutableArray<StateForCase> Cases;
+            public readonly ArrayBuilder<StateForCase> Cases;
 
-            public DagState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            public DagState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 this.Cases = cases;
                 this.RemainingValues = remainingValues;
+            }
+
+            public void Free()
+            {
+                Cases.Free();
+            }
+
+            public void FreeAll()
+            {
+                this.Free();
+                TrueBranch?.FreeAll();
+                FalseBranch?.FreeAll();
             }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
@@ -1821,12 +1842,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(x is { });
                 RoslynDebug.Assert(y is { });
-                return x == y || x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
+                if (x == y)
+                    return true;
+
+                if (x.Cases.Count != y.Cases.Count)
+                    return false;
+
+                for (int i = 0, n = x.Cases.Count; i < n; i++)
+                {
+                    if (!x.Cases[i].Equals(y.Cases[i]))
+                        return false;
+                }
+
+                return true;
             }
 
             public int GetHashCode(DagState x)
             {
-                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Length);
+                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Count);
             }
         }
 
