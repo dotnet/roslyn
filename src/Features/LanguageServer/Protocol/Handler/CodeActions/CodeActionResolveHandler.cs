@@ -323,8 +323,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                    if (edits.Length > 0)
+                    {
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                    }
 
                     // Rename
                     if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)

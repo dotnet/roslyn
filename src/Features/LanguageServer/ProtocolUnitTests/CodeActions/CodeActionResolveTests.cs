@@ -137,14 +137,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         }
 
         [WpfTheory, CombinatorialData]
-        public async Task Test(bool mutatingLspWorkspace)
+        public async Task TestRename(bool mutatingLspWorkspace)
         {
             var markUp = @"
 class {|caret:ABC|}
 {
 }";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Rename }
+                        }
+                    }
+                }
+            });
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
