@@ -234,21 +234,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                 : _diagnosticKind == DiagnosticKind.AnalyzerSemantic;
                         }
 
+                        includeSyntax = includeSyntax && analyzer.SupportAnalysisKind(AnalysisKind.Syntax);
+                        includeSemantic = includeSemantic && analyzer.SupportAnalysisKind(AnalysisKind.Semantic) && _document is Document;
+
                         if (includeSyntax || includeSemantic)
                         {
                             var state = stateSet.GetOrCreateActiveFileState(_document.Id);
 
-                            if (includeSyntax &&
-                                analyzer.SupportAnalysisKind(AnalysisKind.Syntax))
+                            if (includeSyntax)
                             {
                                 var existingData = state.GetAnalysisData(AnalysisKind.Syntax);
                                 if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Syntax, existingData, list, cancellationToken).ConfigureAwait(false))
                                     syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, state, existingData));
                             }
 
-                            if (includeSemantic &&
-                                analyzer.SupportAnalysisKind(AnalysisKind.Semantic) &&
-                                _document is Document)
+                            if (includeSemantic)
                             {
                                 var existingData = state.GetAnalysisData(AnalysisKind.Semantic);
                                 if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Semantic, existingData, list, cancellationToken).ConfigureAwait(false))
@@ -385,7 +385,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!incrementalAnalysis || analyzersWithState.All(analyzerWithState => analyzerWithState.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
                 using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
-                var anyDeprioritized = false;
                 foreach (var analyzerWithState in analyzersWithState)
                 {
                     Debug.Assert(_priorityProvider.MatchesPriority(analyzerWithState.Analyzer));
@@ -395,18 +394,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // We will subsequently execute this analyzer in the lower priority bucket.
                     if (await TryDeprioritizeAnalyzerAsync(analyzerWithState.Analyzer, analyzerWithState.ExistingData).ConfigureAwait(false))
                     {
-                        anyDeprioritized = true;
                         continue;
                     }
 
                     filteredAnalyzersWithStateBuilder.Add(analyzerWithState);
                 }
 
-                if (anyDeprioritized)
-                    analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
-
-                if (analyzersWithState.IsEmpty)
+                if (filteredAnalyzersWithStateBuilder.Count == 0)
                     return;
+
+                analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
 
                 var analyzers = analyzersWithState.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
