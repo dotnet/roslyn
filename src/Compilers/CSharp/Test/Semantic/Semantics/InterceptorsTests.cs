@@ -15,6 +15,7 @@ public class InterceptorsTests : CSharpTestBase
     // PROTOTYPE(ic): test a case where the original method has type parameter constraints.
     // PROTOTYPE(ic): for now we will just completely disallow type parameters in the interceptor.
     // PROTOTYPE(ic): test where interceptable is a constructed method or a retargeting method.
+    // PROTOTYPE(ic): Ensure that all `MethodSymbol.IsInterceptable` implementations have test coverage.
     // PROTOTYPE(ic): test where there are differences between 'scoped' modifiers and '[UnscopedRef]' attributes
 
     // PROTOTYPE(ic): Possible test cases:
@@ -1343,6 +1344,45 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(17,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
             //     [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
             Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 31)").WithArguments("InterceptableMethod", "11").WithLocation(17, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptsLocationBadPosition_07()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C { }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.
+                        // comment
+                        InterceptableMethod("call site");
+                }
+
+                [Interceptable]
+                public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
+
+                [InterceptsLocation("Program.cs", 12, 13)] // intercept comment above 'InterceptableMethod' token
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
+            }
+
+            static class CExt
+            {
+            }
+            """;
+        // PROTOTYPE(ic): the character suggested here is wrong. What should we do to give a useful diagnostic here?
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+                // Program.cs(19,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '37' instead.
+                //     [InterceptsLocation("Program.cs", 12, 13)] // intercept comment above 'InterceptableMethod' token
+                Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 13)").WithArguments("InterceptableMethod", "37").WithLocation(19, 6)
             );
     }
 

@@ -949,8 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeArguments = arguments.Attribute.CommonConstructorArguments;
             if (attributeArguments is not [
                 { Type.SpecialType: SpecialType.System_String },
-                { Kind: not TypedConstantKind.Array, Value: int displayLineNumber },
-                { Kind: not TypedConstantKind.Array, Value: int displayCharacterNumber }])
+                { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
+                { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
             {
                 // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
                 throw ExceptionUtilities.Unreachable();
@@ -1007,26 +1007,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
             // PROTOTYPE(ic): test with zero or negative display line/character numbers.
-            int lineNumber = displayLineNumber - 1;
-            int characterNumber = displayCharacterNumber - 1;
+            int lineNumberZeroBased = lineNumberOneBased - 1;
+            int characterNumberZeroBased = characterNumberOneBased - 1;
 
             var referencedLines = matchingTree.GetText().Lines;
             var referencedLineCount = referencedLines.Count;
-            if (lineNumber >= referencedLineCount)
+            if (lineNumberZeroBased >= referencedLineCount)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLineCount, displayLineNumber);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLineCount, lineNumberOneBased);
                 return;
             }
 
-            var line = referencedLines[lineNumber];
+            var line = referencedLines[lineNumberZeroBased];
             var lineLength = line.End - line.Start;
-            if (characterNumber >= lineLength)
+            if (characterNumberZeroBased >= lineLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, displayCharacterNumber);
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, characterNumberOneBased);
                 return;
             }
 
-            var referencedPosition = line.Start + characterNumber;
+            var referencedPosition = line.Start + characterNumberZeroBased;
             var root = matchingTree.GetRoot();
             var referencedToken = root.FindToken(referencedPosition);
             switch (referencedToken)
@@ -1050,15 +1050,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var tokenPositionDifference = referencedPosition - referencedToken.Span.Start;
             if (tokenPositionDifference != 0)
             {
-                // tokens don't span multiple lines, so we can apply the difference we found to the characterNumber within the line and figure out which character the user should have used.
-                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, displayCharacterNumber - tokenPositionDifference);
+                // PROTOTYPE(ic): when a token's leading trivia spans multiple lines, this doesn't suggest a valid position.
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, characterNumberOneBased - tokenPositionDifference);
                 return;
             }
 
             // PROTOTYPE(ic): The attribute should probably be expected to contain "display locations" (1-indexed) a la Diagnostic.ToString().
             // But to do this, we would want to expose helper API for source generators, to produce "display locations" to put in the attribute.
             // We would normalize to 0-indexed in this step. all our location-oriented complaints are made here, so we shouldn't need to convert back to "display location" after that point.
-            DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumber, characterNumber, attributeLocation), this);
+            DeclaringCompilation.AddInterception(new InterceptsLocationAttributeData(filePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation), this);
         }
 
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
