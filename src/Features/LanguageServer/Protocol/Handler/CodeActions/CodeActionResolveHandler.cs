@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
-            using var _ = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
+            using var _1 = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
+            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var modifiedDocumentIds);
 
             foreach (var option in operations)
             {
@@ -290,26 +291,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    IEnumerable<TextChange> textChanges;
-
-                    // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
-                    // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
-                    if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
+                    // For linked documents, only generated the document edit once.
+                    if (modifiedDocumentIds.Add(docId))
                     {
-                        Contract.ThrowIfNull(textDiffService);
-                        textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        textChanges = newText.GetTextChanges(oldText);
-                    }
+                        var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                        IEnumerable<TextChange> textChanges;
+
+                        // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
+                        // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
+                        if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
+                        {
+                            Contract.ThrowIfNull(textDiffService);
+                            textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            textChanges = newText.GetTextChanges(oldText);
+                        }
+
+                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+
+                        var linkedDocuments = solution.GetRelatedDocumentIds(docId);
+                        modifiedDocumentIds.AddRange(linkedDocuments);
+                    }
                 }
             }
         }
