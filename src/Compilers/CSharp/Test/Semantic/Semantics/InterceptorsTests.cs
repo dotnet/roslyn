@@ -673,37 +673,45 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void LocalFunctionInterceptor()
+    public void BadMethodKind()
     {
         var source = """
             using System.Runtime.CompilerServices;
-            using System;
-
-            interface I1 { }
-            class C : I1 { }
 
             static class Program
             {
                 [Interceptable]
-                public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+                public static void InterceptableMethod(string param) { }
 
                 public static void Main()
                 {
-                    InterceptableMethod("call site");
+                    InterceptableMethod("");
+                    Interceptor1("");
 
-                    [InterceptsLocation("Program.cs", 13, 8)]
-                    static void Interceptor1(string param) { Console.Write("interceptor " + param); }
+                    var lambda = [InterceptsLocation("Program.cs", 13, 8)] (string param) => { }; // 1
+
+                    [InterceptsLocation("Program.cs", 13, 8)] // 2
+                    static void Interceptor1(string param) { }
+                }
+
+                public static string Prop
+                {
+                    [InterceptsLocation("Program.cs", 13, 8)] // 3
+                    set { }
                 }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyDiagnostics(
-            // Program.cs(16,10): error CS27009: An interceptor method must be an ordinary member method.
-            //         [InterceptsLocation("Program.cs", 13, 8)]
-            Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(16, 10),
-            // Program.cs(17,21): warning CS8321: The local function 'Interceptor1' is declared but never used
-            //         static void Interceptor1(string param) { Console.Write("interceptor " + param); }
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Interceptor1").WithArguments("Interceptor1").WithLocation(17, 21)
+            // Program.cs(13,23): error CS27009: An interceptor method must be an ordinary member method.
+            //         var lambda = [InterceptsLocation("Program.cs", 13, 8)] (string param) => { }; // 1
+            Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(13, 23),
+            // Program.cs(15,10): error CS27009: An interceptor method must be an ordinary member method.
+            //         [InterceptsLocation("Program.cs", 13, 8)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(15, 10),
+            // Program.cs(21,10): error CS27009: An interceptor method must be an ordinary member method.
+            //         [InterceptsLocation("Program.cs", 13, 8)] // 3
+            Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(21, 10)
             );
     }
 
@@ -1123,15 +1131,23 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
+                [InterceptsLocation("Program.cs", 25, 1)]
+                [InterceptsLocation("Program.cs", 26, 1)]
                 [InterceptsLocation("Program.cs", 100, 1)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(21,6): error CS27005: The given file has '23' lines, which is fewer than the provided line number '100'.
-                //     [InterceptsLocation("Program.cs", 100, 1)]
-                Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, @"InterceptsLocation(""Program.cs"", 100, 1)").WithArguments("23", "100").WithLocation(21, 6)
+            // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
+            //     [InterceptsLocation("Program.cs", 25, 1)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 25, 1)").WithArguments("}").WithLocation(21, 6),
+            // Program.cs(22,6): error CS27005: The given file has '25' lines, which is fewer than the provided line number '26'.
+            //     [InterceptsLocation("Program.cs", 26, 1)]
+            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, @"InterceptsLocation(""Program.cs"", 26, 1)").WithArguments("25", "26").WithLocation(22, 6),
+            // Program.cs(23,6): error CS27005: The given file has '25' lines, which is fewer than the provided line number '100'.
+            //     [InterceptsLocation("Program.cs", 100, 1)]
+            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, @"InterceptsLocation(""Program.cs"", 100, 1)").WithArguments("25", "100").WithLocation(23, 6)
             );
     }
 
@@ -1159,15 +1175,23 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
+                [InterceptsLocation("Program.cs", 16, 5)]
+                [InterceptsLocation("Program.cs", 16, 6)]
                 [InterceptsLocation("Program.cs", 16, 1000)]
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
-            //     [InterceptsLocation("Program.cs", 15, 1000)]
-            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 1000)").WithArguments("5", "1000").WithLocation(21, 6)
+            // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
+            //     [InterceptsLocation("Program.cs", 16, 5)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 16, 5)").WithArguments("}").WithLocation(21, 6),
+            // Program.cs(22,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '6'.
+            //     [InterceptsLocation("Program.cs", 16, 6)]
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 6)").WithArguments("5", "6").WithLocation(22, 6),
+            // Program.cs(23,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
+            //     [InterceptsLocation("Program.cs", 16, 1000)]
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 1000)").WithArguments("5", "1000").WithLocation(23, 6)
             );
     }
 
@@ -1284,6 +1308,42 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 14, 33)] // intercept spaces after 'InterceptableMethod' token
             Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 33)").WithArguments("InterceptableMethod", "11").WithLocation(21, 6)
         );
+    }
+
+    [Fact]
+    public void InterceptsLocationBadPosition_06()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C { }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod/*comment*/("call site");
+                }
+
+                [Interceptable]
+                public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
+
+                [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
+            }
+
+            static class CExt
+            {
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            //     [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 31)").WithArguments("InterceptableMethod", "11").WithLocation(17, 6)
+            );
     }
 
     [Fact]
