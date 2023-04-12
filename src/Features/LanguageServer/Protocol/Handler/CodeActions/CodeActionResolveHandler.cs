@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -155,6 +156,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             return codeAction;
                         }
                     }
+
+                    if (projectChange.GetChangedDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution))
+                        || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution)
+                        || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution))))
+                    {
+                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
+                            || !resourceOperations.Contains(ResourceOperationKind.Rename))
+                        {
+                            // Rename documents is not supported by this workspace
+                            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                            return codeAction;
+                        }
+                    }
                 }
 
 #if false
@@ -264,8 +278,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var newTextDoc = getNewDocument(docId);
                     Contract.ThrowIfNull(newTextDoc);
 
+                    // Create the document as empty
+                    textDocumentEdits.Add(new CreateFile() { Uri = newTextDoc.GetURI() });
+
                     var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    CopyDocumentToNewLocation(newTextDoc.GetURI(), newText, textDocumentEdits);
+
+                    // And then give it content
+                    var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
+                    var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
                 }
             }
 
@@ -283,67 +305,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
                     // If the document has text change.
-                    if (newTextDoc.HasTextChanged(oldTextDoc, ignoreUnchangeableDocument: false))
+
+                    var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    IEnumerable<TextChange> textChanges;
+
+                    // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
+                    // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
+                    if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
                     {
-                        var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        IEnumerable<TextChange> textChanges;
-
-                        // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
-                        // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
-                        if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
-                        {
-                            Contract.ThrowIfNull(textDiffService);
-                            textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            textChanges = newText.GetTextChanges(oldText);
-                        }
-
-                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                        Contract.ThrowIfNull(textDiffService);
+                        textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        textChanges = newText.GetTextChanges(oldText);
                     }
 
-                    // If the document has name/folder/filePath change
-                    if (newTextDoc.HasInfoChanged(oldTextDoc))
+                    var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+
+                    // Rename
+                    if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)
                     {
-                        var oldDocumentAttribute = oldTextDoc.State.Attributes;
-                        var newDocumentAttribute = newTextDoc.State.Attributes;
-
-                        // Rename
-                        if (oldDocumentAttribute.Name != newDocumentAttribute.Name)
-                        {
-                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
-                        }
-
-                        // Move FilePath
-                        if (oldDocumentAttribute.FilePath != newDocumentAttribute.FilePath)
-                        {
-                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            CutDocumentToNewLocation(newTextDoc.GetURI(), oldTextDoc.GetURI(), newText, textDocumentEdits);
-                        }
-
-                        // folder change
-                        if (!oldDocumentAttribute.Folders.SequenceEqual(newDocumentAttribute.Folders))
-                        {
-                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            CutDocumentToNewLocation(newTextDoc.GetUriFromContainingFolders(), oldTextDoc.GetUriFromContainingFolders(), newText, textDocumentEdits);
-                        }
+                        textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
                     }
                 }
-            }
-
-            static void CutDocumentToNewLocation(
-                Uri newLocation,
-                Uri oldLocation,
-                SourceText sourceText,
-                ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> textDocumentEdits)
-            {
-                CopyDocumentToNewLocation(newLocation, sourceText, textDocumentEdits);
-                textDocumentEdits.Add(new DeleteFile() { Uri = oldLocation });
             }
 
             static void CopyDocumentToNewLocation(
@@ -351,15 +340,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 SourceText sourceText,
                 ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> textDocumentEdits)
             {
-                // Create the document as empty
-                textDocumentEdits.Add(new CreateFile() { Uri = newLocation });
 
-                // And then give it content
-                var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
-                var edit = new TextEdit { Range = emptyDocumentRange, NewText = sourceText.ToString() };
-                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newLocation };
-                textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
             }
+        }
+
+        private static bool HasDocumentNameChange(DocumentId documentId, Solution newSolution, Solution oldSolution)
+        {
+            var newDocument = newSolution.GetRequiredDocument(documentId);
+            var oldDocument = oldSolution.GetRequiredDocument(documentId);
+            return newDocument.State.Name != oldDocument.State.Name;
         }
     }
 }
