@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<SegmentedList<TItem>> pool, SegmentedList<TItem> obj)
-            => pool.ClearAndFree(obj);
+            => pool.ClearAndFree(obj, pool.TrimOnFree);
         #endregion
     }
 }
