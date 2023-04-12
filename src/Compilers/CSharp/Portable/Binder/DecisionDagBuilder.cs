@@ -779,7 +779,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // A work list of DagStates whose successors need to be computed
             var workList = ArrayBuilder<DagState>.GetInstance();
-            try
+
+            var result = makeDecisionDag(casesForRootNode);
+
+            workList.Free();
+            return result;
+
+            DecisionDag makeDecisionDag(ArrayBuilder<StateForCase> casesForRootNode)
             {
                 // A mapping used to make each DagState unique (i.e. to de-dup identical states).
                 var uniqueState = new Dictionary<DagState, DagState>(DagStateEquivalence.Instance);
@@ -924,10 +930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new DecisionDag(initialState);
-            }
-            finally
-            {
-                workList.Free();
             }
         }
 
