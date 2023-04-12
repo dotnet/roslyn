@@ -821,7 +821,7 @@ next:;
 
                     case TypeKind.Struct:
                     case TypeKind.Class:
-                        return AttributeLocation.Type;
+                        return AttributeLocation.Type | (HasPrimaryConstructor ? AttributeLocation.Method : 0);
 
                     default:
                         return AttributeLocation.None;
