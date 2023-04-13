@@ -6365,7 +6365,6 @@ public explicit extension R3 for object : R2 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead (if we keep an error)
         comp.VerifyDiagnostics(
             // (1,27): error CS9222: Extension marker method on type 'R2' is malformed.
             // public explicit extension R3 for object : R2 { }
