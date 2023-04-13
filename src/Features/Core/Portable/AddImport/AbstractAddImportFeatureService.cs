@@ -7,14 +7,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -167,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<Reference>.GetInstance(out var allReferences);
+            var allReferences = new ConcurrentStack<Reference>();
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
@@ -194,11 +191,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return allReferences.ToImmutable();
+            while (allReferences.Count > maxResults)
+                allReferences.TryPop(out _);
+
+            return allReferences.ToImmutableArray();
         }
 
         private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
+            ConcurrentStack<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults,
+            Project project, ConcurrentStack<Reference> allSymbolReferences, int maxResults,
             SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
+            Project project, ConcurrentStack<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             // Only do this if none of the project searches produced any results. We may have a 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task ProcessReferencesTask(
-            ArrayBuilder<Reference> allSymbolReferences,
+            ConcurrentStack<Reference> allSymbolReferences,
             int maxResults,
             CancellationTokenSource linkedTokenSource,
             Task<ImmutableArray<SymbolReference>> task)
@@ -328,9 +328,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             if (finishedTask == task)
             {
                 var result = await task.ConfigureAwait(false);
-                var count = AddRange(allSymbolReferences, result, maxResults);
+                AddRange(allSymbolReferences, result, maxResults);
 
-                if (count >= maxResults)
+                if (allSymbolReferences.Count >= maxResults)
                 {
                     try
                     {
@@ -444,13 +444,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private static int AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
+        private static void AddRange<TReference>(ConcurrentStack<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
             where TReference : Reference
         {
-            lock (allSymbolReferences)
+            foreach (var reference in proposedReferences)
             {
-                allSymbolReferences.AddRange(proposedReferences.Take(maxResults - allSymbolReferences.Count));
-                return allSymbolReferences.Count;
+                // It's fine that this is racey. Top level caller will still ensure we only have maxResults number of items.
+                if (allSymbolReferences.Count < maxResults)
+                    allSymbolReferences.Push(reference);
             }
         }
 
