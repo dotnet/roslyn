@@ -195,11 +195,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ConcurrentQueue<Reference> allSymbolReferences, SymbolReferenceFinder finder,
-            bool exact, CancellationToken cancellationToken)
+            ConcurrentQueue<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
-            AddRange(allSymbolReferences, references);
+            AddRange(
+                allSymbolReferences,
+                await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false));
         }
 
         private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
@@ -319,9 +319,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             CancellationTokenSource linkedTokenSource,
             Task<ImmutableArray<SymbolReference>> task)
         {
-            // Wait for either the task to finish, or the linked token to fire.
-            var result = await task.ConfigureAwait(false);
-            AddRange(allSymbolReferences, result);
+            AddRange(allSymbolReferences, await task.ConfigureAwait(false));
 
             // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
             // still searching.
