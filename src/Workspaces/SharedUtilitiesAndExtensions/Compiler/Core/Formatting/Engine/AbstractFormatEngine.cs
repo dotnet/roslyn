@@ -146,15 +146,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             using var alignmentOperationScratch = ListPool<AlignTokensOperation>.Pool.GetPooledObject();
             using var anchorIndentationOperationsScratch = ListPool<AnchorIndentationOperation>.Pool.GetPooledObject();
 
+            var addIndentBlockOperations = _formattingRules.AddIndentBlockOperations;
+            var addSuppressOperation = _formattingRules.AddSuppressOperations;
+            var addAlignTokensOperations = _formattingRules.AddAlignTokensOperations;
+            var addAnchorIndentationOperations = _formattingRules.AddAnchorIndentationOperations;
+
             // iterating tree is very expensive. only do it once.
             foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                AddOperations(indentBlockOperation, indentBlockOperationScratch.Object, node, _formattingRules.AddIndentBlockOperations);
-                AddOperations(suppressOperation, suppressOperationScratch.Object, node, _formattingRules.AddSuppressOperations);
-                AddOperations(alignmentOperation, alignmentOperationScratch.Object, node, _formattingRules.AddAlignTokensOperations);
-                AddOperations(anchorIndentationOperations, anchorIndentationOperationsScratch.Object, node, _formattingRules.AddAnchorIndentationOperations);
+                AddOperations(indentBlockOperation, indentBlockOperationScratch.Object, node, addIndentBlockOperations);
+                AddOperations(suppressOperation, suppressOperationScratch.Object, node, addSuppressOperation);
+                AddOperations(alignmentOperation, alignmentOperationScratch.Object, node, addAlignTokensOperations);
+                AddOperations(anchorIndentationOperations, anchorIndentationOperationsScratch.Object, node, addAnchorIndentationOperations);
             }
 
             // make sure we order align operation from left to right
