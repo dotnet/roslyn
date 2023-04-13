@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var result);
             if (node != null)
             {
-
                 using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
                 {
                     if (!cancellationToken.IsCancellationRequested)
@@ -214,9 +213,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
             if (allSymbolReferences.Count >= maxResults)
-            {
                 return;
-            }
 
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
 
@@ -249,12 +246,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
+            // Only do this if none of the project searches produced any results. We may have a 
+            // lot of metadata to search through, and it would be good to avoid that if we can.
             if (allSymbolReferences.Count > 0)
-            {
-                // Only do this if none of the project searches produced any results. We may have a 
-                // lot of metadata to search through, and it would be good to avoid that if we can.
                 return;
-            }
 
             // Keep track of the references we've seen (so that we don't process them multiple times
             // across many sibling projects).  Prepopulate it with our own metadata references since
