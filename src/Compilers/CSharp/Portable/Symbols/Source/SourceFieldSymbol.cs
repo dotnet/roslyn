@@ -225,6 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             => ImmutableArray.Create(_syntaxReference);
 
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+            => IsDefinedInSourceTree(_syntaxReference, tree, definedWithinSpan);
+
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
