@@ -747,15 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
                 // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
                 // binding cycle.
-                var location = syntax.GetLocation();
-                Debug.Assert(location != null);
+                Debug.Assert(syntax.GetLocation() != null);
                 diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
                                     ? new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
                                     : new CSDiagnosticInfo(isDelegateConversion
                                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
                                                                : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
                                                            symbol),
-                                location);
+                                syntax.GetLocation()!);
             }
         }
 
