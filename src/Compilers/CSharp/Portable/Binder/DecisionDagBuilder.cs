@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(x is { });
                 RoslynDebug.Assert(y is { });
-                return x == y || x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
+                return x == y || x.Cases.SequenceEqual(y.Cases, static (a, b) => a.Equals(b));
             }
 
             public int GetHashCode(DagState x)
