@@ -29,12 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 : ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
+        /// <summary>
+        /// Generate the Uri of a document by replace the name in file path using the document's name.
+        /// Used to generate the correct Uri when rename a document, because calling <seealso cref="Document.WithName(string)"/> doesn't update the file path.
+        /// </summary>
         public static Uri GetUriFromName(this TextDocument document)
         {
             Contract.ThrowIfNull(document.FilePath);
             Contract.ThrowIfNull(document.Name);
-
             var directoryName = Path.GetDirectoryName(document.FilePath);
+
             Contract.ThrowIfNull(directoryName);
             var path = Path.Combine(directoryName, document.Name);
             return document is SourceGeneratedDocument
