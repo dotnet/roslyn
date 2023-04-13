@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
                 // individually.
-                findTasks.Add(ProcessReferencesTask(
+                findTasks.Add(ProcessReferencesAsync(
                     allSymbolReferences, maxResults, linkedTokenSource,
                     finder.FindInSourceSymbolsInProjectAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token)));
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Second, the SymbolFinder API doesn't even support searching them. 
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    findTasks.Add(ProcessReferencesTask(
+                    findTasks.Add(ProcessReferencesAsync(
                         allSymbolReferences, maxResults, linkedTokenSource,
                         finder.FindInMetadataSymbolsAsync(assembly, referenceProject, reference, exact, linkedTokenSource.Token)));
                 }
@@ -313,33 +313,29 @@ namespace Microsoft.CodeAnalysis.AddImport
             return result.ToImmutableAndFree();
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task ProcessReferencesTask(
+        private static async Task ProcessReferencesAsync(
             ConcurrentQueue<Reference> allSymbolReferences,
             int maxResults,
             CancellationTokenSource linkedTokenSource,
             Task<ImmutableArray<SymbolReference>> task)
         {
             // Wait for either the task to finish, or the linked token to fire.
-            var finishedTask = await Task.WhenAny(task, Task.Delay(Timeout.Infinite, linkedTokenSource.Token)).ConfigureAwait(false);
-            if (finishedTask == task)
-            {
-                var result = await task.ConfigureAwait(false);
-                AddRange(allSymbolReferences, result);
+            var result = await task.ConfigureAwait(false);
+            AddRange(allSymbolReferences, result);
 
-                if (allSymbolReferences.Count >= maxResults)
+            // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
+            // still searching.
+            if (allSymbolReferences.Count >= maxResults)
+            {
+                try
                 {
-                    try
-                    {
-                        linkedTokenSource.Cancel();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
+                    linkedTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
                 }
             }
         }
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         /// <summary>
         /// We ignore references that are in a directory that contains the names
@@ -441,8 +437,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private static void AddRange<TReference>(ConcurrentQueue<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences)
-            where TReference : Reference
+        private static void AddRange(ConcurrentQueue<Reference> allSymbolReferences, ImmutableArray<SymbolReference> proposedReferences)
         {
             foreach (var reference in proposedReferences)
                 allSymbolReferences.Enqueue(reference);
