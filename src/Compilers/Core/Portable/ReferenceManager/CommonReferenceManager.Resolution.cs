@@ -890,14 +890,14 @@ namespace Microsoft.CodeAnalysis
 
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(
             ImmutableArray<AssemblyIdentity> references,
-            MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> definitions,
-            bool resolveAgainstAssemblyBeingBuilt,
+            ImmutableArray<AssemblyData> definitions,
+            int definitionStartIndex,
             AssemblyIdentityComparer assemblyIdentityComparer)
         {
             var boundReferences = new AssemblyReferenceBinding[references.Length];
             for (int j = 0; j < references.Length; j++)
             {
-                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, resolveAgainstAssemblyBeingBuilt, assemblyIdentityComparer);
+                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, definitionStartIndex, assemblyIdentityComparer);
             }
 
             return boundReferences;
@@ -906,8 +906,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Used to match AssemblyRef with AssemblyDef.
         /// </summary>
-        /// <param name="definitions">Definitions to match against.</param>
-        /// <param name="resolveAgainstAssemblyBeingBuilt">Whether to attempt to resolve the reference against the assembly being built (index 0).</param>
+        /// <param name="definitions">Array of definition identities to match against.</param>
+        /// <param name="definitionStartIndex">An index of the first definition to consider, <paramref name="definitions"/> preceding this index are ignored.</param>
         /// <param name="reference">Reference identity to resolve.</param>
         /// <param name="assemblyIdentityComparer">Assembly identity comparer.</param>
         /// <returns>
@@ -915,8 +915,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         internal static AssemblyReferenceBinding ResolveReferencedAssembly(
             AssemblyIdentity reference,
-            MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> definitions,
-            bool resolveAgainstAssemblyBeingBuilt,
+            ImmutableArray<AssemblyData> definitions,
+            int definitionStartIndex,
             AssemblyIdentityComparer assemblyIdentityComparer)
         {
             // Dev11 C# compiler allows the versions to not match exactly, assuming that a newer library may be used instead of an older version.
@@ -925,19 +925,15 @@ namespace Microsoft.CodeAnalysis
 
             // definition with the lowest version higher than reference version, unless exact version found
             int minHigherVersionDefinition = -1;
-            Version? minHigherVersionDefinitionVersion = null;
             int maxLowerVersionDefinition = -1;
-            Version? maxLowerVersionDefinitionVersion = null;
 
-            foreach ((AssemblyData definitionData, int definitionIndex) in definitions[reference.Name])
+            // Skip assembly being built for now; it will be considered at the very end:
+            bool resolveAgainstAssemblyBeingBuilt = definitionStartIndex == 0;
+            definitionStartIndex = Math.Max(definitionStartIndex, 1);
+
+            for (int i = definitionStartIndex; i < definitions.Length; i++)
             {
-                // Skip assembly being built for now; it will be considered at the very end
-                if (definitionIndex == 0)
-                {
-                    continue;
-                }
-
-                AssemblyIdentity definition = definitionData.Identity;
+                AssemblyIdentity definition = definitions[i].Identity;
 
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
@@ -945,16 +941,15 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     case AssemblyIdentityComparer.ComparisonResult.Equivalent:
-                        return new AssemblyReferenceBinding(reference, definitionIndex);
+                        return new AssemblyReferenceBinding(reference, i);
 
                     case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
                         if (reference.Version < definition.Version)
                         {
                             // Refers to an older assembly than we have
-                            if (minHigherVersionDefinition == -1 || definition.Version < minHigherVersionDefinitionVersion)
+                            if (minHigherVersionDefinition == -1 || definition.Version < definitions[minHigherVersionDefinition].Identity.Version)
                             {
-                                minHigherVersionDefinition = definitionIndex;
-                                minHigherVersionDefinitionVersion = definition.Version;
+                                minHigherVersionDefinition = i;
                             }
                         }
                         else
@@ -962,10 +957,9 @@ namespace Microsoft.CodeAnalysis
                             Debug.Assert(reference.Version > definition.Version);
 
                             // Refers to a newer assembly than we have
-                            if (maxLowerVersionDefinition == -1 || definition.Version > maxLowerVersionDefinitionVersion)
+                            if (maxLowerVersionDefinition == -1 || definition.Version > definitions[maxLowerVersionDefinition].Identity.Version)
                             {
-                                maxLowerVersionDefinition = definitionIndex;
-                                maxLowerVersionDefinitionVersion = definition.Version;
+                                maxLowerVersionDefinition = i;
                             }
                         }
 
@@ -995,17 +989,11 @@ namespace Microsoft.CodeAnalysis
             // substitute for a collection of Windows.*.winmd compile-time references.
             if (reference.IsWindowsComponent())
             {
-                foreach ((AssemblyData definitionData, int definitionIndex) in definitions[AssemblyIdentityExtensions.WindowsRuntimeIdentitySimpleName])
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
-                    // Skip assembly being built for now; it will be considered at the very end
-                    if (definitionIndex == 0)
+                    if (definitions[i].Identity.IsWindowsRuntime())
                     {
-                        continue;
-                    }
-
-                    if (definitionData.Identity.IsWindowsRuntime())
-                    {
-                        return new AssemblyReferenceBinding(reference, definitionIndex);
+                        return new AssemblyReferenceBinding(reference, i);
                     }
                 }
             }
@@ -1019,24 +1007,19 @@ namespace Microsoft.CodeAnalysis
             // allow the compilation to match the reference.
             if (reference.ContentType == AssemblyContentType.WindowsRuntime)
             {
-                foreach ((AssemblyData definitionData, int definitionIndex) in definitions[reference.Name])
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
-                    // Skip assembly being built for now; it will be considered at the very end
-                    if (definitionIndex == 0)
-                    {
-                        continue;
-                    }
-
-                    var definition = definitionData.Identity;
-                    var sourceCompilation = definitionData.SourceCompilation;
+                    var definition = definitions[i].Identity;
+                    var sourceCompilation = definitions[i].SourceCompilation;
                     if (definition.ContentType == AssemblyContentType.Default &&
                         sourceCompilation?.Options.OutputKind == OutputKind.WindowsRuntimeMetadata &&
+                        AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name) &&
                         reference.Version.Equals(definition.Version) &&
                         reference.IsRetargetable == definition.IsRetargetable &&
                         AssemblyIdentityComparer.CultureComparer.Equals(reference.CultureName, definition.CultureName) &&
                         AssemblyIdentity.KeysEqual(reference, definition))
                     {
-                        return new AssemblyReferenceBinding(reference, definitionIndex);
+                        return new AssemblyReferenceBinding(reference, i);
                     }
                 }
             }
@@ -1044,16 +1027,11 @@ namespace Microsoft.CodeAnalysis
             // As in the native compiler (see IMPORTER::MapAssemblyRefToAid), we compare against the
             // compilation (i.e. source) assembly as a last resort.  We follow the native approach of
             // skipping the public key comparison since we have yet to compute it.
-            if (resolveAgainstAssemblyBeingBuilt)
+            if (resolveAgainstAssemblyBeingBuilt &&
+                AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definitions[0].Identity.Name))
             {
-                foreach ((AssemblyData definitionData, int definitionIndex) in definitions[reference.Name])
-                {
-                    if (definitionIndex == 0)
-                    {
-                        Debug.Assert(definitionData.Identity.PublicKeyToken.IsEmpty);
-                        return new AssemblyReferenceBinding(reference, 0);
-                    }
-                }
+                Debug.Assert(definitions[0].Identity.PublicKeyToken.IsEmpty);
+                return new AssemblyReferenceBinding(reference, 0);
             }
 
             return new AssemblyReferenceBinding(reference);
