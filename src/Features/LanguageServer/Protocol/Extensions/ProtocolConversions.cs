@@ -159,7 +159,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
-            var uriString = $"{(filePath.EndsWith(VirtualCSharpFileSuffix) ? RazorVirtualFileScheme : string.Empty)}{filePath}";
+            var uriString = filePath;
+            if (filePath.EndsWith(VirtualCSharpFileSuffix))
+            {
+                uriString = RazorVirtualFileScheme + filePath;
+            }
 
             return new Uri(uriString, UriKind.Absolute);
         }
