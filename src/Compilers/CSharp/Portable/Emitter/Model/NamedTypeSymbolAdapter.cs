@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic;
+                return this.IsSealed || this.IsStatic || this.IsExtension;
             }
         }
 

@@ -1616,7 +1616,7 @@ next:;
                 if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
                     addPoisonAttributes(ref attributes, compilation, hasObsolete,
-                        PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs));
+                        PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs), isOptionalUse: true);
                 }
             }
             else if (this.IsExtension)
@@ -1624,7 +1624,7 @@ next:;
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
                 addPoisonAttributes(ref attributes, compilation, hasObsolete,
-                    PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes));
+                    PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes), isOptionalUse: false);
             }
 
             if (this.IsReadOnly)
@@ -1678,7 +1678,7 @@ next:;
             return;
 
             static void addPoisonAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
-                bool hasObsolete, string marker, string compilerFeature)
+                bool hasObsolete, string marker, string compilerFeature, bool isOptionalUse)
             {
                 // If user specified an Obsolete attribute, we cannot emit ours.
                 // NB: we do not check the kind of deprecation. 
@@ -1691,12 +1691,12 @@ next:;
                         ImmutableArray.Create(
                             new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, marker), // message
                             new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
-                        isOptionalUse: true));
+                        isOptionalUse: isOptionalUse));
                 }
 
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
                     ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, compilerFeature)),
-                    isOptionalUse: true));
+                    isOptionalUse: isOptionalUse));
             }
         }
 

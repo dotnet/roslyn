@@ -368,7 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
-                case TypeKind.Extension:
                     mods |= DeclarationModifiers.Sealed;
                     break;
                 case TypeKind.Delegate:
@@ -2560,6 +2559,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
                 }
+            }
+
+            if (this.IsExtension)
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_ObsoleteAttribute__ctor, diagnostics, GetFirstLocation());
             }
         }
 
@@ -5047,6 +5052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            // PROTOTYPE should count extended type and base extensions
             var builder = new MostCommonNullableValueBuilder();
             var baseType = BaseTypeNoUseSiteDiagnostics;
             if (baseType is object)

@@ -493,11 +493,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
+            return GetDeclaredBaseType(skipTransformsIfNecessary: false);
+        }
+
+        private NamedTypeSymbol GetDeclaredBaseType(bool skipTransformsIfNecessary)
+        {
+            if (TypeKind is TypeKind.Extension)
+            {
+                return null;
+            }
+
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                var baseType = MakeTypeKindAndBaseTypeFromMetadata().BaseType;
+                var baseType = MakeBaseTypeFromMetadata();
                 if (baseType is object)
                 {
+                    if (skipTransformsIfNecessary)
+                    {
+                        // If the transforms are not necessary, return early without updating the
+                        // base type field. This avoids cycles decoding nullability in particular.
+                        return baseType;
+                    }
+
                     var moduleSymbol = ContainingPEModule;
                     baseType = (NamedTypeSymbol)ApplyTransforms(baseType, _handle, moduleSymbol);
                 }
@@ -525,6 +542,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return _lazyDeclaredInterfaces;
+        }
+
+        private NamedTypeSymbol MakeBaseTypeFromMetadata()
+        {
+            if (!_flags.IsInterface())
+            {
+                try
+                {
+                    var moduleSymbol = ContainingPEModule;
+                    EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
+                    if (!token.IsNil)
+                    {
+                        return (NamedTypeSymbol)new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
+                    }
+                }
+                catch (BadImageFormatException mrEx)
+                {
+                    return new UnsupportedMetadataTypeSymbol(mrEx);
+                }
+            }
+
+            return null;
         }
 
         private ImmutableArray<NamedTypeSymbol> MakeDeclaredInterfaces()
@@ -1720,6 +1759,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+                if (IsExtension)
+                    return false;
+
                 return
                     (_flags & TypeAttributes.Sealed) != 0 &&
                     (_flags & TypeAttributes.Abstract) == 0;
@@ -1797,93 +1839,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 TypeKind result = _lazyKind;
+
                 if (result == TypeKind.Unknown)
                 {
-                    result = MakeTypeKindAndBaseTypeFromMetadata().TypeKind;
+                    if (_flags.IsInterface())
+                    {
+                        result = TypeKind.Interface;
+                    }
+                    else
+                    {
+                        TypeSymbol @base = MakeBaseTypeFromMetadata();
+
+                        result = TypeKind.Class;
+
+                        if ((object)@base != null)
+                        {
+                            SpecialType baseCorTypeId = @base.SpecialType;
+
+                            switch (baseCorTypeId)
+                            {
+                                case SpecialType.System_Enum:
+                                    // Enum
+                                    result = TypeKind.Enum;
+                                    break;
+
+                                case SpecialType.System_MulticastDelegate:
+                                    // Delegate
+                                    result = TypeKind.Delegate;
+                                    break;
+
+                                case SpecialType.System_ValueType:
+                                    if (this.SpecialType == SpecialType.System_Enum)
+                                    {
+                                        // System.Enum is the only class that derives from ValueType
+                                        break;
+                                    }
+
+                                    // PROTOTYPE consider caching/optimizing this computation
+                                    if (!TryGetExtensionMarkerMethod().IsNil)
+                                    {
+                                        // Extension
+                                        result = TypeKind.Extension;
+                                    }
+                                    else
+                                    {
+                                        // Struct
+                                        result = TypeKind.Struct;
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+
                     _lazyKind = result;
                 }
 
                 return result;
-            }
-        }
-
-        private (TypeKind TypeKind, NamedTypeSymbol? BaseType) MakeTypeKindAndBaseTypeFromMetadata()
-        {
-            TypeKind result;
-            NamedTypeSymbol? @base;
-
-            if (_flags.IsInterface())
-            {
-                @base = null;
-                result = TypeKind.Interface;
-            }
-            else
-            {
-                @base = makeBaseTypeFromMetadata();
-                result = TypeKind.Class;
-
-                if ((object?)@base != null)
-                {
-                    SpecialType baseCorTypeId = @base.SpecialType;
-
-                    switch (baseCorTypeId)
-                    {
-                        case SpecialType.System_Enum:
-                            // Enum
-                            result = TypeKind.Enum;
-                            break;
-
-                        case SpecialType.System_MulticastDelegate:
-                            // Delegate
-                            result = TypeKind.Delegate;
-                            break;
-
-                        case SpecialType.System_ValueType:
-                            if (this.SpecialType == SpecialType.System_Enum)
-                            {
-                                // System.Enum is the only class that derives from ValueType
-                                break;
-                            }
-
-                            // PROTOTYPE consider caching/optimizing this computation
-                            if (!TryGetExtensionMarkerMethod().IsNil)
-                            {
-                                // Extension
-                                result = TypeKind.Extension;
-                                @base = null;
-                            }
-                            else
-                            {
-                                // Struct
-                                result = TypeKind.Struct;
-                            }
-                            break;
-                    }
-                }
-            }
-
-            return (result, @base);
-
-            NamedTypeSymbol? makeBaseTypeFromMetadata()
-            {
-                if (!_flags.IsInterface())
-                {
-                    try
-                    {
-                        var moduleSymbol = ContainingPEModule;
-                        EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
-                        if (!token.IsNil)
-                        {
-                            return (NamedTypeSymbol)new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
-                        }
-                    }
-                    catch (BadImageFormatException mrEx)
-                    {
-                        return new UnsupportedMetadataTypeSymbol(mrEx);
-                    }
-                }
-
-                return null;
             }
         }
 
@@ -2073,6 +2084,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol MakeAcyclicBaseType()
         {
+            if (TypeKind is TypeKind.Extension)
+            {
+                return null;
+            }
+
             NamedTypeSymbol declaredBase = GetDeclaredBaseType(null);
 
             // implicit base is not interesting for metadata cycle detection
@@ -2400,9 +2416,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic()
         {
-            // PROTOTYPE handle new compiler required feature attribute (as part of use-site diagnostics work)
             var decoder = new MetadataDecoder(ContainingPEModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
+            var allowedFeatures = CompilerFeatureRequiredFeatures.None;
+            if (IsRefLikeType)
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.RefStructs;
+            }
+            else if (IsExtension)
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.RefStructs | CompilerFeatureRequiredFeatures.ExtensionTypes;
+            }
+
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures, decoder);
 
             if (diag != null)
             {

@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
-                    // PROTOTYPE handle new compiler required feature attribute (as part of use-site diagnostics work)
+                    nameof(CompilerFeatureRequiredFeatures.ExtensionTypes) => CompilerFeatureRequiredFeatures.ExtensionTypes,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }
