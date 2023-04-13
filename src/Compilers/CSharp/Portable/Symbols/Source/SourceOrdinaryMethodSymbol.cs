@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.TypeParameterList != null);
 
-            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList, syntax.TypeParameterList.LessThanToken.GetLocation());
+            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
 
             OverriddenMethodTypeParameterMapBase typeMap = null;
             if (this.IsOverride)
@@ -620,8 +620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Since only the declaring (and not the implementing) part of a partial method appears in the member
             // list, we need to ensure we complete the implementation part when needed.
+            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
             return
-                base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) ||
+                IsDefinedInSourceTree(this.SyntaxRef, tree, definedWithinSpan) ||
                 this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
