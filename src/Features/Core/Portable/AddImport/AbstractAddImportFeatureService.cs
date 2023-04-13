@@ -221,12 +221,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
 
             // Search all unreferenced projects in parallel.
-            var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
+            using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using var nestedTokenSource = new CancellationTokenSource();
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             foreach (var unreferencedProject in viableUnreferencedProjects)
             {
@@ -237,11 +236,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
                 // individually.
-                findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
-                    projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
+                findTasks.Add(ProcessReferencesTask(
+                    allSymbolReferences, maxResults, linkedTokenSource,
+                    finder.FindInSourceSymbolsInProjectAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token)));
             }
 
-            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            await Task.WhenAll(findTasks).ConfigureAwait(false);
         }
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
@@ -265,12 +265,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
 
             // Search all metadata references in parallel.
-            var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
+            using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using var nestedTokenSource = new CancellationTokenSource();
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             foreach (var (referenceProject, reference) in newReferences)
             {
@@ -281,12 +280,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Second, the SymbolFinder API doesn't even support searching them. 
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                        assembly, referenceProject, reference, exact, linkedTokenSource.Token));
+                    findTasks.Add(ProcessReferencesTask(
+                        allSymbolReferences, maxResults, linkedTokenSource,
+                        finder.FindInMetadataSymbolsAsync(assembly, referenceProject, reference, exact, linkedTokenSource.Token)));
                 }
             }
 
-            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            await Task.WhenAll(findTasks).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -321,40 +321,36 @@ namespace Microsoft.CodeAnalysis.AddImport
             return result.ToImmutableAndFree();
         }
 
-        private static async Task WaitForTasksAsync(
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task ProcessReferencesTask(
             ArrayBuilder<Reference> allSymbolReferences,
             int maxResults,
-            HashSet<Task<ImmutableArray<SymbolReference>>> findTasks,
-            CancellationTokenSource nestedTokenSource,
-            CancellationToken cancellationToken)
+            CancellationTokenSource linkedTokenSource,
+            Task<ImmutableArray<SymbolReference>> task)
         {
-            try
+            // Wait for either the task to finish, or the linked token to fire.
+            var finishedTask = await Task.WhenAny(task, Task.Delay(Timeout.Infinite, linkedTokenSource.Token)).ConfigureAwait(false);
+            if (finishedTask != task)
             {
-                while (findTasks.Count > 0)
+                linkedTokenSource.Token.ThrowIfCancellationRequested();
+                return;
+            }
+
+            var result = await task.ConfigureAwait(false);
+            var count = AddRange(allSymbolReferences, result, maxResults);
+
+            if (count >= maxResults)
+            {
+                try
                 {
-                    // Keep on looping through the 'find' tasks, processing each when they finish.
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
-
-                    // One of the tasks finished.  Remove it from the list we're waiting on.
-                    findTasks.Remove(doneTask);
-
-                    // Add its results to the final result set we're keeping.
-                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false), maxResults);
-
-                    // Once we get enough, just stop.
-                    if (allSymbolReferences.Count >= maxResults)
-                    {
-                        return;
-                    }
+                    linkedTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
                 }
             }
-            finally
-            {
-                // Cancel any nested work that's still happening.
-                nestedTokenSource.Cancel();
-            }
         }
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         /// <summary>
         /// We ignore references that are in a directory that contains the names
@@ -456,10 +452,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private static void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
+        private static int AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
             where TReference : Reference
         {
-            allSymbolReferences.AddRange(proposedReferences.Take(maxResults - allSymbolReferences.Count));
+            lock (allSymbolReferences)
+            {
+                allSymbolReferences.AddRange(proposedReferences.Take(maxResults - allSymbolReferences.Count));
+                return allSymbolReferences.Count;
+            }
         }
 
         protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
