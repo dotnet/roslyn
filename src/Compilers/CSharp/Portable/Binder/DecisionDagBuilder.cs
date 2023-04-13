@@ -897,8 +897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
-                                out var whenTrueDecisions,
-                                out var whenFalseDecisions,
+                                out ArrayBuilder<StateForCase> whenTrueDecisions,
+                                out ArrayBuilder<StateForCase> whenFalseDecisions,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
                                 ref foundExplicitNullTest);
