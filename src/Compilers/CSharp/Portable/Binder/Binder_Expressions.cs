@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
-        /// `returns>true if managed type-related errors were found, otherwise false.</returns>
+        /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics, bool errorForManaged = false)
         {
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
