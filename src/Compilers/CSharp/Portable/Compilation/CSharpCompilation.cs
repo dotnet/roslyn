@@ -3277,7 +3277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
                 // behavior as when calling GetDiagnostics()
 
