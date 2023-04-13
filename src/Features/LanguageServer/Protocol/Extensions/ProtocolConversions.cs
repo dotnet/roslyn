@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private const string VirtualCSharpFileSuffix = "__virtual.cs";
+        private const string RazorVirtualFileScheme = "virtualCSharp-razor:/";
         private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
@@ -157,8 +159,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
+            var uriString = filePath;
+            if (filePath.EndsWith(VirtualCSharpFileSuffix))
+            {
+                uriString = RazorVirtualFileScheme + filePath;
+            }
 
-            return new Uri(filePath, UriKind.Absolute);
+            return new Uri(uriString, UriKind.Absolute);
         }
 
         public static Uri GetUriFromPartialFilePath(string? filePath)
