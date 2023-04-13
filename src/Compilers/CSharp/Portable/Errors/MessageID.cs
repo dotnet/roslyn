@@ -316,27 +316,85 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
-            BindingDiagnosticBag diagnostics,
-            SyntaxNodeOrToken syntax,
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
             Location? location = null)
         {
-            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree!.Options) is { } diagInfo)
-            {
-                diagnostics.Add(diagInfo, location ?? syntax.GetLocation()!);
-                return false;
-            }
-            return true;
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree.Options,
+                static tuple => tuple.location ?? tuple.syntax.Location,
+                (syntax, location));
         }
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             DiagnosticBag diagnostics,
-            SyntaxNodeOrToken syntax,
+            SyntaxToken syntax,
             Location? location = null)
         {
-            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree!.Options) is { } diagInfo)
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree!.Options,
+                static tuple => tuple.location ?? tuple.syntax.GetLocation(),
+                (syntax, location));
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Location? location = null)
+        {
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree.Options,
+                static tuple => tuple.location ?? tuple.syntax.Location,
+                (syntax, location));
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
+            SyntaxToken syntax,
+            Location? location = null)
+        {
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree!.Options,
+                static tuple => tuple.location ?? tuple.syntax.GetLocation(),
+                (syntax, location));
+        }
+
+        private static bool CheckFeatureAvailability<TData>(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            ParseOptions parseOptions,
+            Func<TData, Location> getLocation,
+            TData data)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)parseOptions) is { } diagInfo)
             {
-                diagnostics.Add(diagInfo, location ?? syntax.GetLocation());
+                diagnostics.Add(diagInfo, getLocation(data));
+                return false;
+            }
+            return true;
+        }
+
+        private static bool CheckFeatureAvailability<TData>(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
+            ParseOptions parseOptions,
+            Func<TData, Location> getLocation,
+            TData data)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)parseOptions) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, getLocation(data));
                 return false;
             }
             return true;
