@@ -50,6 +50,15 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         private readonly ObjectPool<ArrayBuilder<T>>? _pool;
 
+#if DEBUG
+        /// <summary>
+        /// Whether this array builder is frozen, and should not allow future mutations.  Useful when a client wants to
+        /// pass one around as if it was a realized array, without incurring the expense of actually create an
+        /// ImmutableArray.  Free'ing the builder will reset this back to the unfrozen state.
+        /// </summary>
+        private bool _frozen;
+#endif
+
         public ArrayBuilder(int size)
         {
             _builder = ImmutableArray.CreateBuilder<T>(size);
@@ -63,6 +72,23 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             : this()
         {
             _pool = pool;
+        }
+
+        [Conditional("DEBUG")]
+        public void Freeze()
+        {
+#if DEBUG
+            _frozen = true;
+#endif
+        }
+
+
+        [Conditional("DEBUG")]
+        public void AssertNotFrozen()
+        {
+#if DEBUG
+            Debug.Assert(!_frozen);
+#endif
         }
 
         /// <summary>
@@ -117,6 +143,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             set
             {
+                AssertNotFrozen();
                 _builder[index] = value;
             }
         }
@@ -127,6 +154,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public void SetItem(int index, T value)
         {
+            AssertNotFrozen();
             while (index > _builder.Count)
             {
                 _builder.Add(default!);
@@ -144,11 +172,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void Add(T item)
         {
+            AssertNotFrozen();
             _builder.Add(item);
         }
 
         public void Insert(int index, T item)
         {
+            AssertNotFrozen();
             _builder.Insert(index, item);
         }
 
@@ -162,6 +192,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void Clear()
         {
+            AssertNotFrozen();
             _builder.Clear();
         }
 
@@ -227,31 +258,37 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public bool Remove(T element)
         {
+            AssertNotFrozen();
             return _builder.Remove(element);
         }
 
         public void RemoveAt(int index)
         {
+            AssertNotFrozen();
             _builder.RemoveAt(index);
         }
 
         public void RemoveLast()
         {
+            AssertNotFrozen();
             _builder.RemoveAt(_builder.Count - 1);
         }
 
         public void ReverseContents()
         {
+            AssertNotFrozen();
             _builder.Reverse();
         }
 
         public void Sort()
         {
+            AssertNotFrozen();
             _builder.Sort();
         }
 
         public void Sort(IComparer<T> comparer)
         {
+            AssertNotFrozen();
             _builder.Sort(comparer);
         }
 
@@ -260,6 +297,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {
+            AssertNotFrozen();
             _builder.Sort(startIndex, _builder.Count - startIndex, comparer);
         }
 
@@ -360,6 +398,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         // 1) Expose Freeing primitive. 
         public void Free()
         {
+#if DEBUG
+            _frozen = false;
+#endif
+
             var pool = _pool;
             if (pool != null)
             {
@@ -493,11 +535,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange(ArrayBuilder<T> items)
         {
+            AssertNotFrozen();
             _builder.AddRange(items._builder);
         }
 
         public void AddRange<U>(ArrayBuilder<U> items, Func<U, T> selector)
         {
+            AssertNotFrozen();
             foreach (var item in items)
             {
                 _builder.Add(selector(item));
@@ -506,11 +550,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
         {
+            AssertNotFrozen();
             _builder.AddRange(items._builder);
         }
 
         public void AddRange<U>(ArrayBuilder<U> items, int start, int length) where U : T
         {
+            AssertNotFrozen();
             Debug.Assert(start >= 0 && length >= 0);
             Debug.Assert(start + length <= items.Count);
             for (int i = start, end = start + length; i < end; i++)
@@ -521,16 +567,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange(ImmutableArray<T> items)
         {
+            AssertNotFrozen();
             _builder.AddRange(items);
         }
 
         public void AddRange(ImmutableArray<T> items, int length)
         {
+            AssertNotFrozen();
             _builder.AddRange(items, length);
         }
 
         public void AddRange(ImmutableArray<T> items, int start, int length)
         {
+            AssertNotFrozen();
             Debug.Assert(start >= 0 && length >= 0);
             Debug.Assert(start + length <= items.Length);
             for (int i = start, end = start + length; i < end; i++)
@@ -541,11 +590,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange<S>(ImmutableArray<S> items) where S : class, T
         {
+            AssertNotFrozen();
             AddRange(ImmutableArray<T>.CastUp(items));
         }
 
         public void AddRange(T[] items, int start, int length)
         {
+            AssertNotFrozen();
             Debug.Assert(start >= 0 && length >= 0);
             Debug.Assert(start + length <= items.Length);
             for (int i = start, end = start + length; i < end; i++)
@@ -556,33 +607,39 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange(IEnumerable<T> items)
         {
+            AssertNotFrozen();
             _builder.AddRange(items);
         }
 
         public void AddRange(params T[] items)
         {
+            AssertNotFrozen();
             _builder.AddRange(items);
         }
 
         public void AddRange(T[] items, int length)
         {
+            AssertNotFrozen();
             _builder.AddRange(items, length);
         }
 
         public void Clip(int limit)
         {
+            AssertNotFrozen();
             Debug.Assert(limit <= Count);
             _builder.Count = limit;
         }
 
         public void ZeroInit(int count)
         {
+            AssertNotFrozen();
             _builder.Clear();
             _builder.Count = count;
         }
 
         public void AddMany(T item, int count)
         {
+            AssertNotFrozen();
             for (var i = 0; i < count; i++)
             {
                 Add(item);
@@ -591,6 +648,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveDuplicates()
         {
+            AssertNotFrozen();
             var set = PooledHashSet<T>.GetInstance();
 
             var j = 0;
@@ -609,6 +667,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void SortAndRemoveDuplicates(IComparer<T> comparer)
         {
+            AssertNotFrozen();
             if (Count <= 1)
             {
                 return;
