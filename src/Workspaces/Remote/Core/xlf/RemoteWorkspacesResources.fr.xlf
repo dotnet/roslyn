@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
         <source>Keep alive service</source>
-        <target state="new">Keep alive service</target>
+        <target state="translated">Maintenir le service actif</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">

@@ -15,8 +15,6 @@ internal static class WorkspaceConfigurationOptionsStorage
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableReferenceManagerRecoverableMetadata: globalOptions.GetOption(DisableReferenceManagerRecoverableMetadata),
-            DisableBackgroundCompilation: globalOptions.GetOption(DisableBackgroundCompilation),
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -24,12 +22,6 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "dotnet_storage_cloud_cache", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
-
-    public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
-        "dotnet_disable_reference_manager_recoverable_metadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
-
-    public static readonly Option2<bool> DisableBackgroundCompilation = new(
-        "dotnet_disable_background_compilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation);
 
     public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
         "dotnet_disable_shared_syntax_trees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);

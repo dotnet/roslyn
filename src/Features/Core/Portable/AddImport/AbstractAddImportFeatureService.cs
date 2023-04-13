@@ -7,23 +7,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -31,6 +32,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Cache of information about whether a <see cref="PortableExecutableReference"/> is likely contained within a
+        /// NuGet packages directory.
+        /// </summary>
+        private static readonly ConditionalWeakTable<PortableExecutableReference, StrongBox<bool>> s_isInPackagesDirectory = new();
+
         protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -376,10 +383,17 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            return ContainsPathComponent(reference, "packages")
-                || ContainsPathComponent(reference, "packs")
-                || ContainsPathComponent(reference, "NuGetFallbackFolder")
-                || ContainsPathComponent(reference, "NuGetPackages");
+            return s_isInPackagesDirectory.GetValue(
+                reference,
+                static reference => new StrongBox<bool>(ComputeIsInPackagesDirectory(reference))).Value;
+
+            static bool ComputeIsInPackagesDirectory(PortableExecutableReference reference)
+            {
+                return ContainsPathComponent(reference, "packages")
+                    || ContainsPathComponent(reference, "packs")
+                    || ContainsPathComponent(reference, "NuGetFallbackFolder")
+                    || ContainsPathComponent(reference, "NuGetPackages");
+            }
 
             static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
             {

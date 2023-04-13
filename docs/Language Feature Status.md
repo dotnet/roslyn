@@ -19,7 +19,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Collection Literals](https://github.com/dotnet/csharplang/issues/5354) | [CollectionLiterals](https://github.com/dotnet/roslyn/tree/features/CollectionLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/66418) | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) | [MadsTorgersen](https://github.com/MadsTorgersen) |
-
+| [Interceptors](https://github.com/dotnet/csharplang/issues/7009) | [interceptors](https://github.com/dotnet/roslyn/tree/features/interceptors) | [In Progress](https://github.com/dotnet/roslyn/issues/67421) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | [RikkiGibson](https://github.com/RikkiGibson) |
   
 # C# 11.0
 

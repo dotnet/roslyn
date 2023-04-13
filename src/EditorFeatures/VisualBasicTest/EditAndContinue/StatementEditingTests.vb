@@ -968,7 +968,10 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=
+                    EditAndContinueCapabilities.AddMethodToExistingType Or
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType Or
+                    EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -1001,7 +1004,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddStaticFieldToExistingType)
         End Sub
 
         <Fact>
@@ -4576,7 +4579,10 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=
+                    EditAndContinueCapabilities.AddMethodToExistingType Or
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType Or
+                    EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
 
@@ -4847,7 +4853,8 @@ Class C
 End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Theory>

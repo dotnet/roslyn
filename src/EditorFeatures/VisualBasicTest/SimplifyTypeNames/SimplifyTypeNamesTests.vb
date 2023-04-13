@@ -1598,7 +1598,7 @@ End Namespace
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")>
-        Public Async Function TestDontSimplifyNamesWhenThereAreParseErrors() As Task
+        Public Async Function TestDoNotSimplifyNamesWhenThereAreParseErrors() As Task
             Dim source =
         <Code>
 Imports System
@@ -1749,7 +1749,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
-        Public Async Function TestDontUseAlias() As Task
+        Public Async Function TestDoNotUseAlias() As Task
             Dim source =
         <Code>
 Imports System
@@ -1910,7 +1910,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/686306")>
-        Public Async Function TestDontSimplifyNameSyntaxToTypeSyntaxInVBCref() As Task
+        Public Async Function TestDoNotSimplifyNameSyntaxToTypeSyntaxInVBCref() As Task
             Dim source =
         <Code>
 Imports System
@@ -1923,7 +1923,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721817")>
-        Public Async Function TestDontSimplifyNameSyntaxToPredefinedTypeSyntaxInVBCref() As Task
+        Public Async Function TestDoNotSimplifyNameSyntaxToPredefinedTypeSyntaxInVBCref() As Task
             Dim source =
         <Code>
 Public Class Test
@@ -1969,7 +1969,7 @@ Public Class Test_Dev11
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>
-        Public Async Function TestDontSimplifyTypeNameBrokenCode() As Task
+        Public Async Function TestDoNotSimplifyTypeNameBrokenCode() As Task
             Dim source =
         <Code>
             <![CDATA[
@@ -2007,7 +2007,7 @@ End Interface
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")>
-        Public Async Function TestDontSimplifyAliases() As Task
+        Public Async Function TestDoNotSimplifyAliases() As Task
             Dim source =
         <Code>
             <![CDATA[

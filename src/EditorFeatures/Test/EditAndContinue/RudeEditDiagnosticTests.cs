@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.NotSupportedByRuntime,
                 RudeEditKind.MakeMethodAsyncNotSupportedByRuntime,
                 RudeEditKind.MakeMethodIteratorNotSupportedByRuntime,
-                RudeEditKind.ChangeImplicitMainReturnType
+                RudeEditKind.ChangeImplicitMainReturnType,
+                RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime
             };
 
             var arg2 = new HashSet<RudeEditKind>()

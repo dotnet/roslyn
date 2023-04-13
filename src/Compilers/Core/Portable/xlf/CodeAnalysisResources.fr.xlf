@@ -81,12 +81,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidSegment">
         <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <target state="translated">Le hintName '{0}' contient un segment non valide '{1}' à la position {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameNotWithinCurrentDirectory">
         <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <target state="translated">Le '{0}' hintName ne se trouve pas dans le répertoire actif.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
@@ -106,7 +106,7 @@
       </trans-unit>
       <trans-unit id="InvalidInstrumentationKind">
         <source>Invalid instrumentation kind: {0}</source>
-        <target state="new">Invalid instrumentation kind: {0}</target>
+        <target state="translated">Genre d'instrumentation non valide : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
-        <target state="new">Method symbol expected</target>
+        <target state="translated">Symbole de méthode attendu</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -691,18 +691,18 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">Échec de l'analyseur</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <target state="needs-review-translation">Échec de l'analyseur</target>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="translated">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
+        <target state="needs-review-translation">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

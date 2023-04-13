@@ -26,12 +26,12 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
+internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
 {
     /// <summary>
     /// Low level tagger responsible for producing specific diagnostics tags for some feature for some particular <see
     /// cref="DiagnosticKind"/>.  It is itself never exported directly, but it it is used by the <see
-    /// cref="PullDiagnosticsTaggerProvider"/> which aggregates its results and the results for all the other <see
+    /// cref="AbstractDiagnosticsTaggerProvider{TTag}"/> which aggregates its results and the results for all the other <see
     /// cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
     private sealed class SingleDiagnosticKindPullTaggerProvider : AsynchronousTaggerProvider<TTag>
@@ -40,12 +40,12 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        private readonly AbstractPushOrPullDiagnosticsTaggerProvider<TTag> _callback;
+        private readonly AbstractDiagnosticsTaggerProvider<TTag> _callback;
 
         protected override ImmutableArray<IOption2> Options => _callback.Options;
 
         public SingleDiagnosticKindPullTaggerProvider(
-            AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
+            AbstractDiagnosticsTaggerProvider<TTag> callback,
             DiagnosticKind diagnosticKind,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
