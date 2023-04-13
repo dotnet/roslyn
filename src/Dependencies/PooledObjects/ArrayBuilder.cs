@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 #endif
         }
 
-
         [Conditional("DEBUG")]
         public void AssertNotFrozen()
         {
