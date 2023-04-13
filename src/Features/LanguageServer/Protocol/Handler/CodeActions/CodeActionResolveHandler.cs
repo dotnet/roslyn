@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
                     }
 
-                    if (projectChange.GetChangedDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution))
-                        || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution)
-                        || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, applyChangesOperation.ChangedSolution, solution))))
+                    if (projectChange.GetChangedDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))
+                        || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution)
+                        || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))))
                     {
                         if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
                             || !resourceOperations.Contains(ResourceOperationKind.Rename))
@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
 
+                    // For linked documents, only generated the document edit once.
                     if (modifiedDocumentIds.Add(docId))
                     {
-                        // If the document has text change.
                         var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         IEnumerable<TextChange> textChanges;
