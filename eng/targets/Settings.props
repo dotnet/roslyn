@@ -59,13 +59,13 @@
   -->
   <Choose>
     <!-- 
-      CI source build leg: this needs to build the current and previous source build TFM. Both are 
-      necessary as the output of this leg is used in other CI source build legs. Those could be 
-      targeting NetCurrent or NetPrevious hence we must produce both. 
-          
-      However the toolset package we produce must target NetPrevious. This package gets used as the 
-      bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
-      the toolset must support that.
+      1. CI source build leg: this needs to build the current and previous source build TFM. Both are 
+         necessary as the output of this leg is used in other CI source build legs. Those could be 
+         targeting NetCurrent or NetPrevious hence we must produce both. 
+
+        However the toolset package we produce must target NetPrevious. This package gets used as the 
+        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
+        the toolset must support that.
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
@@ -76,7 +76,7 @@
     </When>
 
     <!--
-      Source build the product: this is the all up build of the product which needs only NetCurrent
+      2. Source build the product: this is the all up build of the product which needs only NetCurrent
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
       <PropertyGroup>
@@ -87,8 +87,8 @@
     </When>
 
     <!--
-      CI normal leg: this needs to build the union of all TFM we support. That ensures we handle all 
-      diagnostics and analyzers for all the TFM that we support.
+      3. CI normal leg: this needs to build the union of all TFMs we support. That ensures we handle all 
+         diagnostics and analyzers for all the TFMs that we support.
     -->
     <When Condition="'$(ContinuousIntegrationBuild)' == 'true'">
       <PropertyGroup>
@@ -99,8 +99,8 @@
     </When>
 
     <!-- 
-      Developer build: we do not want to build TFM that are necessary only for source build as
-      it increses build time.
+      4. Developer build: we do not want to build TFMs that are necessary only for source build as
+         it increases build time.
     -->
     <Otherwise>
       <PropertyGroup>
