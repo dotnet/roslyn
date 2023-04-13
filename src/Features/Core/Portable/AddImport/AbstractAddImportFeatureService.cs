@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
             await FindResultsInAllSymbolsInStartingProjectAsync(
-                allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+                allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
             // Only bother doing this for host workspaces.  We don't want this for 
             // things like the Interactive workspace as we can't even add project
@@ -195,11 +195,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ConcurrentQueue<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
+            ConcurrentQueue<Reference> allSymbolReferences, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
-            AddRange(allSymbolReferences, references, maxResults);
+            AddRange(allSymbolReferences, references);
         }
 
         private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             if (finishedTask == task)
             {
                 var result = await task.ConfigureAwait(false);
-                AddRange(allSymbolReferences, result, maxResults);
+                AddRange(allSymbolReferences, result);
 
                 if (allSymbolReferences.Count >= maxResults)
                 {
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private static void AddRange<TReference>(ConcurrentQueue<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
+        private static void AddRange<TReference>(ConcurrentQueue<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences)
             where TReference : Reference
         {
             foreach (var reference in proposedReferences)
