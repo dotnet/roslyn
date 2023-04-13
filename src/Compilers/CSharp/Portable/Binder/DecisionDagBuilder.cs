@@ -706,12 +706,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ref TemporaryArray<StateForCase> cases)
         {
-            // A work list of DagStates whose successors need to be computed
-            var workList = ArrayBuilder<DagState>.GetInstance();
-
             // Build the state machine underlying the decision dag
-            using var allStates = TemporaryArray<DagState>.Empty;
-            DecisionDag decisionDag = MakeDecisionDag(ref cases, ref allStates.AsRef());
+            using var dagStatePool = new DagState.Pool();
+            DecisionDag decisionDag = MakeDecisionDag(in dagStatePool, ref cases);
 
             // Note: It is useful for debugging the dag state table construction to set a breakpoint
             // here and view `decisionDag.Dump()`.
@@ -724,10 +721,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-
-            // Place all the dag states we allocated back into the pool.
-            foreach (var state in allStates)
-                state.ClearAndFree();
 
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
@@ -776,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
         /// and return the node for the root.
         /// </summary>
-        private DecisionDag MakeDecisionDag(ref TemporaryArray<StateForCase> casesForRootNode, ref TemporaryArray<DagState> allStates)
+        private DecisionDag MakeDecisionDag(in DagState.Pool dagStatePool, ref TemporaryArray<StateForCase> casesForRootNode)
         {
             // A work list of DagStates whose successors need to be computed
             using var workList = TemporaryArray<DagState>.Empty;
@@ -790,9 +783,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that it is processed only once. This object identity uniqueness will be important later when we
             // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
             // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-            DagState uniquifyState(ref TemporaryArray<DagState> allStates, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            DagState uniquifyState(in DagState.Pool dagStatePool, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
-                var state = DagState.Create(ref allStates, cases, remainingValues);
+                var state = dagStatePool.Create(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
                     // We found an existing state that matches.  Update its set of possible remaining values
@@ -1751,6 +1744,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DagState
         {
+            public readonly ref struct Pool
+            {
+                private readonly ArrayBuilder<DagState> _statesToFree = ArrayBuilder<DagState>.GetInstance();
+
+                public Pool()
+                {
+                }
+
+                public void Dispose()
+                {
+                    // Place all the dag states we allocated back into the pool.
+                    foreach (var state in _statesToFree)
+                        state.ClearAndFree();
+
+                    _statesToFree.Free();
+                }
+
+                /// <summary>
+                /// Created an instance of <see cref="DagState"/>.  Will take ownership of <paramref name="cases"/>.  That
+                /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
+                /// called on this.
+                /// </summary>
+                public DagState Create(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+                {
+                    var dagState = s_dagStatePool.Allocate();
+
+                    Debug.Assert(dagState.Cases is null);
+                    Debug.Assert(dagState.RemainingValues is null);
+                    Debug.Assert(dagState.SelectedTest is null);
+                    Debug.Assert(dagState.TrueBranch is null);
+                    Debug.Assert(dagState.FalseBranch is null);
+                    Debug.Assert(dagState.Dag is null);
+
+                    dagState.Cases = cases;
+                    dagState.RemainingValues = remainingValues;
+                    _statesToFree.Add(dagState);
+
+                    return dagState;
+                }
+            }
+
             private static readonly ObjectPool<DagState> s_dagStatePool = new ObjectPool<DagState>(() => new DagState());
 
             /// <summary>
@@ -1787,30 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            /// <summary>
-            /// Created an instance of <see cref="DagState"/>.  Will take ownership of <paramref name="cases"/>.  That
-            /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
-            /// called on this.
-            /// </summary>
-            public static DagState Create(ref TemporaryArray<DagState> allStates, ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
-            {
-                var dagState = s_dagStatePool.Allocate();
-
-                Debug.Assert(dagState.Cases is null);
-                Debug.Assert(dagState.RemainingValues is null);
-                Debug.Assert(dagState.SelectedTest is null);
-                Debug.Assert(dagState.TrueBranch is null);
-                Debug.Assert(dagState.FalseBranch is null);
-                Debug.Assert(dagState.Dag is null);
-
-                dagState.Cases = cases;
-                dagState.RemainingValues = remainingValues;
-                allStates.Add(dagState);
-
-                return dagState;
-            }
-
-            public void ClearAndFree()
+            private void ClearAndFree()
             {
                 Cases?.Free();
                 Cases = null!;
