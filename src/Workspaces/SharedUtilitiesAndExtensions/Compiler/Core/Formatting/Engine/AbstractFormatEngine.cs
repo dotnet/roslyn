@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // make sure we order align operation from left to right
             alignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
+
+            return nodeOperations;
         }
 
         private static void AddOperations<T>(List<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
