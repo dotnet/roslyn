@@ -141,15 +141,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             var alignmentOperation = new List<AlignTokensOperation>();
             var anchorIndentationOperations = new List<AnchorIndentationOperation>();
 
-            using var indentBlockOperationScratch = ListPool<IndentBlockOperation>.Pool.GetPooledObject();
-            using var suppressOperationScratch = ListPool<SuppressOperation>.Pool.GetPooledObject();
-            using var alignmentOperationScratch = ListPool<AlignTokensOperation>.Pool.GetPooledObject();
-            using var anchorIndentationOperationsScratch = ListPool<AnchorIndentationOperation>.Pool.GetPooledObject();
-
             var addIndentBlockOperations = _formattingRules.AddIndentBlockOperations;
             var addSuppressOperation = _formattingRules.AddSuppressOperations;
             var addAlignTokensOperations = _formattingRules.AddAlignTokensOperations;
             var addAnchorIndentationOperations = _formattingRules.AddAnchorIndentationOperations;
+
+            using var indentBlockOperationScratch = ListPool<IndentBlockOperation>.Pool.GetPooledObject();
+            using var suppressOperationScratch = ListPool<SuppressOperation>.Pool.GetPooledObject();
+            using var alignmentOperationScratch = ListPool<AlignTokensOperation>.Pool.GetPooledObject();
+            using var anchorIndentationOperationsScratch = ListPool<AnchorIndentationOperation>.Pool.GetPooledObject();
 
             // iterating tree is very expensive. only do it once.
             foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
