@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             if (builder.ContainsKey(pair.Key))
                                             {
                                                 // The using alias '{0}' appeared previously in this namespace
-                                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, pair.Value.Alias.Locations[0], pair.Key);
+                                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, pair.Value.Alias.GetFirstLocation(), pair.Key);
                                             }
                                             else
                                             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             mergedAliases.ContainsKey(externAlias.Alias.Name))
                                         {
                                             // The using alias '{0}' appeared previously in this namespace
-                                            diagnostics.Add(ErrorCode.ERR_DuplicateAlias, externAlias.Alias.Locations[0], externAlias.Alias.Name);
+                                            diagnostics.Add(ErrorCode.ERR_DuplicateAlias, externAlias.Alias.GetFirstLocation(), externAlias.Alias.Name);
                                         }
                                     }
                                 }
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (existingAlias.Alias.Name == aliasSyntax.Identifier.ValueText)
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateAlias, existingAlias.Alias.Locations[0], existingAlias.Alias.Name);
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateAlias, existingAlias.Alias.GetFirstLocation(), existingAlias.Alias.Name);
                                     break;
                                 }
                             }

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -253,17 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             => SpanEquals(span1 is null ? null : new SnapshotSpan(snapshot1, span1.Value), span2 is null ? null : new SnapshotSpan(snapshot2, span2.Value));
 
         public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
-        {
-            if (span1 is null && span2 is null)
-                return true;
-
-            if (span1 is null || span2 is null)
-                return false;
-
-            // map one span to the snapshot of the other and see if they match.
-            span1 = span1.Value.TranslateTo(span2.Value.Snapshot, this.SpanTrackingMode);
-            return span1.Value.Span == span2.Value.Span;
-        }
+            => TaggerUtilities.SpanEquals(span1, span2, this.SpanTrackingMode);
 
         internal TestAccessor GetTestAccessor()
             => new(this);
