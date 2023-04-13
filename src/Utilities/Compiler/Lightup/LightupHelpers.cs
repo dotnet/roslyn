@@ -66,7 +66,7 @@ namespace Analyzer.Utilities.Lightup
                 ? parameter
                 : Expression.Convert(parameter, type);
 
-            Expression result = Expression.Call(instance, property.GetMethod);
+            Expression result = Expression.Call(instance, property.GetMethod!);
             if (!typeof(TProperty).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
             {
                 result = Expression.Convert(result, typeof(TProperty));
