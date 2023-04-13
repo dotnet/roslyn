@@ -141,6 +141,7 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts.HotReload" Version="$(MicrosoftVisualStudioDebuggerContractsHotReloadVersion)"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DocumentationComments\CodeFixes\" />

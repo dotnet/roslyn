@@ -5,7 +5,8 @@
 using System.Runtime.Serialization;
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
