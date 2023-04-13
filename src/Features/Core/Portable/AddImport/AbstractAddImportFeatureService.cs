@@ -330,20 +330,20 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             // Wait for either the task to finish, or the linked token to fire.
             var finishedTask = await Task.WhenAny(task, Task.Delay(Timeout.Infinite, linkedTokenSource.Token)).ConfigureAwait(false);
-            if (finishedTask != task)
-                return;
-
-            var result = await task.ConfigureAwait(false);
-            var count = AddRange(allSymbolReferences, result, maxResults);
-
-            if (count >= maxResults)
+            if (finishedTask == task)
             {
-                try
+                var result = await task.ConfigureAwait(false);
+                var count = AddRange(allSymbolReferences, result, maxResults);
+
+                if (count >= maxResults)
                 {
-                    linkedTokenSource.Cancel();
-                }
-                catch (ObjectDisposedException)
-                {
+                    try
+                    {
+                        linkedTokenSource.Cancel();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
                 }
             }
         }
