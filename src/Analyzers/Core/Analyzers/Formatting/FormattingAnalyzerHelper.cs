@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var cancellationToken = context.CancellationToken;
 
             var oldText = tree.GetText(cancellationToken);
-
-            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), formattingProvider, options, cancellationToken);
+            var root = tree.GetRoot(cancellationToken);
+            var node = context.FilterSpan.HasValue ? root.FindNode(context.FilterSpan.GetValueOrDefault()) : root;
+            var formattingChanges = Formatter.GetFormattedTextChanges(node, formattingProvider, options, cancellationToken);
 
             // formattingChanges could include changes that impact a larger section of the original document than
             // necessary. Before reporting diagnostics, process the changes to minimize the span of individual
