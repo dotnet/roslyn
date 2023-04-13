@@ -33,6 +33,15 @@ internal class RelativePattern
     public required string Pattern { get; set; }
 }
 
+// The LSP specification has a spelling error in the protocol, but Microsoft.VisualStudio.LanguageServer.Protocol
+// didn't carry that error along. This corrects that.
+[DataContract]
+internal class UnregistrationParamsWithMisspelling
+{
+    [DataMember(Name = "unregisterations")]
+    public required Unregistration[] Unregistrations { get; set; }
+}
+
 [Flags]
 internal enum WatchKind
 {

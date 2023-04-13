@@ -229,7 +229,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             _registrationTask.ContinueWith(async _ =>
             {
-                var unregistrationParams = new UnregistrationParams()
+                var unregistrationParams = new UnregistrationParamsWithMisspelling()
                 {
                     Unregistrations = new Unregistration[]
                     {

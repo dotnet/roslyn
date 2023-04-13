@@ -135,7 +135,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         }
 
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
-        public Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
+        public Task UnregisterCapabilityAsync(UnregistrationParamsWithMisspelling unregistrationParams, CancellationToken _)
         {
             foreach (var unregistration in unregistrationParams.Unregistrations)
                 Assert.True(Registrations.TryRemove(unregistration.Id, out var _));
