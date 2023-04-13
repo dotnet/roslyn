@@ -2045,35 +2045,35 @@ outerDefault:
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
 
-            using (var uninst1 = TemporaryArray<TypeSymbol>.Empty)
-            using (var uninst2 = TemporaryArray<TypeSymbol>.Empty)
+            var uninst1 = TemporaryArray<TypeSymbol>.Empty;
+            var uninst2 = TemporaryArray<TypeSymbol>.Empty;
+            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+            for (i = 0; i < arguments.Count; ++i)
             {
-                var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-                var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-                for (i = 0; i < arguments.Count; ++i)
+                // If these are both applicable varargs methods and we're looking at the __arglist argument
+                // then clearly neither of them is going to be better in this argument.
+                if (arguments[i].Kind == BoundKind.ArgListOperator)
                 {
-                    // If these are both applicable varargs methods and we're looking at the __arglist argument
-                    // then clearly neither of them is going to be better in this argument.
-                    if (arguments[i].Kind == BoundKind.ArgListOperator)
-                    {
-                        Debug.Assert(i == arguments.Count - 1);
-                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
-                        continue;
-                    }
-
-                    var parameter1 = GetParameter(i, m1.Result, m1Original);
-                    uninst1.Add(GetParameterType(parameter1, m1.Result));
-
-                    var parameter2 = GetParameter(i, m2.Result, m2Original);
-                    uninst2.Add(GetParameterType(parameter2, m2.Result));
+                    Debug.Assert(i == arguments.Count - 1);
+                    Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                    continue;
                 }
 
-                result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
+                var parameter1 = GetParameter(i, m1.Result, m1Original);
+                uninst1.Add(GetParameterType(parameter1, m1.Result));
 
-                if (result != BetterResult.Neither)
-                {
-                    return result;
-                }
+                var parameter2 = GetParameter(i, m2.Result, m2Original);
+                uninst2.Add(GetParameterType(parameter2, m2.Result));
+            }
+
+            result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
+            uninst1.Free();
+            uninst2.Free();
+
+            if (result != BetterResult.Neither)
+            {
+                return result;
             }
 
             // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
@@ -2340,13 +2340,15 @@ outerDefault:
             // Task equivalents) have the same OriginalDefinition but we don't have a Compilation
             // here for NormalizeTaskTypes.
 
-            using var allTypeArgs1 = TemporaryArray<TypeSymbol>.Empty;
-            using var allTypeArgs2 = TemporaryArray<TypeSymbol>.Empty;
+            var allTypeArgs1 = TemporaryArray<TypeSymbol>.Empty;
+            var allTypeArgs2 = TemporaryArray<TypeSymbol>.Empty;
             n1.GetAllTypeArguments(ref allTypeArgs1.AsRef(), ref useSiteInfo);
             n2.GetAllTypeArguments(ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
             var result = MoreSpecificType(ref allTypeArgs1.AsRef(), ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
+            allTypeArgs1.Free();
+            allTypeArgs2.Free();
             return result;
         }
 

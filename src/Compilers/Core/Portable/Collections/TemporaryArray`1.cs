@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public void Dispose()
         {
+            Free();
+        }
+
+        public void Free()
+        {
             // Return _builder to the pool if necessary. There is no need to release inline storage since the majority
             // case for this type is stack-allocated storage and the GC is already able to reclaim objects from the
             // stack after the last use of a reference to them.

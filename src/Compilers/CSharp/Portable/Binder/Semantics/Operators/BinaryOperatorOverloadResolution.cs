@@ -1323,8 +1323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op2Right = op2.RightType;
             }
 
-            using var uninst1 = TemporaryArray<TypeSymbol>.Empty;
-            using var uninst2 = TemporaryArray<TypeSymbol>.Empty;
+            var uninst1 = TemporaryArray<TypeSymbol>.Empty;
+            var uninst2 = TemporaryArray<TypeSymbol>.Empty;
 
             uninst1.Add(op1Left);
             uninst1.Add(op1Right);
@@ -1334,6 +1334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BetterResult result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
+            uninst1.Free();
+            uninst2.Free();
             return result;
         }
 
