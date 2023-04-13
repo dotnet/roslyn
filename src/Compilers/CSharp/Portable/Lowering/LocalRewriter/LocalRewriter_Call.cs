@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the BoundCall shape changes in the future, force developer to decide what to do here.
 
             // PROTOTYPE: perhaps a 'TryGet' pattern is more suitable here.
-            if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
+            if (this._compilation.GetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // But by calling 'GetInterceptor' before this, we don't really avoid that work. Is that fine?
                 // PROTOTYPE(ic): eventually we probably want this to be an error but for now it's convenient to just warn
                 // so we can experiment with intercepting APIs that haven't yet been marked.
-                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
+                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, attributeLocation, method);
             }
 
             Debug.Assert(interceptor.Arity == 0);
@@ -185,10 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case (not null, null):
                 case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
                         || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind: // PROTOTYPE(ic): and ref custom modifiers are equal?
-                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, interceptsLocationAttributeData.AttributeLocation, methodThisParameter, method);
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
                     break;
                 case (null, not null):
-                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, interceptsLocationAttributeData.AttributeLocation, method);
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, attributeLocation, method);
                     break;
                 default:
                     break;

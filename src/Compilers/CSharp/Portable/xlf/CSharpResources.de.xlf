@@ -487,6 +487,11 @@
         <target state="translated">"{0}" ist mehrfach explizit implementiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="new">The indicated call is intercepted multiple times.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">"{0}" wird in der Schnittstellenliste bereits für den Typ "{2}" als "{1}" aufgeführt.</target>

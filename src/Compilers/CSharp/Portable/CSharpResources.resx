@@ -7553,6 +7553,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorNonUniquePath" xml:space="preserve">
     <value>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</value>
   </data>
+  <data name="ERR_DuplicateInterceptor" xml:space="preserve">
+    <value>The indicated call is intercepted multiple times.</value>
+  </data>
   <data name="ERR_ConstantValueOfTypeExpected" xml:space="preserve">
     <value>A constant value of type '{0}' is expected</value>
   </data>

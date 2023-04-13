@@ -487,6 +487,11 @@
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="new">The indicated call is intercepted multiple times.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">Element „{0}” znajduje się już na liście interfejsów typu „{2}” jako „{1}”.</target>

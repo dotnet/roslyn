@@ -584,6 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
                 case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                 case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                case ErrorCode.ERR_DuplicateInterceptor:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;

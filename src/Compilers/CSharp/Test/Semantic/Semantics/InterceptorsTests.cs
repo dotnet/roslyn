@@ -328,6 +328,41 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateLocation_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() { }
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M1() { }
+
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M2() { }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 3, 3)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 3, 3)").WithLocation(13, 6),
+            // Program.cs(16,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 3, 3)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 3, 3)").WithLocation(16, 6));
+    }
+
+    [Fact]
     public void InterceptsLocationFromMetadata()
     {
         // Verify that `[InterceptsLocation]` on a method from metadata does not cause a call in the current compilation to be intercepted.

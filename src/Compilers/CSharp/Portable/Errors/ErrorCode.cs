@@ -2209,6 +2209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorFilePathCannotBeNull = 27013,
         ERR_InterceptorNameNotInvoked = 27014,
         ERR_InterceptorNonUniquePath = 27015,
+        ERR_DuplicateInterceptor = 27016,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

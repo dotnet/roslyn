@@ -38,5 +38,23 @@ namespace Roslyn.Utilities
             return dictionary.GetOrAdd(key, boundFunction);
 #endif
         }
+
+        public static TValue AddOrUpdate<TKey, TArg, TValue>(
+            this ConcurrentDictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TKey, TArg, TValue> addValueFactory,
+            Func<TKey, TValue, TArg, TValue> updateValueFactory,
+            TArg factoryArgument)
+            where TKey : notnull
+        {
+#if NETCOREAPP
+            return dictionary.AddOrUpdate(key, addValueFactory, updateValueFactory, factoryArgument);
+#else
+            using var _a = PooledDelegates.GetPooledFunction(addValueFactory, factoryArgument, out var pooledAddValueFactory);
+            using var _b = PooledDelegates.GetPooledFunction(updateValueFactory, factoryArgument, out var pooledUpdateValueFactory);
+            return dictionary.AddOrUpdate(key, pooledAddValueFactory, pooledUpdateValueFactory);
+#endif
+        }
+
     }
 }

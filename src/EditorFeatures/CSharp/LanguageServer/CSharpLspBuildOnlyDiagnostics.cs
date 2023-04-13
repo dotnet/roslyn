@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS27000", // ErrorCode.WRN_CallNotInterceptable:
         "CS27007", // ErrorCode.ERR_InterceptorSignatureMismatch
         "CS27011", // ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter
-        "CS27012" // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
+        "CS27012", // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
+        "CS27016" // ErrorCode.ERR_DuplicateInterceptor
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {

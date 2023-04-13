@@ -156,6 +156,16 @@ namespace Roslyn.Utilities
             }
         }
 
+        public T Single()
+        {
+            if (!HasOne)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _one;
+        }
+
         public T First() => this[0];
 
         public T? FirstOrDefault(Func<T, bool> predicate)
