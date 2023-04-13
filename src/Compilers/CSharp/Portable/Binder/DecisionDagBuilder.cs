@@ -706,6 +706,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ref TemporaryArray<StateForCase> cases)
         {
+            // A work list of DagStates whose successors need to be computed
+            var workList = ArrayBuilder<DagState>.GetInstance();
+
             // Build the state machine underlying the decision dag
             using var allStates = TemporaryArray<DagState>.Empty;
             DecisionDag decisionDag = MakeDecisionDag(ref cases, ref allStates.AsRef());
