@@ -35,7 +35,8 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
             // However we can include them as a part of workspace pull when FSA is on.
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+                Document.Project.Solution, Document.Project.Id, Document.Id,
+                diagnosticIds: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
             return documentDiagnostics;
         }
     }

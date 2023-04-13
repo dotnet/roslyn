@@ -141,7 +141,7 @@ End Namespace
         End Function
 
         <WpfFact>
-        Public Async Function AddMissingImports_AddImportsAboveSystem_DontPlaceSystemFirstPasteContainsMultipleMissingImports() As Task
+        Public Async Function AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports() As Task
             Dim code = "
 Imports System
 

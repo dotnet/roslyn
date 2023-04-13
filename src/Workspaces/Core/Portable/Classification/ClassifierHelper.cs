@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Classification
             // name), we'll do a later merging step to get the final correct list of 
             // classifications.  For tagging, normally the editor handles this.  But as
             // we're producing the list of Inlines ourselves, we have to handles this here.
-            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntaxSpans);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
+            using var _1 = Classifier.GetPooledList(out var syntaxSpans);
+            using var _2 = Classifier.GetPooledList(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return classifiedSpans;
         }
 
-        private static void RemoveAdditiveSpans(ArrayBuilder<ClassifiedSpan> spans)
+        private static void RemoveAdditiveSpans(SegmentedList<ClassifiedSpan> spans)
         {
             for (var i = spans.Count - 1; i >= 0; i--)
             {
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-            ArrayBuilder<ClassifiedSpan> syntaxSpans,
-            ArrayBuilder<ClassifiedSpan> semanticSpans,
+            SegmentedList<ClassifiedSpan> syntaxSpans,
+            SegmentedList<ClassifiedSpan> semanticSpans,
             TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
@@ -104,21 +104,21 @@ namespace Microsoft.CodeAnalysis.Classification
             AdjustSpans(syntaxSpans, widenedSpan);
             AdjustSpans(semanticSpans, widenedSpan);
 
-            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var mergedSpans);
+            using var _1 = Classifier.GetPooledList(out var mergedSpans);
 
             MergeParts(syntaxSpans, semanticSpans, mergedSpans);
             Order(mergedSpans);
 
             // The classification service will only produce classifications for things it knows about.  i.e. there will
             // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSpans);
+            using var _2 = Classifier.GetPooledList(out var filledInSpans);
             FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
-            return filledInSpans.ToImmutable();
+            return filledInSpans.ToImmutableArray();
         }
 
         private static readonly Comparison<ClassifiedSpan> s_spanComparison = static (s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start;
 
-        private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
+        private static void Order(SegmentedList<ClassifiedSpan> syntaxSpans)
             => syntaxSpans.Sort(s_spanComparison);
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// name="widenedSpan"/>. Any spans that are entirely outside of <paramref name="widenedSpan"/> are replaced
         /// with <see langword="default"/>.
         /// </summary>
-        private static void AdjustSpans(ArrayBuilder<ClassifiedSpan> spans, TextSpan widenedSpan)
+        private static void AdjustSpans(SegmentedList<ClassifiedSpan> spans, TextSpan widenedSpan)
         {
             for (var i = 0; i < spans.Count; i++)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public static void FillInClassifiedSpanGaps(
-            int startPosition, ArrayBuilder<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+            int startPosition, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> result)
         {
             foreach (var span in classifiedSpans)
             {
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Classification
         /// overlap with any semantic parts as well.  All final parts will be non-empty.
         /// </summary>
         private static void MergeParts(
-            ArrayBuilder<ClassifiedSpan> syntaxParts,
-            ArrayBuilder<ClassifiedSpan> semanticParts,
-            ArrayBuilder<ClassifiedSpan> finalParts)
+            SegmentedList<ClassifiedSpan> syntaxParts,
+            SegmentedList<ClassifiedSpan> semanticParts,
+            SegmentedList<ClassifiedSpan> finalParts)
         {
             // Create an interval tree so we can easily determine which semantic parts intersect with the 
             // syntactic parts we're looking at.

@@ -152,7 +152,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
       condition: succeeded()
 
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from

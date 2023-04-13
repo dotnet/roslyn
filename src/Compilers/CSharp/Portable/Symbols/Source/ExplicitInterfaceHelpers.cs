@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var memberLocation = implementingMember.Locations[0];
+            var memberLocation = implementingMember.GetFirstLocation();
             var containingType = implementingMember.ContainingType;
 
             switch (containingType.TypeKind)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
                 // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
-                var memberLocation = implementingMember.Locations[0];
+                var memberLocation = implementingMember.GetFirstLocation();
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (implementedMember.IsStatic && !implementingMember.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
             {
-                diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, implementingMember.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, implementingMember.GetFirstLocation());
             }
         }
 
@@ -408,12 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (foundMismatchedRefKind)
                         {
-                            diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.Locations[0], explicitInterfaceType, implementedMember);
+                            diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.GetFirstLocation(), explicitInterfaceType, implementedMember);
                         }
                         else
                         {
                             //UNDONE: related locations for conflicting members - keep iterating to find others?
-                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.GetFirstLocation(), implementingMember);
                         }
                         break;
                     }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // the runtime behavior is ambiguous because the runtime cannot distinguish between two or
                             // more interface members.  This diagnostic means that *C#* cannot distinguish between two
                             // or more interface members (because of custom modifiers).
-                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.GetFirstLocation(), implementingMember);
                         }
                     }
                 }

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, options, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
-                                    extensionManager, options, isBlocking, cancellationToken);
+                                    extensionManager, options, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -160,7 +159,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -189,7 +187,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         }
                     },
                     options,
-                    isBlocking,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;

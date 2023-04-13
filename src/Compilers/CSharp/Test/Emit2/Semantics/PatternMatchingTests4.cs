@@ -163,7 +163,7 @@ class C
                 // (12,18): error CS0150: A constant value is expected
                 //             case new { X = 0 }:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
-                );
+            );
         }
 
         [Fact]
@@ -3430,16 +3430,16 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // 0.cs(5,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is {}) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
-                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                // 0.cs(6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         if (p is 1) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
-                // (6,18): error CS0150: A constant value is expected
+                // 0.cs(6,18): error CS9133: A constant value of type 'int*' is expected
                 //         if (p is 1) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
-                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("int*").WithLocation(6, 18),
+                // 0.cs(7,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit: false, logPerformanceInfo: true);
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)

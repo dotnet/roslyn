@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </summary>
 /// <remarks>
 /// This type provides an LSP view of the registered workspace solutions so that all LSP requests operate
-/// on the state of the world that matches the LSP requests we've recieved.  
+/// on the state of the world that matches the LSP requests we've received.  
 /// 
 /// This is done by storing the LSP text as provided by client didOpen/didClose/didChange requests.  When asked for a document we provide either
 /// <list type="bullet">
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
+internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
@@ -85,12 +85,21 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region Implementation of IDocumentChangeTracker
 
+    private static async ValueTask ApplyChangeToMutatingWorkspaceAsync(Workspace workspace, Uri uri, Func<ILspWorkspace, DocumentId, ValueTask> change)
+    {
+        if (workspace is not ILspWorkspace { SupportsMutation: true } mutatingWorkspace)
+            return;
+
+        foreach (var documentId in workspace.CurrentSolution.GetDocumentIds(uri))
+            await change(mutatingWorkspace, documentId).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StartTracking(Uri uri, SourceText documentText)
+    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText, CancellationToken cancellationToken)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -100,6 +109,23 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        // Attempt to open the doc if we find it in a workspace.  Note: if we don't (because we've heard from lsp about
+        // the doc before we've heard from the project system), that's ok.  We'll still attempt to open it later in
+        // GetLspSolutionForWorkspaceAsync
+        await TryOpenDocumentsInMutatingWorkspaceAsync(uri).ConfigureAwait(false);
+
+        return;
+
+        async ValueTask TryOpenDocumentsInMutatingWorkspaceAsync(Uri uri)
+        {
+            var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+            foreach (var workspace in registeredWorkspaces)
+            {
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
+                    workspace.TryOnDocumentOpenedAsync(documentId, documentText.Container, isCurrentContext: false, cancellationToken)).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>
@@ -107,7 +133,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void StopTracking(Uri uri)
+    public async ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
     {
         // First, stop tracking this URI and source text as it is no longer owned by LSP.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
@@ -120,6 +146,21 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
+
+        // Attempt to close the doc, if it is currently open in a workspace.
+        await TryCloseDocumentsInMutatingWorkspaceAsync(uri).ConfigureAwait(false);
+
+        return;
+
+        async ValueTask TryCloseDocumentsInMutatingWorkspaceAsync(Uri uri)
+        {
+            var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+            foreach (var workspace in registeredWorkspaces)
+            {
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
+                    workspace.TryOnDocumentClosedAsync(documentId, cancellationToken)).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>
@@ -200,8 +241,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+        // Depending on the host, this can be entirely normal (e.g. opening a loose file)
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
+        _logger.LogInformation($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it iss open.
@@ -246,35 +288,43 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // At a high level these are the steps we take to compute what the desired LSP solution should be.
             //
-            //   1.  First we want to check if our workspace current solution is the same as the last workspace current
-            //       solution that we verified matches the LSP text. If so, we can skip comparing the LSP text against
-            //       the workspace text and just return the cached one since absolutely nothing has changed.
-            //       Importantly, we do not return a cached forked solution - we do not want to re-use a forked solution
-            //       if the LSP text has changed and now matches the workspace.
+            //  1. First we want to check if our workspace current solution is the same as the last workspace current
+            //     solution that we verified matches the LSP text. If so, we can skip comparing the LSP text against the
+            //     workspace text and just return the cached one since absolutely nothing has changed. Importantly, we
+            //     do not return a cached forked solution - we do not want to re-use a forked solution if the LSP text
+            //     has changed and now matches the workspace.
             //
-            //   2.  If the cached solution isn't a match, we compare the LSP text to the workspace's text and return
-            //       the workspace text if all LSP text matches. This check is performant as checksums will be computed
-            //       for these documents in order to make requests OOP.  So these are already computed or will be later
-            //       in this request.
+            //  2. Next, ensure that any changes we've collected are pushed through to the underlying workspace *if* 
+            //     it's a mutating workspace.  This will bring that workspace into sync with all that we've heard from lsp.
             //
-            //   3.  Third, we check to see if we have cached a forked LSP solution for the current set of LSP texts
-            //       against the current workspace version. If so, we can just reuse that instead of re-forking and
-            //       blowing away the trees / source generated docs / etc. that we created for the fork.
-            //       
-            //   4.  We have nothing cached for this combination of LSP texts and workspace version.  We have exhausted
-            //       our options and must create an LSP fork from the current workspace solution with the current LSP
-            //       text.
+            //  3. If the cached solution isn't a match, we compare the LSP text to the workspace's text and return the
+            //     workspace text if all LSP text matches. While this does compute checksums, generally speaking that's
+            //     a reasonable price to pay.  For example, we always do this in VS anyways to make OOP calls, and it is
+            //     not a burden there.
+            //
+            //  4. Third, we check to see if we have cached a forked LSP solution for the current set of LSP texts
+            //     against the current workspace version. If so, we can just reuse that instead of re-forking and
+            //     blowing away the trees / source generated docs / etc. that we created for the fork.
+            //
+            //  5. We have nothing cached for this combination of LSP texts and workspace version.  We have exhausted
+            //     our options and must create an LSP fork from the current workspace solution with the current LSP
+            //     text.
             //
             // We propagate the IsForked value back up so that we only report telemetry on forking if the forked
             // solution is actually requested.
 
             // Step 1: Check if nothing has changed and we already verified that the workspace text matches our LSP text.
             if (_cachedLspSolutions.TryGetValue(workspace, out var cachedSolution) && cachedSolution.solution == workspaceCurrentSolution)
-            {
                 return (workspaceCurrentSolution, IsForked: false);
-            }
 
-            // Step 2: Check to see if the LSP text matches the workspace text.
+            // Step 2: Push through any changes to the underlying workspace if it's a mutating workspace.
+            await TryOpenAndEditDocumentsInMutatingWorkspaceAsync(workspace).ConfigureAwait(false);
+
+            // Because the workspace may have been mutated, go back and retrieve its current snapshot so we're operating
+            // against that view.
+            workspaceCurrentSolution = workspace.CurrentSolution;
+
+            // Step 3: Check to see if the LSP text matches the workspace text.
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
             if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
             {
@@ -283,22 +333,43 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 return (workspaceCurrentSolution, IsForked: false);
             }
 
-            // Step 3: See if we can reuse a previously forked solution.
+            // Step 4: See if we can reuse a previously forked solution.
             if (cachedSolution != default && cachedSolution.forkedFromVersion == workspaceCurrentSolution.WorkspaceVersion)
-            {
                 return (cachedSolution.solution, IsForked: true);
-            }
 
-            // Step 4: Fork a new solution from the workspace with the LSP text applied.
+            // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
             foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-            {
                 lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri]);
-            }
 
             // Remember this forked solution and the workspace version it was forked from.
             _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
             return (lspSolution, IsForked: true);
+        }
+
+        async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
+        {
+            foreach (var (uri, sourceText) in _trackedDocuments)
+            {
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
+                {
+                    // This may be the first time this workspace is hearing that this document is open from LSP's
+                    // perspective. Attempt to open it there.
+                    //
+                    // TODO(cyrusn): Do we need to pass a correct value for isCurrentContext?  Or will that fall out from
+                    // something else in lsp.
+                    await workspace.TryOnDocumentOpenedAsync(
+                        documentId, sourceText.Container, isCurrentContext: false, cancellationToken).ConfigureAwait(false);
+
+                    // Note: there is a race here in that we might see/change/return here based on the
+                    // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
+                    // confines of lsp queue might update the workspace externally.  That's completely fine
+                    // though.  The caller will always grab the 'current solution' again off of the workspace
+                    // and check the checksums of all documents against the ones this workspace manager is
+                    // tracking.  If there are any differences, it will fork and use that fork.
+                    await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
         }
     }
 
@@ -323,12 +394,13 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         return true;
     }
 
-    private static async Task<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
+    private static async ValueTask<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
     {
-        var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var documentTextChecksum = documentText.GetChecksum();
-        var lspTextChecksum = lspText.GetChecksum();
-        return lspTextChecksum.SequenceEqual(documentTextChecksum);
+        var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        if (documentText == lspText)
+            return true;
+
+        return lspText.GetChecksum().AsSpan().SequenceEqual(documentText.GetChecksum().AsSpan());
     }
 
     #endregion

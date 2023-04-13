@@ -163,7 +163,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -399,7 +399,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports system.collections.generic
 
