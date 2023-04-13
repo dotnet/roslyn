@@ -285,8 +285,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create the document as empty
                     textDocumentEdits.Add(new CreateFile { Uri = newTextDoc.GetURI() });
 
-                    var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     // And then give it content
+                    var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                     var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
                     var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
@@ -308,38 +308,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    // If the document has text change.
-                    var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    IEnumerable<TextChange> textChanges;
-
-                    // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
-                    // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
-                    if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
+                    if (modifiedDocumentIds.Add(docId))
                     {
-                        Contract.ThrowIfNull(textDiffService);
-                        textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        textChanges = newText.GetTextChanges(oldText);
-                    }
+                        // If the document has text change.
+                        var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        IEnumerable<TextChange> textChanges;
 
-                    if (edits.Length > 0)
-                    {
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                        // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
+                        // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
+                        if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
+                        {
+                            Contract.ThrowIfNull(textDiffService);
+                            textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            textChanges = newText.GetTextChanges(oldText);
+                        }
+
+                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+
+                        if (edits.Length > 0)
+                        {
+                            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                            textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                        }
+
+                        // Rename
+                        if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)
+                        {
+                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
+                        }
+
                         var linkedDocuments = solution.GetRelatedDocumentIds(docId);
                         modifiedDocumentIds.AddRange(linkedDocuments);
-                    }
-
-                    // Rename
-                    if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)
-                    {
-                        textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
                     }
                 }
             }
