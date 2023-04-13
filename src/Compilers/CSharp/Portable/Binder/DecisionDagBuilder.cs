@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
             /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
-            /// However, despite being mutable, it will not be mutated once hte DagState is created.
+            /// To ensure it doesn't mutate from underneath us, we freeze it to catch anyone misusing this.
             /// </summary>
             public ArrayBuilder<StateForCase> Cases = null!;
 
@@ -1813,6 +1813,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dagState.TrueBranch is null);
                 Debug.Assert(dagState.FalseBranch is null);
                 Debug.Assert(dagState.Dag is null);
+
+                // We're taking ownership of 'cases' (and we never mutate it ourselves).  So freeze it to ensure it
+                // always keeps the starting set of cases.
+                cases.Freeze();
 
                 dagState.Cases = cases;
                 dagState.RemainingValues = remainingValues;
