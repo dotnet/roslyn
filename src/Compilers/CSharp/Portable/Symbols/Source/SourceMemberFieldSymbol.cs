@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             string name,
             SyntaxReference syntax,
-            Location location)
-            : base(containingType, name, syntax, location)
+            TextSpan locationSpan)
+            : base(containingType, name, syntax, locationSpan)
         {
             _modifiers = modifiers;
         }
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool modifierErrors,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.Span)
         {
             _hasInitializer = declarator.Initializer != null;
 
