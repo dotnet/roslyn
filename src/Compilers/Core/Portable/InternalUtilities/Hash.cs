@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -118,6 +119,27 @@ namespace Roslyn.Utilities
                 return 0;
             }
 
+            var hashCode = 0;
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (count++ >= maxItemsToHash)
+                {
+                    break;
+                }
+
+                // Should end up with a constrained virtual call to object.GetHashCode (i.e. avoid boxing where possible).
+                if (value != null)
+                {
+                    hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+                }
+            }
+
+            return hashCode;
+        }
+
+        internal static int CombineValues<T>(ArrayBuilder<T> values, int maxItemsToHash = int.MaxValue)
+        {
             var hashCode = 0;
             var count = 0;
             foreach (var value in values)
