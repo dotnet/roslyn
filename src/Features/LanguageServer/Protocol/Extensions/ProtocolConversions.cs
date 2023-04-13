@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
         private const string VirtualCSharpFileSuffix = "__virtual.cs";
-        private const string RazorVirtualFileScheme = "virtualCSharp-razor:";
+        private const string RazorVirtualFileScheme = "virtualCSharp-razor:/";
         private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
