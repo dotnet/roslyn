@@ -149,6 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
+        /// <summary>
+        /// Cache of T to Nullable&lt;T&gt;.
+        /// </summary>
+        private ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol>.Empty;
+
         public override string Language
         {
             get
@@ -1567,16 +1572,57 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Cache of T to Nullable&lt;T&gt;.
+        /// Given a provided <paramref name="typeArgument"/>, gives back <see cref="Nullable{T}"/> constructed with that
+        /// argument.  This function is only intended to be used for very common instantiations produced heavily during
+        /// binding.  Specifically, the nullable versions of enums, and the nullable versions of core built-ins.  So
+        /// many of these are created that it's worthwhile to cache, keeping overall garbage low, while not ballooning
+        /// the size of the cache itself.
         /// </summary>
-        private ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol>.Empty;
-
+        /// <param name="typeArgument"></param>
+        /// <returns></returns>
         internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
-            => RoslynImmutableInterlocked.GetOrAdd(
+        {
+#if DEBUG
+            Debug.Assert(isSupportedType(typeArgument));
+#endif
+
+            return RoslynImmutableInterlocked.GetOrAdd(
                 ref _typeToNullableVersion,
                 typeArgument,
                 static (typeArgument, @this) => @this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument),
                 this);
+
+#if DEBUG
+            static bool isSupportedType(TypeSymbol typeArgument)
+            {
+                if (typeArgument.IsEnumType())
+                    return true;
+
+                switch (typeArgument.SpecialType)
+                {
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Boolean:
+                        return true;
+                }
+
+                if (typeArgument.IsNativeIntegerType)
+                    return true;
+
+                return false;
+            }
+#endif
+        }
 
         /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
