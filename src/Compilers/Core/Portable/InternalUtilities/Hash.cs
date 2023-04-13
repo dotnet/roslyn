@@ -138,22 +138,13 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int CombineValues<T>(ArrayBuilder<T> values, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues<T>(ArrayBuilder<T> values)
         {
             var hashCode = 0;
-            var count = 0;
             foreach (var value in values)
             {
-                if (count++ >= maxItemsToHash)
-                {
-                    break;
-                }
-
-                // Should end up with a constrained virtual call to object.GetHashCode (i.e. avoid boxing where possible).
                 if (value != null)
-                {
                     hashCode = Hash.Combine(value.GetHashCode(), hashCode);
-                }
             }
 
             return hashCode;
