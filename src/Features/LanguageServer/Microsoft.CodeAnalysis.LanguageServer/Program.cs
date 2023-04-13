@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Microsoft.VisualStudio.Composition;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
@@ -75,11 +74,7 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     }
 
     // Initialize the fault handler if it's available
-    try
-    {
-        exportProvider.GetExportedValue<ILspFaultLogger?>()?.Initialize();
-    }
-    catch (CompositionFailedException) { }
+    exportProvider.GetExportedValues<ILspFaultLogger>().SingleOrDefault()?.Initialize();
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
