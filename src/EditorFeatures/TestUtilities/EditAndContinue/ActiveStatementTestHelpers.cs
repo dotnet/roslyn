@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -96,19 +97,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => $"{statement.Ordinal}: {statement.FileSpan} flags=[{statement.Flags}]";
 
         public static string InspectActiveStatementAndInstruction(ActiveStatement statement)
-            => InspectActiveStatement(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
+            => InspectActiveStatement(statement) + " " + Inspect(statement.InstructionId);
 
         public static string InspectActiveStatementAndInstruction(ActiveStatement statement, SourceText text)
             => InspectActiveStatementAndInstruction(statement) + $" '{GetFirstLineText(statement.Span, text)}'";
 
         public static string InspectActiveStatementUpdate(ManagedActiveStatementUpdate update)
-            => $"{update.Method.GetDebuggerDisplay()} IL_{update.ILOffset:X4}: {update.NewSpan.GetDebuggerDisplay()}";
+            => $"{Inspect(update.Method)} IL_{update.ILOffset:X4}: {Inspect(update.NewSpan)}";
 
         public static IEnumerable<string> InspectNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> regions)
-            => regions.OrderBy(r => r.Key.Token).Select(r => $"{r.Key.Method.GetDebuggerDisplay()} | {string.Join(", ", r.Value.Select(r => r.GetDebuggerDisplay()))}");
+            => regions.OrderBy(r => r.Key.Token).Select(r => $"{Inspect(r.Key.Method)} | {string.Join(", ", r.Value.Select(r => r.GetDebuggerDisplay()))}");
 
         public static string InspectExceptionRegionUpdate(ManagedExceptionRegionUpdate r)
-            => $"{r.Method.GetDebuggerDisplay()} | {r.NewSpan.GetDebuggerDisplay()} Delta={r.Delta}";
+            => $"{Inspect(r.Method)} | {Inspect(r.NewSpan)} Delta={r.Delta}";
+
+        public static string Inspect(ManagedMethodId value)
+            => $"0x{value.Token:X8} v{value.Version}";
+
+        public static string Inspect(ManagedModuleMethodId value)
+            => $"0x{value.Token:X8} v{value.Version}";
+
+        public static string Inspect(ManagedInstructionId value)
+            => $"{Inspect(value.Method)} IL_{value.ILOffset:X4}";
+
+        public static string Inspect(SourceSpan value)
+            => (value.StartColumn >= 0)
+                ? $"({value.StartLine},{value.StartColumn})-({value.EndLine},{value.EndColumn})"
+                : $"{value.StartLine}-{value.EndLine}";
 
         public static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();

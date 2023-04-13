@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         public readonly Solution Solution;
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
-        public readonly ImmutableArray<ModuleUpdate> Deltas;
+        public readonly ImmutableArray<VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadUpdate> Deltas;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions;
 
         public PendingSolutionUpdate(
             Solution solution,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
-            ImmutableArray<ModuleUpdate> deltas,
+            ImmutableArray<VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadUpdate> deltas,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions)
         {
             Solution = solution;

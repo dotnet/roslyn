@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    new ManagedHotReloadServiceImpl(_debuggerService.Value),
+                    _debuggerService.Value,
                     _sourceTextProvider,
                     captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                     captureAllMatchingDocuments: false,
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (_disabled)
             {
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+                return new ManagedHotReloadUpdates(ImmutableArray<VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
@@ -340,9 +340,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
-            return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
+            return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
         }
-
+#if F
         public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
         {
             try
@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
                     activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
-                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-                return span?.ToSourceSpan().FromContract();
+                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
+                return span?.ToSourceSpan();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -367,12 +367,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
+                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
         }
+#endif
     }
 }

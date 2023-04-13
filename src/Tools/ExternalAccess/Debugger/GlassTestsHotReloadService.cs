@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         {
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
-                new ManagedHotReloadServiceImpl(_debuggerService),
+                _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.GetDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), result.ModuleUpdates.Status, cancellationToken).ConfigureAwait(false);
-            return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), diagnostics.FromContract());
+            return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates, diagnostics);
         }
     }
 }

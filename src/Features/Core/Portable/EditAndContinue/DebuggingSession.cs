@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
-        private ImmutableArray<ModuleUpdate> _lastModuleUpdatesLog;
+        private ImmutableArray<VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadUpdate> _lastModuleUpdatesLog;
 
         internal DebuggingSession(
             DebuggingSessionId id,

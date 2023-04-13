@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {

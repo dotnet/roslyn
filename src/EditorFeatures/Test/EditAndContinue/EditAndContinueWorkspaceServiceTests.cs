@@ -40,6 +40,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -2717,7 +2718,7 @@ class G
             Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
             ValidateDelta(updates.Updates.Single());
 
-            void ValidateDelta(ModuleUpdate delta)
+            void ValidateDelta(ManagedHotReloadUpdate delta)
             {
                 // check emitted delta:
                 Assert.Empty(delta.ActiveStatements);
