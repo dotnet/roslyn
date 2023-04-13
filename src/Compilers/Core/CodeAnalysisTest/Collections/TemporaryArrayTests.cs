@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             if (initialItems == 0)
             {
-                Assert.Throws<InvalidOperationException>(() => array.RemoveLast());
+                Assert.Throws<IndexOutOfRangeException>(() => array.RemoveLast());
             }
             else
             {

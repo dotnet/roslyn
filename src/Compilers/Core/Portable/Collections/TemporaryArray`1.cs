@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public T RemoveLast()
         {
             var count = this.Count;
-            Debug.Assert(count > 0);
 
             var last = this[count - 1];
             this[count - 1] = default!;
