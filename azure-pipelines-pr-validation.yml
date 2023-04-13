@@ -9,8 +9,6 @@ resources:
 #  IbcDrop: 'default'
 
 parameters:
-- name: PRNumber
-  type: number
 - name: CommitSHA
   type: string
 - name: VisualStudioBranchName
@@ -18,7 +16,7 @@ parameters:
   default: default
 - name: OptionalTitlePrefix
   type: string
-  default: '[PR Validation]'
+  default: '[RPS Validation]'
 - name: InsertToolset
   type: boolean
   default: true
@@ -66,16 +64,15 @@ stages:
       inputs:
         type: 'Build'
         tags: |
-          PRValidationBuild
-          PRNumber:${{ parameters.PRNumber }}
+          RPSValidationBuild
           CommitSHA:${{ parameters.CommitSHA }}
       condition: succeeded()
 
     - task: PowerShell@2
-      displayName: Setup branch for insertion validation
+      displayName: Setup branch for RPS validation
       inputs:
         filePath: 'eng\setup-pr-validation.ps1'
-        arguments: '-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }}'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber 0 -commitSHA ${{ parameters.CommitSHA }}'
       condition: succeeded()
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
