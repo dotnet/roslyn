@@ -1578,8 +1578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// many of these are created that it's worthwhile to cache, keeping overall garbage low, while not ballooning
         /// the size of the cache itself.
         /// </summary>
-        /// <param name="typeArgument"></param>
-        /// <returns></returns>
         internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
         {
 #if DEBUG
