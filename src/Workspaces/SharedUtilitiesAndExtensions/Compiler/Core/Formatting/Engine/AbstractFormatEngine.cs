@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     //             that would create too big graph. key for this approach is how to reduce size of graph.
     internal abstract partial class AbstractFormatEngine
     {
-        private static class ListPool<T>
-        {
-            public static readonly ObjectPool<List<T>> Pool = new(() => new(), trimOnFree: false);
-        }
-
         // Intentionally do not trim the capacities of these collections down.  We will repeatedly try to format large
         // files as we edit them and this will produce a lot of garbage as we free the internal array backing the list
         // over and over again.
@@ -136,36 +131,33 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var nodeOperations = new NodeOperations();
+
             var indentBlockOperation = new List<IndentBlockOperation>();
             var suppressOperation = new List<SuppressOperation>();
             var alignmentOperation = new List<AlignTokensOperation>();
             var anchorIndentationOperations = new List<AnchorIndentationOperation>();
+
+            // Cache delegates out here to avoid allocation overhead.
 
             var addIndentBlockOperations = _formattingRules.AddIndentBlockOperations;
             var addSuppressOperation = _formattingRules.AddSuppressOperations;
             var addAlignTokensOperations = _formattingRules.AddAlignTokensOperations;
             var addAnchorIndentationOperations = _formattingRules.AddAnchorIndentationOperations;
 
-            using var indentBlockOperationScratch = ListPool<IndentBlockOperation>.Pool.GetPooledObject();
-            using var suppressOperationScratch = ListPool<SuppressOperation>.Pool.GetPooledObject();
-            using var alignmentOperationScratch = ListPool<AlignTokensOperation>.Pool.GetPooledObject();
-            using var anchorIndentationOperationsScratch = ListPool<AnchorIndentationOperation>.Pool.GetPooledObject();
-
             // iterating tree is very expensive. only do it once.
             foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                AddOperations(indentBlockOperation, indentBlockOperationScratch.Object, node, addIndentBlockOperations);
-                AddOperations(suppressOperation, suppressOperationScratch.Object, node, addSuppressOperation);
-                AddOperations(alignmentOperation, alignmentOperationScratch.Object, node, addAlignTokensOperations);
-                AddOperations(anchorIndentationOperations, anchorIndentationOperationsScratch.Object, node, addAnchorIndentationOperations);
+                AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperation, node, addIndentBlockOperations);
+                AddOperations(nodeOperations.SuppressOperation, suppressOperation, node, addSuppressOperation);
+                AddOperations(nodeOperations.AlignmentOperation, alignmentOperation, node, addAlignTokensOperations);
+                AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperations, node, addAnchorIndentationOperations);
             }
 
             // make sure we order align operation from left to right
             alignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
-
-            return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
         private static void AddOperations<T>(List<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
