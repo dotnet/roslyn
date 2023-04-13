@@ -51,12 +51,21 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
-  </PropertyGroup>
 
-  <PropertyGroup>
-    <SourceBuildTargetFrameworks>net6.0</SourceBuildTargetFrameworks>
-    <SourceBuildTargetFrameworks Condition="'$(ContinuousIntegrationBuild)' == 'true'">net8.0;$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworks>
-    <SourceBuildTargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net8.0</SourceBuildTargetFrameworks>
+    <!-- 
+      There are effectively three modes that are needed for our source build TFMs
+        - CI normal leg: this needs to build the union of all TFM we support. That ensures we handle all 
+          diagnostics and analyzers for all the TFM that we support.
+        - CI source build leg: this needs to build the current and previous source build TFM. Both are 
+          necessary as the output of this leg is used in other CI source build legs. Those could be 
+          targeting NetCurrent or NetPrevious hence we must produce both.
+        - Source build the product: this is the all up build of the product which needs only NetCurrent
+    -->
+    <SourceBuildTargetFrameworks></SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">$(NetCurrent)</SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">$(NetCurrent);$(NetPrevious)</SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(SourceBuildTargetFrameworks)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">$(NetCurrent);$(NetPrevious);net6.0</SourceBuildTargetFrameworks>
+    <SourceBuildTargetFrameworks Condition="'$(SourceBuildTargetFrameworks)' == ''">net6.0</SourceBuildTargetFrameworks>
 
     <SourceBuildTargetFrameworksNetFx>$(SourceBuildTargetFrameworks)</SourceBuildTargetFrameworksNetFx>
     <SourceBuildTargetFrameworksNetFx Condition="'$(DotNetBuildFromSource)' != 'true'">$(SourceBuildTargetFrameworksNetFx);net472</SourceBuildTargetFrameworksNetFx>
@@ -149,8 +158,7 @@
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" />
-    <!-- Disabled in net8.0 until https://github.com/dotnet/roslyn-analyzers/issues/6059 is resolved. -->
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" Condition="'$(TargetFramework)' != 'net8.0'" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
