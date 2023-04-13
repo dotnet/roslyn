@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         private partial class SymbolReferenceFinder
         {
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
-                ConcurrentStack<Reference> allReferences, CancellationToken cancellationToken)
+                ConcurrentQueue<Reference> allReferences, CancellationToken cancellationToken)
             {
                 // Only do this if none of the project or metadata searches produced 
                 // any results. We always consider source and local metadata to be 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task FindNugetOrReferenceAssemblyTypeReferencesAsync(
-                ConcurrentStack<Reference> allReferences, TSimpleNameSyntax nameNode,
+                ConcurrentQueue<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool inAttributeContext,
                 CancellationToken cancellationToken)
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task FindNugetOrReferenceAssemblyTypeReferencesWorkerAsync(
-                ConcurrentStack<Reference> allReferences, TSimpleNameSyntax nameNode,
+                ConcurrentQueue<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
                 if (_options.SearchOptions.SearchReferenceAssemblies)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
-                ConcurrentStack<Reference> allReferences,
+                ConcurrentQueue<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
                 int arity,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task FindNugetTypeReferencesAsync(
                 string sourceName,
                 string sourceUrl,
-                ConcurrentStack<Reference> allReferences,
+                ConcurrentQueue<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
                 int arity,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task HandleReferenceAssemblyReferenceAsync(
-                ConcurrentStack<Reference> allReferences,
+                ConcurrentQueue<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,
@@ -153,20 +153,20 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
-                allReferences.Push(new AssemblyReference(
+                allReferences.Enqueue(new AssemblyReference(
                     _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight), result));
             }
 
             private void HandleNugetReference(
                 string source,
-                ConcurrentStack<Reference> allReferences,
+                ConcurrentQueue<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 bool isAttributeSearch,
                 PackageWithTypeResult result,
                 int weight)
             {
                 var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
-                allReferences.Push(new PackageReference(_owner,
+                allReferences.Enqueue(new PackageReference(_owner,
                     new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight),
                     source, result.PackageName, result.Version));
             }
