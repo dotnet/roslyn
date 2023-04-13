@@ -105,8 +105,8 @@
     <Otherwise>
       <PropertyGroup>
         <SourceBuildToolsetTargetFramework>net6.0</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildTargetFrameworks>
+        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework);net7.0</SourceBuildToolsetTargetFrameworks>
+        <SourceBuildTargetFrameworks>$(SourceBuildToolsetTargetFrameworks)</SourceBuildTargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>
