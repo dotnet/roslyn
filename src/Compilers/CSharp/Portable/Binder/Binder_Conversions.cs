@@ -1444,10 +1444,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            var location = syntax.Location;
             if (!Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo))
             {
-                if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
+                if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
                     MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
                 {
                     return true;
@@ -1457,15 +1456,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
                 return true;
             }
 
-            var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
-            if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
+            if (selectedMethod is SourceOrdinaryMethodSymbol { IsPartialWithoutImplementation: true })
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
                 return true;
             }
 
@@ -1477,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 
