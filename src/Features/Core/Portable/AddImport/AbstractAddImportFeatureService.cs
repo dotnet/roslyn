@@ -105,13 +105,15 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 document, semanticModel, diagnosticId, node, maxResults, symbolSearchService,
                                 options, packageSources, cancellationToken).ConfigureAwait(false);
 
-                            // Nothing found at all. No need to proceed.
                             foreach (var reference in allSymbolReferences)
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
                                 var fixData = await reference.TryGetFixDataAsync(document, node, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
                                 result.AddIfNotNull(fixData);
+
+                                if (result.Count > maxResults)
+                                    break;
                             }
                         }
                     }
@@ -138,9 +140,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // Look for exact matches first:
             var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (exactReferences.Length > 0)
-            {
                 return exactReferences;
-            }
 
             // No exact matches found.  Fall back to fuzzy searching.
             // Only bother doing this for host workspaces.  We don't want this for 
@@ -190,9 +190,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                     await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            while (allReferences.Count > maxResults)
-                allReferences.TryPop(out _);
 
             return allReferences.ToImmutableArray();
         }
