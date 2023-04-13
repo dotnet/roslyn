@@ -153,7 +153,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent!);
             Assert.Equal(40, first.Span.Start);
             Assert.Equal(25, first.Span.Length);
 
@@ -166,7 +166,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent!);
             Assert.Equal(82, second.Span.Start);
             Assert.Equal(60, second.Span.Length);
 
@@ -179,7 +179,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, "messageFormat")));
 
             Assert.Equal(PredefinedErrorTypeNames.Warning, third.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent!);
             Assert.Equal(152, third.Span.Start);
             Assert.Equal(7, third.Span.Length);
 
@@ -192,7 +192,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)));
 
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, fourth.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, fourth.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, fourth.Tag.ToolTipContent!);
             Assert.Equal(196, fourth.Span.Start);
             Assert.Equal(5, fourth.Span.Length);
         }
@@ -225,7 +225,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, firstDiagnostic.Message)));
 
-            ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent!);
         }
 
         [WpfFact]

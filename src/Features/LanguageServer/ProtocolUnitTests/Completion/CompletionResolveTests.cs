@@ -116,7 +116,7 @@ class B : A
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();
-    }", results.TextEdit.NewText);
+    }", results.TextEdit.Value.First.NewText);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
@@ -161,7 +161,7 @@ class B : A
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();$0
-    }", results.TextEdit.NewText);
+    }", results.TextEdit.Value.First.NewText);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]

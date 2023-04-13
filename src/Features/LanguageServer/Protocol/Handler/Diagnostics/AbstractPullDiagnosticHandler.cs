@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -313,10 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
-            // VSCode throws on hidden diagnostics without a message (all hint diagnostic messages are rendered on hover).
-            // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
-            // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
-            if (!capabilities.HasVisualStudioLspCapability() && string.IsNullOrEmpty(diagnosticData.Message) && diagnosticData.Severity == DiagnosticSeverity.Hidden)
+            if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
             {
                 return ImmutableArray<LSP.Diagnostic>.Empty;
             }
@@ -346,20 +344,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
             }
 
-            // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
-            // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
-            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
-            diagnosticsBuilder.Add(diagnostic);
-            foreach (var location in unnecessaryLocations)
+            if (capabilities.HasVisualStudioLspCapability())
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
-                additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
-                additionalDiagnostic.Range = GetRange(location);
-                additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
-                diagnosticsBuilder.Add(additionalDiagnostic);
-            }
+                // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
+                // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
+                using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                diagnosticsBuilder.Add(diagnostic);
+                foreach (var location in unnecessaryLocations)
+                {
+                    var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+                    additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
+                    additionalDiagnostic.Range = GetRange(location);
+                    additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
+                    diagnosticsBuilder.Add(additionalDiagnostic);
+                }
 
-            return diagnosticsBuilder.ToImmutableArray();
+                return diagnosticsBuilder.ToImmutableArray();
+            }
+            else
+            {
+                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : new DiagnosticTag[] { DiagnosticTag.Unnecessary };
+                var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
+                {
+                    Location = new LSP.Location
+                    {
+                        Range = GetRange(l),
+                        Uri = ProtocolConversions.GetUriFromFilePath(l.UnmappedFileSpan.Path)
+                    },
+                    Message = diagnostic.Message
+                }).ToArray();
+                diagnostic.RelatedInformation = diagnosticRelatedInformation;
+                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+            }
 
             LSP.VSDiagnostic CreateLspDiagnostic(
                 DiagnosticData diagnosticData,
@@ -430,6 +446,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
                     }
                 };
+            }
+
+            static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)
+            {
+                // VS can handle us reporting any kind of diagnostic using VS custom tags.
+                if (capabilities.HasVisualStudioLspCapability() == true)
+                {
+                    return true;
+                }
+
+                // Diagnostic isn't hidden - we should report this diagnostic in all scenarios.
+                if (diagnosticData.Severity != DiagnosticSeverity.Hidden)
+                {
+                    return true;
+                }
+
+                // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
+                // These aren't meant to be visible in anyway, so we can safely exclude them.
+                // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
+                if (string.IsNullOrEmpty(diagnosticData.Message))
+                {
+                    return false;
+                }
+
+                // Hidden diagnostics that are unnecessary are visible to the user in the form of fading.
+                // We can report these diagnostics.
+                if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                {
+                    return true;
+                }
+
+                // We have a hidden diagnostic that has no fading.  This diagnostic can't be visible so don't send it to the client.
+                return false;
             }
         }
 
