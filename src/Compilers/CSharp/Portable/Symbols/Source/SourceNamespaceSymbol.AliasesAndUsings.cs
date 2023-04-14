@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             dictionary.TryGetValue(declaration, out var result);
-            Debug.Assert(result is not null);
 
-            return result ?? new AliasesAndUsings();
+            // Caller shouldn't invoke this method with declaration that isn't added to builder above.
+            return result ?? throw ExceptionUtilities.Unreachable();
         }
 
         private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
