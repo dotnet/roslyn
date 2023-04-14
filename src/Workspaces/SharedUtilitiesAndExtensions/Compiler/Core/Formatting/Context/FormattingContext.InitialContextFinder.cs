@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -152,32 +153,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // operation has found
                 var list = new List<SuppressOperation>();
 
-                bool predicate(SuppressOperation o)
-                {
-                    if (o == null)
-                    {
-                        return true;
-                    }
-
-                    if (!o.TextSpan.Contains(startPosition))
-                    {
-                        return true;
-                    }
-
-                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
-                    {
-                        return true;
-                    }
-
-                    if (!o.Option.IsMaskOn(mask))
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }
-
                 var currentIndentationNode = startNode;
+                Predicate<SuppressOperation> predicate = Predicate;
                 while (currentIndentationNode != null)
                 {
                     _formattingRules.AddSuppressOperations(list, currentIndentationNode);
@@ -192,6 +169,26 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 return null;
+
+                bool Predicate(SuppressOperation operation)
+                {
+                    if (!operation.TextSpan.Contains(startPosition))
+                    {
+                        return true;
+                    }
+
+                    if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
+                    {
+                        return true;
+                    }
+
+                    if (!operation.Option.IsMaskOn(mask))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
             }
         }
     }

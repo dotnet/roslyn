@@ -39,6 +39,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             list.RemoveRange(targetIndex, list.Count - targetIndex);
         }
 
+        public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+            where T : struct
+        {
+            RoslynDebug.AssertNotNull(list);
+            RoslynDebug.AssertNotNull(transform);
+
+            var targetIndex = 0;
+            for (var sourceIndex = 0; sourceIndex < list.Count; sourceIndex++)
+            {
+                var newValue = transform(list[sourceIndex], arg);
+                if (newValue is null)
+                    continue;
+
+                list[targetIndex++] = newValue.Value;
+            }
+
+            list.RemoveRange(targetIndex, list.Count - targetIndex);
+        }
+
         /// <summary>
         /// Attempts to remove the first item selected by <paramref name="selector"/>.
         /// </summary>
