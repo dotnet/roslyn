@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
+                case TypeKind.Extension:
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
@@ -108,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol? TransformNamedType(NamedTypeSymbol type)
         {
+            // PROTOTYPE customer modifiers are generally not translated. We'll need
+            // to revisit this logic when we erase extension types using modopts.
             if (!type.IsGenericType)
             {
                 switch (type.SpecialType)

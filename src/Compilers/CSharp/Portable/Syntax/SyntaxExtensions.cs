@@ -249,6 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseList:
                 case SyntaxKind.SimpleBaseType:
                 case SyntaxKind.PrimaryConstructorBaseType:
+                case SyntaxKind.ForType:
                     return true;
 
                 case SyntaxKind.Block:

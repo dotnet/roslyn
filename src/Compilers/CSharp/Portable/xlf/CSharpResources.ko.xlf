@@ -1062,6 +1062,11 @@
         <target state="translated">목록 패턴은 '{0}' 형식의 값에 사용할 수 없습니다. 적합한 'Length' 또는 'Count' 속성을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">함수 포인터 '{1}'과(와) 일치하는 '{0}'에 대한 오버로드가 없습니다.</target>

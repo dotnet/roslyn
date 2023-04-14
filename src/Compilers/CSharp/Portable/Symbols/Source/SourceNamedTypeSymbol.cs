@@ -1428,8 +1428,9 @@ next:;
                     return data.Layout;
                 }
 
-                if (this.TypeKind == TypeKind.Struct)
+                if (this.TypeKind is TypeKind.Struct or TypeKind.Extension)
                 {
+                    // PROTOTYPE consider disallowing attribute for explicit layout on extension types
                     // CLI spec 22.37.16:
                     // "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     // 
@@ -1594,12 +1595,6 @@ next:;
         /// </remarks>
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            if (IsExtension)
-            {
-                // PROTOTYPE revisit when emitting extension types
-                return;
-            }
-
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
@@ -1611,33 +1606,25 @@ next:;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
+            var obsoleteData = ObsoleteAttributeData;
+            Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+            bool hasObsolete = obsoleteData is not null;
             if (this.IsRefLikeType)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
-                var obsoleteData = ObsoleteAttributeData;
-                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
-
                 if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
-                    // If user specified an Obsolete attribute, we cannot emit ours.
-                    // NB: we do not check the kind of deprecation. 
-                    //     we will not emit Obsolete even if Deprecated or Experimental was used.
-                    //     we do not want to get into a scenario where different kinds of deprecation are combined together.
-                    //
-                    if (obsoleteData == null)
-                    {
-                        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
-                            ImmutableArray.Create(
-                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
-                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
-                            isOptionalUse: true));
-                    }
-
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
-                        ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RefStructs))),
-                        isOptionalUse: true));
+                    addPoisonAttributes(ref attributes, compilation, hasObsolete,
+                        PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs), isOptionalUse: true);
                 }
+            }
+            else if (this.IsExtension)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
+
+                addPoisonAttributes(ref attributes, compilation, hasObsolete,
+                    PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes), isOptionalUse: false);
             }
 
             if (this.IsReadOnly)
@@ -1686,6 +1673,30 @@ next:;
                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                         ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
                         isOptionalUse: true));
+            }
+
+            return;
+
+            static void addPoisonAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, CSharpCompilation compilation,
+                bool hasObsolete, string marker, string compilerFeature, bool isOptionalUse)
+            {
+                // If user specified an Obsolete attribute, we cannot emit ours.
+                // NB: we do not check the kind of deprecation. 
+                //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                //
+                if (!hasObsolete)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, marker), // message
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                        isOptionalUse: isOptionalUse));
+                }
+
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                    ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, compilerFeature)),
+                    isOptionalUse: isOptionalUse));
             }
         }
 

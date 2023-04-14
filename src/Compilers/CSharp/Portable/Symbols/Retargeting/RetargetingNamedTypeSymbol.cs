@@ -400,10 +400,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => throw new System.Exception("PROTOTYPE");
+            => throw new System.Exception("PROTOTYPE"); // PROTOTYPE
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
-            => throw new System.Exception("PROTOTYPE");
+            => throw new System.Exception("PROTOTYPE"); // PROTOTYPE
 #nullable disable
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()

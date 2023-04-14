@@ -1062,6 +1062,11 @@
         <target state="translated">Padrões de lista não podem ser usados para um valor do tipo “{0}”. Nenhuma propriedade “Length” ou “Count” adequada foi encontrada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nenhuma sobrecarga de '{0}' corresponde ao ponteiro de função '{1}'</target>

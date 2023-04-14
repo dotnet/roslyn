@@ -163,11 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
-        public override bool IsStatic
-        {
-            get { return false; }
-        }
-
         public override bool IsAsync
         {
             get { return false; }

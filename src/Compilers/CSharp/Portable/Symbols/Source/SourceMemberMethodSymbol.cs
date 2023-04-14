@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override NamedTypeSymbol ContainingType
+        public sealed override NamedTypeSymbol ContainingType
         {
             get
             {

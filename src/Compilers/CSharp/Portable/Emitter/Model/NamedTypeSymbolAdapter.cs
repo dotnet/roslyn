@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool Cci.ITypeReference.IsValueType
         {
-            get { return AdaptedNamedTypeSymbol.IsValueType; }
+            get { return AdaptedNamedTypeSymbol.IsValueType || AdaptedNamedTypeSymbol.IsExtension; }
         }
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
@@ -288,7 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
-                baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+                baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
+            }
+            else if (AdaptedNamedTypeSymbol.IsExtension)
+            {
+                // although extensions semantically don't have a base we need to emit one into metadata:
+                Debug.Assert(baseType is null);
+                baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
             }
 
             return ((object)baseType != null) ? moduleBeingBuilt.Translate(baseType,
@@ -994,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic;
+                return this.IsSealed || this.IsStatic || this.IsExtension;
             }
         }
 

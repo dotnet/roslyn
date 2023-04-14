@@ -939,6 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool fromImplements = false,
             bool needDeclaration = false)
         {
+            // PROTOTYPE emit references to extension types
             Debug.Assert(namedTypeSymbol.IsDefinitionOrDistinct());
             Debug.Assert(diagnostics != null);
 

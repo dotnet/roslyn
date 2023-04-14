@@ -1062,6 +1062,11 @@
         <target state="translated">Шаблоны списка не могут использоваться для значения типа {0}. Подходящее свойство \"Length\" или \"Count\" не найдено.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Нет перегруженного метода для "{0}", который соответствует указателю на функцию "{1}".</target>

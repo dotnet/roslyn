@@ -4,48 +4,22 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A base class for synthesized methods that want a this parameter.
     /// </summary>
-    internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
+    internal abstract class SynthesizedInstanceMethodSymbol : SynthesizedMethodSymbol
     {
         private ParameterSymbol _lazyThisParameter;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray<SyntaxReference>.Empty;
-            }
-        }
-
-        public sealed override bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public sealed override bool AreLocalsZeroed
-        {
-            get
-            {
-                return ContainingType.AreLocalsZeroed;
-            }
-        }
+        // PROTOTYPE should be sealed
+        public override bool IsStatic => false;
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            Debug.Assert(!IsStatic);
-
             if ((object)_lazyThisParameter == null)
             {
                 Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
@@ -54,33 +28,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
-
-        /// <summary>
-        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
-        }
-
-        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
-
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        internal override bool IsDeclaredReadOnly => false;
-
-        internal override bool IsInitOnly => false;
-
-        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        internal override bool IsNullableAnalysisEnabled() => false;
-
-        internal sealed override bool HasUnscopedRefAttribute => false;
-
-        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }

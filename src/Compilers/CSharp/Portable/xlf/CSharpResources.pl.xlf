@@ -1062,6 +1062,11 @@
         <target state="translated">Wzorce listy nie mogą być używane dla wartości typu „{0}”. Nie znaleziono odpowiedniej właściwości „Długość” ani „Liczba”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Żadne z przeciążeń dla elementu „{0}” nie pasuje do wskaźnika funkcji „{1}”</target>

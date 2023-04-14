@@ -839,15 +839,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return managedKind;
         }
 
-        public override bool IsStatic => HasFlag(DeclarationModifiers.Static);
+        public sealed override bool IsStatic => HasFlag(DeclarationModifiers.Static);
 
         public sealed override bool IsRefLikeType => HasFlag(DeclarationModifiers.Ref);
 
-        public override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
+        public sealed override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
 
-        public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
+        public sealed override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
+        public sealed override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
@@ -1731,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = Locations[0];
             var compilation = DeclaringCompilation;
 
-            if (this.IsRefLikeType)
+            if (this.IsRefLikeType || this.IsExtension)
             {
                 compilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1743,11 +1743,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
+            var extendedType = ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var baseExtensions = BaseExtensionsNoUseSiteDiagnostics;
 
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (hasBaseTypeOrInterface(static t => t.ContainsNativeIntegerWrapperType()))
+                if (hasBaseListType(static t => t.ContainsNativeIntegerWrapperType()))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1760,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                if (hasBaseTypeOrInterface(static t => t.NeedsNullableAttribute()))
+                if (hasBaseListType(static t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1808,12 +1810,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsExtension)
+            {
+                Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_ValueType, declaration.NameLocations[0], diagnostics);
+            }
+
             return;
 
-            bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
+            bool hasBaseListType(Func<TypeSymbol, bool> predicate)
             {
-                return ((object)baseType != null && predicate(baseType)) ||
-                    interfaces.Any(predicate);
+                return (baseType is not null && predicate(baseType)) ||
+                    interfaces.As<TypeSymbol>().Any(predicate) ||
+                    (extendedType is not null && predicate(extendedType)) ||
+                    baseExtensions.As<TypeSymbol>().Any(predicate);
             }
 
             static bool needsTupleElementNamesAttribute(TypeSymbol type)
@@ -2550,6 +2559,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
                 }
+            }
+
+            if (this.IsExtension)
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_ObsoleteAttribute__ctor, diagnostics, GetFirstLocation());
             }
         }
 
@@ -3362,8 +3377,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Interface:
                 case TypeKind.Submission:
-                case TypeKind.Extension:
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+                    break;
+
+                case TypeKind.Extension:
+                    // PROTOTYPE what are the rules for constructors in extensions?
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
 
@@ -5033,6 +5052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            // PROTOTYPE should count extended type and base extensions
             var builder = new MostCommonNullableValueBuilder();
             var baseType = BaseTypeNoUseSiteDiagnostics;
             if (baseType is object)

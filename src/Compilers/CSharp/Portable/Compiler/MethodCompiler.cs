@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(assembly.GetUnusedFieldWarnings(cancellationToken));
         }
 
-        // Do not report nullable diagnostics when emitting EnC delta since they are not needed. 
+        // Do not report nullable diagnostics when emitting EnC delta since they are not needed.
         private bool ReportNullableDiagnostics
             => _moduleBeingBuiltOpt?.IsEncDelta != true;
 
@@ -474,6 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilationState.Emitting)
                 {
+                    if (containingType.IsExtension)
+                    {
+                        CompileSynthesizedExtensionMarker((SourceExtensionTypeSymbol)containingType, compilationState);
+                    }
+
                     CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
                 }
             }
@@ -649,6 +654,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
+        }
+
+        private void CompileSynthesizedExtensionMarker(SourceExtensionTypeSymbol sourceExtension, TypeCompilationState compilationState)
+        {
+            if (!_globalHasErrors)
+            {
+                var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
+                    sourceExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
+                    _diagnostics);
+
+#if DEBUG
+                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+#else
+                var discardedDiagnostics = BindingDiagnosticBag.Discarded;
+#endif
+                extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
+                Debug.Assert(!discardedDiagnostics.HasAnyErrors());
+
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
+            }
         }
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)

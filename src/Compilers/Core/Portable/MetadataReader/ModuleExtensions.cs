@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis
                 if ((flags & MethodAttributes.Virtual) == 0 && !acceptBasedOnAccessibility(importOptions, flags) &&
                     ((flags & MethodAttributes.Static) == 0 || !isMethodImpl(typeDef, methodDef)))
                 {
-
                     return false;
                 }
             }

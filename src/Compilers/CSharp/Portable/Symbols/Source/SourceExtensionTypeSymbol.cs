@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)
+        internal static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)
         {
             if (type.IsDynamic() || type.IsPointerOrFunctionPointer() || type.IsRefLikeType || type.IsExtension)
             {
