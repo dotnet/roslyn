@@ -24,14 +24,15 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         /// <summary>
         /// Strong reference to the loaded text and version.  Only held onto once computed if <see cref="Source"/>.<see
         /// cref="CacheResult"/> is <see langword="true"/>.  Once held onto, this will be returned from all calls to
-        /// <see cref="TryGetValue"/>, <see cref="GetValue"/> or <see cref="GetValueAsync"/>.
+        /// <see cref="TryGetValue"/>, <see cref="GetValue"/> or <see cref="GetValueAsync"/>.  Once non-null will always
+        /// remain non-null.
         /// </summary>
         private TextAndVersion? _instance;
 
         /// <summary>
         /// Weak reference to the loaded text and version that we create whenever the value is computed.  We will
         /// attempt to return from this if still alive when clients call back into this.  If neither this, nor <see
-        /// cref="_instance"/> are available, the value will be reloaded.
+        /// cref="_instance"/> are available, the value will be reloaded.  Once non-null, this will always be non-null.
         /// </summary>
         private WeakReference<TextAndVersion>? _weakInstance;
 
@@ -53,7 +54,7 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
             if (value != null)
                 return true;
 
-            return _weakInstance != null && _weakInstance.TryGetTarget(out value) && value != null;
+            return _weakInstance?.TryGetTarget(out value) == true && value != null;
         }
 
         public TextAndVersion GetValue(CancellationToken cancellationToken)
