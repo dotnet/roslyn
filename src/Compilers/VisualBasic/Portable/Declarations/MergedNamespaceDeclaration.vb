@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ' An invariant of a merged declaration is that all of its children
@@ -55,26 +56,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property NameLocations As ImmutableArray(Of Location)
             Get
-                If _declarations.Length = 1 Then
-                    Dim loc = _declarations(0).NameLocation
-                    If loc Is Nothing Then
-                        Return ImmutableArray(Of Location).Empty
-                    End If
-                    Return ImmutableArray.Create(loc)
-                End If
-
-                Dim builder = ArrayBuilder(Of Location).GetInstance()
-
-                For Each decl In _declarations
-                    Dim loc = decl.NameLocation
-                    If loc IsNot Nothing Then
-                        builder.Add(loc)
-                    End If
-                Next
-
-                Return builder.ToImmutableAndFree()
+                Return _declarations.SelectAsArray(
+                    Function(decl) decl.NameLocation IsNot Nothing,
+                    Function(decl) decl.NameLocation)
             End Get
         End Property
+
+        Public ReadOnly Property NameLocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Filtered.LocationsCount(_declarations, Function(decl) decl.NameLocation IsNot Nothing)
+            End Get
+        End Property
+
+        Public Function GetCurrentNameLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Filtered.GetCurrentLocation(slot, index, _declarations, Function(decl) decl.NameLocation)
+        End Function
+
+        Public Function MoveNextNameLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Filtered.MoveNextLocation(previousSlot, previousIndex, _declarations, Function(decl) decl.NameLocation IsNot Nothing)
+        End Function
+
+        Public Function MoveNextNameLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Filtered.MoveNextLocationReversed(previousSlot, previousIndex, _declarations, Function(decl) decl.NameLocation IsNot Nothing)
+        End Function
 
         Public ReadOnly Property SyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

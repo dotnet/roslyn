@@ -146,6 +146,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.Locations; }
         }
 
+        public override int LocationsCount => ContainingType.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => ContainingType.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => ContainingType.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => ContainingType.MoveNextLocationReversed(previousSlot, previousIndex);
+
         public override RefKind RefKind
         {
             get { return RefKind.None; }

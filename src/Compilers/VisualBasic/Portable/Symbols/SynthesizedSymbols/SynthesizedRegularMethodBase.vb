@@ -132,6 +132,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return m_containingType.LocationsCount
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return m_containingType.GetCurrentLocation(slot, index)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return m_containingType.MoveNextLocation(previousSlot, previousIndex)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return m_containingType.MoveNextLocationReversed(previousSlot, previousIndex)
+        End Function
+
         ''' <summary>
         ''' Gets what kind of method this is. There are several different kinds of things in the
         ''' VB language that are represented as methods. This property allow distinguishing those things

@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
@@ -160,6 +161,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me._locations
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(_locations)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations)
+        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

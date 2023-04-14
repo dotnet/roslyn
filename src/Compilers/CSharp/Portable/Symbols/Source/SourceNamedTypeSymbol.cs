@@ -244,7 +244,7 @@ next:;
                             typeParameterMismatchReported = true;
                             diagnostics.Add(
                                 ErrorCode.ERR_PartialWrongTypeParamsVariance,
-                                declaration.NameLocations.First(),
+                                SymbolLocations.First(),
                                 this); // see comment above
                         }
                         else if (name != tp.Identifier.ValueText)
@@ -252,7 +252,7 @@ next:;
                             typeParameterMismatchReported = true;
                             diagnostics.Add(
                                 ErrorCode.ERR_PartialWrongTypeParams,
-                                declaration.NameLocations.First(),
+                                SymbolLocations.First(),
                                 this); // see comment above
                         }
                     }

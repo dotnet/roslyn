@@ -806,6 +806,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(_modules, Function(m) m.LocationsCount)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _modules, Function(m, index1) m.GetCurrentLocation(slot:=index1, index:=0))
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _modules, Function(m, index1) m.MoveNextLocation(previousSlot:=index1, previousIndex:=0))
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _modules, Function(m, index1) m.MoveNextLocationReversed(previousSlot:=index1, previousIndex:=0))
+        End Function
+
         Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
             Get
                 Return _modules

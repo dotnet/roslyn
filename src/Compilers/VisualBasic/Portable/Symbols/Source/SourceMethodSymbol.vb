@@ -9,6 +9,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -830,21 +831,34 @@ lReportErrorOnTwoTokens:
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                ' NOTE: access to m_locations don't really need to be synchronized because 
-                '       it is never being modified after the method symbol is published
-                If _lazyLocations.IsDefault Then
-
-                    ' This symbol location
-                    Dim location As Location = Me.NonMergedLocation
-                    ImmutableInterlocked.InterlockedCompareExchange(Me._lazyLocations,
-                                                        If(location Is Nothing,
-                                                           ImmutableArray(Of Location).Empty,
-                                                           ImmutableArray.Create(location)),
-                                                        Nothing)
-                End If
-                Return _lazyLocations
+                Return InterlockedOperations.InterlockedInitialize(
+                    _lazyLocations,
+                    Function(self)
+                        ' This symbol location
+                        Dim location = self.NonMergedLocation
+                        Return If(location Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(location))
+                    End Function,
+                    Me)
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.EmptyOrSingle.LocationsCount(m_syntaxReferenceOpt)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.EmptyOrSingle.GetCurrentLocation(slot, index, m_syntaxReferenceOpt)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.EmptyOrSingle.MoveNextLocation(previousSlot, previousIndex, m_syntaxReferenceOpt)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.EmptyOrSingle.MoveNextLocationReversed(previousSlot, previousIndex, m_syntaxReferenceOpt)
+        End Function
 
         ' Given a syntax ref, get the symbol location to return. We return the location of the name
         ' of the method.

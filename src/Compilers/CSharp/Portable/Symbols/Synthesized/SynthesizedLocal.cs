@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -144,6 +145,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return (_syntaxOpt == null) ? ImmutableArray<Location>.Empty : ImmutableArray.Create(_syntaxOpt.GetLocation()); }
         }
+
+        public sealed override int LocationsCount => SymbolLocationHelper.EmptyOrSingle.LocationsCount(_syntaxOpt);
+
+        public sealed override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.EmptyOrSingle.GetCurrentLocation(slot, index, _syntaxOpt);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.EmptyOrSingle.MoveNextLocation(previousSlot, previousIndex, _syntaxOpt);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.EmptyOrSingle.MoveNextLocationReversed(previousSlot, previousIndex, _syntaxOpt);
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

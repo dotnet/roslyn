@@ -109,6 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
+        public override int LocationsCount => _property.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => _property.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _property.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _property.MoveNextLocationReversed(previousSlot, previousIndex);
+
         public override RefKind RefKind => _property.RefKind;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;

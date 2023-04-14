@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -176,6 +177,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create<Location>(_declaringSyntax.GetLocation());
             }
         }
+
+        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _declaringSyntax.GetLocation());
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

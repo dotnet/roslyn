@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -303,7 +305,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(Syntax.Identifier.GetLocation());
 
-        public override Location TryGetFirstLocation() => Syntax.Identifier.GetLocation();
+        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, Syntax.Identifier);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         internal override bool GenerateDebugInfo => true;
 

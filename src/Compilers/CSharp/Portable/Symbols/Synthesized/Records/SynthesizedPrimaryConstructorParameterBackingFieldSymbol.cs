@@ -42,6 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => ParameterSymbol.Locations;
 
+        public override int LocationsCount => ParameterSymbol.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => ParameterSymbol.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => ParameterSymbol.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => ParameterSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
+
         public override RefKind RefKind => RefKind.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;

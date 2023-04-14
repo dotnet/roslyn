@@ -158,6 +158,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override int LocationsCount => _retargetingModule.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => _retargetingModule.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _retargetingModule.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _retargetingModule.MoveNextLocationReversed(previousSlot, previousIndex);
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -139,6 +140,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _location
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(_location)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _location)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _location)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _location)
+        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

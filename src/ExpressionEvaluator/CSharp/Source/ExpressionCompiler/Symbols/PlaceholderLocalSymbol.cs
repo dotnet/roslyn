@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
@@ -125,6 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return NoLocations; }
         }
+
+        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(NoLocations);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, NoLocations);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, NoLocations);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, NoLocations);
 
         public override string Name
         {

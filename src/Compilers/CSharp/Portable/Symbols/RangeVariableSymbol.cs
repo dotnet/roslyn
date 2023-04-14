@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -48,8 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => _location is null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(_location);
 
-        public override Location? TryGetFirstLocation()
-            => _location;
+        public override int LocationsCount => SymbolLocationHelper.EmptyOrSingle.LocationsCount(_location);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.EmptyOrSingle.GetCurrentLocation(slot, index, _location);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.EmptyOrSingle.MoveNextLocation(previousSlot, previousIndex, _location);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.EmptyOrSingle.MoveNextLocationReversed(previousSlot, previousIndex, _location);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

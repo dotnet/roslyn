@@ -10,6 +10,7 @@ Imports System.Linq
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -122,18 +123,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray.Create(Declarations(0).NameLocation)
                 End If
 
-                Dim builder = ArrayBuilder(Of Location).GetInstance()
-
-                For Each decl In Declarations
-                    Dim loc = decl.NameLocation
-                    If loc IsNot Nothing Then
-                        builder.Add(loc)
-                    End If
-                Next
-
-                Return builder.ToImmutableAndFree()
+                Return Declarations.SelectAsArray(
+                    Function(decl) decl.NameLocation IsNot Nothing,
+                    Function(decl) decl.NameLocation)
             End Get
         End Property
+
+        Public ReadOnly Property NameLocationsCount As Integer
+            Get
+                Return If(Declarations.Length = 1,
+                    SymbolLocationHelper.Single.LocationsCount,
+                    SymbolLocationHelper.Filtered.LocationsCount(Declarations, Function(decl) decl.NameLocation IsNot Nothing))
+            End Get
+        End Property
+
+        Public Function GetCurrentNameLocation(slot As Integer, index As Integer) As Location
+            Return If(Declarations.Length = 1,
+                SymbolLocationHelper.Single.GetCurrentLocation(slot, index, Declarations(0).NameLocation),
+                SymbolLocationHelper.Filtered.GetCurrentLocation(slot, index, Declarations, Function(decl) decl.NameLocation))
+        End Function
+
+        Public Function MoveNextNameLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return If(Declarations.Length = 1,
+                SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex),
+                SymbolLocationHelper.Filtered.MoveNextLocation(previousSlot, previousIndex, Declarations, Function(decl) decl.NameLocation IsNot Nothing))
+        End Function
+
+        Public Function MoveNextNameLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return If(Declarations.Length = 1,
+                SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex),
+                SymbolLocationHelper.Filtered.MoveNextLocationReversed(previousSlot, previousIndex, Declarations, Function(decl) decl.NameLocation IsNot Nothing))
+        End Function
 
         Private Shared ReadOnly s_identityFunc As Func(Of SingleTypeDeclaration, SingleTypeDeclaration) =
             Function(t) t

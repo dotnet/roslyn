@@ -259,6 +259,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return _underlyingMethod.LocationsCount
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return _underlyingMethod.GetCurrentLocation(slot, index)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return _underlyingMethod.MoveNextLocation(previousSlot, previousIndex)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return _underlyingMethod.MoveNextLocationReversed(previousSlot, previousIndex)
+        End Function
+
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return _underlyingMethod.DeclaringSyntaxReferences

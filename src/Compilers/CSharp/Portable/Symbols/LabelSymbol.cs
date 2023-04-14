@@ -114,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override int LocationsCount => throw new NotSupportedException();
+
+        public override Location GetCurrentLocation(int slot, int index) => throw new NotSupportedException();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => throw new NotSupportedException();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => throw new NotSupportedException();
+
         internal virtual SyntaxNodeOrToken IdentifierNodeOrToken
         {
             get { return default(SyntaxNodeOrToken); }

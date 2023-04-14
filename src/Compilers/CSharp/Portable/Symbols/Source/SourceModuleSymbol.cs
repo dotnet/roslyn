@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -358,16 +359,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_locations.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(
-                        ref _locations,
-                        DeclaringCompilation.MergedRootDeclaration.Declarations.SelectAsArray(d => (Location)d.Location));
-                }
-
-                return _locations;
+                return InterlockedOperations.InterlockedInitialize(
+                    ref _locations,
+                    static self => self.DeclaringCompilation.MergedRootDeclaration.Declarations.SelectAsArray<SingleNamespaceDeclaration, Location>(static d => d.Location),
+                    this);
             }
         }
+
+        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(DeclaringCompilation.MergedRootDeclaration.Declarations);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, DeclaringCompilation.MergedRootDeclaration.Declarations, static decl => decl.NameLocation);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, DeclaringCompilation.MergedRootDeclaration.Declarations);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, DeclaringCompilation.MergedRootDeclaration.Declarations);
 
         /// <summary>
         /// The name (contains extension)

@@ -188,6 +188,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override int LocationsCount => _underlyingAssembly.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => _underlyingAssembly.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _underlyingAssembly.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _underlyingAssembly.MoveNextLocationReversed(previousSlot, previousIndex);
+
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName);

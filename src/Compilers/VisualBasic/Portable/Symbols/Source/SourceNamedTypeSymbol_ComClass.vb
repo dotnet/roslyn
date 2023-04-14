@@ -873,6 +873,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property LocationsCount As Integer
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                     Return Nothing
                 End Function
@@ -1208,6 +1226,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
+
+                Public Overrides ReadOnly Property LocationsCount As Integer
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
 
                 Public Overrides ReadOnly Property MethodKind As MethodKind
                     Get
@@ -1592,6 +1628,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property LocationsCount As Integer
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Public Overrides ReadOnly Property Ordinal As Integer
                     Get
                         Return _clonedFrom.Ordinal
@@ -1785,6 +1839,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
+
+                Public Overrides ReadOnly Property LocationsCount As Integer
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                    Throw ExceptionUtilities.Unreachable
+                End Function
 
                 Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                     Get

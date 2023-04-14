@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -213,11 +214,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override LexicalSortKey GetLexicalSortKey()
             => new LexicalSortKey(_syntaxReference, this.DeclaringCompilation);
 
-        public override Location TryGetFirstLocation()
-            => _syntaxReference.SyntaxTree.GetLocation(_locationSpan);
-
         public sealed override ImmutableArray<Location> Locations
             => ImmutableArray.Create(GetFirstLocation());
+
+        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _syntaxReference.SyntaxTree, _locationSpan);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         internal sealed override Location ErrorLocation
             => GetFirstLocation();

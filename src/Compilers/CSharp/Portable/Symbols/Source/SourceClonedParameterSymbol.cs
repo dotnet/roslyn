@@ -105,6 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.Locations; }
         }
 
+        public override int LocationsCount => _originalParam.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => _originalParam.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _originalParam.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _originalParam.MoveNextLocationReversed(previousSlot, previousIndex);
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _originalParam.GetAttributes();
