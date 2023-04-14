@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
-            Location? location = null;
+            Location location = null;
 
             if (RefKind == RefKind.RefReadOnly)
             {
