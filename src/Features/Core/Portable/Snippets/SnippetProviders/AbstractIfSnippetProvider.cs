@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
@@ -21,12 +20,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsIfStatement;
 
-        protected override TextChange GenerateSnippetTextChange(Document document, int position)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
-
-            return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
-        }
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+            => generator.IfStatement(inlineExpression ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
     }
 }

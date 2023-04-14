@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -242,14 +241,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
 
             if (!isCorrectContainer(closestNode))
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the if statement.
-            if (closestNode.SpanStart != position)
             {
                 return null;
             }
