@@ -704,6 +704,48 @@ class Test
         }
 
         [Fact]
+        public void UnsafeAsyncArgType_PointerArray()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+    unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+    async static Task M3(int*[] i) { await Task.Yield(); } // 3
+    async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+}";
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (6,40): error CS4005: Async methods cannot have unsafe parameters or return types
+                    //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+                    Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 40),
+                    // (6,45): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
+                    // (7,51): error CS4005: Async methods cannot have unsafe parameters or return types
+                    //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+                    Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(7, 51),
+                    // (7,56): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56),
+                    // (8,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M3(int*[] i) { await Task.Yield(); } // 3
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 26),
+                    // (8,33): error CS4005: Async methods cannot have unsafe parameters or return types
+                    //     async static Task M3(int*[] i) { await Task.Yield(); } // 3
+                    Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(8, 33),
+                    // (9,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(9, 26),
+                    // (9,44): error CS4005: Async methods cannot have unsafe parameters or return types
+                    //     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+                    Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(9, 44)
+                    );
+        }
+
+        [Fact]
         public void Ref_and_UnsafeAsyncArgType()
         {
             var source = @"

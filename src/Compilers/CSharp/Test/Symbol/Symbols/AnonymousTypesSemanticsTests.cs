@@ -1873,6 +1873,90 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_PointerArrayField()
+        {
+            var source = """
+unsafe class C
+{
+    static int*[] M()
+    {
+        var a = new { F = new int*[0] };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'int*[]' to anonymous type property
+                //         var a = new { F = new int*[0] };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = new int*[0]").WithArguments("int*[]").WithLocation(5, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_PointerListField()
+        {
+            var source = """
+unsafe class C
+{
+    static int*[] M()
+    {
+        var a = new { F = new int*[0] };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'int*[]' to anonymous type property
+                //         var a = new { F = new int*[0] };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = new int*[0]").WithArguments("int*[]").WithLocation(5, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_PointerField()
+        {
+            var source = """
+unsafe class C
+{
+    static int* M(int* i)
+    {
+        var a = new { F = i };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'int*' to anonymous type property
+                //         var a = new { F = i };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("int*").WithLocation(5, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_FunctionPointerField()
+        {
+            var source = """
+unsafe class C
+{
+    static delegate*<void> M(delegate*<void> i)
+    {
+        var a = new { F = i };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
+                //         var a = new { F = i };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("delegate*<void>").WithLocation(5, 23)
+                );
+        }
+
         #region "Utility methods"
 
         private void AssertCannotConstruct(ISymbol type)

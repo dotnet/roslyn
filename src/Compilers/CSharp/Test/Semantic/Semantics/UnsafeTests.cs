@@ -945,6 +945,57 @@ unsafe class C<T>
         }
 
         [Fact]
+        public void UnsafeIteratorSignatures_PointerArray()
+        {
+            var template = @"
+{0} class C
+{{
+    {1} System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+    {{
+        yield return 1;
+    }}
+}}
+";
+
+            var withoutUnsafe = string.Format(template, "", "");
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,59): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 59),
+                // (4,66): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 66)
+                );
+
+            var withUnsafeOnType = string.Format(template, "unsafe", "");
+            CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,66): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 66)
+                );
+
+            var withUnsafeOnMembers = string.Format(template, "", "unsafe");
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,56): error CS1629: Unsafe code may not appear in iterators
+                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56),
+                // (4,72): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 72)
+                );
+
+            var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,56): error CS1629: Unsafe code may not appear in iterators
+                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56),
+                // (4,72): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 72)
+                );
+        }
+
+        [Fact]
         public void UnsafeInAttribute1()
         {
             var text = @"
@@ -1518,7 +1569,7 @@ class C : I
 
         [WorkItem(544938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544938")]
         [Fact]
-        public void UnsafeDelegateAssignment()
+        public void UnsafeDelegateAssignment_Parameter()
         {
             var template = @"
 {0} class C
@@ -1547,6 +1598,103 @@ class C : I
                 // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      static void Goo(int* x = null) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
+        }
+
+        [Fact]
+        public void UnsafeDelegateAssignment_ReturnType()
+        {
+            var template = @"
+{0} class C
+{{
+    {1} static void Main()
+    {{
+        D d;
+        {{ d = delegate {{ throw null; }}; }}
+        {{ d = null; }}
+        {{ d = Goo; }}
+    }}
+
+    {1} delegate int* D();
+    {1} static int* Goo() {{ throw null; }}
+}}
+";
+
+            CompareUnsafeDiagnostics(template,
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo"),
+
+                // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate void D(int* x = null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static void Goo(int* x = null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void UnsafeDelegateAssignment_PointerArray_Parameter()
+        {
+            var template = @"
+{0} class C
+{{
+    {1} static void Main()
+    {{
+        D d;
+        {{ d = delegate {{ }}; }}
+        {{ d = null; }}
+        {{ d = Goo; }}
+    }}
+
+    {1} delegate void D(int*[] x = null);
+    {1} static void Goo(int*[] x = null) {{ }}
+}}
+";
+
+            // TODO2
+            CompareUnsafeDiagnostics(template,
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo"),
+
+                // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate void D(int* x = null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static void Goo(int* x = null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void UnsafeDelegateAssignment_PointerArray_Return()
+        {
+            var template = @"
+{0} class C
+{{
+    {1} static void Main()
+    {{
+        D d;
+        {{ d = delegate {{ throw null; }}; }}
+        {{ d = null; }}
+        {{ d = Goo; }}
+    }}
+
+    {1} delegate int*[] D();
+    {1} static int*[] Goo() {{ throw null; }}
+}}
+";
+
+            // TODO2
+            CompareUnsafeDiagnostics(template,
+                // (13,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static int*[] Goo() { throw null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 13),
+                // (12,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate int*[] D();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 15),
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15));
         }
 
         private static void CompareUnsafeDiagnostics(string template, params DiagnosticDescription[] expectedWithoutUnsafe)
@@ -1596,6 +1744,34 @@ class C : I
                 // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Goo(null);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(null)")
+                );
+        }
+
+        [Fact]
+        public void MethodCallWithNullAsPointerArrayArg()
+        {
+            // TODO2
+            var template = @"
+{0} class Test
+{{
+    {1} static void M(void*[] p) {{ }}
+    {1} static void Main()
+    {{
+        M(null);
+    }}
+}}
+";
+
+            CompareUnsafeDiagnostics(template,
+                // (4,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static void M(void*[] p) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(4, 20),
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(null)").WithLocation(7, 9),
+                // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(7, 11)
                 );
         }
 
@@ -1715,6 +1891,35 @@ class C : I
                 // (9,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      public Derived() : base(null) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "base")
+                );
+        }
+
+        [Fact]
+        public void ConstructorInitializerWithUnsafeArgument_PointerArray()
+        {
+            // TODO2
+            var template = @"
+{0} class Base
+{{
+    {1} public Base(int*[] p) {{ }}
+}}
+
+{0} class Derived : Base
+{{
+    {1} public Derived() : base(null) {{ }}
+}}
+";
+
+            CompareUnsafeDiagnostics(template,
+                // (4,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      public Base(int*[] p) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 18),
+                // (9,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      public Derived() : base(null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(9, 30),
+                // (9,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      public Derived() : base(null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "base").WithLocation(9, 25)
                 );
         }
 
