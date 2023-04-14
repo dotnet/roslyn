@@ -85,18 +85,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static AliasesAndUsings GetOrCreateAliasAndUsings(
-            ref ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
+        private AliasesAndUsings GetOrCreateAliasAndUsings(
+            SegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
             SingleNamespaceDeclaration declaration)
         {
-            return RoslynImmutableInterlocked.GetOrAdd(
-                ref dictionary,
-                declaration,
-                static _ => new AliasesAndUsings());
+            if (!dictionary.TryGetValue(declaration, out AliasesAndUsings? result))
+            {
+                lock (_aliasesAndUsingsLock)
+                {
+                    if (!dictionary.TryGetValue(declaration, out result))
+                    {
+                        result = new AliasesAndUsings();
+                        dictionary.Add(declaration, result);
+                    }
+                }
+            }
+
+            return result;
         }
 
         private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
-            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration);
+            => GetOrCreateAliasAndUsings(_aliasesAndUsings_doNotAccessDirectly, declaration);
 
 #if DEBUG
         private AliasesAndUsings GetAliasesAndUsingsForAsserts(CSharpSyntaxNode declarationSyntax)
@@ -105,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings
                 ? GetAliasesAndUsings(singleDeclaration)
-                : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration);
+                : GetOrCreateAliasAndUsings(_aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration);
         }
 #endif
 
