@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// Generate statement node
         /// </summary>
         /// <param name="inlineExpression">Right-hand side of a member access expression.<see langword="null"/> if snippet is executed in normal statement context</param>
-        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxNode? inlineExpression);
+        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression);
 
         /// <summary>
         /// Tells whether the original snippet was constructed from member access expression.
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
 
-            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), inlineExpression);
+            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression);
             ConstructedFromInlineExpression = inlineExpression is not null;
 
             return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());

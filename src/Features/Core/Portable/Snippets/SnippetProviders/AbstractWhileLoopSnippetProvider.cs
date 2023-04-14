@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
 
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
             => generator.WhileStatement(inlineExpression ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
     }
 }

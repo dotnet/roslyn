@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.Snippets
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsIfStatement;
 
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
             => generator.IfStatement(inlineExpression ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
     }
 }
