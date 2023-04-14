@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public static TemporaryArray<T> GetInstance(int capacity)
         {
+            // Capacity <= 4 is already supported by the Empty array value. so can just return that without allocating anything.
             if (capacity <= InlineCapacity)
                 return Empty;
 
