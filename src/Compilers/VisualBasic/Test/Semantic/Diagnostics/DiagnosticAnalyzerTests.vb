@@ -241,6 +241,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Sub
         End Class
 
+#Disable Warning BC40000 ' Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
+        <Fact>
+        Public Sub TestDisabledAnalyzers()
+            Dim fullyDisabledAnalyzer = New FullyDisabledAnalyzer()
+            Dim partiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
+
+            Dim options = TestOptions.ReleaseDll
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.False(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress)
+
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+            Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+        End Sub
+#Enable Warning BC40000 ' Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
+
         Public Class ModuleStatementAnalyzer
             Inherits DiagnosticAnalyzer
 

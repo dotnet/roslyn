@@ -297,13 +297,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
+            Func<DiagnosticAnalyzer, CancellationToken, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors =
+                (analyzer, cancellationToken) => GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+
+            Func<DiagnosticSuppressor, CancellationToken, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors =
+                (suppressor, cancellationToken) => GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
+
+            return IsDiagnosticAnalyzerSuppressed(analyzer, options, isCompilerAnalyzer, severityFilter,
+                isEnabledWithAnalyzerConfigOptions, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, cancellationToken);
+
+            bool isEnabledWithAnalyzerConfigOptions(DiagnosticDescriptor descriptor)
+            {
+                if (analyzerExecutor.Compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                {
+                    foreach (var tree in analysisScope.SyntaxTrees)
+                    {
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerExecutor.AnalyzerOptions.TryGetSeverityFromBulkConfiguration(tree, analyzerExecutor.Compilation, descriptor, cancellationToken, out configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// </summary>
+        internal static bool IsDiagnosticAnalyzerSuppressed(
+            DiagnosticAnalyzer analyzer,
+            CompilationOptions options,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            SeverityFilter severityFilter,
+            Func<DiagnosticDescriptor, bool> isEnabledWithAnalyzerConfigOptions,
+            Func<DiagnosticAnalyzer, CancellationToken, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors,
+            Func<DiagnosticSuppressor, CancellationToken, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors,
+            CancellationToken cancellationToken)
+        {
             if (isCompilerAnalyzer(analyzer))
             {
                 // Compiler analyzer must always be executed for compiler errors, which cannot be suppressed or filtered.
                 return false;
             }
 
-            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+            var supportedDiagnostics = getSupportedDiagnosticDescriptors(analyzer, cancellationToken);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
             foreach (var diag in supportedDiagnostics)
@@ -348,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analysisScope, cancellationToken))
+                    isEnabledWithAnalyzerConfigOptions(diag))
                 {
                     isSuppressed = false;
                 }
@@ -361,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer is DiagnosticSuppressor suppressor)
             {
-                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken))
+                foreach (var suppressionDescriptor in getSupportedSuppressionDescriptors(suppressor, cancellationToken))
                 {
                     if (!suppressionDescriptor.IsDisabled(options))
                     {
@@ -371,33 +415,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
-
-            static bool isEnabledWithAnalyzerConfigOptions(
-                DiagnosticDescriptor descriptor,
-                SeverityFilter severityFilter,
-                Compilation compilation,
-                AnalyzerOptions analyzerOptions,
-                AnalysisScope analysisScope,
-                CancellationToken cancellationToken)
-            {
-                if (compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
-                {
-                    foreach (var tree in analysisScope.SyntaxTrees)
-                    {
-                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
-                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
-                        {
-                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            }
         }
 
         internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)

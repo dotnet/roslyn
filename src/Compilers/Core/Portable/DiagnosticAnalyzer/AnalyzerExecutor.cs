@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, CancellationToken, bool> _isGeneratedCodeLocation;
-        private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeCancellationToken, bool> _isAnalyzerSuppressedForTree;
+        private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool> _isAnalyzerSuppressedForTree;
 
         /// <summary>
         /// The values in this map convert to <see cref="TimeSpan"/> using <see cref="TimeSpan.FromTicks(long)"/>.
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
                 if (codeBlockAction != null)
                 {
-                    var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, _cancellationToken);
+                    var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         codeBlockAction.Analyzer,

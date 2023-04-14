@@ -516,6 +516,33 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
+        [Fact]
+        public void TestDisabledAnalyzers()
+        {
+            var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
+            var partiallyDisabledAnalyzer = new PartiallyDisabledAnalyzer();
+
+            var options = TestOptions.ReleaseDll;
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+            Assert.False(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn);
+            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress);
+
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+            Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+
+            // Verify not configurable disabled diagnostic cannot be enabled, and hence cannot affect IsDiagnosticAnalyzerSuppressed computation.
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn);
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+        }
+#pragma warning restore CS0618 // Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
+
         [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForNoExecutableCode()
         {

@@ -1084,8 +1084,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
                 onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(wrappedOnAnalyzerException, analyzerManager);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, analysisScope: null, severityFilter: SeverityFilter.None, CancellationToken.None);
+            return AnalyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options,
+                IsCompilerAnalyzer, severityFilter: SeverityFilter.None,
+                isEnabledWithAnalyzerConfigOptions: _ => false,
+                getSupportedDiagnosticDescriptors: (analyzer, _) => analyzer.SupportedDiagnostics,
+                getSupportedSuppressionDescriptors: (suppressor, _) => suppressor.SupportedSuppressions,
+                CancellationToken.None); ;
         }
 
         /// <summary>
