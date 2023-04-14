@@ -73,15 +73,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// <summary>
             /// Gets the currently reachable writes for the given symbol.
             /// </summary>
-            public IEnumerable<IOperation> GetCurrentWrites(ISymbol symbol)
+            public void ForEachCurrentWrite<TArg>(ISymbol symbol, Action<IOperation, TArg> action, TArg arg)
+            {
+                ForEachCurrentWrite(
+                    symbol,
+                    static (write, arg) =>
+                    {
+                        arg.action(write, arg.arg);
+                        return true;
+                    },
+                    (action, arg));
+            }
+
+            public bool ForEachCurrentWrite<TArg>(ISymbol symbol, Func<IOperation, TArg, bool> action, TArg arg)
             {
                 if (_reachingWrites.TryGetValue(symbol, out var values))
                 {
                     foreach (var value in values)
                     {
-                        yield return value;
+                        if (!action(value, arg))
+                            return false;
                     }
                 }
+
+                return true;
             }
 
             /// <summary>
@@ -137,6 +152,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// </summary>
             private static bool SetEquals<T>(HashSet<T> set1, HashSet<T> set2)
             {
+#if NET8_0_OR_GREATER
+                // 📝 PERF: The boxed enumerator allocation that appears in some traces was fixed in .NET 8:
+                // https://github.com/dotnet/runtime/pull/78613
+                return set1.SetEquals(set2);
+#else
                 // same logic as https://github.com/dotnet/runtime/blob/62d6a8fe599ea3a77ef7af3c7660d398d692f062/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs#L1192
 
                 if (set1.Count != set2.Count)
@@ -149,6 +169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 return true;
+#endif
             }
 
             private bool IsEmpty => _reachingWrites.Count == 0;
@@ -214,7 +235,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         }
 
 #if NET
-                        values.EnsureCapacity(operations.Count);
+                        values.EnsureCapacity(values.Count + operations.Count);
 #endif
                         values.AddRange(operations);
                     }

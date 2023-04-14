@@ -200,15 +200,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
-
-        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
-        {
-            if (_map.TryGetValue(workspace, out var analyzer))
-            {
-                return analyzer.ContainsDiagnostics(projectId);
-            }
-
-            return false;
-        }
     }
 }

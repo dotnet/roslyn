@@ -389,3 +389,8 @@ stages:
 
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
+
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Analyzers
+          configuration: Debug

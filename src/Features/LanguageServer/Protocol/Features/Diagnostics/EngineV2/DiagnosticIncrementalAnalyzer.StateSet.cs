@@ -37,20 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
-            public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
-            {
-                foreach (var (documentId, state) in _activeFileStates)
-                {
-                    if (documentId.ProjectId == projectId && !state.IsEmpty)
-                    {
-                        return true;
-                    }
-                }
-
-                return _projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty();
-            }
-
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
             {
                 // quick bail out

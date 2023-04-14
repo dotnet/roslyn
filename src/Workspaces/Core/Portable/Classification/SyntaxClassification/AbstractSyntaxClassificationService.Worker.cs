@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly ArrayBuilder<ClassifiedSpan> _list;
+            private readonly SegmentedList<ClassifiedSpan> _list;
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private Worker(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
@@ -57,25 +57,26 @@ namespace Microsoft.CodeAnalysis.Classification
             internal static void Classify(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
-                var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
+                using var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
 
-                try
-                {
-                    worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
-                    worker.ProcessNodes();
-                }
-                finally
-                {
-                    // release collections to the pool
-                    SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
-                    SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
-                }
+                worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
+                worker.ProcessNodes();
+            }
+
+            public void Dispose()
+            {
+                // Deliberately do not call ClearAndFree for the set as we can easily have a set that goes past the
+                // threshold simply with a single classified screen.  This allows reuse of those sets without causing
+                // lots of garbage.
+                _set.Clear();
+                SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().Free(_set);
+                SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(this._pendingNodes);
             }
 
             private void AddClassification(TextSpan textSpan, string type)
