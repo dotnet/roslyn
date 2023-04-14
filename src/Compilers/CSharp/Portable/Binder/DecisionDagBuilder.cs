@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (OriginalInput(input), lengthTemp, index);
         }
 
-        private static ArrayBuilder<StateForCase> RemoveEvaluation(ArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
+        private static ArrayBuilder<StateForCase> RemoveEvaluation(FrozenArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
         {
             var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             foreach (var stateForCase in cases)
@@ -1756,6 +1756,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder providers, without having to incur 
+        /// intermediary allocations for <see cref="ImmutableArray"/>s.
+        /// </summary>
+        private struct FrozenArrayBuilder<T>
+        {
+            private ArrayBuilder<T> _arrayBuilder;
+
+            public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
+            {
+                _arrayBuilder = arrayBuilder;
+            }
+
+            public readonly bool IsDefault => _arrayBuilder is null;
+
+            public void Free()
+            {
+                _arrayBuilder.Free();
+                _arrayBuilder = null!;
+            }
+
+            public readonly int Count => _arrayBuilder.Count;
+
+            public readonly T this[int i] => _arrayBuilder[i];
+
+            public readonly T First() => _arrayBuilder.First();
+
+            public ArrayBuilder<T>.Enumerator GetEnumerator() => _arrayBuilder.GetEnumerator();
+        }
+
+        /// <summary>
         /// The state at a given node of the decision finite state automaton. This is used during computation of the state
         /// machine (<see cref="BoundDecisionDag"/>), and contains a representation of the meaning of the state. Because we always make
         /// forward progress when a test is evaluated (the state description is monotonically smaller at each edge), the
@@ -1777,10 +1807,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
-            /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
-            /// To ensure it doesn't mutate from underneath us, we freeze it to catch anyone misusing this.
             /// </summary>
-            public ArrayBuilder<StateForCase> Cases { get; private set; } = null!;
+            public FrozenArrayBuilder<StateForCase> Cases { get; private set; }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
             // decision automaton.
@@ -1801,8 +1829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void ClearAndFree()
             {
-                Cases?.Free();
-                Cases = null!;
+                Cases.Free();
+                Cases = default;
                 RemainingValues = null!;
                 SelectedTest = null;
                 TrueBranch = null;
@@ -1821,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var dagState = s_dagStatePool.Allocate();
 
-                Debug.Assert(dagState.Cases is null);
+                Debug.Assert(dagState.Cases.IsDefault);
                 Debug.Assert(dagState.RemainingValues is null);
                 Debug.Assert(dagState.SelectedTest is null);
                 Debug.Assert(dagState.TrueBranch is null);
@@ -1830,9 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We're taking ownership of 'cases' (and we never mutate it ourselves).  So freeze it to ensure it
                 // always keeps the starting set of cases.
-                cases.Freeze();
-
-                dagState.Cases = cases;
+                dagState.Cases = new FrozenArrayBuilder<StateForCase>(cases);
                 dagState.RemainingValues = remainingValues;
 
                 return dagState;
@@ -1889,7 +1915,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int GetHashCode(DagState x)
             {
-                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Count);
+                var hashCode = 0;
+                foreach (var value in x.Cases)
+                    hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+
+                return Hash.Combine(hashCode, x.Cases.Count);
             }
         }
 
