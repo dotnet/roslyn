@@ -1082,14 +1082,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerManager = new AnalyzerManager(analyzer);
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
-                onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
-            return AnalyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options,
-                IsCompilerAnalyzer, severityFilter: SeverityFilter.None,
-                isEnabledWithAnalyzerConfigOptions: _ => false,
-                getSupportedDiagnosticDescriptors: (analyzer, _) => analyzer.SupportedDiagnostics,
-                getSupportedSuppressionDescriptors: (suppressor, _) => suppressor.SupportedSuppressions,
-                CancellationToken.None); ;
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> wrappedOnAnalyzerException =
+                (ex, analyzer, diagnostic, _) => onAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors = analyzer =>
+            {
+                try
+                {
+                    return analyzer.SupportedDiagnostics;
+                }
+                catch (Exception ex)
+                {
+                    AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
+                    return ImmutableArray<DiagnosticDescriptor>.Empty;
+                }
+            };
+
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors = suppressor =>
+            {
+                try
+                {
+                    return suppressor.SupportedSuppressions;
+                }
+                catch (Exception ex)
+                {
+                    AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
+                    return ImmutableArray<SuppressionDescriptor>.Empty;
+                }
+            };
+
+            return AnalyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, IsCompilerAnalyzer, severityFilter: SeverityFilter.None,
+                isEnabledWithAnalyzerConfigOptions: _ => false, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, CancellationToken.None); ;
         }
 
         /// <summary>

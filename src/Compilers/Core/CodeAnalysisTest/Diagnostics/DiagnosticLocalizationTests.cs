@@ -307,8 +307,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.Create(compilation, AnalyzerOptions.Empty,
                 addNonCategorizedDiagnostic: (_, _) => { }, onAnalyzerException, analyzerExceptionFilter: null,
                 isCompilerAnalyzer: _ => false, analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
-                shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _) => false,
-                isAnalyzerSuppressedForTree: (_, _, _) => false, getAnalyzerGate: _ => null,
+                shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _, _) => false,
+                isAnalyzerSuppressedForTree: (_, _, _, _) => false, getAnalyzerGate: _ => null,
                 getSemanticModel: tree => compilation.GetSemanticModel(tree, ignoreAccessibility: true));
             var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, CancellationToken.None);
 

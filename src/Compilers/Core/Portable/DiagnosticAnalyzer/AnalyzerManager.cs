@@ -297,11 +297,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
-            Func<DiagnosticAnalyzer, CancellationToken, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors =
-                (analyzer, cancellationToken) => GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
-
-            Func<DiagnosticSuppressor, CancellationToken, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors =
-                (suppressor, cancellationToken) => GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors =
+                analyzer => GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors =
+                suppressor => GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
 
             return IsDiagnosticAnalyzerSuppressed(analyzer, options, isCompilerAnalyzer, severityFilter,
                 isEnabledWithAnalyzerConfigOptions, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, cancellationToken);
@@ -337,8 +336,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             SeverityFilter severityFilter,
             Func<DiagnosticDescriptor, bool> isEnabledWithAnalyzerConfigOptions,
-            Func<DiagnosticAnalyzer, CancellationToken, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors,
-            Func<DiagnosticSuppressor, CancellationToken, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors,
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors,
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors,
             CancellationToken cancellationToken)
         {
             if (isCompilerAnalyzer(analyzer))
@@ -347,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = getSupportedDiagnosticDescriptors(analyzer, cancellationToken);
+            var supportedDiagnostics = getSupportedDiagnosticDescriptors(analyzer);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
             foreach (var diag in supportedDiagnostics)
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer is DiagnosticSuppressor suppressor)
             {
-                foreach (var suppressionDescriptor in getSupportedSuppressionDescriptors(suppressor, cancellationToken))
+                foreach (var suppressionDescriptor in getSupportedSuppressionDescriptors(suppressor))
                 {
                     if (!suppressionDescriptor.IsDisabled(options))
                     {

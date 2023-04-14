@@ -1147,34 +1147,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
-            catch (Exception e) when (ExceptionFilter(e, cancellationToken))
+            catch (Exception ex)
             {
-                // Diagnostic for analyzer exception.
-                var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e, info);
-                try
-                {
-                    OnAnalyzerException(e, analyzer, diagnostic, cancellationToken);
-                }
-                catch (Exception)
-                {
-                    // Ignore exceptions from exception handlers.
-                }
+                HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken);
             }
         }
 
-        internal bool ExceptionFilter(Exception ex, CancellationToken cancellationToken)
+        internal static void HandleAnalyzerException(
+            Exception exception,
+            DiagnosticAnalyzer analyzer,
+            AnalysisContextInfo? info,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
+            Func<Exception, bool>? analyzerExceptionFilter,
+            CancellationToken cancellationToken)
         {
-            if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
+            if (!ExceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
             {
-                return false;
+                throw exception;
             }
 
-            if (_analyzerExceptionFilter != null)
+            // Diagnostic for analyzer exception.
+            var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, exception, info);
+            try
             {
-                return _analyzerExceptionFilter(ex);
+                onAnalyzerException(exception, analyzer, diagnostic, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Ignore exceptions from exception handlers.
             }
 
-            return true;
+            static bool ExceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
+            {
+                if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
+                {
+                    return false;
+                }
+
+                if (analyzerExceptionFilter != null)
+                {
+                    return analyzerExceptionFilter(ex);
+                }
+
+                return true;
+            }
         }
 
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e, AnalysisContextInfo? info = null)
