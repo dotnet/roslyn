@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <TargetFrameworks>$(SourceBuildTargetFrameworksNetFx)</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildToolsetTargetFrameworks)</TargetFrameworks>
     <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
     <IsShipping>false</IsShipping>

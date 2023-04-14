@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildTargetFrameworksNetFx)</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
