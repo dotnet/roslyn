@@ -1780,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// This is an ArrayBuilder so we can benefit from pooling, and not allocate intermediary ImmutableArrays.
             /// To ensure it doesn't mutate from underneath us, we freeze it to catch anyone misusing this.
             /// </summary>
-            public ArrayBuilder<StateForCase> Cases = null!;
+            public ArrayBuilder<StateForCase> Cases { get; private set; } = null!;
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
             // decision automaton.
