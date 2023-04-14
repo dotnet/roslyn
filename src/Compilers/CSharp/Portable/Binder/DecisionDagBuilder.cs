@@ -933,8 +933,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 
             // Now go and clean up all the dag states we created
-            foreach (var (dagState, _) in uniqueState)
-                dagState.ClearAndFree();
+            foreach (var kvp in uniqueState)
+            {
+                Debug.Assert(kvp.Key == kvp.Value);
+                kvp.Key.ClearAndFree();
+            }
 
             uniqueState.Free();
 
