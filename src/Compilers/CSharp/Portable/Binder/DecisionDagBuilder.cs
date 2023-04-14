@@ -1759,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder providers, without having to incur 
+        /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder provides, without having to incur 
         /// intermediary allocations for <see cref="ImmutableArray"/>s.
         /// </summary>
         private readonly struct FrozenArrayBuilder<T>
