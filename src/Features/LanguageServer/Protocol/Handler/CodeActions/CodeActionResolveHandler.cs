@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Client is expected to do the change in the order in which they are provided.
                         // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
                         // So we would like to first edit the old document, then rename it.
-                        if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)
+                        if (oldTextDoc.Name != newTextDoc.Name)
                         {
-                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriForRenamedDocument(), NewUri = newTextDoc.GetUriForRenamedDocument() });
+                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetURI(), NewUri = newTextDoc.GetUriForRenamedDocument() });
                         }
 
                         var linkedDocuments = solution.GetRelatedDocumentIds(docId);
