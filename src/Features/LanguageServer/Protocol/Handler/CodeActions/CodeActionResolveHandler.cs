@@ -336,10 +336,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                         }
 
-                        // Rename
+                        // Add Rename edit.
+                        // Note:
+                        // Client is expected to do the change in the order in which they are provided.
+                        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
+                        // So we would like to first edit the old document, then rename it.
                         if (oldTextDoc.State.Attributes.Name != newTextDoc.State.Name)
                         {
-                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriFromName(), NewUri = newTextDoc.GetUriFromName() });
+                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetUriForRenamedDocument(), NewUri = newTextDoc.GetUriForRenamedDocument() });
                         }
 
                         var linkedDocuments = solution.GetRelatedDocumentIds(docId);
@@ -351,9 +355,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static bool HasDocumentNameChange(DocumentId documentId, Solution newSolution, Solution oldSolution)
         {
-            var newDocument = newSolution.GetRequiredDocument(documentId);
-            var oldDocument = oldSolution.GetRequiredDocument(documentId);
-            return newDocument.State.Name != oldDocument.State.Name;
+            var newDocument = newSolution.GetRequiredTextDocument(documentId);
+            var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
+            return newDocument.Name != oldDocument.Name;
         }
     }
 }

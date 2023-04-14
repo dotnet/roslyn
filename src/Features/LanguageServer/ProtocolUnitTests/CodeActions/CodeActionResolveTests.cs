@@ -171,12 +171,12 @@ class {|caret:ABC|}
 
             var testWorkspace = testLspServer.TestWorkspace;
             var documentBefore = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
-            var documentUriBefore = documentBefore.GetUriFromName();
+            var documentUriBefore = documentBefore.GetUriForRenamedDocument();
 
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
             var documentAfter = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
-            var documentUriAfter = documentBefore.WithName("ABC.cs").GetUriFromName();
+            var documentUriAfter = documentBefore.WithName("ABC.cs").GetUriForRenamedDocument();
 
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
@@ -190,6 +190,8 @@ class {|caret:ABC|}
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
                 diagnostics: null,
                 edit: GenerateRenameFileEdit(new List<(Uri, Uri)> { (documentUriBefore, documentUriAfter) }));
+
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
         }
 
         [WpfTheory, CombinatorialData]
