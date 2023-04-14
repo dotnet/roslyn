@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DecisionDagBuilder
     {
+        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool = PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
+
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
@@ -750,8 +752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             return boundDecisionDag;
         }
-
-        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool = PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
 
         /// <summary>
         /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
