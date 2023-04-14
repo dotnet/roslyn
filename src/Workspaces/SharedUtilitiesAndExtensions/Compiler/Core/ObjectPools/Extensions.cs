@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
             pool.Free(map);
         }
 
-        public static void ClearAndFree<T>(this ObjectPool<List<T>> pool, List<T> list)
+        public static void ClearAndFree<T>(this ObjectPool<List<T>> pool, List<T> list, bool trim = true)
         {
             if (list == null)
             {
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
 
             list.Clear();
 
-            if (list.Capacity > Threshold)
+            if (trim && list.Capacity > Threshold)
             {
                 list.Capacity = Threshold;
             }
