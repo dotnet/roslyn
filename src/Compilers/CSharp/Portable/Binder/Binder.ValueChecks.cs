@@ -2086,13 +2086,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(receiver.Type is { });
                 if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsValueType == true)
                 {
-                    var receiverAddressKind = method.IsEffectivelyReadOnly ? Binder.AddressKind.ReadOnly : Binder.AddressKind.Writeable;
-
-                    if (!Binder.HasHome(receiver,
-                                        receiverAddressKind,
-                                        _symbol,
-                                        _compilation.IsPeVerifyCompatEnabled,
-                                        stackLocalsOpt: null))
+                    var valueKind = method.IsEffectivelyReadOnly
+                        ? Binder.BindValueKind.RefersToLocation
+                        : Binder.BindValueKind.RefersToLocation | Binder.BindValueKind.Assignable;
+                    var syntax = (CSharpSyntaxNode)receiver.Syntax;
+                    var binder = _compilation.GetBinder(syntax);
+                    if (!binder.CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded))
                     {
 #if DEBUG
                         AssertVisited(receiver);
