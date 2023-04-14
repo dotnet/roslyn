@@ -28,44 +28,45 @@ public class ExtensionTypeTests : CompilingTestBase
     // Verify things that are common for all extension types
     private static void VerifyExtension<T>(TypeSymbol type, SpecialType specialType = SpecialType.None) where T : TypeSymbol
     {
-        Assert.True(type is T);
-        Assert.True(type.IsExtension);
-        Assert.Null(type.BaseTypeNoUseSiteDiagnostics);
-        Assert.False(type.IsSealed);
-        Assert.False(type.IsRecord);
-        Assert.False(type.IsRecordStruct);
-        Assert.False(type.IsReferenceType);
-        Assert.False(type.IsValueType);
-        Assert.False(type.IsTypeParameter());
-        Assert.False(type.IsAnonymousType);
-        Assert.False(type.IsEnumType());
-        Assert.False(type.IsErrorType());
-        Assert.Equal(specialType, type.SpecialType);
-        Assert.False(type.IsObjectType());
-        Assert.False(type.IsTupleType);
-        Assert.True(type.TupleElements.IsDefault);
-        Assert.Empty(type.InterfacesNoUseSiteDiagnostics());
-        Assert.Empty(type.AllInterfacesNoUseSiteDiagnostics); // PROTOTYPE
-        Assert.False(type.IsReadOnly);
-        Assert.False(type.IsRefLikeType);
-        Assert.False(type.IsUnsafe());
-        Assert.Equal(TypeKind.Extension, type.TypeKind);
-        Assert.False(type.IsInterfaceType());
-        Assert.False(type.IsAbstract);
+        var namedType = (NamedTypeSymbol)type;
+        Assert.True(namedType is T);
+        Assert.True(namedType.IsExtension);
+        Assert.Null(namedType.BaseTypeNoUseSiteDiagnostics);
+        Assert.False(namedType.IsSealed);
+        Assert.False(namedType.IsRecord);
+        Assert.False(namedType.IsRecordStruct);
+        Assert.False(namedType.IsReferenceType);
+        Assert.False(namedType.IsValueType);
+        Assert.False(namedType.IsTypeParameter());
+        Assert.False(namedType.IsAnonymousType);
+        Assert.False(namedType.IsEnumType());
+        Assert.False(namedType.IsErrorType());
+        Assert.Equal(specialType, namedType.SpecialType);
+        Assert.False(namedType.IsObjectType());
+        Assert.False(namedType.IsTupleType);
+        Assert.True(namedType.TupleElements.IsDefault);
+        Assert.Empty(namedType.InterfacesNoUseSiteDiagnostics());
+        Assert.Empty(namedType.AllInterfacesNoUseSiteDiagnostics); // PROTOTYPE
+        Assert.False(namedType.IsReadOnly);
+        Assert.False(namedType.IsRefLikeType);
+        Assert.False(namedType.IsUnsafe());
+        Assert.Equal(TypeKind.Extension, namedType.TypeKind);
+        Assert.False(namedType.IsInterfaceType());
+        Assert.False(namedType.IsAbstract);
 
-        if (type.ExtensionUnderlyingTypeNoUseSiteDiagnostics is { } underlyingType)
+        if (namedType.ExtensionUnderlyingTypeNoUseSiteDiagnostics is { } underlyingType)
         {
             // PROTOTYPE consider whether we want to expose invalid underlying types
             // in context of public APIs
             VerifyNotExtension<TypeSymbol>(underlyingType);
         }
 
-        if (type != (object)type.OriginalDefinition)
+        if (namedType != (object)namedType.OriginalDefinition)
         {
-            VerifyExtension<TypeSymbol>(type.OriginalDefinition);
+            VerifyExtension<TypeSymbol>(namedType.OriginalDefinition);
         }
 
-        foreach (var baseExtension in type.BaseExtensionsNoUseSiteDiagnostics)
+        foreach (var baseExtension in namedType.BaseExtensionsNoUseSiteDiagnostics)
         {
             if (baseExtension.IsExtension)
             {
@@ -78,22 +79,19 @@ public class ExtensionTypeTests : CompilingTestBase
         }
 
         var managedKindUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-        Assert.False(type.IsManagedType(ref managedKindUseSiteInfo));
+        Assert.False(namedType.IsManagedType(ref managedKindUseSiteInfo));
 
-        Assert.False(type.IsRestrictedType());
-        Assert.True(type.IsType);
-        Assert.True(type.CanBeReferencedByName);
+        Assert.False(namedType.IsRestrictedType());
+        Assert.True(namedType.IsType);
+        Assert.True(namedType.CanBeReferencedByName);
 
-        if (type is NamedTypeSymbol namedType)
-        {
-            Assert.False(namedType.IsCustomTaskType(out _));
-            Assert.Null(namedType.DelegateInvokeMethod);
-            Assert.False(namedType.HasAnyRequiredMembers);
-            Assert.False(namedType.IsNamespace);
-            Assert.True(namedType.IsMetadataSealed);
-        }
+        Assert.False(namedType.IsCustomTaskType(out _));
+        Assert.Null(namedType.DelegateInvokeMethod);
+        Assert.False(namedType.HasAnyRequiredMembers);
+        Assert.False(namedType.IsNamespace);
+        Assert.True(namedType.IsMetadataSealed);
 
-        if (type is SourceNamedTypeSymbol sourceNamedType)
+        if (namedType is SourceNamedTypeSymbol sourceNamedType)
         {
             Assert.False(sourceNamedType.IsScriptClass);
             Assert.Null(sourceNamedType.EnumUnderlyingType);
@@ -653,7 +651,7 @@ explicit extension R for C
     [InlineData("struct")]
     [InlineData("interface")]
     [InlineData("enum")]
-    public void Members_NoDefaultCtor(string type)
+    public void Members_DefaultAccessibility(string type)
     {
         var src = $$"""
 {{type}} UnderlyingType { }

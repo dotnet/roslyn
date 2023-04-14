@@ -1759,12 +1759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (IsExtension)
-                    return false;
-
                 return
                     (_flags & TypeAttributes.Sealed) != 0 &&
-                    (_flags & TypeAttributes.Abstract) == 0;
+                    (_flags & TypeAttributes.Abstract) == 0 &&
+                    !IsExtension;
             }
         }
 
@@ -2084,11 +2082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol MakeAcyclicBaseType()
         {
-            if (TypeKind is TypeKind.Extension)
-            {
-                return null;
-            }
-
             NamedTypeSymbol declaredBase = GetDeclaredBaseType(null);
 
             // implicit base is not interesting for metadata cycle detection
