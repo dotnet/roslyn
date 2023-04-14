@@ -138,16 +138,16 @@ namespace BuildBoss
             allGood &= VerifyPackageCore(
                 textWriter,
                 FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
-                excludeFunc: relativeFileName => relativeFileName.StartsWith(@"tasks\net6.0\bincore\Microsoft.DiaSymReader.Native", PathComparison),
+                excludeFunc: relativeFileName => relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("VBCSCompiler", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472")),
-                (@"tasks\net6.0\bincore", GetProjectPublishDirectory("csc", "net6.0")),
-                (@"tasks\net6.0\bincore", GetProjectPublishDirectory("vbc", "net6.0")),
-                (@"tasks\net6.0\bincore", GetProjectPublishDirectory("VBCSCompiler", "net6.0")),
-                (@"tasks\net6.0", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net6.0")));
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net6.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net6.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net6.0")),
+                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net6.0")));
 
             foreach (var arch in new[] { "x86", "x64", "arm64" })
             {
