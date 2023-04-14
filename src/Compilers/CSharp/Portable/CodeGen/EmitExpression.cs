@@ -3572,9 +3572,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (expr.ConstantValueOpt is { } constantValue)
                 {
-                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var v })
+                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
                     {
-                        isOne = v == 1;
+                        isOne = i == 1;
                         return true;
                     }
 
