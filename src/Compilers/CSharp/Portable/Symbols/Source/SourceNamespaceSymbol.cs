@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
+            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
+            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
