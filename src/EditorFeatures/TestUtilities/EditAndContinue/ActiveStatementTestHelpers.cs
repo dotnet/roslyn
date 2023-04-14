@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => $"{Inspect(r.Method)} | {Inspect(r.NewSpan)} Delta={r.Delta}";
 
         public static string Inspect(ManagedMethodId value)
-            => $"0x{value.Token:X8} v{value.Version}";
+            => $"mvid={value.Module} {Inspect(value.Method)}";
 
         public static string Inspect(ManagedModuleMethodId value)
             => $"0x{value.Token:X8} v{value.Version}";
