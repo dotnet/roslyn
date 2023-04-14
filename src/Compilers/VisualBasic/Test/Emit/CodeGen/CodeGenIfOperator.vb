@@ -576,6 +576,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 ]]>.Value)
         End Sub
 
+        <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>
+        Public Sub Branchless_IntPtr()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Imports System
+        Imports System.Console
+        Module C
+            Sub Main()
+                M(1, 0)
+            End Sub
+
+            Sub M(x As Integer, y As Integer)
+                Write(If(x = y, CType(0, IntPtr), CType(1, IntPtr)))
+                Write(If(x <> y, IntPtr.Zero, CType(1, IntPtr)))
+            End Sub
+        End Module
+    ]]></file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:="10")
+            verifier.VerifyDiagnostics()
+            verifier.VerifyMethodBody("C.M", <![CDATA[
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  // sequence point: Write(If(x = y, CType(0, IntPtr), CType(1, IntPtr)))
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldc.i4.1
+  IL_0005:  call       "Function System.IntPtr.op_Explicit(Integer) As System.IntPtr"
+  IL_000a:  br.s       IL_0012
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       "Function System.IntPtr.op_Explicit(Integer) As System.IntPtr"
+  IL_0012:  box        "System.IntPtr"
+  IL_0017:  call       "Sub System.Console.Write(Object)"
+  // sequence point: Write(If(x <> y, IntPtr.Zero, CType(1, IntPtr)))
+  IL_001c:  ldarg.0
+  IL_001d:  ldarg.1
+  IL_001e:  bne.un.s   IL_0028
+  IL_0020:  ldc.i4.1
+  IL_0021:  call       "Function System.IntPtr.op_Explicit(Integer) As System.IntPtr"
+  IL_0026:  br.s       IL_002d
+  IL_0028:  ldsfld     "System.IntPtr.Zero As System.IntPtr"
+  IL_002d:  box        "System.IntPtr"
+  IL_0032:  call       "Sub System.Console.Write(Object)"
+  // sequence point: End Sub
+  IL_0037:  ret
+}
+]]>.Value)
+        End Sub
+
         ' Conditional operator as parameter
         <Fact>
         Public Sub ConditionalOperatorAsParameter()
