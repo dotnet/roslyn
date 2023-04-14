@@ -102,6 +102,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_000b:  ret
 }
 ]]>.Value)
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe.WithDebugPlusMode(True))
+            verifier.VerifyDiagnostics()
+            verifier.VerifyMethodBody("C.Comp", <![CDATA[
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (Integer V_0, //Comp
+                Integer V_1, //tmp1
+                Integer V_2) //tmp2
+  // sequence point: tmp1 As Integer = If(x > y, 1, 0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  cgt
+  IL_0004:  stloc.1
+  // sequence point: tmp2 As Integer = If(x < y, 1, 0)
+  IL_0005:  ldarg.0
+  IL_0006:  ldarg.1
+  IL_0007:  clt
+  IL_0009:  stloc.2
+  // sequence point: Return tmp1 - tmp2
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.2
+  IL_000c:  sub.ovf
+  IL_000d:  stloc.0
+  // sequence point: End Function
+  IL_000e:  ldloc.0
+  IL_000f:  ret
+}
+]]>.Value)
         End Sub
 
         <Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")>

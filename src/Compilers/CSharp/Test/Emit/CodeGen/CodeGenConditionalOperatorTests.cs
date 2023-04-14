@@ -61,44 +61,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
                 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithDebugPlusMode(true), expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.Compare", """
                 {
-                  // Code size       27 (0x1b)
+                  // Code size       14 (0xe)
                   .maxstack  2
                   .locals init (int V_0, //tmp1
-                                int V_1, //tmp2
-                                int V_2)
-                  // sequence point: {
-                  IL_0000:  nop
+                                int V_1) //tmp2
                   // sequence point: int tmp1 = (x > y) ? 1 : 0;
-                  IL_0001:  ldarg.0
-                  IL_0002:  ldarg.1
-                  IL_0003:  bgt.s      IL_0008
-                  IL_0005:  ldc.i4.0
-                  IL_0006:  br.s       IL_0009
-                  IL_0008:  ldc.i4.1
-                  IL_0009:  stloc.0
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  cgt
+                  IL_0004:  stloc.0
                   // sequence point: int tmp2 = (x < y) ? 1 : 0;
-                  IL_000a:  ldarg.0
-                  IL_000b:  ldarg.1
-                  IL_000c:  blt.s      IL_0011
-                  IL_000e:  ldc.i4.0
-                  IL_000f:  br.s       IL_0012
-                  IL_0011:  ldc.i4.1
-                  IL_0012:  stloc.1
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldarg.1
+                  IL_0007:  clt
+                  IL_0009:  stloc.1
                   // sequence point: return tmp1 - tmp2;
-                  IL_0013:  ldloc.0
-                  IL_0014:  ldloc.1
-                  IL_0015:  sub
-                  IL_0016:  stloc.2
-                  IL_0017:  br.s       IL_0019
-                  // sequence point: }
-                  IL_0019:  ldloc.2
-                  IL_001a:  ret
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  sub
+                  IL_000d:  ret
                 }
                 """);
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Compare", """
+            {
+                // Code size       27 (0x1b)
+                .maxstack  2
+                .locals init (int V_0, //tmp1
+                            int V_1, //tmp2
+                            int V_2)
+                // sequence point: {
+                IL_0000:  nop
+                // sequence point: int tmp1 = (x > y) ? 1 : 0;
+                IL_0001:  ldarg.0
+                IL_0002:  ldarg.1
+                IL_0003:  bgt.s      IL_0008
+                IL_0005:  ldc.i4.0
+                IL_0006:  br.s       IL_0009
+                IL_0008:  ldc.i4.1
+                IL_0009:  stloc.0
+                // sequence point: int tmp2 = (x < y) ? 1 : 0;
+                IL_000a:  ldarg.0
+                IL_000b:  ldarg.1
+                IL_000c:  blt.s      IL_0011
+                IL_000e:  ldc.i4.0
+                IL_000f:  br.s       IL_0012
+                IL_0011:  ldc.i4.1
+                IL_0012:  stloc.1
+                // sequence point: return tmp1 - tmp2;
+                IL_0013:  ldloc.0
+                IL_0014:  ldloc.1
+                IL_0015:  sub
+                IL_0016:  stloc.2
+                IL_0017:  br.s       IL_0019
+                // sequence point: }
+                IL_0019:  ldloc.2
+                IL_001a:  ret
+            }
+            """);
         }
 
         [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
