@@ -25671,7 +25671,7 @@ public class A
         [Fact]
         public void UnscopedRefAttribute_NestedAccess_Properties_Invalid()
         {
-            var source = $$"""
+            var source = """
                 using System.Diagnostics.CodeAnalysis;
 
                 class C
@@ -25679,13 +25679,13 @@ public class A
                     private S1 s1;
                     public ref int Value() => ref s1.S2.Value;
                 }
-                
+
                 struct S1
                 {
                     private S2 s2;
                     public S2 S2 => s2;
                 }
-                
+
                 struct S2
                 {
                     private int value;
@@ -25699,6 +25699,37 @@ public class A
                 // 0.cs(11,16): warning CS0649: Field 'S1.s2' is never assigned to, and will always have its default value 
                 //     private S2 s2;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s2").WithArguments("S1.s2", "").WithLocation(11, 16));
+        }
+
+        [Theory, CombinatorialData]
+        public void UnscopedRefAttribute_NestedAccess_MethodOrProperty_Readonly(
+            [CombinatorialValues("", "()")] string op)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value() => ref s1.S2{{op}}.Value;
+                }
+
+                struct S1
+                {
+                    private readonly S2 s2;
+                    [UnscopedRef] public ref readonly S2 S2{{op}} => ref s2;
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+                // 0.cs(6,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     public ref int Value() => ref s1.S2.Value;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, $"s1.S2{op}").WithLocation(6, 35));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67626")]
@@ -25749,7 +25780,7 @@ public class A
         [Fact]
         public void UnscopedRefAttribute_NestedAccess_Indexer_Invalid()
         {
-            var source = $$"""
+            var source = """
                 using System.Diagnostics.CodeAnalysis;
 
                 class C
@@ -25777,6 +25808,36 @@ public class A
                 // 0.cs(11,16): warning CS0649: Field 'S1.s2' is never assigned to, and will always have its default value 
                 //     private S2 s2;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s2").WithArguments("S1.s2", "").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_NestedAccess_Indexer_Readonly()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value(int i) => ref s1[i].Value;
+                }
+
+                struct S1
+                {
+                    private readonly S2 s2;
+                    [UnscopedRef] public ref readonly S2 this[int i] => ref s2;
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+                // 0.cs(6,40): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     public ref int Value(int i) => ref s1[i].Value;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1[i]").WithLocation(6, 40));
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
