@@ -2050,16 +2050,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
 
-            bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
+            bool isUsedBeforeDeclaration(SimpleNameSyntax nameSyntax, LocalSymbol localSymbol)
             {
-                Location localSymbolLocation = localSymbol.GetFirstLocation();
+                // do fast check first.  Avoids having to create/cache the SyntaxTree for these two nodes.
+                var localSyntax = localSymbol.GetDeclaratorSyntax();
+                if (nameSyntax.SpanStart >= localSyntax.SpanStart)
+                    return false;
 
-                if (node.SyntaxTree == localSymbolLocation.SourceTree)
-                {
-                    return node.SpanStart < localSymbolLocation.SourceSpan.Start;
-                }
-
-                return false;
+                return nameSyntax.SyntaxTree == localSyntax.SyntaxTree;
             }
         }
 
