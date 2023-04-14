@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
         {
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, solutionServices);
+                : CreateRecoverableText(newTextAndVersion, LoadTextOptions, solutionServices);
 
             return UpdateText(newTextSource, mode, incremental: true);
         }
