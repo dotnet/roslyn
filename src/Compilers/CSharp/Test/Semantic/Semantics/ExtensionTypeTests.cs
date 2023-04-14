@@ -2527,6 +2527,7 @@ explicit extension R for { }
 public explicit extension R for nint { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
         comp.VerifyDiagnostics();
 
         CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
@@ -2542,6 +2543,45 @@ explicit extension R3 for System.IntPtr : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics();
+
+        return;
+
+        static void validate(ModuleSymbol module)
+        {
+            var r = module.GlobalNamespace.GetTypeMember("R");
+            VerifyExtension<TypeSymbol>(r);
+            Assert.Equal("nint", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void UnderlyingType_NativeInt_OlderFramework(bool useImageReference)
+    {
+        var src = """
+public explicit extension R for nint { }
+""";
+        var comp = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute });
+        Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+        var src2 = """
+explicit extension R2 for nint : R { }
+""";
+        var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) });
+        comp2.VerifyDiagnostics();
+
+        var src3 = """
+explicit extension R3 for System.IntPtr : R { }
+""";
+        var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) });
+        comp3.VerifyDiagnostics(
+            // (1,20): error CS9216: Extension 'R3' has underlying type 'IntPtr' but a base extension has underlying type 'nint'.
+            // explicit extension R3 for System.IntPtr : R { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "System.IntPtr", "nint").WithLocation(1, 20)
+            );
 
         return;
 
@@ -7310,7 +7350,7 @@ public explicit extension R2 for object : R1<dynamic> { }
     }
 
     [Fact]
-    public void BaseExtension_Dynamic_Nested_Metadata_MissingDynamicAttribute()
+    public void BaseExtension_Dynamic_Nested_MissingDynamicAttribute()
     {
         var src = """
 explicit extension R1<T> for object { }
