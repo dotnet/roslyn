@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -275,6 +276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _namespacesToMerge.SelectMany(namespaceSymbol => namespaceSymbol.Locations).AsImmutable();
             }
         }
+
+        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_namespacesToMerge, static ns => ns.LocationsCount);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _namespacesToMerge, static (ns, index) => ns.GetCurrentLocation(slot: index, index: 0));
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _namespacesToMerge, static (ns, previousIndex) => ns.MoveNextLocation(previousSlot: previousIndex, previousIndex: 0));
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _namespacesToMerge, static (ns, previousIndex) => ns.MoveNextLocationReversed(previousSlot: previousIndex, previousIndex: 0));
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

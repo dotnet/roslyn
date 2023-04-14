@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -170,6 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return ImmutableArray.Create<Location>(this.TypeDescriptor.Location); }
             }
+
+            public sealed override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+            public sealed override Location GetCurrentLocation(int slot, int index)
+                => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, TypeDescriptor.Location);
+
+            public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+            public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
             public abstract override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {

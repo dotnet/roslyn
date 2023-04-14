@@ -107,6 +107,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
+        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => throw ExceptionUtilities.Unreachable();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => throw ExceptionUtilities.Unreachable();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => throw ExceptionUtilities.Unreachable();
+
         public override MethodKind MethodKind
         {
             get { return MethodKind.Ordinary; }

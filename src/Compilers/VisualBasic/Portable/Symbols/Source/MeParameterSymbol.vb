@@ -6,6 +6,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Linq
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -44,6 +45,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_container Is Nothing, ImmutableArray(Of Location).Empty, _container.Locations)
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return If(_container Is Nothing, SymbolLocationHelper.Empty.LocationsCount, _container.LocationsCount)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return If(_container Is Nothing, SymbolLocationHelper.Empty.GetCurrentLocation(slot, index), _container.GetCurrentLocation(slot, index))
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return If(_container Is Nothing, SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex), _container.MoveNextLocation(previousSlot, previousIndex))
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return If(_container Is Nothing, SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex), _container.MoveNextLocationReversed(previousSlot, previousIndex))
+        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

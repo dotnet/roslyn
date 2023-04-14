@@ -82,6 +82,34 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         ImmutableArray<Location> Locations { get; }
 
+        ISymbol.LocationList SymbolLocations { get; }
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Count"/>.
+        /// </summary>
+        int LocationsCount { get; }
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator.Current"/>.
+        /// </summary>
+        Location GetCurrentLocation(int slot, int index);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <c>-1</c> means start at the beginning.
+        /// </remarks>
+        (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Reversed.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <see cref="int.MaxValue"/> means start from the end.
+        /// </remarks>
+        (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex);
+
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
         /// an explicit corresponding source code declaration. 

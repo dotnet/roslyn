@@ -336,11 +336,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        public virtual Location? TryGetFirstLocation()
+        public ISymbol.LocationList SymbolLocations => new ISymbol.LocationList(this);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Count"/>.
+        /// </summary>
+        public abstract int LocationsCount { get; }
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator.Current"/>.
+        /// </summary>
+        public abstract Location GetCurrentLocation(int slot, int index);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <c>-1</c> means start at the beginning.
+        /// </remarks>
+        public abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Reversed.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <see cref="int.MaxValue"/> means start from the end.
+        /// </remarks>
+        public abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex);
+
+        public Location? TryGetFirstLocation()
         {
-            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
-            var locations = this.Locations;
-            return locations.IsEmpty ? null : locations[0];
+            var locations = SymbolLocations;
+            return locations.Any() ? locations.First() : null;
         }
 
         public Location GetFirstLocation()

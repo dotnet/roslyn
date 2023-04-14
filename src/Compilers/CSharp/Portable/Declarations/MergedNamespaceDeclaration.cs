@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -63,17 +64,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var builder = ArrayBuilder<Location>.GetInstance();
-                    foreach (var decl in _declarations)
-                    {
-                        SourceLocation loc = decl.NameLocation;
-                        if (loc != null)
-                            builder.Add(loc);
-                    }
-                    return builder.ToImmutableAndFree();
+                    return _declarations.SelectAsArray<SingleNamespaceDeclaration, Location>(
+                        decl => decl.NameLocation is not null,
+                        decl => decl.NameLocation);
                 }
             }
         }
+
+        public int NameLocationsCount => _declarations.Length == 1
+            ? SymbolLocationHelper.Single.LocationsCount
+            : SymbolLocationHelper.Filtered.LocationsCount(_declarations, static decl => decl.NameLocation is not null);
+
+        public Location GetCurrentNameLocation(int slot, int index)
+            => _declarations.Length == 1
+            ? SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _declarations[0].NameLocation)
+            : SymbolLocationHelper.Filtered.GetCurrentLocation(slot, index, _declarations, static decl => decl.NameLocation);
+
+        public (bool hasNext, int nextSlot, int nextIndex) MoveNextNameLocation(int previousSlot, int previousIndex)
+            => _declarations.Length == 1
+            ? SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex)
+            : SymbolLocationHelper.Filtered.MoveNextLocation(previousSlot, previousIndex, _declarations, static decl => decl.NameLocation is not null);
+
+        public (bool hasNext, int nextSlot, int nextIndex) MoveNextNameLocationReversed(int previousSlot, int previousIndex)
+            => _declarations.Length == 1
+            ? SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex)
+            : SymbolLocationHelper.Filtered.MoveNextLocationReversed(previousSlot, previousIndex, _declarations, static decl => decl.NameLocation is not null);
 
         public ImmutableArray<SingleNamespaceDeclaration> Declarations
         {
