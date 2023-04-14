@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception ex)
                 {
-                    AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
+                    AnalyzerExecutor.HandleAnalyzerException(ex, suppressor, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
                     return ImmutableArray<SuppressionDescriptor>.Empty;
                 }
             };
