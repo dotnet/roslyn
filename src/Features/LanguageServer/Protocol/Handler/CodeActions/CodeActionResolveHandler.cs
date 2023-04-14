@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -155,6 +156,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             || !resourceOperations.Contains(ResourceOperationKind.Create))
                         {
                             // Adding documents is not supported by this workspace
+                            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                            return codeAction;
+                        }
+                    }
+
+                    if (projectChange.GetChangedDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))
+                        || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution)
+                        || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))))
+                    {
+                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
+                            || !resourceOperations.Contains(ResourceOperationKind.Rename))
+                        {
+                            // Rename documents is not supported by this workspace
                             codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
                             return codeAction;
                         }
@@ -315,14 +329,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
 
                         var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+
+                        if (edits.Length > 0)
+                        {
+                            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                            textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
+                        }
+
+                        // Add Rename edit.
+                        // Note:
+                        // Client is expected to do the change in the order in which they are provided.
+                        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
+                        // So we would like to first edit the old document, then rename it.
+                        if (oldTextDoc.Name != newTextDoc.Name)
+                        {
+                            textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetURI(), NewUri = newTextDoc.GetUriForRenamedDocument() });
+                        }
 
                         var linkedDocuments = solution.GetRelatedDocumentIds(docId);
                         modifiedDocumentIds.AddRange(linkedDocuments);
                     }
                 }
             }
+        }
+
+        private static bool HasDocumentNameChange(DocumentId documentId, Solution newSolution, Solution oldSolution)
+        {
+            var newDocument = newSolution.GetRequiredTextDocument(documentId);
+            var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
+            return newDocument.Name != oldDocument.Name;
         }
     }
 }
