@@ -121,7 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // in a manner that might end up making things worse or confusing the user.
             var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess);
             if (symbol == null)
-                return false;
+            {
+                // nameof(X.Y) does not support GetSymbolInfo on X.Y.
+                // use GetMemberGroup instead to see if we can find a real symbol to use here.
+                symbol =
+                    memberAccess.IsNameOfArgumentExpression() &&
+                    semanticModel.GetMemberGroup(memberAccess, cancellationToken) is [ISymbol member, ..]
+                        ? member
+                        : null;
+
+                if (symbol == null)
+                    return false;
+            }
 
             // if this node is on the left side, we could simplify to aliases
             if (!memberAccess.IsRightSideOfDot())

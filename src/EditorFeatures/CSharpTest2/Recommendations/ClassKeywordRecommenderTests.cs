@@ -111,7 +111,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -120,7 +120,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -299,7 +299,7 @@ $$");
 @"public $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -352,7 +352,7 @@ $$");
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -362,7 +362,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -372,7 +372,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -382,21 +382,21 @@ $$
 global using Bar;");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
 @"class C<T> where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -405,7 +405,7 @@ global using Bar;");
     where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -414,7 +414,7 @@ global using Bar;");
     where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
@@ -423,7 +423,7 @@ global using Bar;");
       where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
@@ -432,7 +432,7 @@ global using Bar;");
       where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -442,7 +442,7 @@ global using Bar;");
       where U : T");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(

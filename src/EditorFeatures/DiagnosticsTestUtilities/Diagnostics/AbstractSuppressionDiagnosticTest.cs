@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
             return FilterDiagnostics(diagnostics);
         }
 

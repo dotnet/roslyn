@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Xunit;
@@ -21,16 +15,50 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests;
 public class VisualStudioStorageReadFallbackTests
 {
     [Fact]
-    public void Fallbacks()
+    public void SpaceBetweenParentheses()
     {
         var exportProvider = VisualStudioTestCompositions.LanguageServices.ExportProviderFactory.CreateExportProvider();
-        foreach (var export in exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>())
-        {
-            var langauge = export.Metadata.ConfigName.StartsWith("csharp_") || export.Metadata.ConfigName.StartsWith("visual_basic_")
-                ? null : LanguageNames.CSharp;
+        var fallback = exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>().Single(export => export.Metadata.ConfigName == "csharp_space_between_parentheses").Value;
+        string? language = null;
 
-            // if no flags are set the result should be default:
-            Assert.Equal(default(Optional<object?>), export.Value.TryRead(langauge, (storageKey, storageType) => default(Optional<object?>)));
-        }
+        // if no flags are set the result should be "missing":
+        Assert.Equal(default(Optional<object?>), fallback.TryRead(language, (_, _, _) => default(Optional<object?>)));
+
+        // all flags set:
+        Assert.Equal(fallback.TryRead(language, (_, _, _) => true).Value, SpacePlacementWithinParentheses.All);
+
+        // one flag present in storage (false), defaults used for others:
+        Assert.Equal(
+            fallback.TryRead(language, (storageKey, _, _) => storageKey == "TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses" ? false : default(Optional<object?>)).Value,
+            CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue & ~SpacePlacementWithinParentheses.Expressions);
+
+        // one flag present in storage (true), defaults used for others:
+        Assert.Equal(
+            fallback.TryRead(language, (storageKey, _, _) => storageKey == "TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses" ? true : default(Optional<object?>)).Value,
+            CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue | SpacePlacementWithinParentheses.Expressions);
+    }
+
+    [Fact]
+    public void NewLinesForBraces()
+    {
+        var exportProvider = VisualStudioTestCompositions.LanguageServices.ExportProviderFactory.CreateExportProvider();
+        var fallback = exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>().Single(export => export.Metadata.ConfigName == "csharp_new_line_before_open_brace").Value;
+        string? language = null;
+
+        // if no flags are set the result should be "missing":
+        Assert.Equal(default(Optional<object?>), fallback.TryRead(language, (_, _, _) => default(Optional<object?>)));
+
+        // all flags set:
+        Assert.Equal(fallback.TryRead(language, (_, _, _) => true).Value, NewLineBeforeOpenBracePlacement.All);
+
+        // one flag present in storage (false), defaults used for others:
+        Assert.Equal(
+            fallback.TryRead(language, (storageKey, _, _) => storageKey == "TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers" ? false : default(Optional<object?>)).Value,
+            CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue & ~NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers);
+
+        // one flag present in storage (true), defaults used for others:
+        Assert.Equal(
+            fallback.TryRead(language, (storageKey, _, _) => storageKey == "TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers" ? true : default(Optional<object?>)).Value,
+            CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue | NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers);
     }
 }

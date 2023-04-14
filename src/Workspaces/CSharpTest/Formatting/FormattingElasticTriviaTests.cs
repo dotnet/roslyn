@@ -95,7 +95,7 @@ class B
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
-        [Fact, WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1947")]
         public void ElasticLineBreaksBetweenMembers()
         {
             var text = @"
@@ -141,7 +141,7 @@ public class SomeAttribute : System.Attribute { }
             Assert.Equal(expected, annotationFormatted);
         }
 
-        [Fact, WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
+        [Fact, WorkItem("https://roslyn.codeplex.com/workitem/408")]
         public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest

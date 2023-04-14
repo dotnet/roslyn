@@ -48,72 +48,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateProjectToAllowUns
         public async Task OnUnsafeClass()
         {
             await TestAllowUnsafeEnabledIfDisabledAsync(
-@"
-unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
-{
-}");
+                """
+                unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
+                {
+                }
+                """);
         }
 
         [Fact]
         public async Task OnUnsafeMethod()
         {
             await TestAllowUnsafeEnabledIfDisabledAsync(
-@"
-class C
-{
-    unsafe void [|M|]()
-    {
-    }
-}");
+                """
+                class C
+                {
+                    unsafe void [|M|]()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task OnUnsafeLocalFunction()
         {
             await TestAllowUnsafeEnabledIfDisabledAsync(
-@"
-class C
-{
-    void M()
-    {
-        unsafe void [|F|]()
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        unsafe void [|F|]()
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task OnUnsafeBlock()
         {
             await TestAllowUnsafeEnabledIfDisabledAsync(
-@"
-class C
-{
-    void M()
-    {
-        [|unsafe|]
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|unsafe|]
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task NotInsideUnsafeBlock()
         {
             await TestMissingAsync(
-@"
-class C
-{
-    void M()
-    {
-        unsafe
-        {
-            [|int * p;|]
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        unsafe
+                        {
+                            [|int * p;|]
+                        }
+                    }
+                }
+                """);
         }
     }
 }

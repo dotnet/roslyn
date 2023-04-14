@@ -476,6 +476,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                             var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
                                 _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
+                            Contract.ThrowIfNull(fileInfo, "We previously received a dynamic file for this path, and we're responding to a change, so we expect to get a new one.");
+
                             // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
                             var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;
 

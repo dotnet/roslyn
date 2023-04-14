@@ -28,110 +28,120 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberN
         public async Task Test1()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        var v = new { [||]this.GetType() };
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var v = new { {|Rename:Type|} = this.GetType() };
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new { [||]this.GetType() };
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new { {|Rename:Type|} = this.GetType() };
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExistingName()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        var v = new { Type = 1, [||]this.GetType() };
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var v = new { Type = 1, {|Rename:Type1|} = this.GetType() };
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new { Type = 1, [||]this.GetType() };
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new { Type = 1, {|Rename:Type1|} = this.GetType() };
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        var v = new { {|FixAllInDocument:|}new { this.GetType(), this.ToString() } };
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
-    }
-}");
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { {|FixAllInDocument:|}new { this.GetType(), this.ToString() } };
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
+                }
+            }
+            """);
         }
 
         [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        var v = new { new { {|FixAllInDocument:|}this.GetType(), this.ToString() } };
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
-    }
-}");
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { new { {|FixAllInDocument:|}this.GetType(), this.ToString() } };
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
+                }
+            }
+            """);
         }
 
         [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        var v = new { {|FixAllInDocument:|}new { this.GetType(), this.GetType() } };
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var v = new { Value = new { Type = this.GetType(), Type1 = this.GetType() } };
-    }
-}");
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { {|FixAllInDocument:|}new { this.GetType(), this.GetType() } };
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = new { Value = new { Type = this.GetType(), Type1 = this.GetType() } };
+                }
+            }
+            """);
         }
     }
 }

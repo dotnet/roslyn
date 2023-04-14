@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             constantValueOpt,
                             rewrittenType.GetNullableUnderlyingType());
 
-                        var outerConversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                        var outerConversion = Conversion.ImplicitNullableWithIdentityUnderlying;
                         outerConversion.MarkUnderlyingConversionsChecked();
                         return MakeConversionNode(
                             oldNodeOpt,

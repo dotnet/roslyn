@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsExtensionMethod)
             {
-                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
+                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, GetFirstLocation());
             }
 
             foreach (var param in syntax.ParameterList.Parameters)
@@ -302,6 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(Syntax.Identifier.GetLocation());
+
+        public override Location? TryGetFirstLocation() => Syntax.Identifier.GetLocation();
 
         internal override bool GenerateDebugInfo => true;
 

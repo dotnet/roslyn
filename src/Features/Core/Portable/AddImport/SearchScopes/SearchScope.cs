@@ -26,28 +26,28 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             public readonly bool Exact;
             protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
-            public readonly CancellationToken CancellationToken;
 
-            protected SearchScope(AbstractAddImportFeatureService<TSimpleNameSyntax> provider, bool exact, CancellationToken cancellationToken)
+            protected SearchScope(AbstractAddImportFeatureService<TSimpleNameSyntax> provider, bool exact)
             {
                 this.provider = provider;
                 Exact = exact;
-                CancellationToken = cancellationToken;
             }
 
-            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query);
+            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query, CancellationToken cancellationToken);
+
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
             public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
-                string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
+                string name, TSimpleNameSyntax nameNode, SymbolFilter filter, CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
                     return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
                 using var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
-                var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
+                var symbols = await FindDeclarationsAsync(filter, query, cancellationToken).ConfigureAwait(false);
 
                 if (Exact)
                 {

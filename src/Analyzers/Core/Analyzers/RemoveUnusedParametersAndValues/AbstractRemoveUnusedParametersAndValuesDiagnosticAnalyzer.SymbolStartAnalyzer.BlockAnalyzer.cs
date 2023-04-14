@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, cancellationToken: context.CancellationToken);
                                     }
                                 }
 
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Bail out cases:
                     //  1. Skip analysis if we are not computing unused parameters based on user's option preference or have
-                    //     a descendant operation with OperatioKind.None (not yet implemented operation).
+                    //     a descendant operation with OperationKind.None (not yet implemented operation).
                     if (!isComputingUnusedParams || hasOperationNoneDescendant)
                     {
                         return;

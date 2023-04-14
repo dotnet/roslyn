@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem(1655835, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
         public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
         {
             using var workspace = CreateWorkspace();
@@ -206,16 +206,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Modified
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Modified;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Modified }];
                 });
             Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
                 step =>
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Cached
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Cached;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Cached }];
                 });
 
             // Change one of the source documents, and rerun; we should again only reprocess that one change.
@@ -724,7 +722,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();

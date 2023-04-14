@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             static Location getLocation(ParameterSymbol parameter, Location location)
-                => parameter.Locations.FirstOrDefault() ?? location;
+                => parameter.TryGetFirstLocation() ?? location;
         }
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
