@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,14 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly;
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly;
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 

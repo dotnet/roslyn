@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,8 +10,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -85,14 +84,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static AliasesAndUsings GetOrCreateAliasAndUsings(
+        private AliasesAndUsings GetOrCreateAliasAndUsings(
             ref ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
             SingleNamespaceDeclaration declaration)
         {
-            return RoslynImmutableInterlocked.GetOrAdd(
-                ref dictionary,
-                declaration,
-                static _ => new AliasesAndUsings());
+            if (dictionary.IsDefault)
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#if DEBUG
+                var builderForAsserts = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#endif
+
+                foreach (var singleDeclaration in _mergedDeclaration.Declarations)
+                {
+                    if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
+                    {
+                        builder.Add(singleDeclaration, new AliasesAndUsings());
+                    }
+#if DEBUG
+                    else
+                    {
+                        builderForAsserts.Add(singleDeclaration, new AliasesAndUsings());
+                    }
+#endif
+                }
+
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _aliasesAndUsings_doNotAccessDirectly, builder.ToImmutable());
+#if DEBUG
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, builderForAsserts.ToImmutable());
+#endif
+            }
+
+            dictionary.TryGetValue(declaration, out var result);
+            Debug.Assert(result is not null);
+
+            return result ?? new AliasesAndUsings();
         }
 
         private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
