@@ -1907,6 +1907,11 @@
         <target state="translated">유추된 대리자 형식</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="new">instance member in 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="translated">람다 특성</target>

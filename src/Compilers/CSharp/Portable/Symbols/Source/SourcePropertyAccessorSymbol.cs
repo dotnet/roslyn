@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (modifiers.Count > 0)
-                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, syntax, modifiers[0].GetLocation());
+                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, modifiers[0]);
         }
 #nullable disable
 
