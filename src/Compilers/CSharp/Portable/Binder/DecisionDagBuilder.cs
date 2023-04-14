@@ -1759,28 +1759,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder providers, without having to incur 
         /// intermediary allocations for <see cref="ImmutableArray"/>s.
         /// </summary>
-        private struct FrozenArrayBuilder<T>
+        private readonly struct FrozenArrayBuilder<T>
         {
-            private ArrayBuilder<T> _arrayBuilder;
+            private readonly ArrayBuilder<T> _arrayBuilder;
 
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
                 _arrayBuilder = arrayBuilder;
             }
 
-            public readonly bool IsDefault => _arrayBuilder is null;
+            public bool IsDefault => _arrayBuilder is null;
 
             public void Free()
             {
                 _arrayBuilder.Free();
-                _arrayBuilder = null!;
             }
 
-            public readonly int Count => _arrayBuilder.Count;
+            public int Count => _arrayBuilder.Count;
 
-            public readonly T this[int i] => _arrayBuilder[i];
+            public T this[int i] => _arrayBuilder[i];
 
-            public readonly T First() => _arrayBuilder.First();
+            public T First() => _arrayBuilder.First();
 
             public ArrayBuilder<T>.Enumerator GetEnumerator() => _arrayBuilder.GetEnumerator();
         }
