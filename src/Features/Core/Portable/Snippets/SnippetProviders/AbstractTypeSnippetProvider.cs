@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
             return new TextChange(TextSpan.FromBounds(position, position), typeDeclaration.NormalizeWhitespace().ToFullString());
         }
+
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
