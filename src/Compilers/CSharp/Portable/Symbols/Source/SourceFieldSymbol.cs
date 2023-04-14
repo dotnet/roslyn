@@ -134,22 +134,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
-            var location = ErrorLocation;
+            Location? location = null;
 
             if (RefKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, getLocation(), modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(), modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, getLocation(), modifyCompilation: true);
+            }
+
+            Location getLocation()
+            {
+                location ??= ErrorLocation;
+                return location;
             }
         }
 
