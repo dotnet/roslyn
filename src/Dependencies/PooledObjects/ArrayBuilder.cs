@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public ImmutableArray<T> ToImmutableAndClear()
         {
+            AssertNotFrozen();
+
             ImmutableArray<T> result;
             if (Count == 0)
             {
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
             set
             {
+                AssertNotFrozen();
                 _builder.Count = value;
             }
         }
@@ -183,6 +186,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void EnsureCapacity(int capacity)
         {
+            AssertNotFrozen();
             if (_builder.Capacity < capacity)
             {
                 _builder.Capacity = capacity;
