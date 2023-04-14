@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
-        protected sealed override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
@@ -69,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), inlineExpression);
             ConstructedFromInlineExpression = inlineExpression is not null;
 
-            var change = new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
-            return ImmutableArray.Create(change);
+            return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
         }
 
         protected sealed override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
