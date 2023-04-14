@@ -9542,5 +9542,104 @@ class Context
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         int* i = &[|Goo|]();
+                    }
+                }
+                """,
+                """
+                using System;
+
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         int* i = &Goo();
+                    }
+                
+                    private static int Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &[|Goo|];
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &Goo;
+                    }
+
+                    private static void Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<int, bool> i = &[|Goo|];
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<int, bool> i = &Goo;
+                    }
+                
+                    private static bool Goo(int arg)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
     }
 }

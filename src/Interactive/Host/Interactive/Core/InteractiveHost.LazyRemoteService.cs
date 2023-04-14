@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     StartInfo = new ProcessStartInfo(hostPath)
                     {
-                        Arguments = pipeName + " " + currentProcessId,
+                        Arguments = $"{pipeName} {currentProcessId} \"{culture.Name}\"",
                         WorkingDirectory = Host._initialWorkingDirectory,
                         CreateNoWindow = true,
                         UseShellExecute = false,
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     platformInfo = (await jsonRpc.InvokeWithCancellationAsync<InteractiveHostPlatformInfo.Data>(
                         nameof(Service.InitializeAsync),
-                        new object[] { Host._replServiceProviderType.AssemblyQualifiedName, culture.Name },
+                        new object[] { Host._replServiceProviderType.AssemblyQualifiedName },
                         cancellationToken).ConfigureAwait(false)).Deserialize();
                 }
                 catch (Exception e)

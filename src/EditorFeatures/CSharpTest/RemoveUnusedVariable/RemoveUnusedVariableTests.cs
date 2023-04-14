@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
-        public async Task DontCrashOnDeclarationInsideIfStatement()
+        public async Task DoNotCrashOnDeclarationInsideIfStatement()
         {
             await TestMissingInRegularAndScriptAsync(
                 """

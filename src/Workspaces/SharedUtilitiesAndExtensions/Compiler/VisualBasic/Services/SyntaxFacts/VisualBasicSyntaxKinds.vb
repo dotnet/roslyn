@@ -80,6 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property StringLiteralExpression As Integer = SyntaxKind.StringLiteralExpression Implements ISyntaxKinds.StringLiteralExpression
         Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKinds.TrueLiteralExpression
 
+        Public ReadOnly Property AddressOfExpression As Integer = SyntaxKind.AddressOfExpression Implements ISyntaxKinds.AddressOfExpression
         Public ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression Implements ISyntaxKinds.AnonymousObjectCreationExpression
         Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
@@ -112,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern
         Public ReadOnly Property DeclarationPattern As Integer? Implements ISyntaxKinds.DeclarationPattern
+        Public ReadOnly Property ListPattern As Integer? Implements ISyntaxKinds.ListPattern
         Public ReadOnly Property NotPattern As Integer? Implements ISyntaxKinds.NotPattern
         Public ReadOnly Property OrPattern As Integer? Implements ISyntaxKinds.OrPattern
         Public ReadOnly Property ParenthesizedPattern As Integer? Implements ISyntaxKinds.ParenthesizedPattern
@@ -144,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
         Public ReadOnly Property ConstructorDeclaration As Integer = SyntaxKind.ConstructorBlock Implements ISyntaxKinds.ConstructorDeclaration
+        Public ReadOnly Property EnumDeclaration As Integer = SyntaxKind.EnumBlock Implements ISyntaxKinds.EnumDeclaration
         Public ReadOnly Property InterfaceDeclaration As Integer = SyntaxKind.InterfaceBlock Implements ISyntaxKinds.InterfaceDeclaration
         Public ReadOnly Property StructDeclaration As Integer? Implements ISyntaxKinds.StructDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter

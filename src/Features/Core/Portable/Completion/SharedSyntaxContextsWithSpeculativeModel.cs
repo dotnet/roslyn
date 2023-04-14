@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // Extract a local function to avoid creating a closure for code path of cache hit.
             static AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document, SharedSyntaxContextsWithSpeculativeModel self)
             {
-                return self._cache.GetOrAdd(document, d => AsyncLazy.Create(
-                    cancellationToken => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, self._position, cancellationToken)));
+                return self._cache.GetOrAdd(document, d => AsyncLazy.Create(cancellationToken
+                    => Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, self._position, cancellationToken)));
             }
         }
     }

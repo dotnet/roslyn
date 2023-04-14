@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                     }
 
-                    diagnostics.Add(report, typeParameter.Locations[0], this, typeParameter,
+                    diagnostics.Add(report, typeParameter.GetFirstLocation(), this, typeParameter,
                                     overriddenOrExplicitlyImplementedMethod.TypeParameters[i], overriddenOrExplicitlyImplementedMethod);
                 }
             }

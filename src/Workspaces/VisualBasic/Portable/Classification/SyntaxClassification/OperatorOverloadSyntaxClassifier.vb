@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Public Overrides Sub AddClassifications(
             syntax As SyntaxNode,
             semanticModel As SemanticModel,
-options As ClassificationOptions,
-            result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            options As ClassificationOptions,
+            result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken)
             If TypeOf symbolInfo.Symbol Is IMethodSymbol AndAlso

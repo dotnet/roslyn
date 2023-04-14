@@ -336,7 +336,7 @@ End Module";
             var context = new TaggerContext<IStructureTag>(document, view.TextSnapshot);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.tagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
+            return context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
         }
 
         private static string GetHeaderText(IStructureTag namespaceTag)

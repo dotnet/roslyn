@@ -223,11 +223,8 @@ namespace Microsoft.CodeAnalysis
             return VersionStamp.Create();
         }
 
-        public virtual async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
-        {
-            var textAndVersion = await this.TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Version;
-        }
+        public virtual ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+            => this.TextAndVersionSource.GetVersionAsync(LoadTextOptions, cancellationToken);
 
         /// <summary>
         /// Only checks if the source of the text has changed, no content check is done.

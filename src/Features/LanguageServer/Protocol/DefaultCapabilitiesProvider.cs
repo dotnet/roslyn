@@ -106,6 +106,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 WorkDoneProgress = false,
             };
 
+            capabilities.InlayHintOptions = new InlayHintOptions
+            {
+                ResolveProvider = true,
+                WorkDoneProgress = false,
+            };
+
             if (!supportsVsExtensions)
             {
                 capabilities.DiagnosticOptions = new DiagnosticOptions

@@ -268,7 +268,7 @@ End Class", LanguageNames.VisualBasic);
             => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
         [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
-        public void DontCrash_VB()
+        public void DoNotCrash_VB()
         {
             var code = @"#If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
@@ -288,7 +288,7 @@ Imports System.Diagnostics
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
-        public async Task DontCrash_VB_2()
+        public async Task DoNotCrash_VB_2()
         {
             var code = @"
 Public Class Class1

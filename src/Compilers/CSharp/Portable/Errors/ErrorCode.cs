@@ -2181,10 +2181,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnPrimaryConstructorParameter = 9120,
         ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
         ERR_UnexpectedParameterList = 9122,
+        WRN_AddressOfInAsync = 9123,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
+        ERR_BadStaticAfterUnsafe = 9133,
+
+        ERR_BadCaseInSwitchArm = 9134,
+        ERR_ConstantValueOfTypeExpected = 9135,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         #endregion
 
