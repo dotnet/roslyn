@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
         private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
-            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
