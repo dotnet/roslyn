@@ -1859,7 +1859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dagState.Dag is null);
 
                 // We're taking ownership of 'cases' (and we never mutate it ourselves).  So freeze it to ensure it
-                // always keeps the starting set of cases.
+                // always keeps the starting set of cases and no one accidentaly mutates it.
                 dagState.Cases = new FrozenArrayBuilder<StateForCase>(cases);
                 dagState.RemainingValues = remainingValues;
 
