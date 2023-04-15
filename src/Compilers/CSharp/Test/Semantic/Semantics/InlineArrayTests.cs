@@ -6011,13 +6011,27 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            CompileAndVerify(comp, verify: Verification.Fails,
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
-                    Assert.NotEmpty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
+                    AssertEx.Equal("System.Span<TElement> <PrivateImplementationDetails>.InlineArrayAsSpan<TBuffer, TElement>(ref TBuffer buffer, System.Int32 length)",
+                                   t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
                 }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0006:  ldarg.1
+  IL_0007:  call       ""System.Span<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateSpan<TElement>(scoped ref TElement, int)""
+  IL_000c:  ret
+}
+");
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -6040,13 +6054,28 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            CompileAndVerify(comp, verify: Verification.Fails,
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
-                    Assert.NotEmpty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    AssertEx.Equal("System.ReadOnlySpan<TElement> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<TBuffer, TElement>(in TBuffer buffer, System.Int32 length)",
+                                   t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName).ToTestDisplayString());
                 }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000b:  ldarg.1
+  IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref TElement, int)""
+  IL_0011:  ret
+}
+");
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
