@@ -63,14 +63,15 @@ struct Buffer
             }
         }
 
-        [Fact]
-        public void InlineArrayType_02_NotGeneric()
+        [Theory]
+        [CombinatorialData]
+        public void InlineArrayType_02([CombinatorialValues("private", "public", "internal")] string accessibility)
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 struct Buffer
 {
-    private int _element0;
+    " + accessibility + @" int _element0;
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);

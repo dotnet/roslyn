@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                // PROTOTYPE(SafeFixedSizeBuffers): case BoundKind.FixedSizeBufferElementAccess:
+                // PROTOTYPE(InlineArrays): case BoundKind.InlineArrayAccess:
 
                 case BoundKind.PointerElementAccess:
                     {

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         EventAccess,
         IndexerAccess,
         ImplicitIndexerAccess,
-        InlineArrayElementAccess,
+        InlineArrayAccess,
         DynamicIndexerAccess,
         Lambda,
         UnboundLambda,
@@ -7231,10 +7231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundInlineArrayElementAccess : BoundExpression
+    internal sealed partial class BoundInlineArrayAccess : BoundExpression
     {
-        public BoundInlineArrayElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.InlineArrayElementAccess, syntax, type, hasErrors || expression.HasErrors() || argument.HasErrors())
+        public BoundInlineArrayAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.InlineArrayAccess, syntax, type, hasErrors || expression.HasErrors() || argument.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7258,13 +7258,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public WellKnownMember GetItemOrSliceHelper { get; }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInlineArrayElementAccess(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInlineArrayAccess(this);
 
-        public BoundInlineArrayElementAccess Update(BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type)
+        public BoundInlineArrayAccess Update(BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type)
         {
             if (expression != this.Expression || argument != this.Argument || isValue != this.IsValue || getItemOrSliceHelper != this.GetItemOrSliceHelper || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInlineArrayElementAccess(this.Syntax, expression, argument, isValue, getItemOrSliceHelper, type, this.HasErrors);
+                var result = new BoundInlineArrayAccess(this.Syntax, expression, argument, isValue, getItemOrSliceHelper, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8932,8 +8932,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitIndexerAccess((BoundIndexerAccess)node, arg);
                 case BoundKind.ImplicitIndexerAccess:
                     return VisitImplicitIndexerAccess((BoundImplicitIndexerAccess)node, arg);
-                case BoundKind.InlineArrayElementAccess:
-                    return VisitInlineArrayElementAccess((BoundInlineArrayElementAccess)node, arg);
+                case BoundKind.InlineArrayAccess:
+                    return VisitInlineArrayAccess((BoundInlineArrayAccess)node, arg);
                 case BoundKind.DynamicIndexerAccess:
                     return VisitDynamicIndexerAccess((BoundDynamicIndexerAccess)node, arg);
                 case BoundKind.Lambda:
@@ -9201,7 +9201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitEventAccess(BoundEventAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIndexerAccess(BoundIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitInlineArrayAccess(BoundInlineArrayAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitLambda(BoundLambda node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnboundLambda(UnboundLambda node, A arg) => this.DefaultVisit(node, arg);
@@ -9430,7 +9430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitEventAccess(BoundEventAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIndexerAccess(BoundIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitLambda(BoundLambda node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnboundLambda(UnboundLambda node) => this.DefaultVisit(node);
@@ -10294,7 +10294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Argument);
             return null;
         }
-        public override BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node)
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
             this.Visit(node.Expression);
             this.Visit(node.Argument);
@@ -11592,7 +11592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(receiver, argument, lengthOrCountAccess, receiverPlaceholder, indexerOrSliceAccess, argumentPlaceholders, type);
         }
-        public override BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node)
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
@@ -14041,11 +14041,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node)
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
-            BoundInlineArrayElementAccess updatedNode;
+            BoundInlineArrayAccess updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
@@ -16242,7 +16242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node, object? arg) => new TreeDumperNode("inlineArrayElementAccess", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitInlineArrayAccess(BoundInlineArrayAccess node, object? arg) => new TreeDumperNode("inlineArrayAccess", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),

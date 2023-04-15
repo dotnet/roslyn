@@ -8,11 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundInlineArrayElementAccess
+    internal partial class BoundInlineArrayAccess
     {
-#if DEBUG
         private partial void Validate()
         {
+#if DEBUG
             Debug.Assert(!IsValue || GetItemOrSliceHelper == WellKnownMember.System_ReadOnlySpan_T__get_Item);
 #pragma warning disable format
             Debug.Assert(Argument.Type is
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(Type.Equals(Expression.Type!.TryGetInlineArrayElementType().Type, TypeCompareKind.ConsiderEverything));
             }
-        }
 #endif
+        }
     }
 }
 

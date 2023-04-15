@@ -4405,7 +4405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node)
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
             Debug.Assert(!IsConditionalState);
 

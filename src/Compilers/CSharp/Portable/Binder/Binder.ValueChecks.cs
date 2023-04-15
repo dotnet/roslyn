@@ -726,9 +726,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexer.IndexerOrSliceAccess.Kind);
                     }
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)expr;
+                        var elementAccess = (BoundInlineArrayAccess)expr;
 
                         if (elementAccess.IsValue || elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int)
                         {
@@ -3148,9 +3148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)expr;
+                        var elementAccess = (BoundInlineArrayAccess)expr;
 
                         // PROTOTYPE(InlineArrays): Confirm the rules
                         return GetRefEscape(elementAccess.Expression, scopeOfTheContainingExpression);
@@ -3410,9 +3410,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)expr;
+                        var elementAccess = (BoundInlineArrayAccess)expr;
 
                         // PROTOTYPE(InlineArrays): Confirm the rules
                         return CheckRefEscape(node, elementAccess.Expression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
@@ -3722,9 +3722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
                     }
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)expr;
+                        var elementAccess = (BoundInlineArrayAccess)expr;
 
                         // PROTOTYPE(InlineArrays): Confirm the rules
                         return Math.Max(GetValEscape(elementAccess.Expression, scopeOfTheContainingExpression),
@@ -4185,9 +4185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
                     }
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)expr;
+                        var elementAccess = (BoundInlineArrayAccess)expr;
 
                         // PROTOTYPE(InlineArrays): Confirm the rules
                         return CheckValEscape(node, elementAccess.Expression, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&

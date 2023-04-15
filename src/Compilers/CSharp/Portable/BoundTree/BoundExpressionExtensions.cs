@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)node;
+                        var elementAccess = (BoundInlineArrayAccess)node;
 
                         if (!elementAccess.IsValue)
                         {

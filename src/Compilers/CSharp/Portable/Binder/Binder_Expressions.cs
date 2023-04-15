@@ -5116,7 +5116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerElementAccess:
                     return CheckValue(boundMember, valueKind, diagnostics);
 
-                // PROTOTYPE(SafeFixedSizeBuffers): case BoundKind.FixedSizeBufferElementAccess:
+                // PROTOTYPE(InlineArrays): case BoundKind.InlineArrayAccess:
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -8055,6 +8055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE(InlineArrays): Verify constraints for the elementType (can be used as a type argument)
                 // PROTOTYPE(InlineArrays): Check language version and runtime support
+                // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.
 
                 TypeSymbol resultType;
 
@@ -8070,7 +8071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = elementType.Type;
                 }
 
-                return new BoundInlineArrayElementAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
+                return new BoundInlineArrayAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
             }
         }
 

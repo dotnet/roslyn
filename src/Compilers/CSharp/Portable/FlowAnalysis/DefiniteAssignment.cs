@@ -1512,9 +1512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     {
-                        var elementAccess = (BoundInlineArrayElementAccess)node;
+                        var elementAccess = (BoundInlineArrayAccess)node;
 
                         // PROTOTYPE(InlineArrays): Ensure adequate test coverage
 
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 }
 
-                            case BoundKind.InlineArrayElementAccess:
+                            case BoundKind.InlineArrayAccess:
                                 AssignImpl(elementAccess.Expression, null, isRef, written, read);
                                 break;
 

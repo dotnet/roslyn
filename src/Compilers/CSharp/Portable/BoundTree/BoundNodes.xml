@@ -2162,7 +2162,7 @@
     <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundImplicitIndexerValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
   </Node>
 
-  <Node Name="BoundInlineArrayElementAccess" Base="BoundExpression" HasValidate="true">
+  <Node Name="BoundInlineArrayAccess" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <!-- The target of the operation -->
@@ -2170,7 +2170,8 @@
 
     <!-- An expression with type int, Index or Range -->
     <Field Name="Argument" Type="BoundExpression" Null="disallow" />
-    
+
+    <!-- The access is an element access rather than a slice access, and it produces a value rather than a variable -->
     <Field Name="IsValue" Type="bool" />
 
     <Field Name="GetItemOrSliceHelper" Type="WellKnownMember"/>

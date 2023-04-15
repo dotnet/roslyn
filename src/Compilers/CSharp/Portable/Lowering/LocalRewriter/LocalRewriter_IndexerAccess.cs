@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitInlineArrayElementAccess(BoundInlineArrayElementAccess node)
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });

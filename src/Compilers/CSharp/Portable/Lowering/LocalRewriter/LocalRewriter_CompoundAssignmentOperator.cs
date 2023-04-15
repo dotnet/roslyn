@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.InlineArrayElementAccess:
+                case BoundKind.InlineArrayAccess:
                     Debug.Assert(originalLHS.GetRefKind() == RefKind.Ref);
                     break;
 

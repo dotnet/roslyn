@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.InlineArrayElementAccess: // PROTOTYPE(InlineArrays): Add special node?
+                case BoundKind.InlineArrayAccess: // PROTOTYPE(InlineArrays): Add special node?
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
