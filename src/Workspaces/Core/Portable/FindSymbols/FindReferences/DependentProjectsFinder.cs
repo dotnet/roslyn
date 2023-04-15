@@ -300,8 +300,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     compilation ??= CreateCompilation();
 
-                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol { Name: string assemblyName })
-                        name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, assemblyName);
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol { Name: string metadataAssemblyName })
+                        name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
                 }
 
                 if (name == assemblyName)
