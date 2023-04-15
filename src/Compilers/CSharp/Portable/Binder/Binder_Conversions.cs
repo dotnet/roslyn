@@ -1469,7 +1469,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+            if ((selectedMethod.HasPointerOrFunctionPointerParameterType() || selectedMethod.ReturnType.IsPointerOrFunctionPointer())
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
                 return true;
             }

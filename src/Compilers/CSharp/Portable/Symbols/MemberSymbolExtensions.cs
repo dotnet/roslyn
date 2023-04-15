@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool HasUnsafeParameter(this Symbol member)
+        internal static bool HasPointerOrFunctionPointerParameterType(this Symbol member)
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.Type.IsUnsafe())
+                if (parameterType.Type.IsPointerOrFunctionPointer())
                 {
                     return true;
                 }

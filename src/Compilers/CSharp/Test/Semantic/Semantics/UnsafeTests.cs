@@ -411,15 +411,21 @@ unsafe class C<T>
 
             var fieldTypes = Enumerable.Range(0, 8).Select(i => type.GetMember<FieldSymbol>("f" + i).TypeWithAnnotations).ToArray();
 
-            Assert.True(fieldTypes[0].Type.IsUnsafe());
-            Assert.True(fieldTypes[1].Type.IsUnsafe());
-            Assert.True(fieldTypes[2].Type.IsUnsafe());
-            Assert.True(fieldTypes[3].Type.IsUnsafe());
+            Assert.True(fieldTypes[0].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[1].Type.IsPointerOrFunctionPointer());
+            Assert.False(fieldTypes[2].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[2].Type.ContainsPointer());
+            Assert.False(fieldTypes[3].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[3].Type.ContainsPointer());
 
-            Assert.False(fieldTypes[4].Type.IsUnsafe());
-            Assert.False(fieldTypes[5].Type.IsUnsafe());
-            Assert.False(fieldTypes[6].Type.IsUnsafe());
-            Assert.False(fieldTypes[7].Type.IsUnsafe());
+            Assert.False(fieldTypes[4].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[4].Type.ContainsPointer());
+            Assert.False(fieldTypes[5].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[5].Type.ContainsPointer());
+            Assert.False(fieldTypes[6].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[6].Type.ContainsPointer());
+            Assert.False(fieldTypes[7].Type.IsPointerOrFunctionPointer());
+            Assert.True(fieldTypes[7].Type.ContainsPointer());
         }
 
         [Fact]
@@ -961,37 +967,24 @@ unsafe class C<T>
             CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,59): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 59),
-                // (4,66): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 66)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 59)
                 );
 
             var withUnsafeOnType = string.Format(template, "unsafe", "");
-            CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,66): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 66)
-                );
+            CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var withUnsafeOnMembers = string.Format(template, "", "unsafe");
             CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56),
-                // (4,72): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 72)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56)
                 );
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56),
-                // (4,72): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 72)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator").WithLocation(4, 56)
                 );
         }
 
@@ -1160,34 +1153,16 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (12,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      static void Goo(params int*[] x) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo(); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo()"),
-                // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
-                // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(null)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 29),
                 // (8,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { Goo((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 16),
                 // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { Goo((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
-                // (8,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo((int*)1)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1").WithLocation(8, 15),
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { Goo(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[2]"),
-                // (9,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Goo(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(new int*[2])")
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 19)
                 );
         }
 
@@ -1257,34 +1232,16 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (13,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      delegate void D(params int*[] x);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d(); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "d()"),
-                // (8,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
-                // (8,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "d(null)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 29),
                 // (9,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { d((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 14),
                 // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { d((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
-                // (9,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "d((int*)1)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1").WithLocation(9, 13),
                 // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { d(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[2]"),
-                // (10,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "d(new int*[2])")
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 17)
                 );
         }
 
@@ -1355,34 +1312,16 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (13,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      C(params int*[] x) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C(); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C()"),
-                // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
-                // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C(null)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 15),
                 // (9,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { c = new C((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 22),
                 // (9,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { c = new C((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
-                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C((int*)1)"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1").WithLocation(9, 21),
                 // (10,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { c = new C(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[2]"),
-                // (10,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { c = new C(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C(new int*[2])")
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 25)
                 );
         }
 
@@ -1453,19 +1392,16 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (13,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      int this[int x, params int*[] a] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 29),
                 // (9,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { int x = c[1, (int*)1]; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 25),
                 // (9,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { int x = c[1, (int*)1]; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1").WithLocation(9, 24),
                 // (10,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         { int x = c[1, new int*[2]]; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (10,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { int x = c[1, new int*[2]]; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[2]")
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 28)
                 );
         }
 
@@ -1651,18 +1587,13 @@ class C : I
 }}
 ";
 
-            // TODO2
             CompareUnsafeDiagnostics(template,
-                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d = Goo; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo"),
-
-                // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      delegate void D(int* x = null);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      static void Goo(int* x = null) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
+                //      static void Goo(int*[] x = null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 22),
+                // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate void D(int*[] x = null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -1684,17 +1615,13 @@ class C : I
 }}
 ";
 
-            // TODO2
             CompareUnsafeDiagnostics(template,
                 // (13,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      static int*[] Goo() { throw null; }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 13),
                 // (12,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      delegate int*[] D();
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 15),
-                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d = Goo; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 15));
         }
 
         private static void CompareUnsafeDiagnostics(string template, params DiagnosticDescription[] expectedWithoutUnsafe)
@@ -1750,7 +1677,6 @@ class C : I
         [Fact]
         public void MethodCallWithNullAsPointerArrayArg()
         {
-            // TODO2
             var template = @"
 {0} class Test
 {{
@@ -1765,13 +1691,7 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (4,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      static void M(void*[] p) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(4, 20),
-                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         M(null);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(null)").WithLocation(7, 9),
-                // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         M(null);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(7, 11)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(4, 20)
                 );
         }
 
@@ -1782,19 +1702,19 @@ class C : I
             var template = @"
 {0} class Test
 {{
-    {1} int M(params int*[] p) {{ return 0; }}
-    {1} public static implicit operator int*(Test t) {{ return null; }}
+    {1} int M(params int*[] p) {{ return 0; }} // 1
+    {1} public static implicit operator int*(Test t) {{ return null; }} // 2
 
     {1} void M()
     {{
         {{
-            int x = M(null); //CS0214
+            int x = M(null); // 3
         }}
         {{
-            int x = M(null, null); //CS0214
+            int x = M(null, null); // 4
         }}
         {{
-            int x = M(this); //CS0214
+            int x = M(this); // 5
         }}
     }}
 }}
@@ -1802,32 +1722,20 @@ class C : I
 
             CompareUnsafeDiagnostics(template,
                 // (5,38): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      public static implicit operator int*(Test t) { return null; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                //      public static implicit operator int*(Test t) { return null; } // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 38),
                 // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      int M(params int*[] p) { return 0; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (10,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(null); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
-                // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(null); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(null)"),
+                //      int M(params int*[] p) { return 0; } // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 19),
                 // (13,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(null, null); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
+                //             int x = M(null, null); // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(13, 23),
                 // (13,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(null, null); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
-                // (13,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(null, null); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(null, null)"),
+                //             int x = M(null, null); // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(13, 29),
                 // (16,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(this); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "this"),
-                // (16,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //             int x = M(this); //CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(this)")
+                //             int x = M(this); // 5
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "this").WithLocation(16, 23)
                 );
         }
 
@@ -1897,7 +1805,6 @@ class C : I
         [Fact]
         public void ConstructorInitializerWithUnsafeArgument_PointerArray()
         {
-            // TODO2
             var template = @"
 {0} class Base
 {{
@@ -1913,13 +1820,7 @@ class C : I
             CompareUnsafeDiagnostics(template,
                 // (4,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      public Base(int*[] p) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 18),
-                // (9,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      public Derived() : base(null) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(9, 30),
-                // (9,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      public Derived() : base(null) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "base").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 18)
                 );
         }
 
@@ -9339,13 +9240,8 @@ public class Test
             CompareUnsafeDiagnostics(template,
                 // (4,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      public A(params int*[] x) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
-                // (9,6): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      B(int x) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B"),
-                // (10,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      B(double x) : base() { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "base"));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 22)
+                );
         }
 
         [WorkItem(545985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545985")]
@@ -10945,13 +10841,19 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+                // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = X (X x) => throw null; // 4, 5
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(11, 22));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = X (X x) => throw null; // 4, 5
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(11, 22));
 
             var expected = new[]
             {
@@ -10970,6 +10872,9 @@ class C
                 // (11,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = X (X x) => throw null; // 4, 5
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(11, 20),
+                // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = X (X x) => throw null; // 4, 5
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(11, 22)
             };
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);

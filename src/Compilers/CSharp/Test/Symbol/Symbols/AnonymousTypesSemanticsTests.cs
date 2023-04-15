@@ -1887,11 +1887,7 @@ unsafe class C
 }
 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (5,23): error CS0828: Cannot assign 'int*[]' to anonymous type property
-                //         var a = new { F = new int*[0] };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = new int*[0]").WithArguments("int*[]").WithLocation(5, 23)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -1908,11 +1904,7 @@ unsafe class C
 }
 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (5,23): error CS0828: Cannot assign 'int*[]' to anonymous type property
-                //         var a = new { F = new int*[0] };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = new int*[0]").WithArguments("int*[]").WithLocation(5, 23)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]

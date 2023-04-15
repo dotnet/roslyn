@@ -798,10 +798,7 @@ class C
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         var y = x[0];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -823,9 +820,6 @@ class C
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17),
-                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
 
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
@@ -835,9 +829,6 @@ class C
                 // (8,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(X x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(8, 12),
-                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         var y = x[0][0];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17),
                 // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
