@@ -633,6 +633,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
+                    case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -945,11 +947,13 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_Span_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:
@@ -1002,6 +1006,10 @@ namespace System
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
+                    case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan:
+                    case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

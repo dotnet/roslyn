@@ -410,6 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                // PROTOTYPE(SafeFixedSizeBuffers): case BoundKind.FixedSizeBufferElementAccess:
+
                 case BoundKind.PointerElementAccess:
                     {
                         // Remember we haven't lowered this node yet.

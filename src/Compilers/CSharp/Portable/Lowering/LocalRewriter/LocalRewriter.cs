@@ -972,6 +972,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // That placeholder is always replaced with a temp local
                     return true;
 
+                case BoundKind.InlineArrayElementAccess:
+                    return ((BoundInlineArrayElementAccess)expr) is { IsValue: false, GetItemOrSliceHelper: WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item };
+
                 case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Implicit Index or Range indexers only have by-value parameters:
                     // this[int], Slice(int, int), Substring(int, int)
