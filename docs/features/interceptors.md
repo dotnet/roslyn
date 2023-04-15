@@ -111,17 +111,16 @@ Interceptors cannot have type parameters or be declared in generic types at any 
 
 ### Signature matching
 
-PROTOTYPE(ic): It is suggested to permit nullability differences and other comparable differences. Perhaps we can revisit the matching requirements of "partial methods" and imitate them here.
-
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:
 - When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the `this` modifier is compared to the instance method `this` parameter.
-- The returns and parameters, including the `this` parameter, must have the same ref kinds and types, except that reference types with oblivious nullability can match either annotated or unannotated reference types.
+- The returns and parameters, including the `this` parameter, must have the same ref kinds and types.
+- A warning is reported instead of an error if a type difference is found where the types are not distinct to the runtime. For example, `string` and `string?`.
 - Method names and parameter names are not required to match.
 - Parameter default values are not required to match. When intercepting, default values on the interceptor method are ignored.
 - `params` modifiers are not required to match.
 - `scoped` modifiers and `[UnscopedRef]` must be equivalent.
 - In general, attributes which normally affect the behavior of the call site, such as `[CallerLineNumber]` are ignored on the interceptor of an intercepted call.
-  - The only exception to this is when the attribute affects "capabilities" of the method in a way that affects safety, such as with `[UnscopedRef]`. In this case, attributes are required to match across interceptable and interceptor methods.
+  - The only exception to this is when the attribute affects "capabilities" of the method in a way that affects safety, such as with `[UnscopedRef]`. Such attributes are required to match across interceptable and interceptor methods.
 
 Arity does not need to match between intercepted and interceptor methods. In other words, it is permitted to intercept a generic method with a non-generic interceptor.
 
@@ -133,7 +132,7 @@ If an `[InterceptsLocation]` attribute is found in the compilation which does no
 
 ### Interceptor accessibility
 
-An interceptor must be accessible at the location where interception is occurring. PROTOTYPE(ic): This enforcement is not yet implemented.
+An interceptor must be accessible at the location where interception is occurring.
 
 An interceptor contained in a file-local type is permitted to intercept a call in another file, even though the interceptor is not normally *visible* at the call site.
 
@@ -157,7 +156,6 @@ During the binding phase, `InterceptsLocationAttribute` usages are decoded and t
 - intercepted file-path and location
 - attribute location
 - attributed method symbol
-PROTOTYPE(ic): the exact collection used to collect the attribute usages, and the exact way it is used, are not finalized. The main concern is to ensure we can scale to large numbers of interceptors without issue, and that we can report diagnostics for duplicate interception of the same location in a deterministic way.
 
 At this time, diagnostics are reported for the following conditions:
 - problems specific to the attributed interceptor method itself, for example, that it is not an ordinary method.
@@ -172,4 +170,5 @@ During the lowering phase, when a given `BoundCall` is lowered:
 
 At this time, diagnostics are reported for the following conditions:
 - incompatibility between the interceptor and interceptable methods, for example, in their signatures.
-- *duplicate* `[InterceptsLocation]`, that is, multiple interceptors which intercept the same call. PROTOTYPE(ic): not yet implemented.
+- *duplicate* `[InterceptsLocation]`, that is, multiple interceptors which intercept the same call.
+- interceptor is not accessible at the call site.

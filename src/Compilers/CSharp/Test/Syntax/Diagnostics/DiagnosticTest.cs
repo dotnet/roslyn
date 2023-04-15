@@ -305,6 +305,7 @@ class X
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                         case ErrorCode.WRN_CallNotInterceptable:
+                        case ErrorCode.WRN_InterceptorSignatureMismatch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -2943,6 +2944,7 @@ class Program
                     case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                     case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                     case ErrorCode.ERR_DuplicateInterceptor:
+                    case ErrorCode.WRN_InterceptorSignatureMismatch:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -600,7 +600,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (MethodKind != MethodKind.Ordinary)
                 {
-                    // PROTOTYPE(ic): consider relaxing this in future.
                     diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 }
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasInterceptableAttribute = true;
@@ -973,16 +972,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (Arity != 0 || ContainingType.IsGenericType)
             {
-                // PROTOTYPE(ic): for now, let's disallow type arguments on the method or containing types.
-                // eventually, we could consider doing a type argument inference, seeing if the interceptor's type constraints are met, etc...
-                // but let's not bother unless somebody actually needs it.
                 diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, this);
                 return;
             }
 
             if (MethodKind != MethodKind.Ordinary)
             {
-                // PROTOTYPE(ic): consider relaxing this in future.
                 diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
                 return;
             }

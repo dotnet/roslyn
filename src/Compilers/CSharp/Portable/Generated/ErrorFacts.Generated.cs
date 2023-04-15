@@ -316,6 +316,7 @@
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_CallNotInterceptable:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
                     return true;
                 default:
                     return false;

@@ -2268,18 +2268,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var sourceTree = callLocation.SourceTree;
-            Debug.Assert(sourceTree is not null);
             var callLineColumn = callLocation.GetLineSpan().Span.Start;
-            foreach (var (interceptsLocation, oneInterception) in _interceptions)
+            Debug.Assert(callLocation.SourceTree is not null);
+            var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
+            if (_interceptions.TryGetValue(key, out var oneInterception))
             {
-                if (interceptsLocation.FilePath == sourceTree.FilePath
-                    && interceptsLocation.Line == callLineColumn.Line
-                    && interceptsLocation.Character == callLineColumn.Character)
-                {
-                    // NB: we don't expect to reach this phase if there are duplicate interceptors in the compilation.
-                    return oneInterception.Single();
-                }
+                // We don't expect to reach this phase if there are duplicate interceptors in the compilation.
+                return oneInterception.Single();
             }
 
             return null;

@@ -151,32 +151,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The call was not intercepted.
                 return;
             }
-
             Debug.Assert(interceptableLocation != null);
+            Debug.Assert(interceptor.Arity == 0);
+
             if (!method.IsInterceptable)
             {
-                // PROTOTYPE(ic): it was speculated that we could avoid work if we know the current method is not interceptable.
-                // i.e. use this as an early out before even calling Compilation.GetInterceptor.
-                // But by calling 'GetInterceptor' before this, we don't really avoid that work. Is that fine?
-                // PROTOTYPE(ic): eventually we probably want this to be an error but for now it's convenient to just warn
-                // so we can experiment with intercepting APIs that haven't yet been marked.
+                // PROTOTYPE(ic): Eventually we may want this to be an error.
+                // For now it's convenient to just warn so we can experiment with intercepting APIs that haven't yet been marked.
                 this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, attributeLocation, method);
             }
 
-            Debug.Assert(interceptor.Arity == 0);
+            var containingMethod = this._factory.CurrentFunction;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            if (!AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref discardedUseSiteInfo))
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorNotAccessible, attributeLocation, interceptor, containingMethod);
+                return;
+            }
 
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
             var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
-            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare)) // PROTOTYPE(ic): also checked for 'scoped'/'[UnscopedRef]' differences
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
                 return;
             }
-
-            // PROTOTYPE(ic): should we also reduce both methods if 'method' is being called as an extension method?
+            else if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
+            {
+                this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
+            }
 
             method.TryGetThisParameter(out var methodThisParameter);
             symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
@@ -186,12 +192,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
                         || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind: // PROTOTYPE(ic): and ref custom modifiers are equal?
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
-                    break;
+                    return;
                 case (null, not null):
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, attributeLocation, method);
-                    break;
+                    return;
                 default:
                     break;
+            }
+
+            if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                method,
+                symbolForCompare,
+                this._diagnostics,
+                static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorScopedMismatch, attributeLocation, method, symbolForCompare);
+                },
+                extraArgument: attributeLocation,
+                allowVariance: false,
+                invokedAsExtensionMethod))
+            {
+                return;
             }
 
             if (needToReduce)

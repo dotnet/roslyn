@@ -116,7 +116,7 @@ public class InterceptorsTests : CSharpTestBase
         verifier.VerifyDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE(ic): produce an error here")]
+    [Fact]
     public void Accessibility_01()
     {
         var source = """
@@ -140,13 +140,17 @@ public class InterceptorsTests : CSharpTestBase
                 private static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1", verify: Verification.Fails);
-        verifier.VerifyDiagnostics();
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+                // Program.cs(17,6): error CS27018: Cannot intercept because 'D.Interceptor1()' is not accessible within 'C.Main()'.
+                //     [InterceptsLocation("Program.cs", 11, 9)]
+                Diagnostic(ErrorCode.ERR_InterceptorNotAccessible, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("D.Interceptor1()", "C.Main()").WithLocation(17, 6));
     }
 
     [Fact]
     public void Accessibility_02()
     {
+        // An interceptor declared within a file-local type can intercept a call even if the call site can't normally refer to the file-local type.
         var source1 = """
             using System.Runtime.CompilerServices;
             using System;
@@ -176,6 +180,105 @@ public class InterceptorsTests : CSharpTestBase
 
         var verifier = CompileAndVerify(new[] { (source1, "Program.cs"), (source2, "Other.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FileLocalAttributeDefinitions_01()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() => throw null!;
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                file class InterceptableAttribute : Attribute { }
+                file class InterceptsLocationAttribute : Attribute
+                {
+                    public InterceptsLocationAttribute(string filePath, int line, int character) { }
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FileLocalAttributeDefinitions_02()
+    {
+        var source0 = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [Interceptable]
+                public static void M() => throw null!;
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                file class InterceptableAttribute : Attribute { }
+            }
+            """;
+
+        var source1 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            static class D
+            {
+                [InterceptsLocation("File1.cs", 4, 3)]
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                file class InterceptsLocationAttribute : Attribute
+                {
+                    public InterceptsLocationAttribute(string filePath, int line, int character) { }
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source0, "File0.cs"), (source1, "File1.cs") }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        var comp0 = CreateCompilation((source0, "File0.cs"));
+        comp0.VerifyEmitDiagnostics();
+
+        var verifier1 = CompileAndVerify((source1, "File1.cs"), new[] { comp0.ToMetadataReference() }, expectedOutput: "1");
+        verifier1.VerifyDiagnostics();
+
+        // https://github.com/dotnet/roslyn/issues/67079
+        // We are generally treating file-local definitions in source as matching the names of well-known attributes.
+        // Once the type is emitted to metadata and read back in, we no longer recognize it as the same attribute due to name mangling.
+        var verifier1_1 = CompileAndVerify((source1, "File1.cs"), new[] { comp0.EmitToImageReference() }, expectedOutput: "1");
+        verifier1_1.VerifyDiagnostics(
+            // File1.cs(8,6): warning CS27000: Call to 'C.M()' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
+            //     [InterceptsLocation("File1.cs", 4, 3)]
+            Diagnostic(ErrorCode.WRN_CallNotInterceptable, @"InterceptsLocation(""File1.cs"", 4, 3)").WithArguments("C.M()").WithLocation(8, 6));
     }
 
     [Fact]
@@ -1529,6 +1632,228 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(21,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'ref S this' on 'S.InterceptableMethod(string)'.
             //     [InterceptsLocation("Program.cs", 15, 11)]
             Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("ref S this", "S.InterceptableMethod(string)").WithLocation(21, 6)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_04()
+    {
+        // Safe nullability difference
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1(this C s, string? param) { Console.Write("interceptor " + param); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,11): warning CS27017: Intercepting a call to 'C.InterceptableMethod(string)' with interceptor 'D.Interceptor1(C, string?)', but the signatures do not match.
+            //         c.InterceptableMethod("call site");
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("C.InterceptableMethod(string)", "D.Interceptor1(C, string?)").WithLocation(15, 11)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_05()
+    {
+        // Unsafe nullability difference
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod(string? param) { Console.Write("interceptable " + param); }
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1(this C s, string param) { Console.Write("interceptor " + param); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,11): warning CS27017: Intercepting a call to 'C.InterceptableMethod(string?)' with interceptor 'D.Interceptor1(C, string)', but the signatures do not match.
+            //         c.InterceptableMethod("call site");
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("C.InterceptableMethod(string?)", "D.Interceptor1(C, string)").WithLocation(15, 11)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_06()
+    {
+        // Unsafe 'scoped' difference
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                [Interceptable]
+                public static ref int InterceptableMethod(scoped ref int value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    int i = 0;
+                    C.InterceptableMethod(ref i);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)] // 1
+                public static ref int Interceptor1(ref int value) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(20,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(scoped ref int)' with 'D.Interceptor1(ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //     [InterceptsLocation("Program.cs", 14, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 14, 11)").WithArguments("C.InterceptableMethod(scoped ref int)", "D.Interceptor1(ref int)").WithLocation(20, 6)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_07()
+    {
+        // safe 'scoped' difference
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static ref int InterceptableMethod(ref int value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    int i = 0;
+                    C.InterceptableMethod(ref i);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)] // 1
+                public static ref int Interceptor1(scoped ref int value) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(ref int)' with 'D.Interceptor1(scoped ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //     [InterceptsLocation("Program.cs", 15, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(ref int)", "D.Interceptor1(scoped ref int)").WithLocation(21, 6)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_08()
+    {
+        // safe '[UnscopedRef]' difference
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static ref int InterceptableMethod([UnscopedRef] out int value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod(out int i);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)] // 1
+                public static ref int Interceptor1(out int value) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRef.cs") }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(out int)' with 'D.Interceptor1(out int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //     [InterceptsLocation("Program.cs", 15, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(out int)", "D.Interceptor1(out int)").WithLocation(21, 6)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_09()
+    {
+        // unsafe '[UnscopedRef]' difference
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static ref int InterceptableMethod(out int value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    int i = 0;
+                    C.InterceptableMethod(ref i);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)] // 1
+                public static ref int Interceptor1([UnscopedRef] out int value) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(ref int)' with 'D.Interceptor1(scoped ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //     [InterceptsLocation("Program.cs", 15, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(ref int)", "D.Interceptor1(scoped ref int)").WithLocation(21, 6)
             );
     }
 

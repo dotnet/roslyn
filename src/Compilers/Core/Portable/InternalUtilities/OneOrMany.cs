@@ -158,12 +158,12 @@ namespace Roslyn.Utilities
 
         public T Single()
         {
-            if (!HasOne)
+            if (this is not [var single])
             {
                 throw new InvalidOperationException();
             }
 
-            return _one;
+            return single;
         }
 
         public T First() => this[0];

@@ -531,6 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_CallNotInterceptable:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
                     return 1;
                 default:
                     return 0;
@@ -585,6 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                 case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                 case ErrorCode.ERR_DuplicateInterceptor:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorScopedMismatch:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
