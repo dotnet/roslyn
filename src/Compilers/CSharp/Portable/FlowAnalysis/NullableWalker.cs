@@ -2641,12 +2641,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void InheritDefaultState(TypeSymbol targetType, int targetSlot)
         {
             Debug.Assert(targetSlot > 0);
+
 #if DEBUG
             var actualType = _variables[targetSlot].Symbol.GetTypeOrReturnType().Type;
             Debug.Assert(actualType is { });
-            Debug.Assert(actualType.ContainsErrorType() ||
-                targetType.ContainsErrorType() ||
-                isOfTypeOrBaseOrInterface(actualType, targetType));
+
+            if (!actualType.ContainsErrorType() &&
+                !targetType.ContainsErrorType())
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var conversionsWithoutNullability = _conversions.WithNullability(false);
+                var conversion = conversionsWithoutNullability.ClassifyImplicitConversionFromType(actualType, targetType, ref discardedUseSiteInfo);
+                Debug.Assert(conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
+            }
 #endif
 
             // Reset the state of any members of the target.
@@ -2659,43 +2666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InheritDefaultState(symbol.GetTypeOrReturnType().Type, slot);
             }
             members.Free();
-
-#if DEBUG
-            static bool isOfTypeOrBaseOrInterface(TypeSymbol actualType, TypeSymbol expectedType)
-            {
-                if (isType(actualType, expectedType))
-                {
-                    return true;
-                }
-                if (actualType is NamedTypeSymbol namedType)
-                {
-                    if (namedType.IsInterface)
-                    {
-                        return namedType.AllInterfacesNoUseSiteDiagnostics.Contains(expectedType);
-                    }
-                    else
-                    {
-                        while (true)
-                        {
-                            var baseType = namedType.BaseTypeNoUseSiteDiagnostics;
-                            if (baseType is null)
-                            {
-                                return false;
-                            }
-                            if (isType(baseType, expectedType))
-                            {
-                                return true;
-                            }
-                            namedType = baseType;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            static bool isType(TypeSymbol a, TypeSymbol b)
-                => a.Equals(b, TypeCompareKind.AllIgnoreOptions);
-#endif
         }
 
         private NullableFlowState GetDefaultState(Symbol symbol)
@@ -5150,8 +5120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
 
-            // If we are assigning the underlying value type to a nullable value type variable,
-            // set the state of the .Value property of the variable.
+            // If we are assigning to a nullable value type variable, set the top-level state of
+            // the LHS first, then change the slot to the Value property of the LHS to simulate
+            // assignment of the RHS and update the nullable state of the underlying value type.
             if (node.IsNullableValueTypeAssignment)
             {
                 Debug.Assert(targetType.Type.ContainsErrorType() ||
