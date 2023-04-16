@@ -2185,19 +2185,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (boundExpr is BoundCollectionLiteralExpression { WasTargetTyped: true } convertedCollection)
                 {
+                    type = convertedCollection.NaturalTypeOpt;
                     if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral, Conversion: var convertedCollectionConversion })
                     {
-                        // There was an implicit cast.
-                        type = convertedCollection.NaturalTypeOpt;
                         convertedType = convertedCollection.Type;
                         convertedNullability = convertedCollection.TopLevelNullability;
-                        conversion = convertedCollectionConversion.IsValid ? convertedCollectionConversion : Conversion.NoConversion;
+                        conversion = convertedCollectionConversion;
                     }
                     else
                     {
-                        Debug.Assert(false); // PROTOTYPE: Add test.
-                        // There was an explicit cast on top of this
-                        type = convertedCollection.NaturalTypeOpt;
+                        Debug.Assert(false); // Add test if this assert fails.
                         (convertedType, convertedNullability) = (type, nullability);
                         conversion = Conversion.Identity;
                     }

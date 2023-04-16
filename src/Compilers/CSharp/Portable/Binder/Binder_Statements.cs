@@ -2362,7 +2362,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
-
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    {
+                        if (targetType is ArrayTypeSymbol { IsSZArray: false })
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, syntax);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                        }
+                        return;
+                    }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);

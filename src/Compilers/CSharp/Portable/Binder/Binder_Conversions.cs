@@ -428,76 +428,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = (CSharpSyntaxNode)node.Syntax;
             TypeSymbol? elementType;
-            BoundCollectionLiteralExpression collectionLiteral;
-
-            if (targetType is ArrayTypeSymbol arrayType)
+            BoundCollectionLiteralExpression collectionLiteral = Conversions.GetConstructibleCollectionType(Compilation, targetType, out elementType) switch
             {
-                if (!arrayType.IsSZArray)
-                {
-                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, syntax);
-                }
-                collectionLiteral = bindArrayOrSpan(syntax, targetType, spanConstructor: null, node.Initializers, arrayType.ElementType, diagnostics);
-            }
-            else if (isSpanType(targetType, WellKnownType.System_Span_T, out elementType))
-            {
-                var spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics);
-                collectionLiteral = bindArrayOrSpan(syntax, targetType, spanConstructor, node.Initializers, elementType, diagnostics);
-            }
-            else if (isSpanType(targetType, WellKnownType.System_ReadOnlySpan_T, out elementType))
-            {
-                var spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics);
-                collectionLiteral = bindArrayOrSpan(syntax, targetType, spanConstructor, node.Initializers, elementType, diagnostics);
-            }
-            else if (targetType.IsErrorType())
-            {
-                collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, hasEnumerableInitializerType: false, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
-            }
-            else
-            {
-                bool hasEnumerableInitializerType = supportsCollectionInitializer(targetType, syntax, diagnostics);
-                if (!hasEnumerableInitializerType)
-                {
-                    // PROTOTYPE: Why is this case here? We're being called with an explicit target type. Shouldn't
-                    // the caller handle the conversion from natural type if the target type is not applicable?
-
-                    // Target type is not constructible. Use collection literal natural type if available, instead.
-                    if (node.Type is { } collectionType)
-                    {
-                        var expr = BindCollectionInitializerCollectionLiteral(
-                            node,
-                            collectionType,
-                            wasTargetTyped: false,
-                            hasEnumerableInitializerType: true,
-                            wasCompilerGenerated: node.WasCompilerGenerated,
-                            diagnostics);
-                        Debug.Assert(expr.Type is { });
-                        var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        conversion = isCast
-                            ? Conversions.ClassifyConversionFromType(expr.Type, targetType, isChecked: false, ref useSiteInfo, forCast: isCast)
-                            : Conversions.ClassifyImplicitConversionFromType(expr.Type, targetType, ref useSiteInfo);
-                        diagnostics.Add(syntax, useSiteInfo);
-                        bool hasErrors = !conversion.IsValid;
-                        if (hasErrors)
-                        {
-                            GenerateImplicitConversionError(diagnostics, syntax, conversion, expr, targetType);
-                        }
-                        return CreateConversion(
-                            syntax,
-                            expr,
-                            conversion,
-                            isCast: false,
-                            conversionGroupOpt: null,
-                            wasCompilerGenerated: wasCompilerGenerated,
-                            targetType,
-                            diagnostics,
-                            hasErrors: hasErrors);
-                    }
-
-                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
-                }
-
-                collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, hasEnumerableInitializerType: hasEnumerableInitializerType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
-            }
+                ConversionsBase.ConstructibleCollectionTypeKind.Array
+                    => bindArrayOrSpan(syntax, targetType, spanConstructor: null, node.Initializers, elementType!, diagnostics),
+                ConversionsBase.ConstructibleCollectionTypeKind.Span
+                    => bindArrayOrSpan(syntax, targetType, getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics), node.Initializers, elementType!, diagnostics),
+                ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan
+                    => bindArrayOrSpan(syntax, targetType, getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics), node.Initializers, elementType!, diagnostics),
+                ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer
+                    => BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, hasEnumerableInitializerType: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics),
+                var collectionTypeKind
+                    => throw ExceptionUtilities.UnexpectedValue(collectionTypeKind),
+            };
 
             return new BoundConversion(
                 syntax,
@@ -508,18 +451,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionGroupOpt,
                 collectionLiteral.ConstantValueOpt,
                 targetType);
-
-            bool isSpanType(TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && TypeSymbol.Equals(namedType.OriginalDefinition, Compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
-                {
-                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                    return true;
-                }
-                elementType = null;
-                return false;
-            }
 
             BoundArrayOrSpanCollectionLiteralExpression bindArrayOrSpan(
                 CSharpSyntaxNode syntax,
@@ -551,29 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (MethodSymbol?)GetWellKnownTypeMember(spanMember, diagnostics, syntax: syntax)?.SymbolAsMember((NamedTypeSymbol)spanType);
             }
 
-            bool supportsCollectionInitializer(TypeSymbol targetType, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
-            {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        return false;
-                }
-
-                // This implementation differs from CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type,
-                // but that would allow: Nullable<StructCollection> s = [];
-                var ienumerableType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, syntax);
-                return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
-            }
-
             BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
             {
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -583,6 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (hasErrors)
                 {
                     GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
+                    // Suppress any additional diagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded;
                 }
                 var result = CreateConversion(
                     element.Syntax,

@@ -397,8 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             collectionType = CreateErrorType();
                             hasErrors = true;
                         }
-                        // PROTOTYPE: Do we need a Conversion here? For a BoundConvertedSwitchExpression,
-                        // we're adding an Identity conversion when using the natural type rather than target type.
+                        else
+                        {
+                            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                            collectionType.AddUseSiteInfo(ref useSiteInfo);
+                            diagnostics.Add(syntax, useSiteInfo);
+                            collectionType.CheckAllConstraints(Compilation, Conversions, syntax.Location, diagnostics);
+                        }
                         result = BindCollectionInitializerCollectionLiteral(
                             expr,
                             collectionType,
@@ -2632,6 +2637,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    {
+                        if ((object)operand.Type == null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                            return;
+                        }
+                        break;
+                    }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
                         var errorCode = targetType.TypeKind switch
@@ -4516,7 +4530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var initializers = builder.ToImmutableAndFree();
-            TypeSymbol? collectionType = InferCollectionLiteralType(syntax, initializers, diagnostics);
+            TypeSymbol? collectionType = InferCollectionLiteralType(initializers);
             return new BoundUnconvertedCollectionLiteralExpression(syntax, initializers, this, type: collectionType);
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -4543,44 +4557,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // This is similar to the approach used for switch expressions in SwitchExpressionBinder.InferResultType
-        // which finds a best common type and checks all arms can be converted to that type.
-        // With switch expressions though, target typing is used when there is no natural type,
-        // while with collection literals, the natural type is used when there is no target type.
-        private TypeSymbol? InferCollectionLiteralType(CollectionCreationExpressionSyntax syntax, ImmutableArray<BoundExpression> initializers, BindingDiagnosticBag diagnostics)
+        private TypeSymbol? InferCollectionLiteralType(ImmutableArray<BoundExpression> initializers)
         {
-            TypeSymbol? collectionType = null;
-            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Include use-site diagnostics.
             var bestType = BestTypeInferrer.InferBestType(initializers, Conversions, ref useSiteInfo, out _);
+
             if (bestType is { } && !bestType.IsVoidType())
             {
-                if (bestType.IsRestrictedType(ignoreSpanLikeTypes: true))
+                // Check that each element (even those without a type) can be converted to the best type.
+                foreach (var initializer in initializers)
                 {
-                    // PROTOTYPE: Use error specific to collection literals.
-                    Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, syntax, bestType);
+                    if (!Conversions.ClassifyImplicitConversionFromExpression(initializer, bestType, ref useSiteInfo).Exists)
+                    {
+                        bestType = null;
+                        break;
+                    }
                 }
-                else
-                {
-                    // Check that each element (even those without a type) can be converted to the best type.
-                    foreach (var initializer in initializers)
-                    {
-                        if (!Conversions.ClassifyImplicitConversionFromExpression(initializer, bestType, ref useSiteInfo).Exists)
-                        {
-                            bestType = null;
-                            break;
-                        }
-                    }
 
-                    if (bestType is { })
-                    {
-                        collectionType = GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo).Construct(bestType);
-                    }
+                if (bestType is { })
+                {
+                    return Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(bestType);
                 }
             }
 
-            diagnostics.Add(syntax, useSiteInfo);
-            return collectionType;
+            return null;
         }
 #nullable disable
 

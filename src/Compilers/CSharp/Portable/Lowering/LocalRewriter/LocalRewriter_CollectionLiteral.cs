@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
                     _ => throw ExceptionUtilities.UnexpectedValue(initializer)
                 };
-                // PROTOTYPE: Test with null. For instance, MakeCollectionInitializer()
-                // returns null when the Add() call is omitted.
                 if (rewrittenInitializer != null)
                 {
                     sideEffects.Add(rewrittenInitializer);

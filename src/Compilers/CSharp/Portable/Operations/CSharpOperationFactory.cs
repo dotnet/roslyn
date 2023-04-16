@@ -1309,7 +1309,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                // PROTOTYPE: Temporary until natural type is supported.
                 return new InvalidOperation(ImmutableArray.Create<IOperation>(initializer), _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
             }
         }

@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -657,7 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
-                !conversion.IsInterpolatedStringHandler)
+                !conversion.IsInterpolatedStringHandler &&
+                !conversion.IsCollectionLiteral)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1097,7 +1099,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionLiteralExpression:
-                    return Conversion.CollectionLiteral;
+                    if (GetConstructibleCollectionType(Compilation, destination, out _) != ConstructibleCollectionTypeKind.None)
+                    {
+                        return Conversion.CollectionLiteral;
+                    }
+                    break;
             }
 
             return Conversion.NoConversion;
@@ -1577,6 +1583,80 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
+        }
+
+        internal enum ConstructibleCollectionTypeKind
+        {
+            None = 0,
+            Array,
+            Span,
+            ReadOnlySpan,
+            CollectionInitializer,
+        }
+
+        internal static ConstructibleCollectionTypeKind GetConstructibleCollectionType(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        {
+            Debug.Assert(compilation is { });
+
+            if (destination is ArrayTypeSymbol arrayType)
+            {
+                if (arrayType.IsSZArray)
+                {
+                    elementType = arrayType.ElementType;
+                    return ConstructibleCollectionTypeKind.Array;
+                }
+            }
+            else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            {
+                return ConstructibleCollectionTypeKind.Span;
+            }
+            else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            {
+                return ConstructibleCollectionTypeKind.ReadOnlySpan;
+            }
+            else if (supportsCollectionInitializer(compilation, destination))
+            {
+                elementType = null;
+                return ConstructibleCollectionTypeKind.CollectionInitializer;
+            }
+
+            elementType = null;
+            return ConstructibleCollectionTypeKind.None;
+
+            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
+                    && TypeSymbol.Equals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
+                {
+                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    return true;
+                }
+                elementType = null;
+                return false;
+            }
+
+            static bool supportsCollectionInitializer(CSharpCompilation compilation, TypeSymbol targetType)
+            {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        return false;
+                }
+
+                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type,
+                // but that would allow: Nullable<StructCollection> s = [];
+                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+                return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
+            }
         }
 #nullable disable
 
