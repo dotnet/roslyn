@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentProjectsFinder
     {
+        /// <summary>
+        /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
+        /// name of the <see cref="IAssemblySymbol"/> defined by it.
+        /// </summary>
+        private static ImmutableDictionary<MetadataId, string?> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string?>.Empty;
+
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
@@ -276,28 +282,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            if (!project.TryGetCompilation(out var compilation))
-            {
-                // WORKAROUND:
-                // perf check metadata reference using newly created empty compilation with only metadata references.
-                compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
-                    project.AssemblyName, project.CompilationOptions!);
-
-                compilation = compilation.AddReferences(project.MetadataReferences);
-            }
+            // Defer creating compilation if we can avoid it.
+            Compilation? compilation = null;
 
             foreach (var reference in project.MetadataReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol &&
-                    symbol.Name == assemblyName)
+                if (reference is not PortableExecutableReference peReference)
+                    continue;
+
+                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(peReference);
+                if (metadataId is null)
+                    continue;
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
                 {
-                    return true;
+                    compilation ??= CreateCompilation();
+
+                    name = ImmutableInterlocked.GetOrAdd(
+                        ref s_metadataIdToAssemblyName,
+                        metadataId,
+                        (compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol)?.Name);
                 }
+
+                if (name == assemblyName)
+                    return true;
             }
 
             return false;
+
+            Compilation CreateCompilation()
+            {
+                if (compilation == null &&
+                    !project.TryGetCompilation(out compilation))
+                {
+                    // WORKAROUND:
+                    // perf check metadata reference using newly created empty compilation with only metadata references.
+                    compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
+                        project.AssemblyName, project.CompilationOptions!);
+
+                    compilation = compilation.AddReferences(project.MetadataReferences);
+                }
+
+                return compilation;
+            }
         }
     }
 }
