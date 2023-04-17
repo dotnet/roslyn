@@ -343,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
+                receiverCloned: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,

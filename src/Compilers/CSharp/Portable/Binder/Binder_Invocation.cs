@@ -1141,10 +1141,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
+                        receiverCloned: ReceiverCloned(receiver, method),
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
+
+        internal bool ReceiverCloned(BoundExpression? receiver, PropertySymbol property)
+            => ReceiverCloned(receiver, property.GetMethod ?? property.SetMethod);
+
+        internal bool ReceiverCloned(BoundExpression? receiver, MethodSymbol method)
+        {
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            {
+                return false;
+            }
+
+            var valueKind = method.IsEffectivelyReadOnly
+                ? BindValueKind.RefersToLocation
+                : BindValueKind.RefersToLocation | BindValueKind.Assignable;
+            return !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+        }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)
         {

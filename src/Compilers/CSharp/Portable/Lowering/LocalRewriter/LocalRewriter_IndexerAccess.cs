@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                    oldNodeOpt.Update(rewrittenReceiver, receiverCloned: false, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, receiverCloned: false, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(locals is not null);
 
                     rewrittenIndexerAccess = indexerAccess.Update(
-                        receiver, indexerAccess.Indexer, rewrittenArguments,
+                        receiver, receiverCloned: false, indexerAccess.Indexer, rewrittenArguments,
                         indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.Expanded,
                         indexerAccess.ArgsToParamsOpt,

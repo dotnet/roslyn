@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result.Update(
                 result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
-                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
+                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod, result.ReceiverCloned,
                 argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
         }
 

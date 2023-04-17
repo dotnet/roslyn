@@ -1078,6 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.IsDelegateCall,
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
+                    node.ReceiverCloned,
                     node.ArgsToParamsOpt,
                     node.DefaultArguments,
                     node.ResultKind,

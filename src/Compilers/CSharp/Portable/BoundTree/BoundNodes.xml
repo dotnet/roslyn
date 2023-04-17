@@ -1791,6 +1791,8 @@
     <Field Name="IsDelegateCall" Type="bool"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="ReceiverCloned" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -2106,6 +2108,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="ReceiverCloned" Type="bool"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
@@ -2125,6 +2129,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="ReceiverCloned" Type="bool"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>

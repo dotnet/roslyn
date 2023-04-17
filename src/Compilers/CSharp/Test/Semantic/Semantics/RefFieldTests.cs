@@ -25703,7 +25703,7 @@ public class A
 
         [Theory, CombinatorialData]
         public void UnscopedRefAttribute_NestedAccess_MethodOrProperty_Readonly(
-            [CombinatorialValues("", "()")] string op)
+            [CombinatorialValues("", "()")] string op1, [CombinatorialValues("", "()")] string op2)
         {
             var source = $$"""
                 using System.Diagnostics.CodeAnalysis;
@@ -25711,25 +25711,25 @@ public class A
                 class C
                 {
                     private S1 s1;
-                    public ref int Value() => ref s1.S2{{op}}.Value;
+                    public ref int Value() => ref s1.S2{{op1}}.Value{{op2}};
                 }
 
                 struct S1
                 {
                     private readonly S2 s2;
-                    [UnscopedRef] public ref readonly S2 S2{{op}} => ref s2;
+                    [UnscopedRef] public ref readonly S2 S2{{op1}} => ref s2;
                 }
 
                 struct S2
                 {
                     private int value;
-                    [UnscopedRef] public ref int Value => ref value;
+                    [UnscopedRef] public ref int Value{{op2}} => ref value;
                 }
                 """;
             CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
                 // 0.cs(6,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     public ref int Value() => ref s1.S2.Value;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, $"s1.S2{op}").WithLocation(6, 35));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, $"s1.S2{op1}").WithLocation(6, 35));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67626")]
@@ -25819,7 +25819,7 @@ public class A
                 class C
                 {
                     private S1 s1;
-                    public ref int Value(int i) => ref s1[i].Value;
+                    public ref int Value(int i) => ref s1[i][i];
                 }
 
                 struct S1
@@ -25831,7 +25831,7 @@ public class A
                 struct S2
                 {
                     private int value;
-                    [UnscopedRef] public ref int Value => ref value;
+                    [UnscopedRef] public ref int this[int i] => ref value;
                 }
                 """;
             CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
