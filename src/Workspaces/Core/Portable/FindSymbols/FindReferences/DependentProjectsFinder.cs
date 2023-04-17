@@ -338,15 +338,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return;
 
                 // Use the project's compilation if it has one.
-                if (!project.TryGetCompilation(out compilation))
-                {
-                    // WORKAROUND:
-                    // perf check metadata reference using newly created empty compilation with only metadata references.
-                    var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
-                    compilation = factory
-                        .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
-                        .AddReferences(project.MetadataReferences);
-                }
+                if (project.TryGetCompilation(out compilation))
+                    return;
+
+                // Perf: check metadata reference using newly created empty compilation with only metadata references.
+                var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
+                compilation = factory
+                    .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
+                    .AddReferences(project.MetadataReferences);
             }
         }
     }
