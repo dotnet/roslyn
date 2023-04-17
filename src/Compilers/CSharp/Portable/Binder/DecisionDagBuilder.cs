@@ -708,8 +708,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ref TemporaryArray<StateForCase> cases)
         {
+            // A mapping used to make each DagState unique (i.e. to de-dup identical states).
+            PooledDictionary<DagState, DagState> uniqueState = s_uniqueStatePool.Allocate();
+
             // Build the state machine underlying the decision dag
-            var boundDecisionDag = MakeBoundDecisionDagWorker(syntax, ref cases);
+            var decisionDag = MakeDecisionDag(ref cases, uniqueState);
+
+            // Compute the bound decision dag corresponding to each node of decisionDag, and store
+            // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
+
+            // Note: It is useful for debugging the dag state table construction to set a breakpoint
+            // here and view `decisionDag.Dump()`.
+            ;
+
+            ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
+
+            var rootDecisionDagNode = decisionDag.RootNode.Dag;
+            RoslynDebug.Assert(rootDecisionDagNode != null);
+
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+
+            // Now go and clean up all the dag states we created
+            foreach (var kvp in uniqueState)
+            {
+                Debug.Assert(kvp.Key == kvp.Value);
+                kvp.Key.ClearAndFree();
+            }
+
+            uniqueState.Free();
 
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
@@ -757,17 +784,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
         /// and return the node for the root.
         /// </summary>
-        private BoundDecisionDag MakeBoundDecisionDagWorker(
-            SyntaxNode syntax,
-            ref TemporaryArray<StateForCase> casesForRootNode)
+        private DecisionDag MakeDecisionDag(
+            ref TemporaryArray<StateForCase> casesForRootNode,
+            Dictionary<DagState, DagState> uniqueState)
         {
             // A work list of DagStates whose successors need to be computed.  In practice (measured in roslyn and in
             // tests, >75% of the time this worklist never goes past 4 items, so a TemporaryArray is a good choice here
             // to keep everything on the stack.
             using var workList = TemporaryArray<DagState>.Empty;
-
-            // A mapping used to make each DagState unique (i.e. to de-dup identical states).
-            PooledDictionary<DagState, DagState> uniqueState = s_uniqueStatePool.Allocate();
 
             // We "intern" the states, so that we only have a single object representing one
             // semantic state. Because the decision automaton may contain states that have more than one
@@ -917,32 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Compute the bound decision dag corresponding to each node of decisionDag, and store
-            // it in node.Dag.
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-            var decisionDag = new DecisionDag(initialState);
-
-            // Note: It is useful for debugging the dag state table construction to set a breakpoint
-            // here and view `decisionDag.Dump()`.
-            ;
-
-            ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
-
-            var rootDecisionDagNode = decisionDag.RootNode.Dag;
-            RoslynDebug.Assert(rootDecisionDagNode != null);
-
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
-
-            // Now go and clean up all the dag states we created
-            foreach (var kvp in uniqueState)
-            {
-                Debug.Assert(kvp.Key == kvp.Value);
-                kvp.Key.ClearAndFree();
-            }
-
-            uniqueState.Free();
-
-            return boundDecisionDag;
+            return new DecisionDag(initialState);
         }
 
         /// <summary>
