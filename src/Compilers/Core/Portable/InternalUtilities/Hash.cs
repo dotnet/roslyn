@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -133,18 +132,6 @@ namespace Roslyn.Utilities
                 {
                     hashCode = Hash.Combine(value.GetHashCode(), hashCode);
                 }
-            }
-
-            return hashCode;
-        }
-
-        internal static int CombineValues<T>(ArrayBuilder<T> values)
-        {
-            var hashCode = 0;
-            foreach (var value in values)
-            {
-                if (value != null)
-                    hashCode = Hash.Combine(value.GetHashCode(), hashCode);
             }
 
             return hashCode;
