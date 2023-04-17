@@ -777,11 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
             DagState uniquifyState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
-                var state = DagState.Create(cases, remainingValues);
+                var state = DagState.GetInstance(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
                     // We found an existing state that matches. Return the state we just created back to the pool and
-                    // use the existing one instead.
+                    // use the existing one instead.  Null out the 'state' local so that any attempts to use it will
+                    // fail fast.
                     state.ClearAndFree();
                     state = null;
 
@@ -1829,25 +1830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            public void ClearAndFree()
-            {
-                Cases.Free();
-                Cases = default;
-                RemainingValues = null!;
-                SelectedTest = null;
-                TrueBranch = null;
-                FalseBranch = null;
-                Dag = null;
-
-                s_dagStatePool.Free(this);
-            }
-
             /// <summary>
             /// Created an instance of <see cref="DagState"/>.  Will take ownership of <paramref name="cases"/>.  That
             /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
             /// called on this.
             /// </summary>
-            public static DagState Create(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            public static DagState GetInstance(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 var dagState = s_dagStatePool.Allocate();
 
@@ -1859,11 +1847,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dagState.Dag is null);
 
                 // We're taking ownership of 'cases' (and we never mutate it ourselves).  So freeze it to ensure it
-                // always keeps the starting set of cases and no one accidentaly mutates it.
+                // always keeps the starting set of cases and no one accidentally mutates it.
                 dagState.Cases = new FrozenArrayBuilder<StateForCase>(cases);
                 dagState.RemainingValues = remainingValues;
 
                 return dagState;
+            }
+
+            public void ClearAndFree()
+            {
+                Cases.Free();
+                Cases = default;
+                RemainingValues = null!;
+                SelectedTest = null;
+                TrueBranch = null;
+                FalseBranch = null;
+                Dag = null;
+
+                s_dagStatePool.Free(this);
             }
 
             /// <summary>
