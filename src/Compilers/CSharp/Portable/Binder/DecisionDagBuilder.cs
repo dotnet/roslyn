@@ -888,13 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // There is a when clause to evaluate.
-                        // In case the when clause fails, we prepare for the remaining cases.
-                        var stateWhenFails = ArrayBuilder<StateForCase>.GetInstance(state.Cases.Count - 1);
-                        for (int i = 1, n = state.Cases.Count; i < n; i++)
-                            stateWhenFails.Add(state.Cases[i]);
-
-                        state.FalseBranch = uniquifyState(AsFrozen(stateWhenFails), state.RemainingValues);
+                        state.FalseBranch = uniquifyState(state.Cases.RemoveAt(0), state.RemainingValues);
                     }
                 }
                 else
@@ -1789,6 +1783,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             public T First() => _arrayBuilder.First();
 
             public ArrayBuilder<T>.Enumerator GetEnumerator() => _arrayBuilder.GetEnumerator();
+
+            public FrozenArrayBuilder<T> RemoveAt(int index)
+            {
+                // There is a when clause to evaluate.
+                // In case the when clause fails, we prepare for the remaining cases.
+                var builder = ArrayBuilder<T>.GetInstance(_arrayBuilder.Count - 1);
+
+                for (var i = 0; i < index; i++)
+                    builder.Add(_arrayBuilder[i]);
+
+                for (var i = index + 1; i < _arrayBuilder.Count; i++)
+                    builder.Add(_arrayBuilder[i]);
+
+                return AsFrozen(builder);
+            }
         }
 
         /// <summary>
