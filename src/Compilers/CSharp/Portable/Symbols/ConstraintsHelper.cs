@@ -465,9 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            using var pooledArgs = CheckConstraintsArgsBoxed.GetPooledInstance(compilation, conversions, includeNullability, location, diagnostics);
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics);
 
-            type.CheckAllConstraints(pooledArgs.BoxedArgs);
+            type.CheckAllConstraints(boxedArgs);
+
+            boxedArgs.Free();
         }
 
         public static bool CheckAllConstraints(
@@ -479,10 +481,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            using var pooledArgs = CheckConstraintsArgsBoxed.GetPooledInstance(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
 
-            type.CheckAllConstraints(pooledArgs.BoxedArgs);
+            type.CheckAllConstraints(boxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
+            boxedArgs.Free();
             diagnostics.Free();
             return ok;
         }
@@ -530,48 +533,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public CheckConstraintsArgs Args;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static PooledCheckConstraintsArgsBoxed GetPooledInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
                 boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
-                return new PooledCheckConstraintsArgsBoxed(boxedArgs);
+                return boxedArgs;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static PooledCheckConstraintsArgsBoxed GetPooledInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
                 boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
-                return new PooledCheckConstraintsArgsBoxed(boxedArgs);
+                return boxedArgs;
             }
 
-            internal ref struct PooledCheckConstraintsArgsBoxed
+            public void Free()
             {
-                private CheckConstraintsArgsBoxed _boxedArgs;
-
-                public PooledCheckConstraintsArgsBoxed(CheckConstraintsArgsBoxed checkConstraintsArgs)
-                {
-                    _boxedArgs = checkConstraintsArgs;
-                }
-
-                public CheckConstraintsArgsBoxed BoxedArgs
-                {
-                    get
-                    {
-                        Debug.Assert(_boxedArgs != null);
-                        return _boxedArgs;
-                    }
-                }
-
-                public void Dispose()
-                {
-                    var boxedArgs = Interlocked.Exchange(ref _boxedArgs, null);
-                    if (boxedArgs != null)
-                    {
-                        boxedArgs.Args = default;
-                        s_checkConstraintsArgsBoxedPool.Free(boxedArgs);
-                    }
-                }
+                s_checkConstraintsArgsBoxedPool.Free(this);
             }
         }
 

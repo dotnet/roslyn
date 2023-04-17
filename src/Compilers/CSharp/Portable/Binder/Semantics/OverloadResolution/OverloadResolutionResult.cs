@@ -1034,8 +1034,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
 
-            using var pooledArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.GetPooledInstance(compilation, conversions, includeNullability: false, location, diagnostics);
-            formalParameterType.CheckAllConstraints(pooledArgs.BoxedArgs);
+            var boxedArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, location, diagnostics);
+            formalParameterType.CheckAllConstraints(boxedArgs);
+            boxedArgs.Free();
 
             return true;
         }
