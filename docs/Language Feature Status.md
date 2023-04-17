@@ -20,7 +20,8 @@ efforts behind them.
 | [Collection Literals](https://github.com/dotnet/csharplang/issues/5354) | [CollectionLiterals](https://github.com/dotnet/roslyn/tree/features/CollectionLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/66418) | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Interceptors](https://github.com/dotnet/csharplang/issues/7009) | [interceptors](https://github.com/dotnet/roslyn/tree/features/interceptors) | [In Progress](https://github.com/dotnet/roslyn/issues/67421) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | [RikkiGibson](https://github.com/RikkiGibson) |
-  
+| [Inline Arrays](https://github.com/dotnet/csharplang/blob/main/proposals/inline-arrays.md) | [InlineArrays](https://github.com/dotnet/roslyn/tree/features/InlineArrays) | [In Progress](https://github.com/dotnet/roslyn/issues/67826) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [jjonescz](https://github.com/jjonescz) |  |
+
 # C# 11.0
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
