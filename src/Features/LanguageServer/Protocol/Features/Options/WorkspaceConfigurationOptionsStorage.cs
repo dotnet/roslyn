@@ -30,6 +30,9 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> DeferCreatingRecoverableText = new(
         "dotnet_defer_creating_recoverable_text", WorkspaceConfigurationOptions.Default.DeferCreatingRecoverableText);
 
+    public static readonly Option2<bool> DisableRecoverableText = new(
+        "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
+
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
     /// surprised by this and we want some time to work through those issues.
