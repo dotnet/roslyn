@@ -655,6 +655,8 @@ function InitializeToolset() {
     return $global:_ToolsetBuildProj
   }
 
+  Write-Host "1.1"
+
   $nugetCache = GetNuGetPackageCachePath
 
   $toolsetVersion = $GlobalJson.'msbuild-sdks'.'Microsoft.DotNet.Arcade.Sdk'
@@ -672,6 +674,8 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
+  Write-Host "1.2"
+
   $buildTool = InitializeBuildTool
 
   $proj = Join-Path $ToolsetDir 'restore.proj'
@@ -679,12 +683,18 @@ function InitializeToolset() {
 
   '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' | Set-Content $proj
 
+  Write-Host "1.3"
+
   MSBuild-Core $proj $bl /t:__WriteToolsetLocation /clp:ErrorsOnly`;NoSummary /p:__ToolsetLocationOutputFile=$toolsetLocationFile
+
+  Write-Host "1.4"
 
   $path = Get-Content $toolsetLocationFile -Encoding UTF8 -TotalCount 1
   if (!(Test-Path $path)) {
     throw "Invalid toolset path: $path"
   }
+
+  Write-Host "1.5"
 
   return $global:_ToolsetBuildProj = $path
 }

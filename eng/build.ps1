@@ -219,10 +219,14 @@ function BuildSolution() {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
+  Write-Host "1"
+
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
   $ibcDropName = GetIbcDropName
+
+  Write-Host "2"
 
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
@@ -234,11 +238,15 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
+  Write-Host "3"
+
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
+  Write-Host "4"
 
   try {
     MSBuild $toolsetBuildProj `
