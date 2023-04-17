@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var workList = TemporaryArray<DagState>.Empty;
 
             // A mapping used to make each DagState unique (i.e. to de-dup identical states).
-            var uniqueState = s_uniqueStatePool.Allocate();
+            PooledDictionary<DagState, DagState> uniqueState = s_uniqueStatePool.Allocate();
 
             // We "intern" the states, so that we only have a single object representing one
             // semantic state. Because the decision automaton may contain states that have more than one
