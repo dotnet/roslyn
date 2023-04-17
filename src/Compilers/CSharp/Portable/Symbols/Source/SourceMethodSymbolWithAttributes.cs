@@ -950,7 +950,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             Debug.Assert(!arguments.Attribute.HasErrors);
-            var attributeArguments = arguments.Attribute.CommonConstructorArguments;
+            var attributeData = arguments.Attribute;
+            var attributeArguments = attributeData.CommonConstructorArguments;
             if (attributeArguments is not [
                 { Type.SpecialType: SpecialType.System_String },
                 { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
@@ -961,12 +962,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
-            var attributeLocation = arguments.AttributeSyntaxOpt.Location;
+            var attributeSyntax = arguments.AttributeSyntaxOpt;
+            var attributeLocation = attributeSyntax.Location;
+            const int filePathParameterIndex = 0;
+            const int lineNumberParameterIndex = 1;
+            const int characterNumberParameterIndex = 2;
 
             var filePath = (string?)attributeArguments[0].Value;
             if (filePath is null)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeLocation);
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax));
                 return;
             }
 
@@ -983,17 +988,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+            // PROTOTYPE(ic): consider avoiding an array allocation here, on the assumption that 1 matching tree is the success (common) case, 0 is the most common error case, and 2 or more is much more rare.
             var matchingTrees = syntaxTrees.WhereAsArray(static (tree, filePath) => tree.FilePath == filePath, filePath);
             if (matchingTrees is [])
             {
                 var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
                 if (suffixMatch != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeLocation, filePath, suffixMatch.FilePath);
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath, suffixMatch.FilePath);
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeLocation, filePath);
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
                 }
 
                 return;
@@ -1001,20 +1007,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (matchingTrees is not [var matchingTree])
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeLocation, filePath);
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
                 return;
             }
 
             // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
-            // PROTOTYPE(ic): test with zero or negative display line/character numbers.
             int lineNumberZeroBased = lineNumberOneBased - 1;
             int characterNumberZeroBased = characterNumberOneBased - 1;
 
+            if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
+            {
+                var location = attributeData.GetAttributeArgumentSyntaxLocation(lineNumberZeroBased < 0 ? lineNumberParameterIndex : characterNumberParameterIndex, attributeSyntax);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
+                return;
+            }
+
             var referencedLines = matchingTree.GetText().Lines;
             var referencedLineCount = referencedLines.Count;
+
             if (lineNumberZeroBased >= referencedLineCount)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeLocation, referencedLineCount, lineNumberOneBased);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(lineNumberParameterIndex, attributeSyntax), referencedLineCount, lineNumberOneBased);
                 return;
             }
 
@@ -1022,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lineLength = line.End - line.Start;
             if (characterNumberZeroBased >= lineLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeLocation, lineLength, characterNumberOneBased);
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(characterNumberParameterIndex, attributeSyntax), lineLength, characterNumberOneBased);
                 return;
             }
 
@@ -1046,12 +1059,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
             }
 
-            // Did they actually refer to the start of the token, not the middle, or in leading trivia?
-            var tokenPositionDifference = referencedPosition - referencedToken.Span.Start;
-            if (tokenPositionDifference != 0)
+            // Did they actually refer to the start of the token, not the middle, or in trivia?
+            if (referencedPosition != referencedToken.Span.Start)
             {
-                // PROTOTYPE(ic): when a token's leading trivia spans multiple lines, this doesn't suggest a valid position.
-                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, characterNumberOneBased - tokenPositionDifference);
+                var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
                 return;
             }
 

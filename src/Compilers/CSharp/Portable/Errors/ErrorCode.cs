@@ -2213,6 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InterceptorSignatureMismatch = 27017,
         ERR_InterceptorNotAccessible = 27018,
         ERR_InterceptorScopedMismatch = 27019,
+        ERR_InterceptorLineCharacterMustBePositive = 27020,
 
         #endregion
 

@@ -587,6 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                 case ErrorCode.ERR_DuplicateInterceptor:
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorNotAccessible:
                 case ErrorCode.ERR_InterceptorScopedMismatch:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
@@ -2330,6 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorFilePathCannotBeNull:
                 case ErrorCode.ERR_InterceptorNameNotInvoked:
                 case ErrorCode.ERR_InterceptorNonUniquePath:
+                case ErrorCode.ERR_InterceptorLineCharacterMustBePositive:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                     return false;

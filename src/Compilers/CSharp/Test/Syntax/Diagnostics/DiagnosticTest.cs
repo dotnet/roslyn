@@ -2945,6 +2945,8 @@ class Program
                     case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
                     case ErrorCode.ERR_DuplicateInterceptor:
                     case ErrorCode.WRN_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorNotAccessible:
+                    case ErrorCode.ERR_InterceptorScopedMismatch:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

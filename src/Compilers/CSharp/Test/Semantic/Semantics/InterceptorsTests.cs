@@ -52,7 +52,7 @@ public class InterceptorsTests : CSharpTestBase
         [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
-            public InterceptsLocationAttribute(string filePath, int line, int column)
+            public InterceptsLocationAttribute(string filePath, int line, int character)
             {
             }
         }
@@ -426,9 +426,9 @@ public class InterceptorsTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { source0, source1, source2, s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Interceptor.cs(15,6): error CS27015: Cannot intercept a call in file with path 'Program.cs' because multiple files in the compilation have this path.
+            // Interceptor.cs(15,25): error CS27015: Cannot intercept a call in file with path 'Program.cs' because multiple files in the compilation have this path.
             //     [InterceptsLocation("Program.cs", 5, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorNonUniquePath, @"InterceptsLocation(""Program.cs"", 5, 11)").WithArguments("Program.cs").WithLocation(15, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorNonUniquePath, @"""Program.cs""").WithArguments("Program.cs").WithLocation(15, 25));
     }
 
     [Fact]
@@ -736,6 +736,73 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor Hello World");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AttributeArgumentLabels_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod() => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", character: 11, line: 15)]
+                public static void Interceptor1(this C c) { Console.Write(1); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AttributeArgumentLabels_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod() => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", character: 1, line: 50)] // 1
+                public static void Interceptor1(this C c) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyDiagnostics(
+            // Program.cs(20,53): error CS27005: The given file has '22' lines, which is fewer than the provided line number '50'.
+            //     [InterceptsLocation("Program.cs", character: 1, line: 50)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, "line: 50").WithArguments("22", "50").WithLocation(20, 53)
+            );
     }
 
     [Fact]
@@ -1170,9 +1237,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27002: Cannot intercept: compilation does not contain a file with path 'BAD'.
+            // Program.cs(21,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'BAD'.
             //     [InterceptsLocation("BAD", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"InterceptsLocation(""BAD"", 15, 11)").WithArguments("BAD").WithLocation(21, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""BAD""").WithArguments("BAD").WithLocation(21, 25)
             );
     }
 
@@ -1206,9 +1273,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "/Users/me/projects/Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // /Users/me/projects/Program.cs(21,6): error CS27003: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path '/Users/me/projects/Program.cs'?
-                //     [InterceptsLocation("projects/Program.cs", 15, 11)]
-                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"InterceptsLocation(""projects/Program.cs"", 15, 11)").WithArguments("projects/Program.cs", "/Users/me/projects/Program.cs").WithLocation(21, 6)
+            // /Users/me/projects/Program.cs(21,25): error CS27003: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path '/Users/me/projects/Program.cs'?
+            //     [InterceptsLocation("projects/Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"""projects/Program.cs""").WithArguments("projects/Program.cs", "/Users/me/projects/Program.cs").WithLocation(21, 25)
             );
     }
 
@@ -1241,9 +1308,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(20,6): error CS27013: Interceptor cannot have a 'null' file path.
+            // Program.cs(20,25): error CS27013: Interceptor cannot have a 'null' file path.
             //     [InterceptsLocation(null, 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorFilePathCannotBeNull, "InterceptsLocation(null, 15, 11)").WithLocation(20, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorFilePathCannotBeNull, "null").WithLocation(20, 25)
             );
     }
 
@@ -1282,12 +1349,12 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
             //     [InterceptsLocation("Program.cs", 25, 1)]
             Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 25, 1)").WithArguments("}").WithLocation(21, 6),
-            // Program.cs(22,6): error CS27005: The given file has '25' lines, which is fewer than the provided line number '26'.
+            // Program.cs(22,39): error CS27005: The given file has '25' lines, which is fewer than the provided line number '26'.
             //     [InterceptsLocation("Program.cs", 26, 1)]
-            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, @"InterceptsLocation(""Program.cs"", 26, 1)").WithArguments("25", "26").WithLocation(22, 6),
-            // Program.cs(23,6): error CS27005: The given file has '25' lines, which is fewer than the provided line number '100'.
+            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, "26").WithArguments("25", "26").WithLocation(22, 39),
+            // Program.cs(23,39): error CS27005: The given file has '25' lines, which is fewer than the provided line number '100'.
             //     [InterceptsLocation("Program.cs", 100, 1)]
-            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, @"InterceptsLocation(""Program.cs"", 100, 1)").WithArguments("25", "100").WithLocation(23, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorLineOutOfRange, "100").WithArguments("25", "100").WithLocation(23, 39)
             );
     }
 
@@ -1326,12 +1393,12 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
             //     [InterceptsLocation("Program.cs", 16, 5)]
             Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 16, 5)").WithArguments("}").WithLocation(21, 6),
-            // Program.cs(22,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '6'.
+            // Program.cs(22,43): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '6'.
             //     [InterceptsLocation("Program.cs", 16, 6)]
-            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 6)").WithArguments("5", "6").WithLocation(22, 6),
-            // Program.cs(23,6): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, "6").WithArguments("5", "6").WithLocation(22, 43),
+            // Program.cs(23,43): error CS27006: The given line is '5' characters long, which is fewer than the provided character number '1000'.
             //     [InterceptsLocation("Program.cs", 16, 1000)]
-            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, @"InterceptsLocation(""Program.cs"", 16, 1000)").WithArguments("5", "1000").WithLocation(23, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorCharacterOutOfRange, "1000").WithArguments("5", "1000").WithLocation(23, 43)
             );
     }
 
@@ -1401,9 +1468,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            // Program.cs(21,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '15' and character '11'?
             //     [InterceptsLocation("Program.cs", 15, 13)]
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 15, 13)").WithArguments("InterceptableMethod", "11").WithLocation(21, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 15, 13)").WithArguments("InterceptableMethod", "15", "11").WithLocation(21, 6)
         );
     }
 
@@ -1441,12 +1508,12 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(20,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '13' instead.
+            // Program.cs(20,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '12' and character '13'?
             //     [InterceptsLocation("Program.cs", 12, 11)] // intercept spaces before 'InterceptableMethod' token
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 11)").WithArguments("InterceptableMethod", "13").WithLocation(20, 6),
-            // Program.cs(21,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 11)").WithArguments("InterceptableMethod", "12", "13").WithLocation(20, 6),
+            // Program.cs(21,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '14' and character '11'?
             //     [InterceptsLocation("Program.cs", 14, 33)] // intercept spaces after 'InterceptableMethod' token
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 33)").WithArguments("InterceptableMethod", "11").WithLocation(21, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 14, 33)").WithArguments("InterceptableMethod", "14", "11").WithLocation(21, 6)
         );
     }
 
@@ -1480,13 +1547,13 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(17,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '11' instead.
+            // Program.cs(17,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '11' and character '11'?
             //     [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
-            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 31)").WithArguments("InterceptableMethod", "11").WithLocation(17, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 11, 31)").WithArguments("InterceptableMethod", "11", "11").WithLocation(17, 6)
             );
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "PROTOTYPE(ic): diagnostic message differs depending on the size of line endings")]
+    [Fact]
     public void InterceptsLocationBadPosition_07()
     {
         var source = """
@@ -1519,9 +1586,62 @@ public class InterceptorsTests : CSharpTestBase
         // PROTOTYPE(ic): the character suggested here is wrong. What should we do to give a useful diagnostic here?
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(19,6): error CS27010: The provided character number does not refer to the start of method name token 'InterceptableMethod'. Consider using character number '37' instead.
+                // Program.cs(19,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '13' and character '13'?
                 //     [InterceptsLocation("Program.cs", 12, 13)] // intercept comment above 'InterceptableMethod' token
-                Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 13)").WithArguments("InterceptableMethod", "37").WithLocation(19, 6)
+                Diagnostic(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, @"InterceptsLocation(""Program.cs"", 12, 13)").WithArguments("InterceptableMethod", "13", "13").WithLocation(19, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptsLocationBadPosition_08()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C { }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+
+                [Interceptable]
+                public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
+
+                [InterceptsLocation("Program.cs", -1, 1)] // 1
+                [InterceptsLocation("Program.cs", 1, -1)] // 2
+                [InterceptsLocation("Program.cs", -1, -1)] // 3
+                [InterceptsLocation("Program.cs", 0, 1)] // 4
+                [InterceptsLocation("Program.cs", 1, 0)] // 5 
+                [InterceptsLocation("Program.cs", 0, 0)] // 6
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,39): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", -1, 1)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "-1").WithLocation(17, 39),
+            // Program.cs(18,42): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", 1, -1)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "-1").WithLocation(18, 42),
+            // Program.cs(19,39): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", -1, -1)] // 3
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "-1").WithLocation(19, 39),
+            // Program.cs(20,39): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", 0, 1)] // 4
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "0").WithLocation(20, 39),
+            // Program.cs(21,42): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", 1, 0)] // 5 
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "0").WithLocation(21, 42),
+            // Program.cs(22,39): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
+            //     [InterceptsLocation("Program.cs", 0, 0)] // 6
+            Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "0").WithLocation(22, 39)
             );
     }
 
@@ -2315,8 +2435,8 @@ partial struct CustomHandler
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // OtherFile.cs(48,6): error CS27002: Cannot intercept: compilation does not contain a file with path 'OtherFile.cs'.
+            // OtherFile.cs(48,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'OtherFile.cs'.
             //     [InterceptsLocation("OtherFile.cs", 42, 9)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"InterceptsLocation(""OtherFile.cs"", 42, 9)").WithArguments("OtherFile.cs").WithLocation(48, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""OtherFile.cs""").WithArguments("OtherFile.cs").WithLocation(48, 25));
     }
 }

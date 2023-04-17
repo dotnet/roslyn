@@ -867,6 +867,11 @@
         <target state="new">Interceptor cannot have a 'null' file path.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="new">Line and character numbers provided to InterceptsLocationAttribute must be positive.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineOutOfRange">
         <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
         <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
@@ -888,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
-        <source>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</source>
-        <target state="new">The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</target>
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="new">The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorNameNotInvoked">
