@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal sealed class RecoverableTextAndVersion : ITextVersionable, ITextAndVersionSource
+    internal sealed class RecoverableTextAndVersion : ITextAndVersionSource
     {
         private readonly SolutionServices _services;
 
@@ -57,11 +57,9 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
         {
             if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
-            {
                 return source.TryGetValue(options, out value);
-            }
 
-            if (recoverableText.TryGetValue(out var text) && recoverableText.LoadTextOptions == options)
+            if (recoverableText.LoadTextOptions == options && recoverableText.TryGetValue(out var text))
             {
                 value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
                 return true;
@@ -73,14 +71,12 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
         {
-            if (_initialSourceOrRecoverableText is ITextVersionable textVersionable)
-            {
-                return textVersionable.TryGetTextVersion(options, out version);
-            }
+            if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
+                return source.TryGetTextVersion(options, out version);
 
-            if (TryGetValue(options, out var textAndVersion))
+            if (recoverableText.LoadTextOptions == options)
             {
-                version = textAndVersion.Version;
+                version = recoverableText.Version;
                 return true;
             }
 
@@ -143,7 +139,7 @@ namespace Microsoft.CodeAnalysis
             return recoverableText.Version;
         }
 
-        private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>, ITextVersionable
+        private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>
         {
             private readonly ITemporaryStorageServiceInternal _storageService;
             public readonly VersionStamp Version;

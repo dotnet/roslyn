@@ -115,21 +115,17 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            if (this.TextAndVersionSource is ITextVersionable versionable)
-            {
-                return versionable.TryGetTextVersion(LoadTextOptions, out version);
-            }
+            if (this.TextAndVersionSource.TryGetTextVersion(LoadTextOptions, out version))
+                return true;
 
             if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
             {
                 version = textAndVersion.Version;
                 return true;
             }
-            else
-            {
-                version = default;
-                return false;
-            }
+
+            version = default;
+            return false;
         }
 
         public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
