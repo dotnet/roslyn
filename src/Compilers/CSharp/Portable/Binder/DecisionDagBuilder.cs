@@ -712,21 +712,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledDictionary<DagState, DagState> uniqueState = s_uniqueStatePool.Allocate();
 
             // Build the state machine underlying the decision dag
-            var decisionDag = MakeDecisionDag(ref cases, uniqueState);
-
-            // Compute the bound decision dag corresponding to each node of decisionDag, and store
-            // it in node.Dag.
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
+            DecisionDag decisionDag = MakeDecisionDag(ref cases, uniqueState);
 
             // Note: It is useful for debugging the dag state table construction to set a breakpoint
             // here and view `decisionDag.Dump()`.
             ;
 
+            // Compute the bound decision dag corresponding to each node of decisionDag, and store
+            // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 
             // Now go and clean up all the dag states we created
