@@ -217,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var syntax = GetSyntax();
-                var location = locations[0];
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.Type.IsValidExtensionParameterType())
@@ -230,15 +229,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter0RefKind == RefKind.Ref && !parameter0Type.Type.IsValueType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
                 else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
+                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, _location, ContainingType.Name);
                 }
                 else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
                 {
@@ -251,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (!IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, _location);
                 }
                 else
                 {
