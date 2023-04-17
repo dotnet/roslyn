@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// is performed only after testing that the value is of that type).
     /// </para>
     /// <para>
-    /// In order to build this automaton, we start (in <see cref="MakeBoundDecisionDag"/> by computing a description of
+    /// In order to build this automaton, we start (in <see cref="MakeBoundDecisionDag"/>) by computing a description of
     /// the initial state in a <see cref="DagState"/>, and then for each such state description we decide what the test
     /// or evaluation will be at that state, and compute the successor state descriptions. A state description
     /// represented by a <see cref="DagState"/> is a collection of partially matched cases represented by <see
