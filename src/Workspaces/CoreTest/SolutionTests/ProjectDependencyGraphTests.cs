@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region Dependency Sets
 
-        [Fact, WorkItem(542438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
         public void TestGetDependencySets()
         {
             VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A C:A D E:D F:D"), "ABC DEF");

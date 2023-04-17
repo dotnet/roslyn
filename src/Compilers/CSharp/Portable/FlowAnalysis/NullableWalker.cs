@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
-                        var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
+                        var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.TryGetFirstLocation();
                         bool constructorEnforcesRequiredMembers = method.ShouldCheckRequiredMembers();
 
                         // Required properties can be attributed MemberNotNull, indicating that if the property is set, the field will be set as well.
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
                     var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
-                    Diagnostics.Add(info, exitLocation ?? symbol.Locations.FirstOrNone());
+                    Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }
 
@@ -2072,6 +2072,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
+            // Primary constructor parameter and its backing field share the slot when
+            // we are dealing with 'this' instance.
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
+                primaryConstructor.GetCapturedParameters().TryGetValue(parameter, out FieldSymbol? field))
+            {
+                Debug.Assert(containingSlot == 0);
+
+                var enclosingMemberMethod = _symbol as MethodSymbol;
+
+                while (enclosingMemberMethod?.MethodKind is MethodKind.AnonymousFunction or MethodKind.LocalFunction)
+                {
+                    enclosingMemberMethod = enclosingMemberMethod.ContainingSymbol as MethodSymbol;
+                }
+
+                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol methodThisParameter) == true &&
+                    methodThisParameter?.ContainingSymbol.ContainingSymbol == (object)primaryConstructor.ContainingSymbol &&
+                    GetOrCreateSlot(methodThisParameter) is >= 0 and var thisSlot)
+                {
+                    symbol = field;
+                    containingSlot = thisSlot;
+                }
+            }
+
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
 
@@ -2619,6 +2642,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetSlot > 0);
 
+#if DEBUG
+            var actualType = _variables[targetSlot].Symbol.GetTypeOrReturnType().Type;
+            Debug.Assert(actualType is { });
+
+            if (!actualType.ContainsErrorType() &&
+                !targetType.ContainsErrorType())
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var conversionsWithoutNullability = _conversions.WithNullability(false);
+                var conversion = conversionsWithoutNullability.ClassifyImplicitConversionFromType(actualType, targetType, ref discardedUseSiteInfo);
+                Debug.Assert(conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
+            }
+#endif
+
             // Reset the state of any members of the target.
             var members = ArrayBuilder<(VariableIdentifier, int)>.GetInstance();
             _variables.GetMembers(members, targetSlot);
@@ -2676,11 +2713,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (methodSymbol is SynthesizedRecordConstructor)
+            if (methodSymbol is SynthesizedPrimaryConstructor)
             {
                 if (_hasInitialState)
                 {
-                    // A record primary constructor's parameters are entered before analyzing initializers.
+                    // Primary constructor's parameters are entered before analyzing initializers.
                     // On the second pass, the correct parameter states (potentially modified by initializers)
                     // are contained in the initial state.
                     return;
@@ -5082,12 +5119,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
+
+            // If we are assigning to a nullable value type variable, set the top-level state of
+            // the LHS first, then change the slot to the Value property of the LHS to simulate
+            // assignment of the RHS and update the nullable state of the underlying value type.
             if (node.IsNullableValueTypeAssignment)
             {
+                Debug.Assert(targetType.Type.ContainsErrorType() ||
+                    node.Type?.ContainsErrorType() == true ||
+                    TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
+                if (leftSlot > 0)
+                {
+                    SetState(ref this.State, leftSlot, NullableFlowState.NotNull);
+                    leftSlot = GetNullableOfTValueSlot(targetType.Type, leftSlot, out _);
+                }
                 targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
+
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
+            Debug.Assert(TypeSymbol.Equals(targetType.Type, rightResult.Type, TypeCompareKind.AllIgnoreOptions));
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
+
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
@@ -5591,8 +5643,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             bool isReachable)
         {
-            var savedState = this.State;
-            this.State = state;
+            var savedState = PossiblyConditionalState.Create(this);
+            this.SetState(state);
 
             bool previousDisabledDiagnostics = _disableDiagnostics;
             // If the node is not reachable, then we're only visiting to get
@@ -5621,7 +5673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = default;
                 _disableDiagnostics = previousDisabledDiagnostics;
             }
-            this.State = savedState;
+            this.SetPossiblyConditionalState(in savedState);
 
             return resultType;
         }
@@ -6213,16 +6265,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentNoConversion = argumentsNoConversions[i];
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
-                        if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
-                        {
-                            Debug.Assert(node.HasErrors);
-                            Debug.Assert((object)argument == argumentNoConversion);
-                            // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                            // This lambda doesn't have a conversion, so we need to visit it here.
-                            VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
-                            continue;
-                        }
-
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
                         if (parameter is null)
@@ -6230,10 +6272,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If this assert fails, we are missing necessary info to visit the
                             // conversion of a target typed construct.
                             Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true);
-
-                            // If this assert fails, it means we failed to visit a lambda for error recovery above.
-                            Debug.Assert(argumentNoConversion is not BoundLambda);
-
                             continue;
                         }
 
@@ -6742,7 +6780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
-                        else if (argument is BoundDiscardExpression discard)
+                        else if (argument is BoundDiscardExpression discard && discard.IsInferred)
                         {
                             SetAnalyzedNullability(discard, new VisitResult(parameterWithState, parameterWithState.ToTypeWithAnnotations(compilation)), isLvalue: true);
                         }
@@ -7579,7 +7617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
                 if (!_disableDiagnostics)
                 {
-                    var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
+                    var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.TryGetFirstLocation() ?? location, node.Syntax.Location);
                     tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
                                               typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
                 }
@@ -7911,7 +7949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
-            Location? diagnosticLocationOpt = null,
+            Location? diagnosticLocation = null,
             ArrayBuilder<VisitResult>? previousArgumentConversionResults = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
@@ -7948,7 +7986,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
             bool isSuppressed = false;
-            diagnosticLocationOpt ??= (conversionOpt ?? conversionOperand).Syntax.GetLocation();
 
             if (conversionOperand.IsSuppressed == true)
             {
@@ -7976,7 +8013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (reportRemainingWarnings && invokeSignature != null)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method, conversion.IsExtensionMethod);
+                            ReportNullabilityMismatchWithTargetDelegate(getDiagnosticLocation(), targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
                     }
                     resultState = NullableFlowState.NotNull;
@@ -7998,7 +8035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitLambda(lambda, delegateType, stateForLambda);
                         if (reportRemainingWarnings && delegateType is not null)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda);
+                            ReportNullabilityMismatchWithTargetDelegate(getDiagnosticLocation(), delegateType, lambda);
                         }
 
                         TrackAnalyzedNullabilityThroughConversionGroup(targetTypeWithNullability.ToTypeWithState(), conversionOpt, conversionOperand);
@@ -8029,7 +8066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
-                    return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, parameterOpt, reportTopLevelWarnings, reportRemainingWarnings, diagnosticLocationOpt);
+                    return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, parameterOpt, reportTopLevelWarnings, reportRemainingWarnings, getDiagnosticLocation());
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -8045,7 +8082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!operandType.IsNotNull && reportRemainingWarnings)
                         {
-                            ReportDiagnostic(ErrorCode.WRN_UnboxPossibleNull, diagnosticLocationOpt);
+                            ReportDiagnostic(ErrorCode.WRN_UnboxPossibleNull, getDiagnosticLocation());
                         }
 
                         LearnFromNonNullTest(conversionOperand, ref State);
@@ -8139,7 +8176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
                         if (reportTopLevelWarnings && operandType.MayBeNull)
                         {
-                            ReportDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, diagnosticLocationOpt);
+                            ReportDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, getDiagnosticLocation());
                         }
 
                         // Mark the value as not nullable, regardless of whether it was known to be nullable,
@@ -8205,17 +8242,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability, resultType, useLegacyWarnings, assignmentKind, parameterOpt, diagnosticLocationOpt);
+                    ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability, resultType, useLegacyWarnings, assignmentKind, parameterOpt, getDiagnosticLocation());
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(diagnosticLocationOpt, operandType.Type, parameterOpt, targetType, forOutput: false);
+                        ReportNullabilityMismatchInArgument(getDiagnosticLocation(), operandType.Type, parameterOpt, targetType, forOutput: false);
                     }
                     else
                     {
-                        ReportNullabilityMismatchInAssignment(diagnosticLocationOpt, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        ReportNullabilityMismatchInAssignment(getDiagnosticLocation(), GetTypeAsDiagnosticArgument(operandType.Type), targetType);
                     }
                 }
             }
@@ -8223,6 +8260,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TrackAnalyzedNullabilityThroughConversionGroup(resultType, conversionOpt, conversionOperand);
 
             return resultType;
+
+            // Avoid realizing the diagnostic location until needed.
+            Location getDiagnosticLocation()
+            {
+                diagnosticLocation ??= (conversionOpt ?? conversionOperand).Syntax.GetLocation();
+                return diagnosticLocation;
+            }
 
 #nullable enable
             static TypeWithState calculateResultType(TypeWithAnnotations targetTypeWithNullability, bool fromExplicitCast, NullableFlowState resultState, bool isSuppressed, TypeSymbol targetType)
@@ -8434,7 +8478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            Debug.Assert(!IsConditionalState);
+            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
+            // Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
@@ -8465,7 +8510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterOpt,
                 reportTopLevelWarnings,
                 reportRemainingWarnings,
-                diagnosticLocationOpt: diagnosticLocation);
+                diagnosticLocation: diagnosticLocation);
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -8678,7 +8723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterOpt,
                 reportTopLevelWarnings: reportWarnings,
                 reportRemainingWarnings: !fromExplicitCast && reportWarnings,
-                diagnosticLocationOpt: diagnosticLocation);
+                diagnosticLocation: diagnosticLocation);
         }
 
         public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -8942,7 +8987,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
+            // but in erroneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
+            if (!node.InAnonymousFunctionConversion)
+            {
+                VisitLambda(node, delegateTypeOpt: null);
+            }
+
             // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
@@ -10205,7 +10256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
-                                diagnosticLocationOpt: variableLocation);
+                                diagnosticLocation: variableLocation);
                         }
 
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
@@ -10934,15 +10985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-
-            if (node.Value is BoundLambda lambda)
-            {
-                // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                // This lambda doesn't have a conversion, so we need to visit it here.
-                Debug.Assert(node.HasAnyErrors);
-                VisitLambda(lambda, delegateTypeOpt: null);
-            }
-
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }
@@ -11026,7 +11068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type);
+            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;
@@ -11516,15 +11558,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return NullableFlowState.NotNull;
                 }
+
                 Debug.Assert(index < Capacity);
                 index *= 2;
+                Debug.Assert((_state[index], _state[index + 1]) != (false, false));
+
                 var result = (_state[index], _state[index + 1]) switch
                 {
-                    (false, false) => throw ExceptionUtilities.Unreachable(),
+                    (false, false) => NullableFlowState.NotNull, // Should not be reachable
                     (true, false) => NullableFlowState.MaybeNull,
                     (false, true) => NullableFlowState.MaybeDefault,
                     (true, true) => NullableFlowState.NotNull
                 };
+
                 return result;
             }
 
@@ -11602,7 +11648,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 1; i < Capacity; i++)
                 {
-                    var oldValue = GetValue(i);
+                    // An unreachable state may contain uninitialized `(false, false)` values,
+                    // but it can be turned into a reachable state during a join (see above).
+                    // During that process we can't call GetValue on it.
+                    var oldValue = oldReachable ? GetValue(i) : NullableFlowState.NotNull;
                     var newValue = oldValue.Join(other.GetValue(i));
                     SetValue(i, newValue);
                     hasChanged |= (oldValue != newValue);

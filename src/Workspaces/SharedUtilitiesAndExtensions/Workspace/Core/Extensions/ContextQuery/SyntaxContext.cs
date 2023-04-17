@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAtStartOfPattern { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsAwaitKeywordContext { get; }
+        public bool IsEnumBaseListContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsGenericConstraintContext { get; }
         public bool IsGlobalStatementContext { get; }
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAtStartOfPattern,
             bool isAttributeNameContext,
             bool isAwaitKeywordContext,
+            bool isEnumBaseListContext,
             bool isEnumTypeMemberAccessContext,
             bool isGenericConstraintContext,
             bool isGlobalStatementContext,
@@ -96,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsAtStartOfPattern = isAtStartOfPattern;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsAwaitKeywordContext = isAwaitKeywordContext;
+            this.IsEnumBaseListContext = isEnumBaseListContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
             this.IsGenericConstraintContext = isGenericConstraintContext;
             this.IsGlobalStatementContext = isGlobalStatementContext;

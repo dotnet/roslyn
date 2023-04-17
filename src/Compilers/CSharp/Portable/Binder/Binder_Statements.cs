@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckRequiredLangVersionForIteratorMethods(YieldStatementSyntax statement, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureIterators.CheckFeatureAvailability(diagnostics, statement, statement.YieldKeyword.GetLocation());
+            MessageID.IDS_FeatureIterators.CheckFeatureAvailability(diagnostics, statement.YieldKeyword);
 
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(
                     diagnostics,
                     method.DeclaringCompilation,
-                    method.Locations[0]);
+                    method.GetFirstLocation());
             }
         }
 
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node, node.Identifier.GetLocation());
+            MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -576,13 +576,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (!hasErrors && (!localSymbol.IsExtern || !localSymbol.IsStatic))
             {
                 hasErrors = true;
-                diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
+                diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.GetFirstLocation(), localSymbol);
             }
 
             if (!hasErrors && (blockBody != null || expressionBody != null) && localSymbol.IsExtern)
             {
                 hasErrors = true;
-                diagnostics.Add(ErrorCode.ERR_ExternHasBody, localSymbol.Locations[0], localSymbol);
+                diagnostics.Add(ErrorCode.ERR_ExternHasBody, localSymbol.GetFirstLocation(), localSymbol);
             }
 
             Debug.Assert(blockBody != null || expressionBody != null || (localSymbol.IsExtern && localSymbol.IsStatic) || hasErrors);
@@ -595,9 +595,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var modifier in node.Modifiers)
             {
                 if (modifier.IsKind(SyntaxKind.StaticKeyword))
-                    MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                    MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, modifier);
                 else if (modifier.IsKind(SyntaxKind.ExternKeyword))
-                    MessageID.IDS_FeatureExternLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                    MessageID.IDS_FeatureExternLocalFunctions.CheckFeatureAvailability(diagnostics, modifier);
             }
 
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                            blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.GetFirstLocation(), localSymbol);
                         }
                     }
                 }
@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
             if (isRef)
-                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right.GetFirstToken());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
@@ -1889,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
+                instrumentation: null,
                 boundStatements);
         }
 
@@ -3246,7 +3247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
+            MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter.WhenKeyword);
 
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValueOpt != ConstantValue.NotAvailable)
@@ -3458,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
             };
 
-            messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
+            messageId?.CheckFeatureAvailability(diagnostics, expressionBody.ArrowToken);
 
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
@@ -3518,8 +3519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
-                case RecordDeclarationSyntax recordDecl:
-                    return BindRecordConstructorBody(recordDecl, diagnostics);
+                case TypeDeclarationSyntax typeDecl:
+                    return BindPrimaryConstructorBody(typeDecl, diagnostics);
 
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
@@ -3572,14 +3573,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
-        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
+        private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(recordDecl.ParameterList is object);
-            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
+            Debug.Assert(typeDecl.ParameterList is object);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;
-            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (typeDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 Binder initializerBinder = GetBinder(baseWithArguments);
                 Debug.Assert(initializerBinder != null);
@@ -3588,14 +3589,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(typeDecl, diagnostics);
                 constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
-            return new BoundConstructorMethodBody(recordDecl,
+            return new BoundConstructorMethodBody(typeDecl,
                                                   constructorLocals,
                                                   initializer,
-                                                  blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
+                                                  blockBody: new BoundBlock(typeDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
         }
 
@@ -3620,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
                 if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
@@ -3635,7 +3636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isDefaultValueTypeInitializer &&
                 isInstanceConstructor(out _) &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
@@ -3650,8 +3651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
 
-            bool hasRecordPrimaryConstructor() =>
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
+            bool hasPrimaryConstructor() =>
+                ContainingType is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true };
 
             bool isInstanceConstructor(out MethodSymbol constructorSymbol)
             {
@@ -3712,7 +3713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+            Debug.Assert(sourceConstructor?.SyntaxNode is TypeDeclarationSyntax
                 || ((ConstructorDeclarationSyntax?)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
@@ -3767,9 +3768,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax recordDecl)
+                if (containerNode is TypeDeclarationSyntax typeDecl)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                 }
                 else
                 {
@@ -3791,8 +3792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
                         break;
 
-                    case RecordDeclarationSyntax recordDecl:
-                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    case TypeDeclarationSyntax typeDecl:
+                        outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                         break;
 
                     default:
@@ -3817,7 +3818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol? baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
-            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
+            Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
             foreach (MethodSymbol ctor in baseType.InstanceConstructors)
             {
@@ -3877,7 +3878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol containingType = constructor.ContainingType;
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+            Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
             MethodSymbol? baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);

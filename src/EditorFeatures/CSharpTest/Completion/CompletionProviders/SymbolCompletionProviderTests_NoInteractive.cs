@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task GlobalStatement1()
             => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
-        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task GlobalStatement2()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -316,7 +316,7 @@ class C { void M() { B.$$ } }
             await VerifyItemExistsAsync(code, "Y");
         }
 
-        [Fact, WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
         public async Task TestDescriptionWhenDocumentLengthChanges()
         {
             var code = @"using System;

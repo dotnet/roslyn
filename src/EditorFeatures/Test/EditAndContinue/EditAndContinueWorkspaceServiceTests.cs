@@ -1617,7 +1617,7 @@ class C { int Y => 2; }
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[]
                 {
-                    "ENC0038: " + FeaturesResources.Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application,
+                    "ENC0036: " + FeaturesResources.Modifying_a_generic_method_requires_restarting_the_application,
                     "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter)
                 },
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
@@ -1645,7 +1645,7 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=38|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=36|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1655,7 +1655,7 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=38|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=36|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -2071,8 +2071,8 @@ class C { int Y => 2; }
             Assert.Equal(1, generatorExecutionCount);
         }
 
-        [Fact, WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
-        [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
             var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
@@ -2252,7 +2252,7 @@ class C { int Y => 2; }
             }, _telemetryLog);
         }
 
-        [Fact, WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56431")]
         public async Task Capabilities_NoTypesEmitted()
         {
             var sourceV1 = @"
@@ -3748,7 +3748,7 @@ class C { int Y => 1; }
             Assert.Empty(baseSpans.Single());
         }
 
-        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24320")]
         public async Task ActiveStatements_LinkedDocuments()
         {
             var markedSources = new[]
@@ -4024,7 +4024,7 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact, WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
@@ -4126,7 +4126,7 @@ class C
         ///    version executes.
         /// 3) Break and apply EnC edit. This edit is to F v3 (Hot Reload) of the method. We will produce remapping F v3 -> v4.
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
         {
             var markedSourceV1 =
@@ -4374,7 +4374,7 @@ class C
         /// - edit and apply edit that deletes non-leaf active statement
         /// - break
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakAfterRunModeChangeDeletesNonLeafActiveStatement()
         {
             var markedSource1 =

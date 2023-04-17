@@ -207,7 +207,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact]
         public void NestedIdenticalTags()
         {
@@ -222,7 +222,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact]
         public void MultipleNestedIdenticalTags()
         {
@@ -237,7 +237,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
         [WpfFact]
         public void SlashNotIfCloseTagFollows()
         {

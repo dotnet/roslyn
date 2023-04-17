@@ -513,10 +513,12 @@ namespace Roslyn.Utilities
             return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
+#if !NET7_0_OR_GREATER
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
         {
             return source.OrderBy(Comparisons<T>.Comparer);
         }
+#endif
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
         {
@@ -662,7 +664,7 @@ namespace Roslyn.Utilities
         }
 #nullable enable
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToMultiDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
             var dictionary = new Dictionary<K, ImmutableArray<T>>(comparer);

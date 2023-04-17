@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return new AsyncLazy<TreeAndVersion>(
                     cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
-                    cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
-                    cacheResult: true);
+                    cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken));
             }
 
             static bool TryReuseSiblingRoot(

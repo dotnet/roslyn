@@ -561,14 +561,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
+                // Help out in the case where a user is converting a switch statement to a switch expression. Note:
+                // `default(...)` and `default` will also be consumed as a legal syntactic patterns (though the latter
+                // will fail during binding).  So if the user has `default:` we will recover fine as we handle the
+                // errant colon below.
+                var errantCase = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
+                    ? AddError(this.EatToken(), ErrorCode.ERR_BadCaseInSwitchArm)
+                    : null;
+
+                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
+                if (errantCase != null)
+                    pattern = AddLeadingSkippedSyntax(pattern, errantCase);
+
                 // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
                 // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
+
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(
-                    ParsePattern(Precedence.Coalescing, whenIsKeyword: true),
+                    pattern,
                     ParseWhenClause(Precedence.Coalescing),
-                    this.EatToken(SyntaxKind.EqualsGreaterThanToken),
+                    // Help out in the case where a user is converting a switch statement to a switch expression.
+                    // Consume the `:` as a `=>` and report an error.
+                    this.CurrentToken.Kind == SyntaxKind.ColonToken
+                        ? this.EatTokenAsKind(SyntaxKind.EqualsGreaterThanToken)
+                        : this.EatToken(SyntaxKind.EqualsGreaterThanToken),
                     ParseExpressionCore());
 
                 // If we're not making progress, abort
@@ -585,9 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
-            _pool.Free(arms);
-            return result;
+            return _pool.ToListAndFree(arms);
         }
 
         private ListPatternSyntax ParseListPattern(bool whenIsKeyword)

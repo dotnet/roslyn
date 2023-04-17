@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly Func<string, Optional<T>> _parseValue;
         private readonly Func<T, string> _serializeValue;
+
+        private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = new();
 
         public EditorConfigValueSerializer(
             Func<string, Optional<T>> parseValue,
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         internal bool TryParseValue(string value, [MaybeNullWhen(false)] out T result)
         {
-            var optionalValue = _parseValue(value);
+            var optionalValue = _cachedValues.GetOrAdd(value, _parseValue);
             if (optionalValue.HasValue)
             {
                 result = optionalValue.Value;

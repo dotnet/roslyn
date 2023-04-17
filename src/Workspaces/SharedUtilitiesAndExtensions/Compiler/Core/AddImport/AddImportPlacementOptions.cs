@@ -49,13 +49,13 @@ internal interface AddImportPlacementOptionsProvider
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, LanguageServices languageServices)
-        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions, fallbackOptions);
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
+        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions, fallbackOptions);
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportPlacementOptions(document.AllowImportsInHiddenRegions(), fallbackOptions, document.Project.Services);
+        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
     }
 
     // Normally we don't allow generation into a hidden region in the file.  However, if we have a

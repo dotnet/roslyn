@@ -21,36 +21,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToAsync
         public async Task CantAwaitAsyncVoid()
         {
             var initial =
-@"using System.Threading.Tasks;
+                """
+                using System.Threading.Tasks;
 
-class Program
-{
-    async Task rtrt()
-    {
-        {|CS4008:await gt()|};
-    }
+                class Program
+                {
+                    async Task rtrt()
+                    {
+                        {|CS4008:await gt()|};
+                    }
 
-    async void gt()
-    {
-    }
-}";
+                    async void gt()
+                    {
+                    }
+                }
+                """;
 
             var expected =
-@"using System.Threading.Tasks;
+                """
+                using System.Threading.Tasks;
 
-class Program
-{
-    async Task rtrt()
-    {
-        await gt();
-    }
+                class Program
+                {
+                    async Task rtrt()
+                    {
+                        await gt();
+                    }
 
-    async 
-    Task
-gt()
-    {
-    }
-}";
+                    async 
+                    Task
+                gt()
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
     }
