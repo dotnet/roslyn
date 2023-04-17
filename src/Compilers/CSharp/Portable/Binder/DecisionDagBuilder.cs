@@ -1792,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < index; i++)
                     builder.Add(this[i]);
 
-                for (int i = index + 1, n = this.Count ; i < n; i++)
+                for (int i = index + 1, n = this.Count; i < n; i++)
                     builder.Add(this[i]);
 
                 return AsFrozen(builder);
