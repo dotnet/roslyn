@@ -889,7 +889,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        state.FalseBranch = uniquifyState(state.Cases.RemoveAt(0), state.RemainingValues);
+                        // There is a when clause to evaluate.
+                        // In case the when clause fails, we prepare for the remaining cases.
+                        var stateWhenFails = state.Cases.RemoveAt(0);
+                        state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
                     }
                 }
                 else
