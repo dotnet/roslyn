@@ -2261,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factoryArgument: (attributeLocation, interceptor));
         }
 
-        internal (Location AttributeLocation, MethodSymbol Interceptor)? GetInterceptor(Location? callLocation)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {
             if (_interceptions is null || callLocation is null)
             {

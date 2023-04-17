@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1710,7 +1711,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void SignatureMismatch_06()
+    public void ScopedMismatch_01()
     {
         // Unsafe 'scoped' difference
         var source = """
@@ -1746,7 +1747,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void SignatureMismatch_07()
+    public void ScopedMismatch_02()
     {
         // safe 'scoped' difference
         var source = """
@@ -1783,7 +1784,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void SignatureMismatch_08()
+    public void ScopedMismatch_03()
     {
         // safe '[UnscopedRef]' difference
         var source = """
@@ -1811,7 +1812,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static ref int Interceptor1(out int value) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRef.cs") }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(out int)' with 'D.Interceptor1(out int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
             //     [InterceptsLocation("Program.cs", 15, 11)] // 1
@@ -1820,7 +1821,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void SignatureMismatch_09()
+    public void ScopedMismatch_04()
     {
         // unsafe '[UnscopedRef]' difference
         var source = """
@@ -1838,8 +1839,7 @@ public class InterceptorsTests : CSharpTestBase
             {
                 public static void Main()
                 {
-                    int i = 0;
-                    C.InterceptableMethod(ref i);
+                    C.InterceptableMethod(out int i);
                 }
             }
 
@@ -1849,12 +1849,255 @@ public class InterceptorsTests : CSharpTestBase
                 public static ref int Interceptor1([UnscopedRef] out int value) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(ref int)' with 'D.Interceptor1(scoped ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(out int)' with 'D.Interceptor1(out int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
             //     [InterceptsLocation("Program.cs", 15, 11)] // 1
-            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(ref int)", "D.Interceptor1(scoped ref int)").WithLocation(21, 6)
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(out int)", "D.Interceptor1(out int)").WithLocation(21, 6)
             );
+    }
+
+    [Fact]
+    public void ReferenceEquals_01()
+    {
+        // A call to 'object.ReferenceEquals(a, b)' is defined as being equivalent to '(object)a == b'.
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [Interceptable]
+                public static bool Interceptable(object? obj1, object? obj2) => throw null!;
+
+                public static void M0(object? obj1, object? obj2)
+                {
+                    if (obj1 == obj2)
+                       throw null!;
+                }
+
+                public static void M1(object? obj1, object? obj2)
+                {
+                    if (Interceptable(obj1, obj2))
+                       throw null!;
+                }
+
+                public static void M2(object? obj1, object? obj2)
+                {
+                    if (Interceptable(obj1, obj2))
+                       throw null!;
+                }
+            }
+
+            namespace System
+            {
+                public class Object
+                {
+                    [InterceptsLocation("Program.cs", 16, 13)]
+                    public static bool ReferenceEquals(object? obj1, object? obj2) => throw null!;
+
+                    [InterceptsLocation("Program.cs", 22, 13)]
+                    public static bool NotReferenceEquals(object? obj1, object? obj2) => throw null!;
+                }
+            
+                public class Void { }
+                public struct Boolean { }
+                public class String { }
+                public class Attribute { }
+                public abstract class Enum { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets targets) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Exception { }
+                public abstract class ValueType { }
+                public struct Int32 { }
+                public struct Byte { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class InterceptableAttribute : Attribute { }
+
+                public sealed class InterceptsLocationAttribute : Attribute
+                {
+                    public InterceptsLocationAttribute(string filePath, int line, int column)
+                    {
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), options: WithNullableEnable()), verify: Verification.Skipped);
+        verifier.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+        var referenceEqualsCallIL = """
+            {
+              // Code size        7 (0x7)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  bne.un.s   IL_0006
+              IL_0004:  ldnull
+              IL_0005:  throw
+              IL_0006:  ret
+            }
+            """;
+        verifier.VerifyIL("D.M0", referenceEqualsCallIL);
+        verifier.VerifyIL("D.M1", referenceEqualsCallIL);
+
+        verifier.VerifyIL("D.M2", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "bool object.NotReferenceEquals(object, object)"
+              IL_0007:  brfalse.s  IL_000b
+              IL_0009:  ldnull
+              IL_000a:  throw
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ParamsMismatch_01()
+    {
+        // Test when interceptable method has 'params' parameter.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod(params int[] value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod(1, 2, 3);
+                    C.InterceptableMethod(4, 5, 6);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static void Interceptor1(int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor2(params int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "123456");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ParamsMismatch_02()
+    {
+        // Test when interceptable method lacks 'params' parameter, and interceptor has one, and method is called as if it has one.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod(int[] value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod(1, 2, 3 ); // 1
+                    C.InterceptableMethod(4, 5, 6); // 2
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static void Interceptor1(int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor2(params int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+                // Program.cs(14,11): error CS1501: No overload for method 'InterceptableMethod' takes 3 arguments
+                //         C.InterceptableMethod(1, 2, 3 ); // 1
+                Diagnostic(ErrorCode.ERR_BadArgCount, "InterceptableMethod").WithArguments("InterceptableMethod", "3").WithLocation(14, 11),
+                // Program.cs(15,11): error CS1501: No overload for method 'InterceptableMethod' takes 3 arguments
+                //         C.InterceptableMethod(4, 5, 6); // 2
+                Diagnostic(ErrorCode.ERR_BadArgCount, "InterceptableMethod").WithArguments("InterceptableMethod", "3").WithLocation(15, 11));
+    }
+
+    [Fact]
+    public void ParamsMismatch_03()
+    {
+        // Test when interceptable method lacks 'params' parameter, and interceptor has one, and method is called in normal form.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod(int[] value) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod(new[] { 1, 2, 3 });
+                    C.InterceptableMethod(new[] { 4, 5, 6 });
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static void Interceptor1(int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor2(params int[] value)
+                {
+                    foreach (var i in value)
+                        Console.Write(i);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "123456");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]

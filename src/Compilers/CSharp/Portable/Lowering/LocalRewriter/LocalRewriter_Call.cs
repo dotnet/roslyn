@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add assertions for the possible shapes of calls which could come through this method.
             // When the BoundCall shape changes in the future, force developer to decide what to do here.
 
-            // PROTOTYPE: perhaps a 'TryGet' pattern is more suitable here.
-            if (this._compilation.GetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
@@ -211,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 },
                 extraArgument: attributeLocation,
                 allowVariance: false,
-                invokedAsExtensionMethod))
+                // Since we've already reduced 'symbolForCompare', we compare as though it is not an extension.
+                invokedAsExtensionMethod: false))
             {
                 return;
             }
@@ -270,15 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Syntax,
                 rewrittenArguments,
                 method,
-                node.Expanded, // PROTOTYPE(ic): params differences shouldn't matter--maybe even make it an error--but we need to test
+                node.Expanded,
                 argsToParamsOpt,
                 ref argRefKindsOpt,
                 ref temps,
                 invokedAsExtensionMethod);
 
             InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref invokedAsExtensionMethod, node.InterceptableLocation);
-
-            // PROTOTYPE(ic): intercept with object.ReferenceEquals?
             var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, invokedAsExtensionMethod, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
             if (Instrument)
