@@ -1769,12 +1769,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _arrayBuilder = arrayBuilder;
             }
 
-            public bool IsDefault => _arrayBuilder is null;
+            public bool IsDefault
+                => _arrayBuilder is null;
 
             public void Free()
-            {
-                _arrayBuilder.Free();
-            }
+                => _arrayBuilder.Free();
 
             public int Count => _arrayBuilder.Count;
 
