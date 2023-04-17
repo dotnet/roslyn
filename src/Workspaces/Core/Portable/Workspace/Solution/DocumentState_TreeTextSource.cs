@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
+            public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
             {
                 version = _version;
                 return version != default;

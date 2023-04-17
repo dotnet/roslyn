@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
+        public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
         {
             if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
-                return source.TryGetTextVersion(options, out version);
+                return source.TryGetVersion(options, out version);
 
             if (recoverableText.LoadTextOptions == options)
             {
