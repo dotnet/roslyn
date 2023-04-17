@@ -466,9 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
             var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics);
-
             type.CheckAllConstraints(boxedArgs);
-
             boxedArgs.Free();
         }
 
@@ -482,7 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
             var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
-
             type.CheckAllConstraints(boxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
             boxedArgs.Free();
