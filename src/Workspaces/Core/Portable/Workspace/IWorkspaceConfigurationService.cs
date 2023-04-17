@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Host
         public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
-            DisableSharedSyntaxTrees: false,,
+            DisableSharedSyntaxTrees: false,
             DeferCreatingRecoverableText: false);
     }
 }
