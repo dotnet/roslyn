@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DecisionDagBuilder
     {
-        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool = PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
+        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool =
+            PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
 
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
