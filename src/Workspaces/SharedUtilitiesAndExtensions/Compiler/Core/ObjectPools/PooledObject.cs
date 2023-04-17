@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis
             => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<List<TItem>> pool, List<TItem> obj)
-            => pool.ClearAndFree(obj);
+            => pool.ClearAndFree(obj, pool.TrimOnFree);
 
         private static SegmentedList<TItem> Allocator<TItem>(ObjectPool<SegmentedList<TItem>> pool)
             => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<SegmentedList<TItem>> pool, SegmentedList<TItem> obj)
-            => pool.ClearAndFree(obj);
+            => pool.ClearAndFree(obj, pool.TrimOnFree);
         #endregion
     }
 }
