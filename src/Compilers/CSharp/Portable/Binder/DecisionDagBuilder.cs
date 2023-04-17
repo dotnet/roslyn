@@ -1771,6 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
+                Debug.Assert(arrayBuilder != null);
                 _arrayBuilder = arrayBuilder;
             }
 
