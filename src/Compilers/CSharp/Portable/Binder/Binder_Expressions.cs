@@ -2054,7 +2054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var declarator = localSymbol.GetDeclaratorSyntax();
 
-                // trivial position check, before more costly tree check (which requires walking up the nodes).
+                // trivial position check, before more costly tree check (which requires walking up the nodes). Most
+                // code is correct, so this check is expected to succeed nearly every time.
                 if (node.SpanStart >= declarator.SpanStart)
                     return false;
 
