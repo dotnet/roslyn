@@ -16,9 +16,6 @@
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
-  <ItemGroup Label="PkgDef">
-    <PkgDefBindingRedirect Include="System.ValueTuple.dll" FusionName="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"/>
-  </ItemGroup>
   <ItemGroup>
     <!--
       Roslyn dependencies that are installed by other VS components. 
@@ -94,23 +91,5 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />
-  </ItemGroup>
-  <!--
-    Workaround to make Roslyn work on Dev15. Deploys System.ValueTuple 4.0.3.0 and binding redirects to override System.ValueTuple 4.0.1.0 in PrivateAssemblies.
-    
-    Roslyn binaries are compiled against net472 and netstandard2.0. They reference ValueTuple types from mscorlib.dll and netstandard.dll, respectively.
-    netstandard.dll forwards to System.ValueTuple.dll 4.0.0.0, which in turn forwards to an implementation in mscorlib.dll.
-    System.ValueTuple.dll 4.0.1.0, which ships in PrivateAssemblies, also has an implementation of ValueTuple types (it does not forward to mscorlib.dll).
-    We need to prevent this assembly from loading since that would result in two different ValueTuple types loaded by different Roslyn components.
-    
-    The binding redirects are specified manually since ProvideDependencyBindingRedirection attribute doesn't generate the right version for some reason.
-    Using System.ValueTuple.dll from Framework directory does not work since we'd need a downgrading redirect 0.0.0.0-4.0.1.0 -> 4.0.0.0, which VS doesn't apply
-    since it already has a redirect 0.0.0.0-4.0.1.0 -> 4.0.1.0.
-    
-    TODO: Remove once we move to Dev16 (https://github.com/dotnet/roslyn/issues/29705)
-  -->
-  <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
-    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
 </Project>
