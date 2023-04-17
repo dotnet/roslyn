@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var containingMethod = this._factory.CurrentFunction;
+            Debug.Assert(containingMethod is not null);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             if (!AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref discardedUseSiteInfo))
             {
