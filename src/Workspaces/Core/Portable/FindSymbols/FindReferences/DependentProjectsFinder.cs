@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -282,8 +283,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            // Defer creating compilation if we can avoid it.
-            Compilation? compilation = null;
+            // Do two passes.  One that attempts to find a result without ever realizing a Compilation, and one that
+            // tries again, but which is willing to create the Compilation if necessary.
+
+            using var _ = ArrayBuilder<(PortableExecutableReference reference, MetadataId metadataId)>.GetInstance(out var uncomputedReferences);
 
             foreach (var reference in project.MetadataReferences)
             {
@@ -298,9 +301,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
                 {
-                    compilation ??= CreateCompilation();
+                    uncomputedReferences.Add((peReference, metadataId));
+                    continue;
+                }
 
-                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol { Name: string metadataAssemblyName })
+                if (name == assemblyName)
+                    return true;
+            }
+
+            if (uncomputedReferences.Count == 0)
+                return false;
+
+            Compilation? compilation = null;
+
+            foreach (var (peReference, metadataId) in uncomputedReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+                {
+                    // Defer creating the compilation till needed.
+                    CreateCompilation(project, ref compilation);
+                    if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
                         name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
                 }
 
@@ -310,20 +332,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return false;
 
-            Compilation CreateCompilation()
+            static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
             {
-                if (compilation == null &&
-                    !project.TryGetCompilation(out compilation))
+                if (compilation != null)
+                    return;
+
+                // Use the project's compilation if it has one.
+                if (!project.TryGetCompilation(out compilation))
                 {
                     // WORKAROUND:
                     // perf check metadata reference using newly created empty compilation with only metadata references.
-                    compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
-                        project.AssemblyName, project.CompilationOptions!);
-
-                    compilation = compilation.AddReferences(project.MetadataReferences);
+                    var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
+                    compilation = factory
+                        .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
+                        .AddReferences(project.MetadataReferences);
                 }
-
-                return compilation;
             }
         }
     }
