@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DagState
         {
-            private static readonly ObjectPool<DagState> s_dagStatePool = new ObjectPool<DagState>(() => new DagState());
+            private static readonly ObjectPool<DagState> s_dagStatePool = new ObjectPool<DagState>(static () => new DagState());
 
             /// <summary>
             /// For each dag temp of a type for which we track such things (the integral types, floating-point types, and bool),
