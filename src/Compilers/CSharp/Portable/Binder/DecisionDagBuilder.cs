@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the initial state in a <see cref="DagState"/>, and then for each such state description we decide what the test
     /// or evaluation will be at that state, and compute the successor state descriptions. A state description
     /// represented by a <see cref="DagState"/> is a collection of partially matched cases represented by <see
-    /// cref="StateForCase"/>, in which some number of the tests have already been performed for each case. When we have
+    /// cref="StateForCase"/>. When we have
     /// computed <see cref="DagState"/> descriptions for all of the states, we create a new <see
     /// cref="BoundDecisionDagNode"/> for each of them, containing the state transitions (including the test to perform
     /// at each node and the successor nodes) but not the state descriptions. A <see cref="BoundDecisionDag"/>
