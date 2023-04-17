@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// for the given document/project. If suppressed, the caller does not need to compute the diagnostics for the given
         /// analyzer. Otherwise, diagnostics need to be computed.
         /// </summary>
-        private DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
+        private (ActiveFileState, DocumentAnalysisData?) TryGetCachedDocumentAnalysisData(
             TextDocument document, StateSet stateSet,
             AnalysisKind kind, VersionStamp version,
             BackgroundAnalysisScope analysisScope,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (existingData.Version == version)
                 {
-                    return existingData;
+                    return (state, existingData);
                 }
 
                 // Check whether analyzer is suppressed for project or document.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 isAnalyzerSuppressed = !DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, existingData, analysisScope, compilerDiagnosticsScope,
                         isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument);
-                return null;
+                return (state, null);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Computes all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer).
         /// </summary>
         private static async Task<DocumentAnalysisData> ComputeDocumentAnalysisDataAsync(
-            DocumentAnalysisExecutor executor, StateSet stateSet, bool logTelemetry, CancellationToken cancellationToken)
+            DocumentAnalysisExecutor executor, DiagnosticAnalyzer analyzer, ActiveFileState state, bool logTelemetry, CancellationToken cancellationToken)
         {
             var kind = executor.AnalysisScope.Kind;
             var document = executor.AnalysisScope.TextDocument;
@@ -139,18 +139,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
 
             var logLevel = logTelemetry ? LogLevel.Information : LogLevel.Trace;
-            using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken, logLevel: logLevel))
+            using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, analyzer, cancellationToken, logLevel: logLevel))
             {
                 try
                 {
-                    var diagnostics = await executor.ComputeDiagnosticsAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
 
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
-                        title, document, stateSet.Analyzer, diagnostics);
+                        title, document, analyzer, diagnostics);
 
                     var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
                     var existingData = state.GetAnalysisData(kind);
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

@@ -563,7 +563,7 @@ class C { }";
             Assert.Single(diagnostics);
             var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
             Assert.Equal(2, programmaticSuppression.Suppressions.Count);
-            var orderedSuppressions = Roslyn.Utilities.EnumerableExtensions.Order(programmaticSuppression.Suppressions).ToImmutableArrayOrEmpty();
+            var orderedSuppressions = programmaticSuppression.Suppressions.Order().ToImmutableArrayOrEmpty();
             Assert.Equal(suppressionId, orderedSuppressions[0].Id);
             Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
             Assert.Equal(suppressionId2, orderedSuppressions[1].Id);

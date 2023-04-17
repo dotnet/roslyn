@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -12,20 +10,17 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        private class Iterator : IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
+        public readonly struct Iterator
         {
             private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
 
             public Iterator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
                 => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
 
-            public IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> GetEnumerator()
-                => new Enumerator(_tokensIncludingZeroWidth);
+            public Enumerator GetEnumerator()
+                => new(_tokensIncludingZeroWidth);
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-                => GetEnumerator();
-
-            private struct Enumerator : IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
+            public struct Enumerator
             {
                 private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
                 private readonly int _maxCount;
@@ -40,10 +35,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                     _index = 0;
                     _current = default;
-                }
-
-                public readonly void Dispose()
-                {
                 }
 
                 public bool MoveNext()
@@ -66,25 +57,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 public readonly (int index, SyntaxToken currentToken, SyntaxToken nextToken) Current => _current;
-
-                readonly object System.Collections.IEnumerator.Current
-                {
-                    get
-                    {
-                        if (_index == 0 || _index == _maxCount + 1)
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-                        return Current;
-                    }
-                }
-
-                void System.Collections.IEnumerator.Reset()
-                {
-                    _index = 0;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
-                }
             }
         }
     }

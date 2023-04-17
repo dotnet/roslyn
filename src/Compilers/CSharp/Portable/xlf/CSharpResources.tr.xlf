@@ -1777,6 +1777,11 @@
         <target state="translated">Bir örnek üye içinde ref, out veya in '{0}' birincil oluşturucu parametresi kullanılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Bir örnek üye içinde ref benzeri türe sahip '{0}' birincil oluşturucu parametresi kullanılamaz</target>
@@ -1900,6 +1905,11 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">çıkarsanan temsilci türü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="new">instance member in 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -11670,11 +11680,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
         <target state="translated">'{0}' öğesi bir '{1}' olduğundan başvuru ile döndürülemez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}' bir '{1}' olduğundan alanları başvuru ile döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

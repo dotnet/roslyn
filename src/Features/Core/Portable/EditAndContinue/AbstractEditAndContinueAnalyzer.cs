@@ -6184,6 +6184,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                    x.Kind switch
                    {
                        TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
+                       TypedConstantKind.Type => TypesEquivalent(x.Value as ITypeSymbol, y.Value as ITypeSymbol, exact: false),
                        _ => object.Equals(x.Value, y.Value)
                    };
 

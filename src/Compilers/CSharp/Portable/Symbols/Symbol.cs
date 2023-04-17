@@ -859,8 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree == tree &&
-                    (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)))
+                if (IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan))
                 {
                     return true;
                 }
@@ -868,6 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        protected static bool IsDefinedInSourceTree(SyntaxReference syntaxRef, SyntaxTree tree, TextSpan? definedWithinSpan)
+            => syntaxRef.SyntaxTree == tree &&
+                (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
         internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
         {
