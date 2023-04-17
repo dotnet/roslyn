@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (capacity <= InlineCapacity)
                 return Empty;
 
-            return new()
+            return new TemporaryArray<T>()
             {
                 _builder = ArrayBuilder<T>.GetInstance(capacity)
             };
