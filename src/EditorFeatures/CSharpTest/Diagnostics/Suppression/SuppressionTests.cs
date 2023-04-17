@@ -460,10 +460,10 @@ class Class
                         SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
                         SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
                     var document = GetDocumentAndSelectSpan(workspace, out var span);
-                    var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
+                    var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                    var allFixes = (await fixService.GetFixesAsync(document, span, CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None))
+                    var allFixes = (await fixService.GetFixesAsync(document, span, CodeActionOptions.DefaultProvider, CancellationToken.None))
                         .SelectMany(fixCollection => fixCollection.Fixes);
 
                     var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();
@@ -756,16 +756,16 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
                     var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
-                    workspace.ChangeSolution(updatedSolution);
+                    await workspace.ChangeSolutionAsync(updatedSolution);
 
-                    return base.GetCodeActionsAsync(workspace, parameters);
+                    return await base.GetCodeActionsAsync(workspace, parameters);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -998,16 +998,16 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
                     var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
-                    workspace.ChangeSolution(updatedSolution);
+                    await workspace.ChangeSolutionAsync(updatedSolution);
 
-                    return base.GetCodeActionsAsync(workspace, parameters);
+                    return await base.GetCodeActionsAsync(workspace, parameters);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]

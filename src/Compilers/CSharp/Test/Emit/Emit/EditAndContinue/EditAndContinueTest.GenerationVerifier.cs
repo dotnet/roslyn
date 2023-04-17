@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -76,29 +77,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
             }
 
-            internal void VerifyEncLog(IEnumerable<EditAndContinueLogEntry> expected)
+            internal void VerifyEncLog(IEnumerable<EditAndContinueLogEntry>? expected = null)
             {
-                AssertEx.Equal(expected, _metadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
+                AssertEx.Equal(
+                    expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                    _metadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
             }
 
-            internal void VerifyEncMap(IEnumerable<EntityHandle> expected)
+            internal void VerifyEncMap(IEnumerable<EntityHandle>? expected = null)
             {
-                AssertEx.Equal(expected, _metadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
+                AssertEx.Equal(
+                    expected ?? Array.Empty<EntityHandle>(),
+                    _metadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
             }
 
-            internal void VerifyEncLogDefinitions(IEnumerable<EditAndContinueLogEntry> expected)
+            internal void VerifyEncLogDefinitions(IEnumerable<EditAndContinueLogEntry>? expected = null)
             {
-                AssertEx.Equal(expected, _metadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
+                AssertEx.Equal(
+                    expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                    _metadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
             }
 
-            internal void VerifyEncMapDefinitions(IEnumerable<EntityHandle> expected)
+            internal void VerifyEncMapDefinitions(IEnumerable<EntityHandle>? expected = null)
             {
-                AssertEx.Equal(expected, _metadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
+                AssertEx.Equal(
+                    expected ?? Array.Empty<EntityHandle>(),
+                    _metadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
             }
 
-            internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow> expected)
+            internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow>? expected = null)
             {
-                AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+                AssertEx.Equal(
+                    expected ?? Array.Empty<CustomAttributeRow>(),
+                    _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
             }
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)

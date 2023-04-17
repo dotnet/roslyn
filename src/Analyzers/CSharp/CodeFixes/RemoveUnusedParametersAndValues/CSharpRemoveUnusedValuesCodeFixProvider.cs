@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
@@ -94,15 +95,34 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
         {
-            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
-                && parent is DeclarationPatternSyntax declarationPattern
-                && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation))
             {
-                var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
-                    .AddRange(newNameNode.GetLeadingTrivia())
-                    .AddRange(newNameNode.GetTrailingTrivia());
+                var triviaToAppend = newNameNode.GetLeadingTrivia().AddRange(newNameNode.GetTrailingTrivia());
 
-                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                // 1) `... is MyType variable` -> `... is MyType`
+                // 2) `... is MyType /*1*/ variable /*2*/` -> `... is MyType /*1*/  /*2*/`
+                if (parent is DeclarationPatternSyntax declarationPattern &&
+                    parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+                {
+                    var trailingTrivia = declarationPattern.Type.GetTrailingTrivia().AddRange(triviaToAppend);
+                    return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                }
+
+                // 1) `... is { } variable` -> `... is { }`
+                // 2) `... is { } /*1*/ variable /*2*/` -> `... is { } /*1*/  /*2*/`
+                if (parent is RecursivePatternSyntax recursivePattern)
+                {
+                    var withoutDesignation = recursivePattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
+
+                // 1) `... is [] variable` -> `... is []`
+                // 2) `... is [] /*1*/ variable /*2*/` -> `... is [] /*1*/  /*2*/`
+                if (parent is ListPatternSyntax listPattern)
+                {
+                    var withoutDesignation = listPattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
             }
             else if (parent is AssignmentExpressionSyntax assignment &&
                 assignment.Right is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&
@@ -121,6 +141,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
 
             return null;
+        }
+
+        protected override SyntaxNode ComputeReplacementNode(SyntaxNode originalOldNode, SyntaxNode changedOldNode, SyntaxNode proposedReplacementNode)
+        {
+            // Check for the following change: `{ ... } variable` -> `{ ... }`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is RecursivePatternSyntax originalOldRecursivePattern &&
+                proposedReplacementNode is RecursivePatternSyntax proposedReplacementRecursivePattern &&
+                proposedReplacementRecursivePattern.IsEquivalentTo(originalOldRecursivePattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((RecursivePatternSyntax)changedOldNode).WithDesignation(null)
+                                                                                  .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            // Check for the following change: `[...] variable` -> `[...]`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is ListPatternSyntax originalOldListPattern &&
+                proposedReplacementNode is ListPatternSyntax proposedReplacementListPattern &&
+                proposedReplacementListPattern.IsEquivalentTo(originalOldListPattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((ListPatternSyntax)changedOldNode).WithDesignation(null)
+                                                                             .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            return proposedReplacementNode.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)
@@ -209,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
 
             // Otherwise just return new node as a replacement.
-            // This would be the default behaviour if there was no special case described above
+            // This would be the default behavior if there was no special case described above
             return newNameNode;
         }
     }

@@ -373,7 +373,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
-        public async Task DontSuggestEventAfterReadonlyInClass()
+        public async Task DoNotSuggestEventAfterReadonlyInClass()
         {
             var markup =
 @"class C {
@@ -385,7 +385,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
-        public async Task DontSuggestEventAfterReadonlyInInterface()
+        public async Task DoNotSuggestEventAfterReadonlyInInterface()
         {
             var markup =
 @"interface C {

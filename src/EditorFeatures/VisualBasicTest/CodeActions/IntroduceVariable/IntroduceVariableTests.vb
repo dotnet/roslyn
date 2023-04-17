@@ -2229,7 +2229,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")>
-        Public Async Function TestDontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken() As Task
+        Public Async Function TestDoNotRemoveParenthesesIfOperatorPrecedenceWouldBeBroken() As Task
             Dim code =
 "
 Imports System
@@ -2257,7 +2257,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022458")>
-        Public Async Function TestDontSimplifyParentUnlessEntireInnerNodeIsSelected() As Task
+        Public Async Function TestDoNotSimplifyParentUnlessEntireInnerNodeIsSelected() As Task
             Dim code =
 "
 Imports System

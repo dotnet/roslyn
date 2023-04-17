@@ -26,43 +26,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         {
         }
 
-        [Fact]
-        public async Task TestGetSemanticTokensRange_FullDocAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSemanticTokensRange_FullDocAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|caret:|}// Comment
 static class C { }
 ";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
             var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
-
-            // Everything is colorized syntactically, so we shouldn't be returning any semantic results.
-            var expectedResults = new LSP.SemanticTokens
-            {
-                Data = Array.Empty<int>()
-            };
-
-            Assert.Equal(expectedResults.Data, results.Data);
-        }
-
-        [Fact]
-        public async Task TestGetSemanticTokensRange_FullDoc_RazorAsync()
-        {
-            // Razor docs should be returning semantic + syntactic reuslts.
-            var markup =
-@"{|caret:|}// Comment
-static class C { }
-";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
-
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
-            var options = ClassificationOptions.Default;
-
-            var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -78,25 +52,25 @@ static class C { }
                 },
             };
 
-            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results.Data));
         }
 
-        [Fact]
-        public async Task TestGetSemanticTokensRange_PartialDoc_RazorAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSemanticTokensRange_PartialDocAsync(bool mutatingLspWorkspace)
         {
             // Razor docs should be returning semantic + syntactic reuslts.
             var markup =
 @"{|caret:|}// Comment
 static class C { }
 ";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -115,8 +89,8 @@ static class C { }
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
-        [Fact]
-        public async Task TestGetSemanticTokensRange_MultiLineComment_IncludeSyntacticClassificationsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSemanticTokensRange_MultiLineComment_IncludeSyntacticClassificationsAsync(bool mutatingLspWorkspace)
         {
             // Testing as a Razor doc so we get both syntactic + semantic results; otherwise the results would be empty.
             var markup =
@@ -125,13 +99,13 @@ static class C { }
 two
 three */ }
 ";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -152,8 +126,8 @@ three */ }
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
-        [Fact]
-        public async Task TestGetSemanticTokensRange_StringLiteralAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSemanticTokensRange_StringLiteral_IncludeSyntacticClassificationsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|caret:|}class C
@@ -167,46 +141,13 @@ three"";
 }
 ";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
-            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
-            var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
-
-            var expectedResults = new LSP.SemanticTokens
-            {
-                Data = new int[]
-                {
-                    // Line | Char | Len | Token type                                                                         | Modifier
-                       4,     8,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       1,     4,     2,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
-                },
-            };
-
-            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
-            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results.Data));
-        }
-
-        [Fact]
-        public async Task TestGetSemanticTokensRange_StringLiteral_IncludeSyntacticClassificationsAsync()
-        {
-            var markup =
-@"{|caret:|}class C
-{
-    void M()
-    {
-        var x = @""one
-two """"
-three"";
-    }
-}
-";
-
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -238,8 +179,8 @@ three"";
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
-        [Fact]
-        public async Task TestGetSemanticTokensRange_Regex_IncludeSyntacticClassificationsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSemanticTokensRange_Regex_IncludeSyntacticClassificationsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|caret:|}using System.Text.RegularExpressions;
@@ -253,13 +194,13 @@ class C
 }
 ";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -304,9 +245,9 @@ class C
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1710519")]
-        public async Task TestGetSemanticTokensRange_RegexWithComment_IncludeSyntacticClassificationsAsync()
+        public async Task TestGetSemanticTokensRange_RegexWithComment_IncludeSyntacticClassificationsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|caret:|}using System.Text.RegularExpressions;
@@ -321,12 +262,12 @@ class C
 }
 ";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range: null, options, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range: null, options: options, cancellationToken: CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {

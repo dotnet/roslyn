@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
         [InlineData("public void {|CS1591:OtherMethod|}() { }")]
         [InlineData("public void {|CS1591:M|}() { }")]
         [InlineData("public new void {|CS1591:M|}() { }")]
-        public async Task DontOfferOnNotOverridenMethod(string methodDefintion)
+        public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
         {
             await TestMissingAsync(
             $@"
@@ -120,7 +120,7 @@ public class Derived: BaseClass
         }
 
         [Fact]
-        public async Task DontOfferOnExplicitInterfaceMethod()
+        public async Task DoNotOfferOnExplicitInterfaceMethod()
         {
             await TestMissingAsync(
                 """
