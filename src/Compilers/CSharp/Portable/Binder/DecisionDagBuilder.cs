@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that it is processed only once. This object identity uniqueness will be important later when we
             // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
             // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-            DagState uniquifyState(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            DagState uniquifyState(FrozenArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 var state = DagState.GetInstance(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
@@ -856,7 +856,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var initialState = uniquifyState(rewrittenCases, ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+            var initialState = uniquifyState(new
+                FrozenArrayBuilder<StateForCase>(rewrittenCases),
+                ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
 
             // Go through the worklist of DagState nodes for which we have not yet computed
             // successor states.
@@ -894,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         for (int i = 1, n = state.Cases.Count; i < n; i++)
                             stateWhenFails.Add(state.Cases[i]);
 
-                        state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
+                        state.FalseBranch = uniquifyState(AsFrozen(stateWhenFails), state.RemainingValues);
                     }
                 }
                 else
@@ -922,8 +924,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
-                                out ArrayBuilder<StateForCase> whenTrueDecisions,
-                                out ArrayBuilder<StateForCase> whenFalseDecisions,
+                                out FrozenArrayBuilder<StateForCase> whenTrueDecisions,
+                                out FrozenArrayBuilder<StateForCase> whenFalseDecisions,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
                                 ref foundExplicitNullTest);
@@ -1061,8 +1063,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SplitCases(
             DagState state,
             BoundDagTest test,
-            out ArrayBuilder<StateForCase> whenTrue,
-            out ArrayBuilder<StateForCase> whenFalse,
+            out FrozenArrayBuilder<StateForCase> whenTrue,
+            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
@@ -1094,8 +1096,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenFalseBuilder.Add(whenFalseState);
             }
 
-            whenTrue = whenTrueBuilder;
-            whenFalse = whenFalseBuilder;
+            whenTrue = AsFrozen(whenTrueBuilder);
+            whenFalse = AsFrozen(whenFalseBuilder);
         }
 
         private static (
@@ -1180,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (OriginalInput(input), lengthTemp, index);
         }
 
-        private static ArrayBuilder<StateForCase> RemoveEvaluation(FrozenArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
+        private static FrozenArrayBuilder<StateForCase> RemoveEvaluation(FrozenArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
         {
             var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             foreach (var stateForCase in cases)
@@ -1200,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return builder;
+            return AsFrozen(builder);
         }
 
         /// <summary>
@@ -1758,6 +1760,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        private static FrozenArrayBuilder<T> AsFrozen<T>(ArrayBuilder<T> builder)
+            => new FrozenArrayBuilder<T>(builder);
+
         /// <summary>
         /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder provides, without having to incur 
         /// intermediary allocations for <see cref="ImmutableArray"/>s.
@@ -1834,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
             /// called on this.
             /// </summary>
-            public static DagState GetInstance(ArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            public static DagState GetInstance(FrozenArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 var dagState = s_dagStatePool.Allocate();
 
@@ -1845,9 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dagState.FalseBranch is null);
                 Debug.Assert(dagState.Dag is null);
 
-                // We're taking ownership of 'cases' (and we never mutate it ourselves).  So freeze it to ensure it
-                // always keeps the starting set of cases and no one accidentally mutates it.
-                dagState.Cases = new FrozenArrayBuilder<StateForCase>(cases);
+                dagState.Cases = cases;
                 dagState.RemainingValues = remainingValues;
 
                 return dagState;
