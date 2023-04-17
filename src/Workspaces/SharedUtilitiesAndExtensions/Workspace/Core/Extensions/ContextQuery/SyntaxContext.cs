@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsPossibleTupleContext { get; }
         public bool IsPreProcessorDirectiveContext { get; }
         public bool IsPreProcessorExpressionContext { get; }
+        public bool IsRightAfterUsingOrImport { get; }
         public bool IsRightOfNameSeparator { get; }
         public bool IsRightSideOfNumericType { get; }
         public bool IsStatementContext { get; }
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isPossibleTupleContext,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorExpressionContext,
+            bool isRightAfterUsingOrImport,
             bool isRightOfNameSeparator,
             bool isRightSideOfNumericType,
             bool isStatementContext,
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPossibleTupleContext = isPossibleTupleContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
             this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
+            this.IsRightAfterUsingOrImport = isRightAfterUsingOrImport;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsStatementContext = isStatementContext;
