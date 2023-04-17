@@ -2052,14 +2052,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
             {
-                Location localSymbolLocation = localSymbol.GetFirstLocation();
+                var declarator = localSymbol.GetDeclaratorSyntax();
 
-                if (node.SyntaxTree == localSymbolLocation.SourceTree)
-                {
-                    return node.SpanStart < localSymbolLocation.SourceSpan.Start;
-                }
+                // trivial position check, before more costly tree check (which requires walking up the nodes).
+                if (node.SpanStart >= declarator.SpanStart)
+                    return false;
 
-                return false;
+                return node.SyntaxTree == declarator.SyntaxTree;
             }
         }
 
