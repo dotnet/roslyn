@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            using var pooledArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.GetInstance(
+            using var pooledArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.GetPooledInstance(
                 DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
 
             var args = pooledArgs.BoxedArgs;

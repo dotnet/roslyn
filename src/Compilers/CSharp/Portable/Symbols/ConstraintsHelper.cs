@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            using var pooledArgs = CheckConstraintsArgsBoxed.GetInstance(compilation, conversions, includeNullability, location, diagnostics);
+            using var pooledArgs = CheckConstraintsArgsBoxed.GetPooledInstance(compilation, conversions, includeNullability, location, diagnostics);
 
             type.CheckAllConstraints(pooledArgs.BoxedArgs);
         }
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            using var pooledArgs = CheckConstraintsArgsBoxed.GetInstance(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            using var pooledArgs = CheckConstraintsArgsBoxed.GetPooledInstance(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
 
             type.CheckAllConstraints(pooledArgs.BoxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public CheckConstraintsArgs Args;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static PooledCheckConstraintsArgsBoxed GetInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
+            public static PooledCheckConstraintsArgsBoxed GetPooledInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
                 boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static PooledCheckConstraintsArgsBoxed GetInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
+            public static PooledCheckConstraintsArgsBoxed GetPooledInstance(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
                 boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
