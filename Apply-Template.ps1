@@ -31,6 +31,7 @@ try {
 
 Write-Host "Updating $Path"
 robocopy /mir $PSScriptRoot/azure-pipelines $Path/azure-pipelines
+robocopy /mir $PSScriptRoot/.config $Path/.config
 robocopy /mir $PSScriptRoot/.devcontainer $Path/.devcontainer
 robocopy /mir $PSScriptRoot/.github $Path/.github
 robocopy /mir $PSScriptRoot/.vscode $Path/.vscode
