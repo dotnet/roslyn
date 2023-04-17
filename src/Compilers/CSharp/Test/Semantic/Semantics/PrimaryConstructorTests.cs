@@ -3064,6 +3064,370 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_01([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+" + declaration + @" C
+    ();
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+
+            if (declaration is "class" or "struct")
+            {
+                comp.VerifyDiagnostics(
+                    // (9,5): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     ();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(9, 5)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (7,2): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // [method: A]
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "method").WithArguments("primary constructors").WithLocation(7, 2)
+                    );
+            }
+
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+                Assert.Empty(c.GetAttributes());
+                Assert.True(c.HasPrimaryConstructor);
+                Assert.Equal("A", c.PrimaryConstructor.GetAttributes().Single().ToString());
+                Assert.True(c.Constructors.Where(ctor => ctor != c.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_02([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[return: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type, method'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type, method").WithLocation(7, 2)
+                );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Empty(c.GetAttributes());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(c.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_03()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+interface I();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2),
+                // (9,12): error CS9122: Unexpected parameter list.
+                // interface I();
+                Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "()").WithLocation(9, 12)
+                );
+
+            var i = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("I");
+            Assert.Empty(i.GetAttributes());
+            Assert.False(i.HasPrimaryConstructor);
+            Assert.Null(i.PrimaryConstructor);
+            Assert.Empty(i.Constructors);
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_04()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+enum E();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2),
+                // (9,7): error CS1514: { expected
+                // enum E();
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(9, 7),
+                // (9,7): error CS1513: } expected
+                // enum E();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(9, 7),
+                // (9,7): error CS8803: Top-level statements must precede namespace and type declarations.
+                // enum E();
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "();").WithLocation(9, 7),
+                // (9,8): error CS1525: Invalid expression term ')'
+                // enum E();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 8)
+                );
+
+            var e = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("E");
+            Assert.Empty(e.GetAttributes());
+            Assert.False(e.HasPrimaryConstructor);
+            Assert.Null(e.PrimaryConstructor);
+            Assert.True(e.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(e.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_05([CombinatorialValues("class C;", "struct C;", "record C;", "record class C;", "record struct C;", "interface C;", "enum C;")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[method: A]
+[return: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(7, 2),
+                // (8,2): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [return: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "type").WithLocation(8, 2)
+                );
+
+            var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.Empty(c.GetAttributes());
+            Assert.False(c.HasPrimaryConstructor);
+            Assert.Null(c.PrimaryConstructor);
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+            Assert.True(c.Constructors.All(ctor => ctor.GetReturnTypeAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_06([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[type: A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Equal("A", c.GetAttributes().Single().ToString());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_07([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[A]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Equal("A", c.GetAttributes().Single().ToString());
+            Assert.True(c.Constructors.All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_08([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[method: A]
+partial " + declaration + @" C1();
+
+[method: B]
+partial " + declaration + @" C1;
+
+[method: B]
+partial " + declaration + @" C2;
+
+[method: A]
+partial " + declaration + @" C2();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(15, 2),
+                // (18,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(18, 2)
+                );
+
+            var c1 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.Empty(c1.GetAttributes());
+            Assert.True(c1.HasPrimaryConstructor);
+            Assert.Equal("A", c1.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c1.Constructors.Where(ctor => ctor != c1.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+
+            var c2 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            Assert.Empty(c2.GetAttributes());
+            Assert.True(c2.HasPrimaryConstructor);
+            Assert.Equal("A", c2.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c2.Constructors.Where(ctor => ctor != c2.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_09([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[method: A]
+partial " + declaration + @" C1();
+
+#line 100
+[method: B]
+partial " + declaration + @" C1
+#line 200
+    ();
+
+[method: B]
+partial " + declaration + @" C2();
+
+#line 300
+[method: A]
+partial " + declaration + @" C2
+#line 400
+    ();
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (100,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(100, 2),
+                // (200,5): error CS8863: Only a single partial type declaration may have a parameter list
+                //     ();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(200, 5),
+                // (300,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(300, 2),
+                // (400,5): error CS8863: Only a single partial type declaration may have a parameter list
+                //     ();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(400, 5)
+                );
+
+            var c1 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.Empty(c1.GetAttributes());
+            Assert.True(c1.HasPrimaryConstructor);
+            Assert.Equal("A", c1.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c1.Constructors.Where(ctor => ctor != c1.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+
+            var c2 = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            Assert.Empty(c2.GetAttributes());
+            Assert.True(c2.HasPrimaryConstructor);
+            Assert.Equal("B", c2.PrimaryConstructor.GetAttributes().Single().ToString());
+            Assert.True(c2.Constructors.Where(ctor => ctor != c2.PrimaryConstructor).All(ctor => ctor.GetAttributes().IsEmpty));
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructor_10_NameofParameter()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+    public A(string x){}
+}
+
+[method: A(nameof(someParam))]
+class C(int someParam)
+{
+    int X = someParam;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
         [Fact]
         public void AnalyzerActions_01_Class()
         {
@@ -7813,13 +8177,13 @@ class Program
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: ldfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
-			IL_0006: ldfld int32 C1::'<p1>PC__BackingField'
+			IL_0006: ldfld int32 C1::'<p1>P'
 			IL_000b: ret
 		} // end of method '<>c__DisplayClass1_0'::'<.ctor>b__1'
 	} // end of class <>c__DisplayClass1_0
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -7845,7 +8209,7 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: newobj instance void C1/'<>c__DisplayClass1_0'::.ctor()
 		IL_000c: stloc.0
 		IL_000d: ldloc.0
@@ -7876,7 +8240,7 @@ class Program
 		IL_0043: stfld class [mscorlib]System.Action C1::E2
 		IL_0048: ldarg.0
 		IL_0049: ldarg.0
-		IL_004a: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_004a: ldfld int32 C1::'<p1>P'
 		IL_004f: ldarg.2
 		IL_0050: ldloc.0
 		IL_0051: ldftn instance int32 C1/'<>c__DisplayClass1_0'::'<.ctor>b__1'()
@@ -7891,7 +8255,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -7905,12 +8269,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -7925,12 +8289,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -7944,10 +8308,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -8062,10 +8426,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: sub
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<remove_E1>g__local|12_0'
 	.method private hidebysig 
@@ -8079,10 +8443,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<M2>b__16_0'
 	// Events
@@ -8169,7 +8533,7 @@ class Program
 {
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -8187,7 +8551,7 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: ldarg.0
 		IL_0008: ldarg.2
 		IL_0009: ldc.i4.1
@@ -8212,7 +8576,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -8226,12 +8590,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -8246,12 +8610,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -8265,10 +8629,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -8465,12 +8829,12 @@ class C2
 
             // No unused warnings because we detected capturing
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS0150: A constant value is expected
+                // (6,21): error CS9135: A constant value of type 'int' is expected
                 //         return x is p1 || x is p2.F;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "p1").WithLocation(6, 21),
-                // (6,32): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "p1").WithArguments("int").WithLocation(6, 21),
+                // (6,32): error CS9135: A constant value of type 'int' is expected
                 //         return x is p1 || x is p2.F;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "p2.F").WithLocation(6, 32)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "p2.F").WithArguments("int").WithLocation(6, 32)
                 );
         }
 
@@ -11237,7 +11601,7 @@ class Program
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.0
   IL_0009:  ldftn      ""int C1.<.ctor>b__2_0()""
@@ -11311,7 +11675,7 @@ class Program
   .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
@@ -11388,7 +11752,7 @@ class Program
   .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
@@ -11396,7 +11760,7 @@ class Program
   IL_000f:  stfld      ""int C1.<>c__DisplayClass2_0.p2""
   IL_0014:  ldarg.0
   IL_0015:  ldarg.0
-  IL_0016:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_0016:  ldfld      ""int C1.<p1>P""
   IL_001b:  stfld      ""int C1.F1""
   IL_0020:  ldarg.0
   IL_0021:  ldloc.0
@@ -13085,10 +13449,10 @@ class Program(string x, int y)
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""string Program.<x>PC__BackingField""
+  IL_0002:  ldfld      ""string Program.<x>P""
   IL_0007:  stloc.1
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      ""int Program.<y>PC__BackingField""
+  IL_0009:  ldfld      ""int Program.<y>P""
   IL_000e:  stloc.2
   IL_000f:  ldc.i4.1
   IL_0010:  brtrue.s   IL_0013
@@ -13404,17 +13768,17 @@ class Program
   .locals init (int V_0,
                 int V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C1.<p2>PC__BackingField""
+  IL_0001:  ldfld      ""int C1.<p2>P""
   IL_0006:  stloc.0
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_0008:  ldfld      ""int C1.<p1>P""
   IL_000d:  stloc.1
   IL_000e:  ldarg.0
   IL_000f:  ldloc.0
-  IL_0010:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0010:  stfld      ""int C1.<p1>P""
   IL_0015:  ldarg.0
   IL_0016:  ldloc.1
-  IL_0017:  stfld      ""int C1.<p2>PC__BackingField""
+  IL_0017:  stfld      ""int C1.<p2>P""
   IL_001c:  ret
 }
 ");
@@ -14826,7 +15190,7 @@ class Program
 {
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -14844,7 +15208,7 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: ldarg.0
 		IL_0008: ldarg.2
 		IL_0009: ldc.i4.1
@@ -14862,7 +15226,7 @@ class Program
 		IL_001d: stfld int32 C1::F3
 		IL_0022: ldarg.0
 		IL_0023: ldarg.0
-		IL_0024: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0024: ldfld int32 C1::'<p1>P'
 		IL_0029: ldarg.2
 		IL_002a: ldarg.0
 		IL_002b: ldftn instance int32 C1::'<.ctor>b__1_0'()
@@ -14877,7 +15241,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -14891,12 +15255,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -14911,12 +15275,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -14930,10 +15294,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -14969,7 +15333,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::'<.ctor>b__1_0'
 	.method private hidebysig 
@@ -14983,10 +15347,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: sub
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<remove_E1>g__local|12_0'
 	.method private hidebysig 
@@ -15000,10 +15364,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<M2>b__13_0'
 	// Events
@@ -15428,6 +15792,280 @@ struct S3(char A)
                 // (6,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this()
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void StructLayout_01()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+struct S(int x, int y)
+{
+    int X = x;
+    int Y => y;
+
+    [FieldOffset(8)]
+    int Z = 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // We might want to adjust the warning depending on what we decide to do for
+                // https://github.com/dotnet/csharplang/blob/main/proposals/primary-constructors.md#field-targeting-attributes-for-captured-primary-constructor-parameters.
+                //
+                // If we decide to support attributes for capture fields, consider testing
+                //     ERR_MarshalUnmanagedTypeNotValidForFields
+                //     ERR_StructOffsetOnBadStruct
+                //     ERR_DoNotUseFixedBufferAttr
+
+                // (5,21): error CS0625: 'S.<y>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // struct S(int x, int y)
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "y").WithArguments("S.<y>P").WithLocation(5, 21),
+                // (7,9): error CS0625: 'S.X': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //     int X = x;
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "X").WithArguments("S.X").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_02()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    public int Y;
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate3);
+            verify1(source2 + source1, "", validate3);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics(
+                    // 0.cs(2,23): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'S'. To specify an ordering, all instance fields must be in the same declaration.
+                    // public partial struct S(int x)
+                    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "S").WithArguments("S").WithLocation(2, 23)
+                    );
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("<x>P", fields[0].Name);
+                Assert.Equal("Y", fields[1].Name);
+            }
+
+            void validate3(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("Y", fields[0].Name);
+                Assert.Equal("<x>P", fields[1].Name);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_03()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    int X = x;
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate2);
+            verify1(source2 + source1, "", validate2);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics();
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                Assert.Equal(1, m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().Count());
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_04()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+    public int Y;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+}
+";
+            verify1(source1, source2, validate2);
+            verify1(source1 + source2, "", validate2);
+            verify1(source2, source1, validate2);
+            verify1(source2 + source1, "", validate2);
+
+            void verify1(string source1, string source2, Action<ModuleSymbol> validator)
+            {
+                var comp = CreateCompilation(new[] { source1, source2 });
+                CompileAndVerify(comp, symbolValidator: validator, sourceSymbolValidator: validator).VerifyDiagnostics();
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                var fields = m.GlobalNamespace.GetTypeMember("S").GetMembers().OfType<FieldSymbol>().ToArray();
+                Assert.Equal(2, fields.Length);
+                Assert.Equal("<x>P", fields[0].Name);
+                Assert.Equal("Y", fields[1].Name);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67162")]
+        public void StructLayout_05()
+        {
+            string source1 = @"
+public partial struct S(int x)
+{
+    int X => x;
+}
+";
+            string source2 = @"
+public partial struct S
+{
+    public int Y;
+}
+";
+            string source3 = @"
+public partial struct S
+{
+    public int Z;
+}
+";
+            verify1(source1, source2, source3);
+            verify1(source1 + source2, source3, "");
+            verify1(source1 + source2 + source3, "", "");
+
+            verify1(source1, source3, source2);
+            verify1(source1 + source3, source2, "");
+            verify1(source1 + source3 + source2, "", "");
+
+            verify1(source2, source1, source3);
+            verify1(source2 + source1, source3, "");
+            verify1(source2 + source1 + source3, "", "");
+
+            verify1(source2, source3, source1);
+            verify1(source2 + source3, source1, "");
+            verify1(source2 + source3 + source1, "", "");
+
+            verify1(source3, source1, source2);
+            verify1(source3 + source1, source2, "");
+            verify1(source3 + source1 + source2, "", "");
+
+            verify1(source3, source2, source1);
+            verify1(source3 + source2, source1, "");
+            verify1(source3 + source2 + source1, "", "");
+
+            void verify1(string source1, string source2, string source3)
+            {
+                var comp = CreateCompilation(new[] { source1, source2, source3 });
+                comp.VerifyDiagnostics(
+                    // 0.cs(2,23): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'S'. To specify an ordering, all instance fields must be in the same declaration.
+                    // public partial struct S(int x)
+                    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "S").WithArguments("S").WithLocation(2, 23)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RestrictedType_01([CombinatorialValues("class", "struct")] string declaration)
+        {
+            var src1 = @"
+" + declaration + @" C1
+(System.ArgIterator a)
+{
+    void M()
+    {
+        _ = a;
+    }
+}
+
+" + declaration + @" C2
+(System.ArgIterator b)
+{
+    void M()
+    {
+        System.Action d = () => _ = b;
+    }
+}
+
+" + declaration + @" C3
+(System.ArgIterator c)
+{
+    System.Action d = () => _ = c;
+}
+
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'z' is unread.
+" + declaration + @" C4(System.ArgIterator z)
+{
+}
+";
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS9136: Cannot use primary constructor parameter of type 'ArgIterator' inside an instance member
+                //         _ = a;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny, "a").WithArguments("System.ArgIterator").WithLocation(7, 13),
+                // (16,37): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
+                //         System.Action d = () => _ = b;
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "b").WithArguments("System.ArgIterator").WithLocation(16, 37),
+                // (23,33): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
+                //     System.Action d = () => _ = c;
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c").WithArguments("System.ArgIterator").WithLocation(23, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RestrictedType_02([CombinatorialValues("record", "record class", "record struct")] string keyword)
+        {
+            var src1 = @"
+" + keyword + @" C1
+(System.ArgIterator x)
+{
+}
+";
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // (System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 2)
                 );
         }
     }

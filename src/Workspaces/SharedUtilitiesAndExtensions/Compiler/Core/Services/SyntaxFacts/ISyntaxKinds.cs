@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? AndPattern { get; }
         int? ConstantPattern { get; }
         int? DeclarationPattern { get; }
+        int? ListPattern { get; }
         int? NotPattern { get; }
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
@@ -189,6 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int Attribute { get; }
         int ClassDeclaration { get; }
         int ConstructorDeclaration { get; }
+        int EnumDeclaration { get; }
         int InterfaceDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }

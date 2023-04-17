@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.Locations[0]);
+                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.GetFirstLocation());
             }
 
             diagnosticsBuilder.Free();

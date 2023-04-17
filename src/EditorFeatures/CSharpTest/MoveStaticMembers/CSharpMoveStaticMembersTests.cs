@@ -1849,7 +1849,7 @@ namespace TestNs2
         }
 
         [Fact]
-        public async Task TestMoveExtensionMethodDontRefactor()
+        public async Task TestMoveExtensionMethodDoNotRefactor()
         {
             var initialMarkup = @"
 namespace TestNs1

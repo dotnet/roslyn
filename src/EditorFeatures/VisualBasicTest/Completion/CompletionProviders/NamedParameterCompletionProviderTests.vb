@@ -202,7 +202,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function TestDontFilterYet() As Task
+        Public Async Function TestDoNotFilterYet() As Task
             Dim markup =
 <Text>
 Class Class1

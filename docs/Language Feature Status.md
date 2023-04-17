@@ -10,6 +10,7 @@ efforts behind them.
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- |
+| [Inline Arrays](https://github.com/dotnet/csharplang/blob/main/proposals/inline-arrays.md) | [InlineArrays](https://github.com/dotnet/roslyn/tree/features/InlineArrays) | [In Progress](https://github.com/dotnet/roslyn/issues/67826) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [jjonescz](https://github.com/jjonescz) |  |
 | [Using aliases for any type](https://github.com/dotnet/csharplang/issues/4284) | [UsingAliasTypes](https://github.com/dotnet/roslyn/tree/features/UsingAliasTypes) | [Merged into 17.6.P3](https://github.com/dotnet/roslyn/issues/56323) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) [cston](https://github.com/cston) |  |
 | [Primary Constructors](https://github.com/dotnet/csharplang/issues/2691) | [PrimaryConstructors](https://github.com/dotnet/roslyn/tree/features/PrimaryConstructors) | [Merged into 17.6.P2](https://github.com/dotnet/roslyn/issues/65697) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [jjonescz](https://github.com/jjonescz) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Semi-auto-properties](https://github.com/dotnet/csharplang/issues/140) | [semi-auto-props](https://github.com/dotnet/roslyn/tree/features/semi-auto-props) | [In Progress](https://github.com/dotnet/roslyn/issues/57012) | [Youssef1313](https://github.com/Youssef1313) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
@@ -19,7 +20,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Collection Literals](https://github.com/dotnet/csharplang/issues/5354) | [CollectionLiterals](https://github.com/dotnet/roslyn/tree/features/CollectionLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/66418) | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) | [MadsTorgersen](https://github.com/MadsTorgersen) |
-
+| [Interceptors](https://github.com/dotnet/csharplang/issues/7009) | [interceptors](https://github.com/dotnet/roslyn/tree/features/interceptors) | [In Progress](https://github.com/dotnet/roslyn/issues/67421) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | [RikkiGibson](https://github.com/RikkiGibson) |
   
 # C# 11.0
 

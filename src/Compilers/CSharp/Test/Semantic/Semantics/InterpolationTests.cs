@@ -15078,6 +15078,458 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 28));
         }
 
+        [Fact]
+        public void RefEscape_18()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    private ref readonly int _i;
+                    public CustomHandler(int literalLength, int formattedCount, in int i = 0) { _i = ref i; }
+                    public void AppendFormatted(int i) { } 
+                }
+                class Program
+                {
+                    static CustomHandler F1()
+                    {
+                        return $"{1}";
+                    }
+                    static CustomHandler F2()
+                    {
+                        CustomHandler h2 = $"{2}";
+                        return h2;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"$""{1}""").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, in int)", "i").WithLocation(13, 16),
+                // (18,16): error CS8352: Cannot use variable 'h2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h2").WithArguments("h2").WithLocation(18, 16));
+        }
+
+        [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
+        [Fact]
+        public void RefEscape_19()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    private ref readonly int _i;
+                    public CustomHandler(int literalLength, int formattedCount) { }
+                    public void AppendFormatted(int x, [UnscopedRef] in int y = 0) { _i = ref y; } 
+                }
+                class Program
+                {
+                    static CustomHandler F1()
+                    {
+                        return $"{1}";
+                    }
+                    static CustomHandler F2()
+                    {
+                        CustomHandler h2 = $"{2}";
+                        return h2;
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/63306: Should report an error that a reference to y will escape F1() and F2().
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_01()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .F($"[{42}]")
+                           .F($"[{"str".AsSpan()}]");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                    public void AppendFormatted(ReadOnlySpan<char> value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_02()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .F($"{42}")
+                           .F($"{42}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_03()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        F(
+                            F(r, $"{42}"),
+                            $"{42}");
+                    }
+                    static R F(R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler)
+                        => r;
+                }
+                readonly ref struct R
+                {
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_04()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r = new R(
+                            new R(r, $"{42}"),
+                            $"{42}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R(R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler)
+                    {
+                    }
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_05()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r = r
+                            [$"{42}"]
+                            [$"{42}"];
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R this[[InterpolatedStringHandlerArgument("")] CustomHandler handler]
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_06()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static R M()
+                    {
+                        R r = default;
+                        Span<byte> span = stackalloc byte[42];
+                        return r
+                            .F($"{span}")
+                            .F($"{span}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                    public void AppendFormatted(Span<byte> span)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8347: Cannot use a result of 'R.F(CustomHandler)' in this context because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         return r
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"r
+            .F($""{span}"")").WithArguments("R.F(CustomHandler)", "handler").WithLocation(9, 16),
+                // (10,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_07()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static R M()
+                    {
+                        int i = 0;
+                        var r = new R(ref i);
+                        return r
+                           .F($"{i}")
+                           .F($"{i}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    private readonly ref int _i;
+                    public R(ref int i) { _i = i; }
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16));
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_08()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .F($"{1}", $"{2}")
+                           .F($"{3}", $"{4}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler h1, [InterpolatedStringHandlerArgument("")] CustomHandler h2)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefEscape_ForEachExpression()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { } 
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                }
+                ref struct Enumerable
+                {
+                    public static Enumerable Create(ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler) => default;
+                    public Enumerator GetEnumerator() => default;
+                }
+                ref struct Enumerator
+                {
+                    public R Current => throw null;
+                    public bool MoveNext() => false;
+                }
+                class Program
+                {
+                    static void F(ref R r)
+                    {
+                        foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                        {
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (26,49): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(26, 49),
+                // (26,52): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(26, 52));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
