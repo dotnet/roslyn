@@ -24,6 +24,8 @@ stages:
       RunTests: false
 
 - template: prepare-insertion-stages.yml
+  parameters:
+    ArchiveSymbols: false
 
 - stage: insertion
   displayName: VS insertion
@@ -60,7 +62,7 @@ stages:
       inputs:
         TeamName: $(TeamName)
         TeamEmail: $(TeamEmail)
-        InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch))
+        InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch)) [Skip-SymbolCheck]
         InsertionDescription: |
           This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
         CustomScriptExecutionCommand: src/VSSDK/NuGet/AllowUnstablePackages.ps1

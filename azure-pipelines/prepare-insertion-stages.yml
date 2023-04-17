@@ -1,30 +1,36 @@
+parameters:
+- name: ArchiveSymbols
+  type: boolean
+  default: true
+
 stages:
-- stage: symbol_archive
-  displayName: Symbol archival
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-  jobs:
-  - job: archive
-    pool: VSEng-ReleasePool-1ES
-    steps:
-    - checkout: none
-    - download: current
-      artifact: Variables-Windows
-      displayName: 🔻 Download Variables-Windows artifact
-    - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-      displayName: ⚙️ Set pipeline variables based on artifacts
-    - download: current
-      artifact: symbols-legacy
-      displayName: 🔻 Download symbols-legacy artifact
-    - task: MicroBuildArchiveSymbols@1
-      displayName: 🔣 Archive symbols to Symweb
-      inputs:
-        SymbolsFeatureName: $(SymbolsFeatureName)
-        SymbolsSymwebProject: VS
-        SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
-        SymbolsEmailContacts: vsidemicrobuild
-        SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
-    - task: MicroBuildCleanup@1
-      displayName: ☎️ Send Telemetry
+- ${{ if parameters.ArchiveSymbols }}:
+  - stage: symbol_archive
+    displayName: Symbol archival
+    condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+    jobs:
+    - job: archive
+      pool: VSEng-ReleasePool-1ES
+      steps:
+      - checkout: none
+      - download: current
+        artifact: Variables-Windows
+        displayName: 🔻 Download Variables-Windows artifact
+      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        displayName: ⚙️ Set pipeline variables based on artifacts
+      - download: current
+        artifact: symbols-legacy
+        displayName: 🔻 Download symbols-legacy artifact
+      - task: MicroBuildArchiveSymbols@1
+        displayName: 🔣 Archive symbols to Symweb
+        inputs:
+          SymbolsFeatureName: $(SymbolsFeatureName)
+          SymbolsSymwebProject: VS
+          SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
+          SymbolsEmailContacts: vsidemicrobuild
+          SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
+      - task: MicroBuildCleanup@1
+        displayName: ☎️ Send Telemetry
 
 # - stage: azure_public_vsimpl_feed
 #   displayName: azure-public/vs-impl feed
