@@ -355,28 +355,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// be more efficient if desired (especially if avoiding allocations of the <see cref="Locations"/> array is
         /// desired).
         /// </summary>
-        public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        public virtual bool HasLocationWithSpan(SyntaxTree tree, TextSpan declarationSpan)
         {
             foreach (var loc in this.Locations)
             {
-                if (IsLocationContainedWithin(loc, tree, declarationSpan, out wasZeroWidthMatch))
+                if (IsLocationWithSpan(loc, tree, declarationSpan))
                     return true;
             }
 
-            wasZeroWidthMatch = false;
             return false;
         }
 
-        protected static bool IsLocationContainedWithin(Location loc, SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        protected static bool IsLocationWithSpan(Location loc, SyntaxTree tree, TextSpan declarationSpan)
         {
-            if (loc.IsInSource && loc.SourceTree == tree && declarationSpan.Contains(loc.SourceSpan))
-            {
-                wasZeroWidthMatch = loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start;
-                return true;
-            }
-
-            wasZeroWidthMatch = false;
-            return false;
+            return loc.SourceTree == tree && declarationSpan == loc.SourceSpan;
         }
 
 #nullable disable

@@ -1760,7 +1760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // look for any member with same declaration location
             var collection = name != null ? container.GetMembers(name) : container.GetMembersUnordered();
 
-            Symbol zeroWidthMatch = null;
             foreach (var symbol in collection)
             {
                 var namedType = symbol as ImplicitNamedTypeSymbol;
@@ -1774,14 +1773,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
-                {
-                    if (!wasZeroWidthMatch)
-                        return symbol;
-
-                    // exclude decls created via syntax recovery
-                    zeroWidthMatch = symbol;
-                }
+                if (symbol.HasLocationWithSpan(this.SyntaxTree, declarationSpan))
+                    return symbol;
 
                 // Handle the case of the implementation of a partial method.
                 var partial = symbol.Kind == SymbolKind.Method
@@ -1800,8 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we didn't find anything better than the symbol that matched because of syntax error recovery, then return that.
             // Otherwise, if there's a name, try again without a name.
             // Otherwise, give up.
-            return zeroWidthMatch ??
-                (name != null ? GetDeclaredMember(container, declarationSpan) : null);
+            return name != null ? GetDeclaredMember(container, declarationSpan) : null;
         }
 
         /// <summary>

@@ -102,16 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Location TryGetFirstLocation()
             => _mergedDeclaration.Declarations[0].NameLocation;
 
-        public override bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        public override bool HasLocationWithSpan(SyntaxTree tree, TextSpan declarationSpan)
         {
             // Avoid the allocation of .Locations in the base method.
             foreach (var decl in _mergedDeclaration.Declarations)
             {
-                if (IsLocationContainedWithin(decl.NameLocation, tree, declarationSpan, out wasZeroWidthMatch))
+                if (IsLocationWithSpan(decl.NameLocation, tree, declarationSpan))
                     return true;
             }
 
-            wasZeroWidthMatch = false;
             return false;
         }
 
