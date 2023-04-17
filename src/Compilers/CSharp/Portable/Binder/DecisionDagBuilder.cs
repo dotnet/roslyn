@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
                                 out var whenTrueDecisions, out var whenTrueValues,
-                                out var whenFalseDecisions, out var  whenFalseValues,
+                                out var whenFalseDecisions, out var whenFalseValues,
                                 ref foundExplicitNullTest);
                             state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
