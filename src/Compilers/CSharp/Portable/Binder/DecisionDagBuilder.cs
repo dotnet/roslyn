@@ -1788,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // There is a when clause to evaluate.
                 // In case the when clause fails, we prepare for the remaining cases.
-                var builder = ArrayBuilder<T>.GetInstance(_arrayBuilder.Count - 1);
+                var builder = ArrayBuilder<T>.GetInstance(this.Count - 1);
 
                 for (int i = 0; i < index; i++)
                     builder.Add(this[i]);
