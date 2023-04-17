@@ -1781,12 +1781,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9504: A collection literal cannot be target typed to a multidimensional array.
+                // (5,23): error CS9500: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
                 //         object[,] x = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, "[]").WithLocation(5, 23),
-                // (6,20): error CS9504: A collection literal cannot be target typed to a multidimensional array.
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object[*,*]").WithLocation(5, 23),
+                // (6,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] y = [null, 2];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, "[null, 2]").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("int[*,*]").WithLocation(6, 20));
         }
 
         [Fact]
@@ -1803,9 +1803,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9504: A collection literal cannot be target typed to a multidimensional array.
+                // (5,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] z = [[1, 2], [3, 4]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray, "[[1, 2], [3, 4]]").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[[1, 2], [3, 4]]").WithArguments("int[*,*]").WithLocation(5, 20));
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]

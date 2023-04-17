@@ -387,11 +387,6 @@
         <target state="new">Support for collection literal dictionary and spread elements has not been implemented.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionLiteralTargetTypeMultiDimensionalArray">
-        <source>A collection literal cannot be target typed to a multidimensional array.</source>
-        <target state="new">A collection literal cannot be target typed to a multidimensional array.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
         <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>

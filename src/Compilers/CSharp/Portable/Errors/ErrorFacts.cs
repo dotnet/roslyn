@@ -2311,7 +2311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralElementNotImplemented:
                 case ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType:
-                case ErrorCode.ERR_CollectionLiteralTargetTypeMultiDimensionalArray:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
