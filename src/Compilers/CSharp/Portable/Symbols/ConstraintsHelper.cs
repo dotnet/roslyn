@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly ObjectPool<CheckConstraintsArgsBoxed> s_checkConstraintsArgsBoxedPool = new ObjectPool<CheckConstraintsArgsBoxed>(() => new CheckConstraintsArgsBoxed());
+        private static readonly ObjectPool<CheckConstraintsArgsBoxed> s_checkConstraintsArgsBoxedPool = new ObjectPool<CheckConstraintsArgsBoxed>(static () => new CheckConstraintsArgsBoxed());
 
         internal sealed class CheckConstraintsArgsBoxed
         {
