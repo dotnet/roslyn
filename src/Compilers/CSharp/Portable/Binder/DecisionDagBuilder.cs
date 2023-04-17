@@ -920,10 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
-                                out FrozenArrayBuilder<StateForCase> whenTrueDecisions,
-                                out FrozenArrayBuilder<StateForCase> whenFalseDecisions,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+                                out var whenTrueDecisions, out var whenTrueValues,
+                                out var whenFalseDecisions, out var  whenFalseValues,
                                 ref foundExplicitNullTest);
                             state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
@@ -1060,8 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DagState state,
             BoundDagTest test,
             out FrozenArrayBuilder<StateForCase> whenTrue,
-            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
@@ -1773,8 +1771,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _arrayBuilder = arrayBuilder;
             }
 
+#if DEBUG
+
             public bool IsDefault
                 => _arrayBuilder is null;
+
+#endif
 
             public void Free()
                 => _arrayBuilder.Free();
@@ -1852,12 +1854,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var dagState = s_dagStatePool.Allocate();
 
+#if DEBUG
+
                 Debug.Assert(dagState.Cases.IsDefault);
                 Debug.Assert(dagState.RemainingValues is null);
                 Debug.Assert(dagState.SelectedTest is null);
                 Debug.Assert(dagState.TrueBranch is null);
                 Debug.Assert(dagState.FalseBranch is null);
                 Debug.Assert(dagState.Dag is null);
+
+#endif
 
                 dagState.Cases = cases;
                 dagState.RemainingValues = remainingValues;
