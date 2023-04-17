@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DecisionDagBuilder
     {
-        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool = PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
+        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool =
+            PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
 
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
@@ -890,11 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // There is a when clause to evaluate.
                         // In case the when clause fails, we prepare for the remaining cases.
-                        var stateWhenFails = ArrayBuilder<StateForCase>.GetInstance(state.Cases.Count - 1);
-                        for (int i = 1, n = state.Cases.Count; i < n; i++)
-                            stateWhenFails.Add(state.Cases[i]);
-
-                        state.FalseBranch = uniquifyState(AsFrozen(stateWhenFails), state.RemainingValues);
+                        var stateWhenFails = state.Cases.RemoveAt(0);
+                        state.FalseBranch = uniquifyState(stateWhenFails, state.RemainingValues);
                     }
                 }
                 else
@@ -922,10 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
-                                out FrozenArrayBuilder<StateForCase> whenTrueDecisions,
-                                out FrozenArrayBuilder<StateForCase> whenFalseDecisions,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+                                out var whenTrueDecisions, out var whenTrueValues,
+                                out var whenFalseDecisions, out var whenFalseValues,
                                 ref foundExplicitNullTest);
                             state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
@@ -1062,8 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DagState state,
             BoundDagTest test,
             out FrozenArrayBuilder<StateForCase> whenTrue,
-            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
@@ -1757,15 +1753,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
+                Debug.Assert(arrayBuilder != null);
                 _arrayBuilder = arrayBuilder;
             }
 
-            public bool IsDefault => _arrayBuilder is null;
+#if DEBUG
+
+            public bool IsDefault
+                => _arrayBuilder is null;
+
+#endif
 
             public void Free()
-            {
-                _arrayBuilder.Free();
-            }
+                => _arrayBuilder.Free();
 
             public int Count => _arrayBuilder.Count;
 
@@ -1774,6 +1774,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             public T First() => _arrayBuilder.First();
 
             public ArrayBuilder<T>.Enumerator GetEnumerator() => _arrayBuilder.GetEnumerator();
+
+            public FrozenArrayBuilder<T> RemoveAt(int index)
+            {
+                var builder = ArrayBuilder<T>.GetInstance(this.Count - 1);
+
+                for (int i = 0; i < index; i++)
+                    builder.Add(this[i]);
+
+                for (int i = index + 1, n = this.Count; i < n; i++)
+                    builder.Add(this[i]);
+
+                return AsFrozen(builder);
+            }
         }
 
         /// <summary>
@@ -1827,12 +1840,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var dagState = s_dagStatePool.Allocate();
 
+#if DEBUG
+
                 Debug.Assert(dagState.Cases.IsDefault);
                 Debug.Assert(dagState.RemainingValues is null);
                 Debug.Assert(dagState.SelectedTest is null);
                 Debug.Assert(dagState.TrueBranch is null);
                 Debug.Assert(dagState.FalseBranch is null);
                 Debug.Assert(dagState.Dag is null);
+
+#endif
 
                 dagState.Cases = cases;
                 dagState.RemainingValues = remainingValues;
