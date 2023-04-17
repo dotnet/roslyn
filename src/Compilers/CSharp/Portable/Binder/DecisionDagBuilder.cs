@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the initial state in a <see cref="DagState"/>, and then for each such state description we decide what the test
     /// or evaluation will be at that state, and compute the successor state descriptions. A state description
     /// represented by a <see cref="DagState"/> is a collection of partially matched cases represented by <see
-    /// cref="StateForCase"/>. When we have
-    /// computed <see cref="DagState"/> descriptions for all of the states, we create a new <see
-    /// cref="BoundDecisionDagNode"/> for each of them, containing the state transitions (including the test to perform
-    /// at each node and the successor nodes) but not the state descriptions. A <see cref="BoundDecisionDag"/>
-    /// containing this set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// cref="StateForCase"/>. When we have computed <see cref="DagState"/> descriptions for all of the states, we
+    /// create a new <see cref="BoundDecisionDagNode"/> for each of them, containing the state transitions (including
+    /// the test to perform at each node and the successor nodes) but not the state descriptions. A <see
+    /// cref="BoundDecisionDag"/> containing this set of nodes becomes part of the bound nodes (e.g. in <see
+    /// cref="BoundSwitchStatement"/> and <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic
+    /// analysis and lowering.
     /// </para>
     /// </summary>
     internal sealed partial class DecisionDagBuilder
