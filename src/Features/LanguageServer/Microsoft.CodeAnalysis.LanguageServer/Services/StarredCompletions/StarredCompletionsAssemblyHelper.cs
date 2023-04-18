@@ -39,7 +39,7 @@ internal class StarredCompletionAssemblyHelper
         try
         {
             var starredCompletionsALC = new AssemblyLoadContext(ALCName);
-            var starredCompletionsAssembly = LoadAssembly(starredCompletionsALC, Path.Combine(completionsAssemblyLocation, CompletionsDllName));
+            var starredCompletionsAssembly = LoadSuggestionsAssemblyAndDependencies(starredCompletionsALC, completionsAssemblyLocation);
             var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
             var completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
                     createCompletionProviderMethodInfo,
@@ -80,13 +80,23 @@ internal class StarredCompletionAssemblyHelper
         _logger = logger;
     }
 
-    private static Assembly LoadAssembly(AssemblyLoadContext alc, string assemblyFullPath)
+    private static Assembly LoadSuggestionsAssemblyAndDependencies(AssemblyLoadContext alc, string assemblyLocation)
     {
-        if (!File.Exists(assemblyFullPath))
+        Assembly? starredSuggestionsAssembly = null;
+        var directory = new DirectoryInfo(assemblyLocation);
+        foreach (var file in directory.EnumerateFiles("*.dll"))
         {
-            throw new FileNotFoundException("Starred completions assembly could not be found");
+            var assembly = alc.LoadFromAssemblyPath(file.FullName);
+            if (file.Name == CompletionsDllName)
+            {
+                starredSuggestionsAssembly = assembly;
+            }
         }
-        return alc.LoadFromAssemblyPath(assemblyFullPath);
+        if (starredSuggestionsAssembly == null)
+        {
+            throw new FileNotFoundException($"Required assembly {CompletionsDllName} could not be found");
+        }
+        return starredSuggestionsAssembly;
     }
 
     private static MethodInfo GetMethodInfo(Assembly assembly, string className, string methodName)

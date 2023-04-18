@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1564,6 +1565,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
+
+        /// <summary>
+        /// Cache of T to Nullable&lt;T&gt;.
+        /// </summary>
+        private ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol>.Empty;
+
+        internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
+            => RoslynImmutableInterlocked.GetOrAdd(
+                ref _typeToNullableVersion,
+                typeArgument,
+                static (typeArgument, @this) => @this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument),
+                this);
 
         /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
@@ -4744,7 +4757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.ContainsKey(_name))
+                    if (typeDecl.MemberNames.Contains(_name))
                     {
                         return true;
                     }

@@ -28,7 +28,6 @@ public abstract class AbstractLanguageServerHostTests
 
     protected sealed class TestLspServer : IAsyncDisposable
     {
-        private readonly LanguageServerHost _languageServerHost;
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
@@ -44,13 +43,17 @@ public abstract class AbstractLanguageServerHostTests
             return testLspServer;
         }
 
+        internal LanguageServerHost LanguageServerHost { get; }
+        public ExportProvider ExportProvider { get; }
+
         private TestLspServer(ExportProvider exportProvider, ILogger logger)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger);
+            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger);
 
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, new JsonMessageFormatter()))
             {
+                AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
@@ -58,15 +61,21 @@ public abstract class AbstractLanguageServerHostTests
 
             // This task completes when the server shuts down.  We store it so that we can wait for completion
             // when we dispose of the test server.
-            _languageServerHost.Start();
+            LanguageServerHost.Start();
 
-            _languageServerHostCompletionTask = _languageServerHost.WaitForExitAsync();
+            _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
+            ExportProvider = exportProvider;
         }
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
             var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken);
             return result;
+        }
+
+        public void AddClientLocalRpcTarget(object target)
+        {
+            _clientRpc.AddLocalRpcTarget(target);
         }
 
         public async ValueTask DisposeAsync()

@@ -160,6 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info;
         }
 
+        internal CSDiagnosticInfo Add(ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
+            => Add(code, syntax.GetLocation()!, args);
+
         internal CSDiagnosticInfo Add(ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);

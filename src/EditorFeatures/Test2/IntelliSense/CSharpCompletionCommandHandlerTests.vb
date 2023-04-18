@@ -11487,5 +11487,65 @@ class Program
                 Await state.AssertCompletionItemsDoNotContainAny("first", "second")
             End Using
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Flat() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof($$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property0", "Field0", "Event0")
+                Await state.AssertCompletionItemsDoNotContainAny("Property1", "Field1", "Event1")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Nested() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof(Property0.$$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
+                Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
+            End Using
+        End Function
     End Class
 End Namespace
