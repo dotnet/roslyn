@@ -6521,7 +6521,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1ExtendedType = (ExtendedErrorTypeSymbol) r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
         AssertEx.Equal("error CS9222: Extension marker method on type 'R1' is malformed.", r1ExtendedType.ErrorInfo.ToString());

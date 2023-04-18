@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 ImmutableArray<NamedTypeSymbol> result = declaredInterfaces
-                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, on: this) ? CyclicInheritanceError(t) : t);
+                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(t) : t);
 
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
