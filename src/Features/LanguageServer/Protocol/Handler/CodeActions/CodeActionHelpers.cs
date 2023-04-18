@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         /// <summary>
-        /// Get, order, and filter code actions, and then transform them into VSCodeActions.
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="generateVSCodeAction"/>.
         /// </summary>
         /// <remarks>
         /// Used by CodeActionsHandler.
@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return Array.Empty<LSP.CodeAction>();
 
             using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
+            // VS-LSP support nested code action, but standard LSP doesn't.
             if (generateVSCodeAction)
             {
                 var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -91,11 +92,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            => suggestedAction.OriginalCodeAction is CodeActionWithOptions or
+            => suggestedAction.OriginalCodeAction is CodeActionWithOptions
             // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
             // https://github.com/dotnet/roslyn/issues/48698
             || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
 
+        /// <summary>
+        /// Generate the matching code actions for <paramref name="suggestedAction"/>. If it contains nested code actions, flatten them into an array.
+        /// </summary>
         private static LSP.CodeAction[] GenerateCodeActions(
             CodeActionParams request,
             IUnifiedSuggestedAction suggestedAction,
@@ -104,8 +108,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         {
             if (!string.IsNullOrEmpty(currentTitle))
             {
-                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
-                currentTitle += '|';
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues | Suppress IDEXXXX | in Source'
+                // Here add extra white space because the title is shown to user.
+                currentTitle += " | ";
             }
 
             var codeAction = suggestedAction.OriginalCodeAction;
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
             else
             {
-                builder.Add(new LSP.CodeAction()
+                builder.Add(new LSP.CodeAction
                 {
                     Title = currentTitle,
                     Kind = codeActionKind,
