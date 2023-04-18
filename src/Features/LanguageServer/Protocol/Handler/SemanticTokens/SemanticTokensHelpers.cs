@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        private static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities capabilities)
+        public static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities capabilities)
             => capabilities.HasVisualStudioLspCapability()
                 ? s_VSClassificationTypeToSemanticTokenTypeMap
                 : s_pureLspClassificationTypeToSemanticTokenTypeMap;
@@ -133,6 +134,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var tokenMap = GetTokenTypeMap(capabilities);
 
+            return GetCustomTokenTypes(tokenMap);
+        }
+
+        private static ImmutableArray<string> GetCustomTokenTypes(Dictionary<string, string> tokenMap)
+        {
             return ClassificationTypeNames.AllTypeNames
                 .Where(type => !tokenMap.ContainsKey(type) && !ClassificationTypeNames.AdditiveTypeNames.Contains(type))
                 .Order()
@@ -143,6 +149,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var tokenTypes = GetCustomTokenTypes(capabilities);
             return SemanticTokenTypes.AllTypes.Concat(tokenTypes).ToImmutableArray();
+        }
+
+        public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
+        {
+            return SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
         }
 
         public static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities capabilities)

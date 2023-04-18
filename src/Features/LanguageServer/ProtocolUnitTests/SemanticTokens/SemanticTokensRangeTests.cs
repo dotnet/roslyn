@@ -39,19 +39,34 @@ static class C { }
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
             var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                               | Modifier
-                       0,     0,     10,   SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
-                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                },
-            };
+                       0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
+                       1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                               | Modifier
+                       0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
+                       1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results.Data));
@@ -74,18 +89,32 @@ static class C { }
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                               | Modifier
-                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                },
-            };
+                       1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                               | Modifier
+                       1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
@@ -110,20 +139,36 @@ three */ }
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                               | Modifier
-                       0,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],   0, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
-                       0,     2,     6,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '/* one'
-                       2,     0,     3,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'two'
-                       1,     0,     8,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'three */'
-                       0,     9,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                },
-            };
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   0, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     6,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '/* one'
+                       2,     0,     3,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'two'
+                       1,     0,     8,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'three */'
+                       0,     9,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                               | Modifier
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   0, // 'C'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     6,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '/* one'
+                       2,     0,     3,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'two'
+                       1,     0,     8,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'three */'
+                       0,     9,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
@@ -153,31 +198,58 @@ three"";
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                                         | Modifier
-                       0,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     4,     4,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'void'
-                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
-                       1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     8,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                       0,     2,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"one'
-                       1,     0,     4,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two '
-                       0,     4,     2,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
-                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'three"'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
-                       1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
-                },
-            };
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     4,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     8,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     5,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"one'
+                       1,     0,     4,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two '
+                       0,     4,     2,    tokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
+                       1,     0,     6,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'three"'
+                       0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                                         | Modifier
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     4,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     8,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     5,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"one'
+                       1,     0,     4,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two '
+                       0,     4,     2,    tokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
+                       1,     0,     6,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'three"'
+                       0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
@@ -207,44 +279,84 @@ class C
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                                         | Modifier
-                       0,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
-                       0,     6,     6,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
-                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     18,   SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
-                       0,     18,    1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
-                       2,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
-                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
-                       1,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                       0,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
-                       0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
-                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
-                       0,     1,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
-                       0,     3,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
-                       1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                }
-            };
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
+                       0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     18,   tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
+                       0,     18,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       2,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     2,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
+                       0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
+                       0,     5,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
+                       0,     1,     3,    tokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
+                       0,     3,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
+                       0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                                         | Modifier
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
+                       0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     18,   tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
+                       0,     18,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       2,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     2,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
+                       0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
+                       0,     5,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
+                       0,     1,     3,    tokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
+                       0,     3,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
+                       0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
@@ -275,62 +387,114 @@ class C
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, range: null, options: options, cancellationToken: CancellationToken.None);
 
-            var expectedResults = new LSP.SemanticTokens
+            var expectedResults = new LSP.SemanticTokens();
+
+            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            if (isVS)
             {
-                Data = new int[]
+                expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                                         | Modifier
-                       0,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
-                       0,     6,     6,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
-                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     18,   SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
-                       0,     18,    1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
-                       2,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
-                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
-                       1,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
-                       1,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                       0,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
-                       0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
-                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     2,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
-                       0,     1,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
-                       0,     3,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // ' '
-                       0,     1,     9,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexComment],          0, // '#comment'
-                       1,     0,     27,   SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '"'
-                       0,     27,    1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ','
-                       0,     2,     12,   SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Enum],              0, // 'RegexOptions'
-                       0,     12,    1,    SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     23,   SemanticTokensHelpers.TokenTypeToIndex[SemanticTokenTypes.EnumMember],        0, // 'IgnorePatternWhitespace'
-                       0,     23,    1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
-                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
-                       1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                }
-            };
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
+                       0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     18,   tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
+                       0,     18,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       2,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     2,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
+                       0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
+                       0,     5,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     2,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
+                       0,     1,     3,    tokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
+                       0,     3,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // ' '
+                       0,     1,     9,    tokenTypeToIndex[ClassificationTypeNames.RegexComment],          0, // '#comment'
+                       1,     0,     27,   tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '"'
+                       0,     27,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ','
+                       0,     2,     12,   tokenTypeToIndex[SemanticTokenTypes.Enum],              0, // 'RegexOptions'
+                       0,     12,    1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     23,   tokenTypeToIndex[SemanticTokenTypes.EnumMember],        0, // 'IgnorePatternWhitespace'
+                       0,     23,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                };
+            }
+            else
+            {
+                expectedResults.Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                                         | Modifier
+                       0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
+                       0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'Text'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     18,   tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'RegularExpressions'
+                       0,     18,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       2,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
+                       0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0,  // 'void'
+                       0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Method],            0, // 'M'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       1,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '{'
+                       1,     2,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
+                       0,     2,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'new'
+                       0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'Regex'
+                       0,     5,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
+                       0,     1,     2,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"'
+                       0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
+                       0,     1,     3,    tokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
+                       0,     3,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // ' '
+                       0,     1,     9,    tokenTypeToIndex[ClassificationTypeNames.RegexComment],          0, // '#comment'
+                       1,     0,     27,   tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '"'
+                       0,     27,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ','
+                       0,     2,     12,   tokenTypeToIndex[SemanticTokenTypes.Enum],              0, // 'RegexOptions'
+                       0,     12,    1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '.'
+                       0,     1,     23,   tokenTypeToIndex[SemanticTokenTypes.EnumMember],        0, // 'IgnorePatternWhitespace'
+                       0,     23,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
+                       1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                       1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
+                };
+            }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
-        [Theory, MemberData(nameof(ClassificationTypeNamesToMatch))]
-        public void TestGetSemanticTokensRange_AssertCustomTokenTypes(string fieldName)
-            => Assert.True(SemanticTokensHelpers.RoslynCustomTokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");
+        [Theory, CombinatorialData]
+        public void TestGetSemanticTokensRange_AssertCustomTokenTypes(bool isVS)
+        {
+            var capabilities = GetCapabilities(isVS);
+            var tokenTypeMap = SemanticTokensHelpers.GetTokenTypeMap(capabilities);
+            var classificationTypeNamesToMatch = ClassificationTypeNames.AllTypeNames.Where(
+                type => !tokenTypeMap.ContainsKey(type) && !ClassificationTypeNames.AdditiveTypeNames.Contains(type));
 
-        public static IEnumerable<object[]> ClassificationTypeNamesToMatch => ClassificationTypeNames.AllTypeNames.Where(
-            type => !SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
-                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Select(field => new object[] { field });
+            var tokenTypes = SemanticTokensHelpers.GetCustomTokenTypes(capabilities);
 
+            foreach (var fieldName in classificationTypeNamesToMatch)
+                Assert.True(tokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");
+        }
     }
 }

@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 var lineLength = text.Lines[currentLine].SpanIncludingLineBreak.Length;
 
                 // If this assertion fails, we didn't break up a multi-line token properly.
-                var kind = SemanticTokensHelpers.TokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
+                var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+                var kind = tokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
 
                 Assert.True(currentChar + tokenLength <= lineLength,
                     $"Multi-line token of type {kind} found on line {currentLine} at character index {currentChar}. " +
