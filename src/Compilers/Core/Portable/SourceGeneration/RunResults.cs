@@ -138,11 +138,17 @@ namespace Microsoft.CodeAnalysis
         /// A collection of the named incremental steps (both intermediate and final output ones)
         /// executed during the generator pass this result represents.
         /// </summary>
+        /// <remarks>
+        /// Steps can be named by extension method WithTrackingName.
+        /// </remarks>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedSteps { get; }
 
         /// <summary>
         /// A collection of the named output steps executed during the generator pass this result represents.
         /// </summary>
+        /// <remarks>
+        /// Steps can be named by extension method WithTrackingName.
+        /// </remarks>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedOutputSteps { get; }
     }
 
