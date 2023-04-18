@@ -135,16 +135,14 @@ namespace Microsoft.CodeAnalysis
         internal TimeSpan ElapsedTime { get; }
 
         /// <summary>
-        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// A collection of the named incremental steps (both intermediate and final output ones)
+        /// executed during the generator pass this result represents.
         /// </summary>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedSteps { get; }
 
         /// <summary>
-        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// A collection of the named output steps executed during the generator pass this result represents.
         /// </summary>
-        /// <remarks>
-        /// Contains only final output steps unlike <see cref="TrackedSteps"/> which contains also intermediate steps.
-        /// </remarks>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedOutputSteps { get; }
     }
 
