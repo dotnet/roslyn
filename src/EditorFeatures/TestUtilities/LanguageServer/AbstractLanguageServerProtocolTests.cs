@@ -109,7 +109,7 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
-        protected LSP.ClientCapabilities GetCapabilities(bool isVS)
+        protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
             => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
 
         /// <summary>
