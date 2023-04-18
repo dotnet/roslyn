@@ -203,7 +203,7 @@ internal partial class CSharpRecommendationService
             // using System;
             // |
 
-            if (_context.IsRightAfterUsingOrImport)
+            if (_context.IsRightAfterUsingOrImportDirective)
                 token = token.GetNextToken(includeZeroWidth: true);
 
             var symbols = _context.SemanticModel.LookupSymbols(token.SpanStart);

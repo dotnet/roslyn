@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // If we are immediately after `using` directive adjust position to the start of the next token.
             // This is a workaround for an issue, when immediately after a `using` directive it is not included into the import scope.
             // See https://github.com/dotnet/roslyn/issues/67447 for more info.
-            if (context.IsRightAfterUsingOrImport)
+            if (context.IsRightAfterUsingOrImportDirective)
                 position = targetToken.GetNextToken(includeZeroWidth: true).SpanStart;
 
             var scopes = context.SemanticModel.GetImportScopes(position, cancellationToken);
