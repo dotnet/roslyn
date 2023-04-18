@@ -1315,6 +1315,41 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptsLocationBadPath_04()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C { }
+
+            static class Program
+            {
+                [Interceptable]
+                public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
+
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("program.cs", 15, 11)]
+                public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(20,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'program.cs'.
+            //     [InterceptsLocation("program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""program.cs""").WithArguments("program.cs").WithLocation(20, 25)
+            );
+    }
+
+    [Fact]
     public void InterceptsLocationBadPosition_01()
     {
         var source = """
