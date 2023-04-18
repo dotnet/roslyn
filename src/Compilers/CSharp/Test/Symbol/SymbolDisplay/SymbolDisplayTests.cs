@@ -8269,10 +8269,12 @@ class C
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation);
 
-            Verify(parameterSymbol.ToDisplayParts(format), "ref int",
+            Verify(parameterSymbol.ToDisplayParts(format), "ref int p",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName);
 
             Verify(parameterSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat), "ref int p",
                 SymbolDisplayPartKind.Keyword,
