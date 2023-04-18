@@ -131,30 +131,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 : s_pureLspClassificationTypeToSemanticTokenTypeMap;
 
         public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities capabilities)
-        {
-            var tokenMap = GetTokenTypeMap(capabilities);
-
-            return GetCustomTokenTypes(tokenMap);
-        }
+            => GetCustomTokenTypes(GetTokenTypeMap(capabilities));
 
         private static ImmutableArray<string> GetCustomTokenTypes(Dictionary<string, string> tokenMap)
-        {
-            return ClassificationTypeNames.AllTypeNames
+            => ClassificationTypeNames.AllTypeNames
                 .Where(type => !tokenMap.ContainsKey(type) && !ClassificationTypeNames.AdditiveTypeNames.Contains(type))
                 .Order()
                 .ToImmutableArray();
-        }
 
         public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities capabilities)
-        {
-            var tokenTypes = GetCustomTokenTypes(capabilities);
-            return SemanticTokenTypes.AllTypes.Concat(tokenTypes).ToImmutableArray();
-        }
+            => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(capabilities)).ToImmutableArray();
 
         public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
-        {
-            return SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
-        }
+            => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
 
         public static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities capabilities)
         {
