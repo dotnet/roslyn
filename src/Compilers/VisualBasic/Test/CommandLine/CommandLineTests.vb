@@ -10764,7 +10764,6 @@ End Class
         End Sub
     End Class
 
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class WarningWithUrlDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
 

@@ -14787,7 +14787,6 @@ dotnet_diagnostic.CS8034.severity = none
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class WarningWithUrlDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Warning02 = new DiagnosticDescriptor("Warning02", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://example.org/analyzer");
