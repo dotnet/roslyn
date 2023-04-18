@@ -32,10 +32,7 @@ internal class CSharpStarredCompletionProvider : CompletionProvider
     public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
         var provider = await StarredCompletionAssemblyHelper.GetCompletionProviderAsync(cancellationToken);
-        if (provider == null)
-        {
-            throw ExceptionUtilities.Unreachable(); //unreachable since ProvideCompletionsAsync must have completed successfully for GetChangeAsync to be called
-        }
+        Contract.ThrowIfNull(provider, "ProvideCompletionsAsync must have completed successfully for GetChangeAsync to be called");
         return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -11,12 +11,9 @@ using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-internal class StarredCompletionAssemblyHelper
+internal static class StarredCompletionAssemblyHelper
 {
-    internal static StarredCompletionAssemblyHelper? Instance { get; private set; }
-
-    internal readonly AsyncLazy<CompletionProvider> _completionProviderLazy;
-    internal readonly ILogger _logger;
+    private static AsyncLazy<CompletionProvider>? _completionProviderLazy;
 
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
     private const string ALCName = "IntelliCode-ALC";
@@ -35,49 +32,33 @@ internal class StarredCompletionAssemblyHelper
         {
             return; //no location provided means it wasn't passed through from green
         }
-        var logger = loggerFactory.CreateLogger<StarredCompletionAssemblyHelper>();
+        var logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
         try
         {
             var starredCompletionsALC = new AssemblyLoadContext(ALCName);
             var starredCompletionsAssembly = LoadSuggestionsAssemblyAndDependencies(starredCompletionsALC, completionsAssemblyLocation);
             var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
-            var completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
+            _completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
                     createCompletionProviderMethodInfo,
                     serviceBroker,
                     completionsAssemblyLocation,
                     logger
                 ), cacheResult: true);
-            Instance = new StarredCompletionAssemblyHelper(completionProviderLazy, logger);
         }
         catch (Exception ex)
         {
-            logger.LogError($"Could not initialize {nameof(StarredCompletionAssemblyHelper)}. Starred completions will not be provided. Error: {ex}");
+            logger.LogError(ex, $"Could not initialize {nameof(StarredCompletionAssemblyHelper)}. Starred completions will not be provided.");
         }
     }
 
     internal static async Task<CompletionProvider?> GetCompletionProviderAsync(CancellationToken cancellationToken)
     {
-        if (Instance != null)
+        if (_completionProviderLazy != null)
         {
-            try
-            {
-                return await Instance._completionProviderLazy.GetValueAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Instance._logger.LogError($"Could not initialize {nameof(CompletionProvider)}. Starred completions will not be provided. Error: {ex}");
-            }
+            return await _completionProviderLazy.GetValueAsync(cancellationToken);
         }
-        return null;
-    }
 
-    /// <summary>
-    /// Constructor is private as class should only be initialized via static <see cref="InitializeInstance"/> method
-    /// </summary>
-    private StarredCompletionAssemblyHelper(AsyncLazy<CompletionProvider> completionProviderLazy, ILogger logger)
-    {
-        _completionProviderLazy = completionProviderLazy;
-        _logger = logger;
+        return null;
     }
 
     private static Assembly LoadSuggestionsAssemblyAndDependencies(AssemblyLoadContext alc, string assemblyLocation)
