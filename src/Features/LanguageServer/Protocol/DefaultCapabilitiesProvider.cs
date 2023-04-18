@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
             var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.GetCustomTokenTypes(clientCapabilities)).ToArray(),
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };
