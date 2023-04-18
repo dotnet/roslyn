@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             => (await Task.WhenAll(
                 from child in children
 #if !LEGACY_CODE_METRICS_MODE // Skip implicitly declared symbols, such as default constructor, for non-legacy mode.
-                where !child.IsImplicitlyDeclared || (child as INamespaceSymbol)?.IsGlobalNamespace == true
+                where !child.IsImplicitlyDeclared || child is INamespaceSymbol { IsGlobalNamespace: true }
 #endif
                 select Task.Run(() => ComputeAsync(child, context))).ConfigureAwait(false)).ToImmutableArray();
     }
