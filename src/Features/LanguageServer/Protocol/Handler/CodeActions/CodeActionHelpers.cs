@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         /// <summary>
-        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="generateVSCodeAction"/>.
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="generateVSInternalCodeAction"/>.
         /// </summary>
         /// <remarks>
         /// Used by CodeActionsHandler.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            bool generateVSCodeAction,
+            bool generateVSInternalCodeAction,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
             // VS-LSP support nested code action, but standard LSP doesn't.
-            if (generateVSCodeAction)
+            if (generateVSInternalCodeAction)
             {
                 var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -108,9 +108,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         {
             if (!string.IsNullOrEmpty(currentTitle))
             {
-                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues | Suppress IDEXXXX | in Source'
-                // Here add extra white space because the title is shown to user.
-                currentTitle += " | ";
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
+                currentTitle += '|';
             }
 
             var codeAction = suggestedAction.OriginalCodeAction;
@@ -137,7 +136,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 builder.Add(new LSP.CodeAction
                 {
-                    Title = currentTitle,
+                    // Add extra space because this is shown to user.
+                    Title = currentTitle.Replace("|", " | "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
                     Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
