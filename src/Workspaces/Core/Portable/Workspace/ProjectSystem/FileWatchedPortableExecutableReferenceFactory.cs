@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
                 // We'll collect this from two places: constructing it from known environment variables, and also for the defaults where those environment
                 // variables would usually point, as a fallback.
 
-                if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot)
+                if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot && !string.IsNullOrEmpty(dotnetRoot))
                 {
-                    referenceDirectories.Add(Path.Combine(dotnetRoot));
+                    referenceDirectories.Add(Path.Combine(dotnetRoot, "packs"));
                 }
 
                 if (PlatformInformation.IsWindows)
@@ -75,8 +75,13 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
                     referenceDirectories.Add("/usr/local/share/dotnet/packs");
                 }
 
-                // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
-                // might make restores take longer because we'll be watching changes that may not impact your project.
+                // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about whether
+                // this creates additional overhead responding to changes during a restore.
+                // TODO: remove this condition
+                if (!PlatformInformation.IsWindows)
+                {
+                    referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
+                }
 
                 var directoriesToWatch = referenceDirectories.Select(static d => new WatchedDirectory(d, ".dll")).ToArray();
                 var fileReferenceChangeContext = fileChangeWatcher.CreateContext(directoriesToWatch);

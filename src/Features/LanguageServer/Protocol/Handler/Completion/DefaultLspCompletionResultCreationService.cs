@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // and rely on a post resolution command to make the actual change.
                 lspItem.TextEdit = new LSP.TextEdit()
                 {
-                    NewText = item.DisplayText[..defaultSpan.Length],
+                    NewText = item.DisplayText[..Math.Min(defaultSpan.Length, item.DisplayText.Length)],
                     Range = ProtocolConversions.TextSpanToRange(defaultSpan, documentText),
                 };
             }

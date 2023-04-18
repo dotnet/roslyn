@@ -41,32 +41,31 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         var resolveData = GetCodeLensResolveData(request);
         var (cacheEntry, memberToResolve) = GetCacheEntry(resolveData);
 
+        request.Command = new LSP.Command
+        {
+            Title = string.Format(FeaturesResources._0_references_unquoted, "-"),
+            CommandIdentifier = ClientReferencesCommand,
+            Arguments = new object[]
+            {
+                resolveData.TextDocument.Uri,
+                request.Range.Start
+            }
+        };
+
         var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
 
         if (currentSyntaxVersion != cachedSyntaxVersion)
         {
-            throw new LocalRpcException($"Cached resolve version {cachedSyntaxVersion} does not match current version {currentSyntaxVersion}")
-            {
-                ErrorCode = LspErrorCodes.ContentModified
-            };
+            context.TraceInformation($"Cached resolve version {cachedSyntaxVersion} does not match current version {currentSyntaxVersion}");
+            return request;
         }
 
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
         var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, memberToResolve.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
         if (referenceCount != null)
         {
-            request.Command = new LSP.Command
-            {
-                Title = referenceCount.Value.GetDescription(),
-                CommandIdentifier = ClientReferencesCommand,
-                Arguments = new object[]
-                {
-                        resolveData.TextDocument.Uri,
-                        request.Range.Start
-                }
-            };
-
+            request.Command.Title = referenceCount.Value.GetDescription();
         }
 
         return request;

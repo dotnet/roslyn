@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -195,9 +196,19 @@ internal sealed class LanguageServerProjectSystem
                         await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                 }
-            }
 
-            _logger.LogInformation($"Successfully completed load of {projectPath}");
+                if (loadedFile.Log.Any())
+                {
+                    foreach (var logItem in loadedFile.Log)
+                    {
+                        _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Successfully completed load of {projectPath}");
+                }
+            }
         }
         catch (Exception e)
         {

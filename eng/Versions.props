@@ -31,7 +31,7 @@
     <VisualStudioMacEditorPackagesVersion>$(VisualStudioEditorPackagesVersion)</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.6.26-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.7.6-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.6.35829</MicrosoftVisualStudioShellPackagesVersion>
     <RefOnlyMicrosoftBuildPackagesVersion>16.10.0</RefOnlyMicrosoftBuildPackagesVersion>
@@ -140,7 +140,7 @@
     <MicrosoftVisualStudioCacheVersion>17.3.26-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
-    <MicrosoftVisualStudioComponentModelHostVersion>17.6.199-preview</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>17.6.252</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>17.6.6</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>

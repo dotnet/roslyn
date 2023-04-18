@@ -266,21 +266,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var actualTaggedText = actualTaggedSpan.Span.GetText();
                 Assert.Equal(expectedTag.taggedText, actualTaggedText);
 
-                var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent!;
+                var containerElement = (ContainerElement?)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 Assert.Equal(expectedTag.tooltipText, actualTooltipText);
             }
 
-            static string CollectTextInRun(ContainerElement containerElement)
+            static string CollectTextInRun(ContainerElement? containerElement)
             {
                 var builder = new StringBuilder();
-                foreach (var element in containerElement.Elements)
+
+                if (containerElement is not null)
                 {
-                    if (element is ClassifiedTextElement classifiedTextElement)
+                    foreach (var element in containerElement.Elements)
                     {
-                        foreach (var run in classifiedTextElement.Runs)
+                        if (element is ClassifiedTextElement classifiedTextElement)
                         {
-                            builder.Append(run.Text);
+                            foreach (var run in classifiedTextElement.Runs)
+                            {
+                                builder.Append(run.Text);
+                            }
                         }
                     }
                 }
