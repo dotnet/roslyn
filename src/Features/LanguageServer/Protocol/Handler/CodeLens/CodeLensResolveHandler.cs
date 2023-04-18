@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -38,19 +40,34 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-        var resolveData = GetCodeLensResolveData(request);
-        var (cacheEntry, memberToResolve) = GetCacheEntry(resolveData);
-
         var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-        var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
 
-        if (currentSyntaxVersion != cachedSyntaxVersion)
+        var cacheEntry = _codeLensCache.GetCachedEntry(currentSyntaxVersion.ToString());
+        ImmutableArray<CodeLensMember> members;
+
+        if (cacheEntry == null)
         {
-            throw new LocalRpcException($"Cached resolve version {cachedSyntaxVersion} does not match current version {currentSyntaxVersion}")
-            {
-                ErrorCode = LspErrorCodes.ContentModified
-            };
+            var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
+            members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
         }
+        else
+        {
+            members = cacheEntry.CodeLensMembers;
+        }
+
+        var resolveData = GetCodeLensResolveData(request);
+        var memberToResolve = members[resolveData.ListIndex];
+
+        request.Command = new LSP.Command
+        {
+            Title = string.Format(FeaturesResources._0_references_unquoted, "-"),
+            CommandIdentifier = ClientReferencesCommand,
+            Arguments = new object[]
+            {
+                   resolveData.TextDocument.Uri,
+                   request.Range.Start
+            }
+        };
 
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
         var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, memberToResolve.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
@@ -70,13 +87,6 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         }
 
         return request;
-    }
-
-    private (CodeLensCache.CodeLensCacheEntry CacheEntry, CodeLensMember MemberToResolve) GetCacheEntry(CodeLensResolveData resolveData)
-    {
-        var cacheEntry = _codeLensCache.GetCachedEntry(resolveData.ResultId);
-        Contract.ThrowIfNull(cacheEntry, "Missing cache entry for code lens resolve request");
-        return (cacheEntry, cacheEntry.CodeLensMembers[resolveData.ListIndex]);
     }
 
     private static CodeLensResolveData GetCodeLensResolveData(LSP.CodeLens codeLens)

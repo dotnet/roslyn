@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
             // Store the members in the resolve cache so that when we get a resolve request for a particular
             // member we can re-use the inline hint.
-            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion));
+            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion), syntaxVersion.ToString());
 
             for (var i = 0; i < hints.Length; i++)
             {

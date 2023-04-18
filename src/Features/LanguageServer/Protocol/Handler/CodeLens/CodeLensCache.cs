@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens.CodeLensCach
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
-internal sealed class CodeLensCache : ResolveCache<CodeLensCacheEntry>
+internal sealed class CodeLensCache : ResolveCache<CodeLensCacheEntry, string>
 {
     /// <summary>
     /// Use a cache size of 3 as a rough baseline - generally 1 is enough

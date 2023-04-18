@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// This cache is generally only written to as part of the initial request to store data for later resolution.
 /// It is only read from as part of a resolve request for some data sent in the initial request to restore state.
 /// </summary>
-internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntry : class
+internal abstract class ResolveCache<TCacheEntry, T> : ILspService where TCacheEntry : class
 {
     /// <summary>
     /// Maximum number of cache entries allowed in cache. Must be >= 1.
@@ -29,20 +30,17 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
     /// <summary>
     /// Multiple cache requests or updates may be received concurrently.
     /// We need this lock to ensure that we aren't making concurrent
-    /// modifications to <see cref="_nextResultId"/> or <see cref="_resultIdToCachedItem"/>
+    /// modifications to <see cref="_resultIdToCachedItem"/> or the 
+    /// resultId supplied by the caller
     /// </summary>
     private readonly object _accessLock = new();
 
     #region protected by _accessLock
-    /// <summary>
-    /// The next resultId available to use.
-    /// </summary>
-    private long _nextResultId;
 
     /// <summary>
     /// Keeps track of the resultIds in the cache and their associated cache entry.
     /// </summary>
-    private readonly List<(long ResultId, TCacheEntry CacheEntry)> _resultIdToCachedItem = new();
+    private readonly List<(T ResultId, TCacheEntry CacheEntry)> _resultIdToCachedItem = new();
 
     #endregion
 
@@ -54,11 +52,14 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
     /// <summary>
     /// Adds a completion list to the cache. If the cache reaches its maximum size, the oldest completion
     /// list in the cache is removed.
+    /// 
+    /// Caller may want to update the cacheId (e.g. if cacheId is incremental value). 
+    /// This should be done inside of the operation access lock. 
     /// </summary>
     /// <returns>
     /// The generated resultId associated with the passed in completion list.
     /// </returns>
-    public long UpdateCache(TCacheEntry cacheEntry)
+    public T UpdateCache(TCacheEntry cacheEntry, T resultId, Action<T> updateResultIdCallback = null)
     {
         lock (_accessLock)
         {
@@ -68,13 +69,13 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
                 _resultIdToCachedItem.RemoveAt(0);
             }
 
-            // Getting the generated unique resultId
-            var resultId = _nextResultId++;
-
             // Add passed in entry to cache
             _resultIdToCachedItem.Add((resultId, cacheEntry));
 
-            // Return generated resultId so entry can later be retrieved from cache
+            // If the caller provided a callback for updating the resultId, execute it (e.g. if resultId is incremental value)
+            updateResultIdCallback?.Invoke(resultId);
+
+            // Return the resultId associated with this cache entry
             return resultId;
         }
     }
@@ -83,13 +84,13 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
     /// Attempts to return the completion list in the cache associated with the given resultId.
     /// Returns null if no match is found.
     /// </summary>
-    public TCacheEntry? GetCachedEntry(long resultId)
+    public TCacheEntry? GetCachedEntry(T resultId)
     {
         lock (_accessLock)
         {
             foreach (var item in _resultIdToCachedItem)
             {
-                if (item.ResultId == resultId)
+                if (item.ResultId.Equals(resultId))
                 {
                     // We found a match - return entry
                     return item.CacheEntry;
@@ -105,14 +106,14 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
 
     internal readonly struct TestAccessor
     {
-        private readonly ResolveCache<TCacheEntry> _resolveCache;
+        private readonly ResolveCache<TCacheEntry, T> _resolveCache;
 
         public int MaximumCacheSize => _resolveCache._maxCacheSize;
 
-        public TestAccessor(ResolveCache<TCacheEntry> resolveCache)
+        public TestAccessor(ResolveCache<TCacheEntry, T> resolveCache)
             => _resolveCache = resolveCache;
 
-        public List<(long ResultId, TCacheEntry CacheEntry)> GetCacheContents()
+        public List<(T ResultId, TCacheEntry CacheEntry)> GetCacheContents()
             => _resolveCache._resultIdToCachedItem;
     }
 }
