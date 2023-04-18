@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
-            ref bool invokedAsExtensionMethod,
             Location? interceptableLocation)
         {
             // PROTOTYPE(ic):
@@ -233,9 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
                 }
-
-                // PROTOTYPE(ic): search for a scenario where propagating this value matters
-                invokedAsExtensionMethod = true;
             }
 
             method = interceptor;
@@ -276,8 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod);
 
-            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref invokedAsExtensionMethod, node.InterceptableLocation);
-            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, invokedAsExtensionMethod, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, node.InterceptableLocation);
+            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
             if (Instrument)
             {
@@ -311,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod);
 
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps.ToImmutableAndFree());
+            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, resultKind, type, temps.ToImmutableAndFree());
         }
 
         private BoundExpression MakeCall(
@@ -321,7 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
-            bool invokedAsExtensionMethod,
             LookupResultKind resultKind,
             TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
@@ -357,11 +352,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     isDelegateCall: false,
                     expanded: false,
-                    invokedAsExtensionMethod: invokedAsExtensionMethod,
+                    invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
@@ -373,13 +368,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     node.IsDelegateCall,
-                    false,
-                    node.InvokedAsExtensionMethod,
-                    default(ImmutableArray<int>),
-                    default(BitVector),
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArguments: default(BitVector),
                     node.ResultKind,
                     node.Type);
             }
@@ -406,7 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: method,
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
-                invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type,
                 temps: default);
