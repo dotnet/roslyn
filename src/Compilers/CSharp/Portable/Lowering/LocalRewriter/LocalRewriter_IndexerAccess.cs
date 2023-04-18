@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = _factory.Sequence(ImmutableArray.Create(((BoundLocal)rewrittenReceiver).LocalSymbol),
                                            ImmutableArray.Create((BoundExpression)receiverStore),
-                                           result);// RefAccessMustMakeCopy(result));
+                                           result);
             }
 
             return result;

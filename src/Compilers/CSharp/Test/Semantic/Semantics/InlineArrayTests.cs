@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -516,6 +517,27 @@ ref struct Buffer
                 Assert.Equal(10, length);
                 Assert.False(buffer.TryGetInlineArrayElementType().HasType);
             }
+        }
+
+        [Fact]
+        public void InlineArrayType_18_Retargeting()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp1 = CreateCompilation(src1 + InlineArrayAttributeDefinition, targetFramework: TargetFramework.Net50);
+            var comp2 = CreateCompilation("", references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Net60);
+
+            var buffer = comp2.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(buffer);
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
