@@ -3571,6 +3571,26 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             CleanupAllGeneratedFiles(file.Path);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")]
+        public void DiagnosticFormatting_DiagnosticAnalyzer()
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText("class C { }");
+
+            var output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1,
+                analyzers: new[] { new WarningWithUrlDiagnosticAnalyzer() });
+
+            AssertEx.Equal("""
+                a.cs(1,7): warning Warning02: Throwing a diagnostic for types declared (https://example.org/analyzer)
+                """,
+                output.Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
         [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseOut()
@@ -14762,6 +14782,24 @@ dotnet_diagnostic.CS8034.severity = none
                 (symbolContext) =>
                 {
                     symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
+                },
+                SymbolKind.NamedType);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class WarningWithUrlDiagnosticAnalyzer : CompilationStartedAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Warning02 = new DiagnosticDescriptor("Warning02", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://example.org/analyzer");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning02);
+
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        {
+            context.RegisterSymbolAction(
+                static (symbolContext) =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning02, symbolContext.Symbol.Locations.First()));
                 },
                 SymbolKind.NamedType);
         }

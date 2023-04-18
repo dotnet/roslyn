@@ -7693,6 +7693,25 @@ End Namespace
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")>
+        Public Sub DiagnosticFormatting_DiagnosticAnalyzer()
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText("
+Class C
+End Class
+")
+
+            Dim output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                expectedWarningCount:=1,
+                analyzers:={New WarningWithUrlDiagnosticAnalyzer()}).Trim()
+
+            Assert.Contains("warning Warning04: Throwing a diagnostic for types declared (https://example.org/analyzer)", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
         <Fact>
         Public Sub ParseFeatures()
             Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
@@ -10742,6 +10761,30 @@ End Class
         Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             context.ReportDiagnostic(Diagnostic.Create(Warning01, context.Symbol.Locations.First()))
             context.ReportDiagnostic(Diagnostic.Create(Warning03, context.Symbol.Locations.First()))
+        End Sub
+    End Class
+
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    Friend Class WarningWithUrlDiagnosticAnalyzer
+        Inherits MockAbstractDiagnosticAnalyzer
+
+        Friend Shared ReadOnly Warning04 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning04", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True, helpLinkUri:="https://example.org/analyzer")
+
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
+        End Sub
+
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Warning04)
+            End Get
+        End Property
+
+        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Warning04, context.Symbol.Locations.First()))
         End Sub
     End Class
 
