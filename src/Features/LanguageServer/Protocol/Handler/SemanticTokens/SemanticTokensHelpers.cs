@@ -34,12 +34,84 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         internal static readonly Dictionary<string, string> ClassificationTypeToSemanticTokenTypeMap =
             new()
             {
-                [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
-                [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
-                [ClassificationTypeNames.Keyword] = LSP.SemanticTokenTypes.Keyword,
-                [ClassificationTypeNames.NumericLiteral] = LSP.SemanticTokenTypes.Number,
-                [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
-                [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
+                [ClassificationTypeNames.Comment] = SemanticTokenTypes.Comment,
+                [ClassificationTypeNames.Identifier] = SemanticTokenTypes.Variable,
+
+                // No specific lsp property for both of these
+                [ClassificationTypeNames.Keyword] = SemanticTokenTypes.Keyword,
+                [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword,
+
+                [ClassificationTypeNames.NumericLiteral] = SemanticTokenTypes.Number,
+
+                // No specific lsp property for both of these
+                [ClassificationTypeNames.Operator] = SemanticTokenTypes.Operator,
+                [ClassificationTypeNames.OperatorOverloaded] = SemanticTokenTypes.Operator,
+
+                // No specific lsp property for both of these
+                [ClassificationTypeNames.StringLiteral] = SemanticTokenTypes.String,
+                [ClassificationTypeNames.VerbatimStringLiteral] = SemanticTokenTypes.String,
+
+                // No specific lsp property for both of these
+                [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
+                [ClassificationTypeNames.RecordClassName] = SemanticTokenTypes.Class,
+                [ClassificationTypeNames.DelegateName] = SemanticTokenTypes.Class,
+                [ClassificationTypeNames.ModuleName] = SemanticTokenTypes.Class,
+
+                // No specific lsp property for both of these
+                [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
+                [ClassificationTypeNames.RecordStructName] = SemanticTokenTypes.Struct,
+
+                [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
+                [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
+                [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
+                [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
+                [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
+                [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Variable,
+
+                // No specific lsp property for all of these
+                [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
+                [ClassificationTypeNames.FieldName] = SemanticTokenTypes.Property,
+                [ClassificationTypeNames.ConstantName] = SemanticTokenTypes.Property,
+
+                // No specific lsp property for all of these
+                [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Method,
+                [ClassificationTypeNames.ExtensionMethodName] = SemanticTokenTypes.Method,
+
+                [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
+                [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
+                [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
+
+                // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
+                [ClassificationTypeNames.LabelName] = "label",
+
+                // No specific lsp property for all of these
+                [ClassificationTypeNames.RegexComment] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexCharacterClass] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexAnchor] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexQuantifier] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexGrouping] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexAlternation] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexText] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexSelfEscapedCharacter] = SemanticTokenTypes.Regexp,
+                [ClassificationTypeNames.RegexOtherEscape] = SemanticTokenTypes.Regexp,
+
+                // TODO: Missing lsp classifications for xml doc comments, xml literals (vb), json.
+
+                // TODO: Missing specific lsp classifications for the following classification type names.
+
+#if false
+                public const string ExcludedCode = "excluded code";
+                public const string WhiteSpace = "whitespace";
+                public const string Text = "text";
+
+                internal const string ReassignedVariable = "reassigned variable";
+                public const string StaticSymbol = "static symbol";
+
+                public const string PreprocessorText = "preprocessor text";
+                public const string Punctuation = "punctuation";
+                public const string StringEscapeCharacter = "string - escape character";
+#endif
+
             };
 
         public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ClassificationTypeNames.AllTypeNames
@@ -54,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // Computes the mapping between a LSP token type and its respective index recognized by LSP.
             TokenTypeToIndex = new Dictionary<string, int>();
             var index = 0;
-            foreach (var lspTokenType in LSP.SemanticTokenTypes.AllTypes)
+            foreach (var lspTokenType in SemanticTokenTypes.AllTypes)
             {
                 TokenTypeToIndex.Add(lspTokenType, index);
                 index++;
