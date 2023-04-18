@@ -81,13 +81,19 @@ namespace Microsoft.CodeAnalysis
         {
             var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
 
-            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
-            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
-            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
-            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
-            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
-            // hold its data from the start.
-            result.GetValue(loadTextOptions, CancellationToken.None);
+            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var options = service.Options;
+
+            if (!options.DeferCreatingRecoverableText)
+            {
+                // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
+                // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
+                // transitions to a weak reference backed by temporary storage after the first time GetValue (or
+                // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
+                // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
+                // hold its data from the start.
+                result.GetValue(loadTextOptions, CancellationToken.None);
+            }
 
             return result;
         }
