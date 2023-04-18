@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -19,37 +21,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
             var collectionType = node.Type;
-            var spanConstructor = node.SpanConstructor;
+            MethodSymbol? spanConstructor = null;
 
             var arrayType = collectionType as ArrayTypeSymbol;
             if (arrayType is null)
             {
-                Debug.Assert(spanConstructor is { });
-                Debug.Assert(TypeSymbol.Equals(collectionType, spanConstructor.ContainingType, TypeCompareKind.AllIgnoreOptions));
-
-                var elementType = ((NamedTypeSymbol)collectionType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
+                // We're constructing a Span<T> or ReadOnlySpan<T> rather than T[].
+                var spanType = (NamedTypeSymbol)collectionType;
+                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
+                spanConstructor = ((MethodSymbol)_compilation.GetWellKnownTypeMember(
+                    collectionType.Name == "Span" ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)!).AsMember(spanType);
             }
 
             var initializers = node.Initializers;
-            int arrayLength = initializers.Length;
-            // PROTOTYPE: Should [] be emitted as Array.Empty<T>()?
-            var initialization = (arrayLength == 0)
-                ? null
-                : new BoundArrayInitialization(
-                    syntax,
-                    isInferred: false,
-                    initializers.SelectAsArray(e => VisitExpression(e)));
-            var array = new BoundArrayCreation(
-                syntax,
-                ImmutableArray.Create<BoundExpression>(
-                    new BoundLiteral(
+            BoundExpression array;
+
+            if (initializers.Any(i => i is BoundCollectionLiteralSpreadElement))
+            {
+                // The array initializer includes at least one spread element, and if any spread element
+                // has an unknown length (at runtime), we'll create an intermediate List<T> instance.
+                array = CreateArrayCollectionLiteralOfUnknownLength(node);
+            }
+            else
+            {
+                int arrayLength = initializers.Length;
+                // PROTOTYPE: Should [] be emitted as Array.Empty<T>()?
+                var initialization = (arrayLength == 0)
+                    ? null
+                    : new BoundArrayInitialization(
                         syntax,
-                        ConstantValue.Create(arrayLength),
-                        _compilation.GetSpecialType(SpecialType.System_Int32))),
-                initialization,
-                arrayType)
-            { WasCompilerGenerated = true };
+                        isInferred: false,
+                        initializers.SelectAsArray(e => VisitExpression(e)));
+                array = new BoundArrayCreation(
+                    syntax,
+                    ImmutableArray.Create<BoundExpression>(
+                        new BoundLiteral(
+                            syntax,
+                            ConstantValue.Create(arrayLength),
+                            _compilation.GetSpecialType(SpecialType.System_Int32))),
+                    initialization,
+                    arrayType)
+                { WasCompilerGenerated = true };
+            }
 
             if (spanConstructor is null)
             {
@@ -58,6 +71,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(TypeSymbol.Equals(array.Type, spanConstructor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions));
             return new BoundObjectCreationExpression(syntax, spanConstructor, array);
+        }
+
+        private BoundExpression CreateArrayCollectionLiteralOfUnknownLength(BoundArrayOrSpanCollectionLiteralExpression node)
+        {
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.Type is { });
+
+            var elementType = node.ElementType;
+            var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
+            var listConstructor = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor)!).AsMember(listType);
+            var listAdd = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add)!).AsMember(listType);
+            var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
+
+            var rewrittenReceiver = _factory.New(listConstructor);
+
+            // Create a temp for the collection.
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            var initializers = node.Initializers;
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length + 1);
+            sideEffects.Add(assignmentToTemp);
+
+            foreach (var initializer in initializers)
+            {
+                var rewrittenInitializer = initializer switch
+                {
+                    BoundCollectionElementInitializer collectionElement => MakeCollectionInitializer(temp, collectionElement),
+                    BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
+                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement, initializer => _factory.ExpressionStatement(_factory.Call(temp, listAdd, initializer.AddElementPlaceholder))),
+                    _ => throw ExceptionUtilities.UnexpectedValue(initializer)
+                };
+                if (rewrittenInitializer != null)
+                {
+                    sideEffects.Add(rewrittenInitializer);
+                }
+            }
+
+            var list = new BoundSequence(
+                node.Syntax,
+                ImmutableArray.Create(temp.LocalSymbol),
+                sideEffects.ToImmutableAndFree(),
+                temp,
+                node.Type);
+            return _factory.Call(list, listToArray);
         }
 
         public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
@@ -82,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundCollectionElementInitializer collectionElement => MakeCollectionInitializer(temp, collectionElement),
                     BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
+                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement, initializer => _factory.ExpressionStatement(VisitExpression(initializer.AddMethodInvocation)!)),
                     _ => throw ExceptionUtilities.UnexpectedValue(initializer)
                 };
                 if (rewrittenInitializer != null)
@@ -98,6 +156,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 temp,
                 node.Type);
+        }
+
+        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer, Func<BoundCollectionLiteralSpreadElement, BoundStatement> getRewrittenBody)
+        {
+            var enumeratorInfo = initializer.EnumeratorInfo;
+            var addElementPlaceholder = initializer.AddElementPlaceholder;
+
+            Debug.Assert(enumeratorInfo is { });
+            Debug.Assert(addElementPlaceholder is { });
+            Debug.Assert(addElementPlaceholder.Type is { }); // PROTOTYPE: Is this guaranteed?
+
+            var syntax = (CSharpSyntaxNode)initializer.Syntax;
+            var iterationVariable = _factory.SynthesizedLocal(addElementPlaceholder.Type, syntax);
+
+            var convertedExpression = (BoundConversion)initializer.Expression;
+
+            AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
+            var rewrittenBody = getRewrittenBody(initializer);
+            RemovePlaceholderReplacement(addElementPlaceholder);
+
+            BoundStatement statement;
+            if (convertedExpression.Operand.Type is ArrayTypeSymbol arrayType)
+            {
+                if (arrayType.IsSZArray)
+                {
+                    statement = RewriteSingleDimensionalArrayForEachEnumerator(
+                        initializer,
+                        convertedExpression.Operand,
+                        initializer.ElementPlaceholder,
+                        initializer.ElementConversion,
+                        iterationVariables: ImmutableArray.Create(iterationVariable),
+                        deconstruction: null,
+                        breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
+                        continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                        rewrittenBody);
+                }
+                else
+                {
+                    // PROTOTYPE: ...
+                    throw ExceptionUtilities.UnexpectedValue(arrayType);
+                }
+            }
+            else
+            {
+                statement = RewriteForEachEnumerator(
+                    initializer,
+                    convertedExpression,
+                    enumeratorInfo,
+                    initializer.ElementPlaceholder,
+                    initializer.ElementConversion,
+                    iterationVariables: ImmutableArray.Create(iterationVariable),
+                    deconstruction: null,
+                    awaitableInfo: null,
+                    breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
+                    continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                    rewrittenBody);
+            }
+
+            _needsSpilling = true;
+            return _factory.SpillSequence(
+                ImmutableArray<LocalSymbol>.Empty,
+                ImmutableArray.Create(statement),
+                result: _factory.Literal(0)); // PROTOTYPE: The result is unused. Can we avoid creating it entirely?
         }
     }
 }

@@ -3529,11 +3529,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]
+        [CombinatorialData]
+        public void SpreadElement_01(
+            [CombinatorialValues("IEnumerable", "IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string spreadType,
+            [CombinatorialValues("IEnumerable", "IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string collectionType)
+        {
+            string source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = F([1, 2, 3]);
+                        c.Report();
+                    }
+                    static {{collectionType}} F({{spreadType}} s) => [..s];
+                }
+                """;
+
+            // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
+            // For now, skip cases where the spread is IEnumerable and the collection type is strongly-typed.
+            if (spreadType == "IEnumerable" && collectionType != "IEnumerable") return;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+
+            // Verify some of the cases.
+            // PROTOTYPE: Verify more cases.
+            string expectedIL = (spreadType, collectionType) switch
+            {
+                ("IEnumerable", "IEnumerable") =>
+                    """
+                    {
+                      // Code size       58 (0x3a)
+                      .maxstack  2
+                      .locals init (System.Collections.Generic.List<object> V_0,
+                                    System.Collections.IEnumerator V_1,
+                                    object V_2,
+                                    System.IDisposable V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_001d
+                        IL_000f:  ldloc.1
+                        IL_0010:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.0
+                        IL_0017:  ldloc.2
+                        IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                        IL_001d:  ldloc.1
+                        IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_0023:  brtrue.s   IL_000f
+                        IL_0025:  leave.s    IL_0038
+                      }
+                      finally
+                      {
+                        IL_0027:  ldloc.1
+                        IL_0028:  isinst     "System.IDisposable"
+                        IL_002d:  stloc.3
+                        IL_002e:  ldloc.3
+                        IL_002f:  brfalse.s  IL_0037
+                        IL_0031:  ldloc.3
+                        IL_0032:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0037:  endfinally
+                      }
+                      IL_0038:  ldloc.0
+                      IL_0039:  ret
+                    }
+                    """,
+                ("int[]", "int[]") => "...", // PROTOTYPE: Shouldn't require an intermediate List<int>.
+                _ => null
+            };
+            if (expectedIL is { })
+            {
+                verifier.VerifyIL("Program.F", expectedIL);
+            }
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("int[]")]
         [InlineData("System.Collections.Generic.List<int>")]
         [InlineData("System.Span<int>")]
         [InlineData("System.ReadOnlySpan<int>")]
-        public void SpreadElement_01(string collectionType)
+        public void SpreadElement_02(string collectionType)
         {
             string source = $$"""
                 class Program
@@ -3557,7 +3640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void SpreadElement_02()
+        public void SpreadElement_03()
         {
             string source = """
                 using System.Collections;
@@ -3586,6 +3669,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         s = [..s, ..[1, 2]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..[1, 2]").WithLocation(14, 19));
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SpreadElement_NaturalType_01()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable F1(IEnumerable e1)
+                    {
+                        var c1 = [..e1];
+                        return c1;
+                    }
+                    static IEnumerable F2<T>(IEnumerable<T> e2)
+                    {
+                        var c2 = [..e2];
+                        return c2;
+                    }
+                    static IEnumerable F3<T>(T[] e3)
+                    {
+                        var c3 = [..e3];
+                        return c3;
+                    }
+                    static IEnumerable F4<T>(Span<T> e4)
+                    {
+                        var c4 = [..e4];
+                        return c4;
+                    }
+                    static void Main()
+                    {
+                        F1(new[] { 1 }).Report();
+                        F2(new[] { 2 }).Report();
+                        F3(new[] { 3 }).Report();
+                        F4(new Span<int>(new[] { 4 })).Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[], [1, 2], [], [3, 4], ");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
+            Assert.Equal(12, collections.Length);
+            VerifyTypes(model, collections[0], null, "System.Int32[]", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[1], null, "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[2], null, "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[3], null, "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
+
+            verifier.VerifyIL("Program.F1", "..."); // PROTOTYPE: Verify all methods.
+        }
+
+        // PROTOTYPE: Test all combinations of collection types for spread and container.
+        // PROTOTYPE: Test natural type with spread type collection initializer type, foreachable pattern.
+        // PROTOTYPE: Test above with/without other types.
+        // PROTOTYPE: Test spread where the collection item is dynamic (where BoundDynamicCollectionElementInitializer
+        // would be used for a collection initializer), with array target, list target, custom collection initializer target.
+        // PROTOTYPE: Test spread where the collection is dynamic, with array target, list target, custom collection initializer target.
+        // PROTOTYPE: Test missing List<T> constructor for array and span collections with/without spread operator.
+        // PROTOTYPE: Test missing List<T>.Add() method for array and span collections with/without spread operator.
+        // PROTOTYPE: Test [..e] where the source and/or target have ref struct elements. (Should be an error unless both are ref struct collections.)
+        // PROTOTYPE: [await e]
+        // PROTOTYPE: [.. await e]
+        // PROTOTYPE: Test array with spread element _and_ with dynamic element, where the array element type is object or int.
+        // PROTOTYPE: Test array with spread element with dynamic element type, where the array element type is object or int.
 
         [Fact]
         public void Nullable_01()

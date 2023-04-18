@@ -1226,7 +1226,6 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
-            var spanConstructor = boundCollectionLiteralExpression.SpanConstructor.GetPublicSymbol();
             var initializer = new ArrayInitializerOperation(
                 CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
                 _semanticModel,
@@ -1238,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
                 ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
                 isImplicit: true));
-            if (spanConstructor is null)
+            if (collectionType.TypeKind == TypeKind.Array)
             {
                 return new ArrayCreationOperation(
                     dimensionSizes,
@@ -1250,18 +1249,20 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
+                var spanConstructor = (IMethodSymbol?)_semanticModel.Compilation.CommonGetWellKnownTypeMember(collectionType.Name == "Span" ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)?.GetISymbol();
                 // PROTOTYPE: Decide public API shape. Will we always initialize the span
                 // with an array, and is it reasonable to expose this in the IOperation?
+                var spanConstructorParameter = spanConstructor?.Parameters[0];
                 var array = new ArrayCreationOperation(
                     dimensionSizes,
                     initializer,
                     _semanticModel,
                     syntax,
-                    spanConstructor.Parameters[0].Type,
+                    spanConstructorParameter?.Type,
                     isImplicit: true);
                 IArgumentOperation constructorArgument = new ArgumentOperation(
                     ArgumentKind.Explicit,
-                    spanConstructor.Parameters[0],
+                    spanConstructorParameter,
                     array,
                     OperationFactory.IdentityConversion,
                     OperationFactory.IdentityConversion,

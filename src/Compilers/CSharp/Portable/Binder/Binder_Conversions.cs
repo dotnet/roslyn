@@ -428,19 +428,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = (CSharpSyntaxNode)node.Syntax;
             TypeSymbol? elementType;
-            BoundCollectionLiteralExpression collectionLiteral = Conversions.GetConstructibleCollectionType(Compilation, targetType, out elementType) switch
-            {
-                ConversionsBase.ConstructibleCollectionTypeKind.Array
-                    => bindArrayOrSpan(syntax, targetType, spanConstructor: null, node.Initializers, elementType!, diagnostics),
-                ConversionsBase.ConstructibleCollectionTypeKind.Span
-                    => bindArrayOrSpan(syntax, targetType, getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics), node.Initializers, elementType!, diagnostics),
-                ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan
-                    => bindArrayOrSpan(syntax, targetType, getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics), node.Initializers, elementType!, diagnostics),
-                ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer
-                    => BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics),
-                var collectionTypeKind
-                    => throw ExceptionUtilities.UnexpectedValue(collectionTypeKind),
-            };
+            var collectionTypeKind = Conversions.GetConstructibleCollectionType(Compilation, targetType, out elementType);
+            BoundCollectionLiteralExpression collectionLiteral = (collectionTypeKind == ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer)
+                ? BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics)
+                : BindArrayOrSpanCollectionLiteral(syntax, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, node.Initializers, elementType!, diagnostics);
 
             return new BoundConversion(
                 syntax,
@@ -451,36 +442,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionGroupOpt,
                 collectionLiteral.ConstantValueOpt,
                 targetType);
+        }
 
-            BoundArrayOrSpanCollectionLiteralExpression bindArrayOrSpan(
-                CSharpSyntaxNode syntax,
-                TypeSymbol targetType,
-                MethodSymbol? spanConstructor,
-                ImmutableArray<BoundExpression> elements,
-                TypeSymbol elementType,
-                BindingDiagnosticBag diagnostics)
+        private BoundArrayOrSpanCollectionLiteralExpression BindArrayOrSpanCollectionLiteral(
+            CSharpSyntaxNode syntax,
+            TypeSymbol targetType,
+            bool wasCompilerGenerated,
+            ConversionsBase.ConstructibleCollectionTypeKind collectionTypeKind,
+            ImmutableArray<BoundExpression> elements,
+            TypeSymbol elementType,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
-                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
-                foreach (var element in elements)
-                {
-                    builder.Add(convertArrayElement(element, elementType, diagnostics));
-                }
-                return new BoundArrayOrSpanCollectionLiteralExpression(
-                    syntax,
-                    spanConstructor,
-                    naturalTypeOpt: null,
-                    wasTargetTyped: true,
-                    implicitReceiver,
-                    builder.ToImmutableAndFree(),
-                    targetType)
-                { WasCompilerGenerated = wasCompilerGenerated };
+                // PROTOTYPE: Test with missing List<T> and with missing constructor, Add(), and ToArray() methods.
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
             }
 
-            MethodSymbol? getSpanConstructor(CSharpSyntaxNode syntax, TypeSymbol spanType, WellKnownMember spanMember, BindingDiagnosticBag diagnostics)
+            switch (collectionTypeKind)
             {
-                return (MethodSymbol?)GetWellKnownTypeMember(spanMember, diagnostics, syntax: syntax)?.SymbolAsMember((NamedTypeSymbol)spanType);
+                case ConversionsBase.ConstructibleCollectionTypeKind.Span:
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, diagnostics, syntax: syntax);
+                    break;
+                case ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan:
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
+                    break;
             }
+
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+            foreach (var element in elements)
+            {
+                var result = (element is BoundCollectionLiteralSpreadElement spreadElement)
+                    ? bindSpreadElement(spreadElement, elementType, diagnostics)
+                    : convertArrayElement(element, elementType, diagnostics);
+                result.WasCompilerGenerated = true;
+                builder.Add(result);
+            }
+            return new BoundArrayOrSpanCollectionLiteralExpression(
+                syntax,
+                elementType: elementType,
+                naturalTypeOpt: null,
+                wasTargetTyped: true,
+                implicitReceiver,
+                builder.ToImmutableAndFree(),
+                targetType)
+            { WasCompilerGenerated = wasCompilerGenerated };
 
             BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
             {
@@ -506,6 +515,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: hasErrors);
                 result.WasCompilerGenerated = true;
                 return result;
+            }
+
+            BoundExpression bindSpreadElement(BoundCollectionLiteralSpreadElement element, TypeSymbol elementType, BindingDiagnosticBag diagnostics) // PROTOTYPE: Remove unused parameters.
+            {
+                // PROTOTYPE: Where is the conversion from spread element type to array element type?
+                var enumeratorInfo = element.EnumeratorInfo;
+                Debug.Assert(enumeratorInfo.ElementType is { });
+                var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+                return element.Update(
+                    element.Expression,
+                    enumeratorInfo,
+                    element.ElementPlaceholder,
+                    elementConversion: null, // PROTOTYPE: Remove BoundCollectionLiteralSpreadElement.ElementConversion if not used.
+                    addElementPlaceholder,
+                    addMethodInvocation: null,
+                    element.Type);
             }
         }
 
@@ -545,17 +570,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            // PROTOTYPE: Why are we binding to an Add() method when we're using natural type?
+            // In that case, shouldn't we specifically use List<T>.Add(T), just as we do when creating
+            // an intermediate List<T> for an array or span that has a spread element?
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
             foreach (var element in node.Initializers)
             {
-                var result = BindCollectionInitializerElementAddMethod(
-                    element.Syntax,
-                    ImmutableArray.Create(element),
-                    hasEnumerableInitializerType: true,
-                    collectionInitializerAddMethodBinder,
-                    diagnostics,
-                    implicitReceiver);
+                var result = (element is BoundCollectionLiteralSpreadElement spreadElement)
+                    ? BindCollectionInitializerSpreadElementAddMethod(
+                        (SpreadElementSyntax)spreadElement.Syntax,
+                        spreadElement,
+                        targetType,
+                        collectionInitializerAddMethodBinder,
+                        implicitReceiver,
+                        diagnostics)
+                    : BindCollectionInitializerElementAddMethod(
+                        element.Syntax,
+                        ImmutableArray.Create(element),
+                        hasEnumerableInitializerType: true,
+                        collectionInitializerAddMethodBinder,
+                        diagnostics,
+                        implicitReceiver);
                 result.WasCompilerGenerated = true;
                 builder.Add(result);
             }
