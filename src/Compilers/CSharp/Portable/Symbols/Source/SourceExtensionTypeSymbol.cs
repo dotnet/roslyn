@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {
-            var underlyingType = this.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
 
             if (underlyingType is null)
                 return;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var corLibrary = this.ContainingAssembly.CorLibrary;
             var conversions = new TypeConversions(corLibrary);
             var location = singleDeclaration.NameLocation;
-            var underlyingType = this.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
 
             foreach (var pair in allBaseExtensions)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     baseExtension.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
                     // PROTOTYPE confirm what we allow in terms of variation between various underlying types
-                    var baseUnderlyingType = baseExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+                    var baseUnderlyingType = baseExtension.ExtendedTypeNoUseSiteDiagnostics;
                     if (baseUnderlyingType?.Equals(underlyingType, TypeCompareKind.ConsiderEverything) == false)
                     {
                         diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType!, baseUnderlyingType);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
             => GetDeclaredExtensionInfo().BaseExtensions;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
             get
             {

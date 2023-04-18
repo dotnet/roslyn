@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
             get
             {

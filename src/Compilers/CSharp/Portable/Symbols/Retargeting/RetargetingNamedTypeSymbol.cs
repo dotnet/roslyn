@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
         internal sealed override bool IsExplicitExtension => _underlyingType.IsExplicitExtension;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
             get
             {

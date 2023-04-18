@@ -2471,7 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsExtension { get; }
         internal abstract bool IsExplicitExtension { get; }
 
-        internal abstract TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics { get; }
+        internal abstract TypeSymbol? ExtendedTypeNoUseSiteDiagnostics { get; }
 
         internal abstract ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics { get; }
 #nullable disable

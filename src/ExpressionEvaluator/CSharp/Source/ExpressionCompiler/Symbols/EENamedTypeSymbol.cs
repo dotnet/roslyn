@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsExplicitExtension => false;
         internal override TypeSymbol GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
-        internal override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
+        internal override TypeSymbol ExtendedTypeNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
         internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
 
         [Conditional("DEBUG")]
