@@ -117,15 +117,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     if (import.NamespaceOrType is INamespaceSymbol @namespace)
                     {
-                        usingsBuilder.Add(GetNamespaceName(@namespace));
+                        usingsBuilder.Add(@namespace.ToDisplayString(SymbolDisplayFormats.NameFormat));
                     }
                 }
             }
 
             return usingsBuilder.ToImmutable();
-
-            static string GetNamespaceName(INamespaceSymbol symbol)
-                => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(
