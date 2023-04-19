@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
@@ -23,23 +24,27 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
         ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders);
 
     private readonly BrokeredServiceContainer _container;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BrokeredServiceBridgeManifest([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer container)
+    public BrokeredServiceBridgeManifest([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer container, ILoggerFactory loggerFactory)
     {
         _container = container;
+        _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeManifest>();
     }
 
     public ServiceRpcDescriptor Descriptor => s_serviceDescriptor;
 
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult((IReadOnlyCollection<ServiceMoniker>)_container.GetRegisteredServices()
+        var services = (IReadOnlyCollection<ServiceMoniker>)_container.GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))
-            .ToImmutableArray());
+            .ToImmutableArray();
+        _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
+        return ValueTask.FromResult(services);
     }
 
     public Task InitializeAsync(CancellationToken cancellationToken)

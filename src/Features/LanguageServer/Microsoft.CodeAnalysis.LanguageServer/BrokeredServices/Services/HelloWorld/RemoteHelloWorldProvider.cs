@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -54,8 +55,8 @@ internal class RemoteHelloWorldProvider
             {
                 try
                 {
-                    var callback = await helloWorldService.CallMeAsync(Descriptors.LocalHelloWorldService.Moniker, cancellationToken);
-                    _logger.LogDebug("Callback from remote: " + callback);
+                    var response = await helloWorldService.SayHelloAsync("C#", cancellationToken);
+                    _logger.LogDebug("Response from remote: " + response);
                     return true;
                 }
                 catch (Exception ex)
