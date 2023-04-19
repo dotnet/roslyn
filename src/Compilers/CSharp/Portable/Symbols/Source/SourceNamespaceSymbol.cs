@@ -318,37 +318,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var declaration in _mergedDeclaration.Children)
             {
-                addToMap(BuildSymbol(declaration, diagnostics));
+                dictionary.AddToAccumulator(BuildSymbol(declaration, diagnostics), static symbol => symbol.Name);
             }
 
-            var result = createMap();
+            var result = createResult();
 
             CheckMembers(this, result, diagnostics);
 
             dictionary.Free();
             return result;
 
-            void addToMap(NamespaceOrTypeSymbol symbol)
-            {
-                var name = symbol.Name;
-                if (dictionary.TryGetValue(name, out var builderOrItem))
-                {
-                    if (builderOrItem is not ArrayBuilder<NamespaceOrTypeSymbol> builder)
-                    {
-                        builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(capacity: 2);
-                        builder.Add((NamespaceOrTypeSymbol)builderOrItem);
-                        dictionary[name] = builder;
-                    }
-
-                    builder.Add(symbol);
-                }
-                else
-                {
-                    dictionary[name] = symbol;
-                }
-            }
-
-            Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> createMap()
+            Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> createResult()
             {
                 var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
 

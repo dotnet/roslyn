@@ -859,24 +859,7 @@ namespace Microsoft.CodeAnalysis
             var accumulator = PooledDictionary<K, object>.GetInstance();
             foreach (var item in items)
             {
-                var key = keySelector(item);
-                if (accumulator.TryGetValue(key, out var existingValueOrArray))
-                {
-                    if (existingValueOrArray is not ArrayBuilder<T> arrayBuilder)
-                    {
-                        // Just a single value in the accumulator so far.  Convert to using a builder.
-                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
-                        arrayBuilder.Add((T)existingValueOrArray);
-                        accumulator[key] = arrayBuilder;
-                    }
-
-                    arrayBuilder.Add(item);
-                }
-                else
-                {
-                    // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, item);
-                }
+                accumulator.AddToAccumulator(item, keySelector);
             }
 
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
