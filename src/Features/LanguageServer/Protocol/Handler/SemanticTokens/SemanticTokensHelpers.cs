@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        public static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities capabilities)
-            => capabilities.HasVisualStudioLspCapability()
+        public static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
+            => capabilities != null && capabilities.HasVisualStudioLspCapability()
                 ? s_VSClassificationTypeToSemanticTokenTypeMap
                 : s_pureLspClassificationTypeToSemanticTokenTypeMap;
 
-        public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities capabilities)
+        public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities? capabilities)
             => GetCustomTokenTypes(GetTokenTypeMap(capabilities));
 
         private static ImmutableArray<string> GetCustomTokenTypes(Dictionary<string, string> tokenMap)
@@ -139,7 +139,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 .Order()
                 .ToImmutableArray();
 
-        public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities capabilities)
+        /// <summary>
+        /// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
+        /// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depening on the
+        /// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
+        /// </summary>
+        /// <param name="capabilities"></param>
+        /// <returns></returns>
+        public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities? capabilities)
             => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(capabilities)).ToImmutableArray();
 
         public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
