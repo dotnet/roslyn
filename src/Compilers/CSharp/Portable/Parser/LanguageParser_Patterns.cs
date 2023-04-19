@@ -50,21 +50,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
-        private PatternSyntax ParsePattern(Precedence precedence, bool afterIs = false, bool whenIsKeyword = false, bool exitOnColon = false)
+        private PatternSyntax ParsePattern(Precedence precedence, bool afterIs = false, bool whenIsKeyword = false)
         {
-            return ParseDisjunctivePattern(precedence, afterIs, whenIsKeyword, exitOnColon);
+            return ParseDisjunctivePattern(precedence, afterIs, whenIsKeyword);
         }
 
-        private PatternSyntax ParseDisjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword, bool exitOnColon)
+        private PatternSyntax ParseDisjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
         {
-            PatternSyntax result = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword, exitOnColon);
+            PatternSyntax result = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.OrKeyword)
             {
                 result = _syntaxFactory.BinaryPattern(
                     SyntaxKind.OrPattern,
                     result,
                     ConvertToKeyword(this.EatToken()),
-                    ParseConjunctivePattern(precedence, afterIs, whenIsKeyword, exitOnColon));
+                    ParseConjunctivePattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
@@ -101,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private PatternSyntax ParseConjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword, bool exitOnColon)
+        private PatternSyntax ParseConjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
         {
-            PatternSyntax result = ParseNegatedPattern(precedence, afterIs, whenIsKeyword, exitOnColon);
+            PatternSyntax result = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.AndKeyword)
             {
                 result = _syntaxFactory.BinaryPattern(
                     SyntaxKind.AndPattern,
                     result,
                     ConvertToKeyword(this.EatToken()),
-                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword, exitOnColon));
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
@@ -155,21 +155,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax ParseNegatedPattern(Precedence precedence, bool afterIs, bool whenIsKeyword, bool exitOnColon)
+        private PatternSyntax ParseNegatedPattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.NotKeyword)
             {
                 return _syntaxFactory.UnaryPattern(
                     ConvertToKeyword(this.EatToken()),
-                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword, exitOnColon));
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
             else
             {
-                return ParsePrimaryPattern(precedence, afterIs, whenIsKeyword, exitOnColon);
+                return ParsePrimaryPattern(precedence, afterIs, whenIsKeyword);
             }
         }
 
-        private PatternSyntax ParsePrimaryPattern(Precedence precedence, bool afterIs, bool whenIsKeyword, bool exitOnColon)
+        private PatternSyntax ParsePrimaryPattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (CurrentToken.Kind)
             {
                 case SyntaxKind.OpenBracketToken:
-                    return this.ParseListPattern(whenIsKeyword, exitOnColon);
+                    return this.ParseListPattern(whenIsKeyword);
                 case SyntaxKind.DotDotToken:
                     return _syntaxFactory.SlicePattern(EatToken(),
                         IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, whenIsKeyword) : null);
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            var pattern = ParsePatternContinued(type, precedence, whenIsKeyword, exitOnColon);
+            var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
             if (pattern != null)
                 return pattern;
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax? ParsePatternContinued(TypeSyntax? type, Precedence precedence, bool whenIsKeyword, bool exitOnColon)
+        private PatternSyntax? ParsePatternContinued(TypeSyntax? type, Precedence precedence, bool whenIsKeyword)
         {
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
@@ -287,8 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ref openParenToken,
                     SyntaxKind.CloseParenToken,
                     static @this => @this.IsPossibleSubpatternElement(),
-                    @this => @this.ParseSubpatternElement(exitOnColon),
-                    exitOnColon ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                    static @this => @this.ParseSubpatternElement(),
+                    _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
                     allowTrailingSeparator: false,
                     requireOneElement: false,
                     allowSemicolonAsSeparator: false);
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertyPatternClauseResult = ParsePropertyPatternClause(exitOnColon);
+                    propertyPatternClauseResult = ParsePropertyPatternClause();
                     return true;
                 }
 
@@ -429,7 +429,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatement()
         {
-            var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true, exitOnColon: true);
+            _termState |= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
+            var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
+            _termState ^= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
             return ConvertPatternToExpressionIfPossible(pattern);
         }
 
@@ -474,15 +476,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ScanType(forPattern: true) != ScanTypeFlags.NotType;
         }
 
-        private PropertyPatternClauseSyntax ParsePropertyPatternClause(bool exitOnColon)
+        private PropertyPatternClauseSyntax ParsePropertyPatternClause()
         {
             var openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
             var subPatterns = this.ParseCommaSeparatedSyntaxList(
                 ref openBraceToken,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleSubpatternElement(),
-                @this => @this.ParseSubpatternElement(exitOnColon),
-                exitOnColon ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                static @this => @this.ParseSubpatternElement(),
+                _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
@@ -493,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.EatToken(SyntaxKind.CloseBraceToken));
         }
 
-        private SubpatternSyntax ParseSubpatternElement(bool exitOnColon)
+        private SubpatternSyntax ParseSubpatternElement()
         {
             BaseExpressionColonSyntax? exprColon = null;
 
@@ -506,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ? _syntaxFactory.NameColon(identifierName, colon)
                     : _syntaxFactory.ExpressionColon(expr, colon);
 
-                pattern = ParsePattern(Precedence.Conditional, exitOnColon: exitOnColon);
+                pattern = ParsePattern(Precedence.Conditional);
             }
 
             return _syntaxFactory.Subpattern(exprColon, pattern);
@@ -622,15 +624,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _pool.ToListAndFree(arms);
         }
 
-        private ListPatternSyntax ParseListPattern(bool whenIsKeyword, bool exitOnColon)
+        private ListPatternSyntax ParseListPattern(bool whenIsKeyword)
         {
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
             var list = this.ParseCommaSeparatedSyntaxList(
                 ref openBracket,
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleSubpatternElement(),
-                @this => @this.ParsePattern(Precedence.Conditional, exitOnColon: exitOnColon),
-                exitOnColon ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                static @this => @this.ParsePattern(Precedence.Conditional),
+                _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
