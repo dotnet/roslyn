@@ -306,6 +306,8 @@ class X
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                         case ErrorCode.WRN_CallNotInterceptable:
                         case ErrorCode.WRN_InterceptorSignatureMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
