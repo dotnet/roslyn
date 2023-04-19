@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind.CloseParenToken,
                     static @this => @this.IsPossibleSubpatternElement(),
                     static @this => @this.ParseSubpatternElement(),
-                    _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                    SkipBadPatternListTokens,
                     allowTrailingSeparator: false,
                     requireOneElement: false,
                     allowSemicolonAsSeparator: false);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParseSubpatternElement(),
-                _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                SkipBadPatternListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
@@ -531,28 +531,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind.GreaterThanEqualsToken;
         }
 
-        private static PostSkipAction SkipBadPatternListTokens_Normal<T>(
+        private static PostSkipAction SkipBadPatternListTokens<T>(
             LanguageParser @this, ref SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
-            where T : CSharpSyntaxNode
-        {
-            return SkipBadPatternListTokens_DoNotCallDirectly(@this, ref open, list, expectedKind, closeKind, exitOnColon: false);
-        }
-
-        private static PostSkipAction SkipBadPatternListTokens_ExitOnColon<T>(
-            LanguageParser @this, ref SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
-            where T : CSharpSyntaxNode
-        {
-            return SkipBadPatternListTokens_DoNotCallDirectly(@this, ref open, list, expectedKind, closeKind, exitOnColon: true);
-        }
-
-        private static PostSkipAction SkipBadPatternListTokens_DoNotCallDirectly<T>(
-            LanguageParser @this, ref SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind, bool exitOnColon)
             where T : CSharpSyntaxNode
         {
             if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
                 return PostSkipAction.Abort;
 
-            if (exitOnColon && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
+            // `:` is usually treated as incorrect separation token. This helps for error recovery in basic typing scenarios like `{ Prop:$$ Prop1: { ... } }`.
+            // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider this case: `case { Prop: { }: case ...`.
+            // Normally we would skip second `:` and `case` keyword after it as a bad tokens and continue parsing pattern, which produces a lot of noise errors.
+            // In order to avoid that and produce single error of missing `}` we exit on unexpected `:` in such cases.
+            if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
@@ -632,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParsePattern(Precedence.Conditional),
-                _termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ? SkipBadPatternListTokens_ExitOnColon : SkipBadPatternListTokens_Normal,
+                SkipBadPatternListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
