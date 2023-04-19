@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -22,12 +21,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
+        // TO-DO: Expand this mapping once support for custom token types is added:
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
+
         /// <summary>
         /// Core VS classifications, only map a few things to LSP.  The rest we keep as our own standard classification
         /// type names so those continue to work in VS.
         /// </summary>
-        private static readonly Dictionary<string, string> s_VSClassificationTypeToSemanticTokenTypeMap =
-             new()
+        private static readonly SemanticTokenSchema s_vsTokenSchema = new(
+             new Dictionary<string, string>
              {
                  [ClassificationTypeNames.Comment] = SemanticTokenTypes.Comment,
                  [ClassificationTypeNames.Identifier] = SemanticTokenTypes.Variable,
@@ -35,16 +37,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                  [ClassificationTypeNames.NumericLiteral] = SemanticTokenTypes.Number,
                  [ClassificationTypeNames.Operator] = SemanticTokenTypes.Operator,
                  [ClassificationTypeNames.StringLiteral] = SemanticTokenTypes.String,
-             };
-
-        // TO-DO: Expand this mapping once support for custom token types is added:
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
+             });
 
         /// <summary>
         /// The 'pure' set of classification types maps everything reasonable to the well defined values actually in LSP.
         /// </summary>
-        private static readonly Dictionary<string, string> s_pureLspClassificationTypeToSemanticTokenTypeMap =
-            s_VSClassificationTypeToSemanticTokenTypeMap.Concat(new Dictionary<string, string>
+        private static readonly SemanticTokenSchema s_pureLspTokenSchema = new(
+            s_vsTokenSchema.TokenTypeMap.Concat(new Dictionary<string, string>
             {
                 // No specific lsp property for this.
                 [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword,
@@ -116,63 +115,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 public const string StringEscapeCharacter = "string - escape character";
 #endif
 
-            }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
-        /// <summary>
-        /// Maps an LSP token type to the index LSP associates with the token. Required since we report tokens back to
-        /// LSP as a series of ints, and LSP needs a way to decipher them.
-        /// </summary>
-        private static readonly Dictionary<string, int> s_VSTokenTypeToIndex = new();
-
-        /// <inheritdoc cref=" s_VSTokenTypeToIndex"/>
-        private static readonly Dictionary<string, int> s_pureLSPTokenTypeToIndex = new();
-
-        static SemanticTokensHelpers()
-        {
-            InitializeTokenTypeToIndex(s_VSTokenTypeToIndex, s_VSClassificationTypeToSemanticTokenTypeMap);
-            InitializeTokenTypeToIndex(s_pureLSPTokenTypeToIndex, s_pureLspClassificationTypeToSemanticTokenTypeMap);
-
-            static void InitializeTokenTypeToIndex(Dictionary<string, int> tokenTypeToIndex, Dictionary<string, string> tokenTypeMap)
-            {
-                foreach (var lspTokenType in SemanticTokenTypes.AllTypes)
-                    tokenTypeToIndex.Add(lspTokenType, tokenTypeToIndex.Count);
-
-                foreach (var roslynTokenType in GetCustomTokenTypes(tokenTypeMap))
-                    tokenTypeToIndex.Add(roslynTokenType, tokenTypeToIndex.Count);
-            }
-        }
-
-        public static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
+        public static SemanticTokenSchema GetTokenSchema(ClientCapabilities? capabilities)
             => capabilities != null && capabilities.HasVisualStudioLspCapability()
-                ? s_VSClassificationTypeToSemanticTokenTypeMap
-                : s_pureLspClassificationTypeToSemanticTokenTypeMap;
+                ? s_vsTokenSchema
+                : s_pureLspTokenSchema;
+
+        public static IReadOnlyDictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
+            => GetTokenSchema(capabilities).TokenTypeMap;
 
         public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities? capabilities)
-            => GetCustomTokenTypes(GetTokenTypeMap(capabilities));
-
-        private static ImmutableArray<string> GetCustomTokenTypes(Dictionary<string, string> tokenMap)
-            => ClassificationTypeNames.AllTypeNames
-                .Where(type => !tokenMap.ContainsKey(type) && !ClassificationTypeNames.AdditiveTypeNames.Contains(type))
-                .Order()
-                .ToImmutableArray();
+            => GetTokenSchema(capabilities).CustomTokenTypes;
 
         /// <summary>
         /// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
         /// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depending on the
         /// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
         /// </summary>
-        /// <param name="capabilities"></param>
-        /// <returns></returns>
         public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities? capabilities)
-            => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(capabilities)).ToImmutableArray();
+            => GetTokenSchema(capabilities).AllTokenTypes;
 
         public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
-            => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
-
-        private static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities? capabilities)
-            => capabilities != null && capabilities.HasVisualStudioLspCapability()
-                ? s_VSTokenTypeToIndex
-                : s_pureLSPTokenTypeToIndex;
+            => s_vsTokenSchema.AllTokenTypes;
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
@@ -184,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var tokenTypesToIndex = GetTokenTypeToIndex(capabilities);
+            var tokenTypesToIndex = GetTokenSchema(capabilities).TokenTypeToIndex;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -326,7 +291,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClientCapabilities? capabilities,
             TextLineCollection lines,
             ClassifiedSpan[] classifiedSpans,
-            Dictionary<string, int> tokenTypesToIndex)
+            IReadOnlyDictionary<string, int> tokenTypesToIndex)
         {
             using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Length, out var data);
 
@@ -357,8 +322,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ref int lastStartCharacter,
             ClassifiedSpan[] classifiedSpans,
             int currentClassifiedSpanIndex,
-            Dictionary<string, string> tokenTypeMap,
-            Dictionary<string, int> tokenTypesToIndex,
+            IReadOnlyDictionary<string, string> tokenTypeMap,
+            IReadOnlyDictionary<string, int> tokenTypesToIndex,
             out int deltaLineOut,
             out int startCharacterDeltaOut,
             out int tokenLengthOut,
