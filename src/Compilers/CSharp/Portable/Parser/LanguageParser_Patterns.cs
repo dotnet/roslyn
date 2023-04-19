@@ -429,9 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatement()
         {
+            var savedState = _termState;
             _termState |= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
-            _termState ^= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
+            _termState = savedState;
             return ConvertPatternToExpressionIfPossible(pattern);
         }
 
