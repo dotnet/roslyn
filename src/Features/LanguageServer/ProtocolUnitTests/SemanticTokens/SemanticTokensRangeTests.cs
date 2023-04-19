@@ -40,7 +40,7 @@ static class C { }
             var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
 
             var expectedResults = new LSP.SemanticTokens();
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -90,7 +90,7 @@ static class C { }
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -140,7 +140,7 @@ three */ }
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -199,7 +199,7 @@ three"";
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -280,7 +280,7 @@ class C
                 testLspServer.ClientCapabilities, document, range, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -389,7 +389,7 @@ class C
 
             var expectedResults = new LSP.SemanticTokens();
 
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]
@@ -487,11 +487,12 @@ class C
         public void TestGetSemanticTokensRange_AssertCustomTokenTypes(bool isVS)
         {
             var capabilities = GetCapabilities(isVS);
-            var tokenTypeMap = SemanticTokensHelpers.GetTokenTypeMap(capabilities);
+            var schema = SemanticTokensSchema.GetSchema(capabilities);
+            var tokenTypeMap = schema.TokenTypeMap;
             var classificationTypeNamesToMatch = ClassificationTypeNames.AllTypeNames.Where(
                 type => !tokenTypeMap.ContainsKey(type) && !ClassificationTypeNames.AdditiveTypeNames.Contains(type));
 
-            var tokenTypes = SemanticTokensHelpers.GetCustomTokenTypes(capabilities);
+            var tokenTypes = schema.CustomTokenTypes;
 
             foreach (var fieldName in classificationTypeNamesToMatch)
                 Assert.True(tokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");

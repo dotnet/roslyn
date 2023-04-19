@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -25,6 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         protected AbstractSemanticTokensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
         }
+
+        private protected static IReadOnlyDictionary<string, int> GetTokenTypeToIndex(TestLspServer server)
+            => SemanticTokensSchema.GetSchema(server.ClientCapabilities).TokenTypeToIndex;
 
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 var lineLength = text.Lines[currentLine].SpanIncludingLineBreak.Length;
 
                 // If this assertion fails, we didn't break up a multi-line token properly.
-                var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(testLspServer.ClientCapabilities);
+                var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
                 var kind = tokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
 
                 Assert.True(currentChar + tokenLength <= lineLength,
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             ClientCapabilities capabilities, int[] data)
         {
             var convertedStringsBuilder = ImmutableArray.CreateBuilder<string>(data.Length / 5);
-            var tokenTypeToIndex = SemanticTokensHelpers.GetTokenTypeToIndex(capabilities);
+            var tokenTypeToIndex = SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
 
             for (var i = 0; i < data.Length; i += 5)
             {

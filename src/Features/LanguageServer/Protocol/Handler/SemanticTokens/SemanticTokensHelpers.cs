@@ -21,123 +21,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        // TO-DO: Expand this mapping once support for custom token types is added:
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
+        //public static IReadOnlyDictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
+        //    => GetTokenSchema(capabilities).TokenTypeMap;
 
-        /// <summary>
-        /// Core VS classifications, only map a few things to LSP.  The rest we keep as our own standard classification
-        /// type names so those continue to work in VS.
-        /// </summary>
-        private static readonly SemanticTokenSchema s_vsTokenSchema = new(
-             new Dictionary<string, string>
-             {
-                 [ClassificationTypeNames.Comment] = SemanticTokenTypes.Comment,
-                 [ClassificationTypeNames.Identifier] = SemanticTokenTypes.Variable,
-                 [ClassificationTypeNames.Keyword] = SemanticTokenTypes.Keyword,
-                 [ClassificationTypeNames.NumericLiteral] = SemanticTokenTypes.Number,
-                 [ClassificationTypeNames.Operator] = SemanticTokenTypes.Operator,
-                 [ClassificationTypeNames.StringLiteral] = SemanticTokenTypes.String,
-             });
+        //public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities? capabilities)
+        //    => GetTokenSchema(capabilities).CustomTokenTypes;
 
-        /// <summary>
-        /// The 'pure' set of classification types maps everything reasonable to the well defined values actually in LSP.
-        /// </summary>
-        private static readonly SemanticTokenSchema s_pureLspTokenSchema = new(
-            s_vsTokenSchema.TokenTypeMap.Concat(new Dictionary<string, string>
-            {
-                // No specific lsp property for this.
-                [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword,
+        ///// <summary>
+        ///// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
+        ///// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depending on the
+        ///// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
+        ///// </summary>
+        //public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities? capabilities)
+        //    => GetTokenSchema(capabilities).AllTokenTypes;
 
-                // No specific lsp property for this.
-                [ClassificationTypeNames.OperatorOverloaded] = SemanticTokenTypes.Operator,
-
-                // No specific lsp property for this.
-                [ClassificationTypeNames.VerbatimStringLiteral] = SemanticTokenTypes.String,
-
-                // No specific lsp property for all of these
-                [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.RecordClassName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.DelegateName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.ModuleName] = SemanticTokenTypes.Class,
-
-                // No specific lsp property for both of these
-                [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.RecordStructName] = SemanticTokenTypes.Struct,
-
-                [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
-                [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
-                [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
-                [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
-                [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
-                [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Variable,
-
-                // No specific lsp property for all of these
-                [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
-                [ClassificationTypeNames.FieldName] = SemanticTokenTypes.Property,
-                [ClassificationTypeNames.ConstantName] = SemanticTokenTypes.Property,
-
-                // No specific lsp property for all of these
-                [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Method,
-                [ClassificationTypeNames.ExtensionMethodName] = SemanticTokenTypes.Method,
-
-                [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
-                [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
-                [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
-
-                // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
-                [ClassificationTypeNames.LabelName] = "label",
-
-                // No specific lsp property for all of these
-                [ClassificationTypeNames.RegexComment] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexCharacterClass] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexAnchor] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexQuantifier] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexGrouping] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexAlternation] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexText] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexSelfEscapedCharacter] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexOtherEscape] = SemanticTokenTypes.Regexp,
-
-                // TODO: Missing lsp classifications for xml doc comments, xml literals (vb), json.
-
-                // TODO: Missing specific lsp classifications for the following classification type names.
-
-#if false
-                public const string ExcludedCode = "excluded code";
-                public const string WhiteSpace = "whitespace";
-                public const string Text = "text";
-
-                internal const string ReassignedVariable = "reassigned variable";
-                public const string StaticSymbol = "static symbol";
-
-                public const string PreprocessorText = "preprocessor text";
-                public const string Punctuation = "punctuation";
-                public const string StringEscapeCharacter = "string - escape character";
-#endif
-
-            }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-
-        public static SemanticTokenSchema GetTokenSchema(ClientCapabilities? capabilities)
-            => capabilities != null && capabilities.HasVisualStudioLspCapability()
-                ? s_vsTokenSchema
-                : s_pureLspTokenSchema;
-
-        public static IReadOnlyDictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
-            => GetTokenSchema(capabilities).TokenTypeMap;
-
-        public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities? capabilities)
-            => GetTokenSchema(capabilities).CustomTokenTypes;
-
-        /// <summary>
-        /// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
-        /// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depending on the
-        /// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
-        /// </summary>
-        public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities? capabilities)
-            => GetTokenSchema(capabilities).AllTokenTypes;
-
-        public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
-            => s_vsTokenSchema.AllTokenTypes;
+        //public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
+        //    => s_vsTokenSchema.AllTokenTypes;
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
@@ -149,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var tokenTypesToIndex = GetTokenSchema(capabilities).TokenTypeToIndex;
+            var tokenTypesToIndex =SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -300,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            var tokenTypeMap = GetTokenTypeMap(capabilities);
+            var tokenTypeMap = SemanticTokensSchema.GetSchema(capabilities).TokenTypeMap;
 
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {

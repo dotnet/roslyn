@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensHelpers.GetAllTokenTypes(capabilities: null), new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.GetSchema(capabilities: null).AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
