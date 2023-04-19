@@ -898,6 +898,8 @@ namespace Microsoft.CodeAnalysis
             // freeze
             foreach (var pair in accumulator)
             {
+                // Ensure the jit only goes through the special downcast path if it would matter for the caller. i.e. if
+                // TSource==TDowncast we can avoid any checks altogether.
                 if (typeof(TSource) == typeof(TDowncast))
                 {
                     dictionary.Add(pair.Key, pair.Value is ArrayBuilder<TResult> arrayBuilder
@@ -907,6 +909,9 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // try to place a downcasted array in the result if all the elements are of that downcasted type.
+                    // This helps clients like SourceNamespaceSymbol which can then avoid future allocations of
+                    // ImmutableArray<NamedTypeSymbol> for children in the common case where all children are only
+                    // types.
                     if (pair.Value is ArrayBuilder<TResult> arrayBuilder)
                     {
                         dictionary.Add(pair.Key, arrayBuilder.All(static v => v is TDowncast)
