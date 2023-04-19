@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => this;
 
         internal override Location ErrorLocation
-            => ParameterSymbol.TryGetFirstLocation() ?? NoLocation.Singleton;
+            => ParameterSymbol.SymbolLocations.FirstOrDefault() ?? NoLocation.Singleton;
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => default;

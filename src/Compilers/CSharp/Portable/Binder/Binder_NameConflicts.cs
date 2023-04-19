@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static Location GetLocation(Symbol symbol)
-            => symbol.TryGetFirstLocation() ?? symbol.ContainingSymbol.GetFirstLocation();
+            => symbol.SymbolLocations.FirstOrDefault() ?? symbol.ContainingSymbol.GetFirstLocation();
 
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,

@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             int symbolArity = symbol.GetMemberArity();
-            Location symbolLocation = symbol.TryGetFirstLocation();
+            Location symbolLocation = symbol.SymbolLocations.FirstOrDefault();
             bool unused = false;
 
             NamedTypeSymbol currType = this.BaseTypeNoUseSiteDiagnostics;
@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                 var result = DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingReturnType.Type, overriddenReturnType.Type, ref useSiteInfo);
-                Location symbolLocation = overridingSymbol.TryGetFirstLocation();
+                Location symbolLocation = overridingSymbol.SymbolLocations.FirstOrDefault();
                 diagnostics.Add(symbolLocation, useSiteInfo);
 
                 return result;

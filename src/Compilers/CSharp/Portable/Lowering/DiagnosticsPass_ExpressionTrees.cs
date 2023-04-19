@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in lambda.Parameters)
                 {
-                    if (p.RefKind != RefKind.None && p.TryGetFirstLocation() is Location location)
+                    if (p.RefKind != RefKind.None && p.SymbolLocations.FirstOrDefault() is Location location)
                     {
                         _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, location);
                     }

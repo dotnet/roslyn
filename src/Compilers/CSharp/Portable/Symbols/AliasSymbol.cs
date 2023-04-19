@@ -267,12 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AliasSymbol? other = obj as AliasSymbol;
 
             return (object?)other != null &&
-                Equals(this.TryGetFirstLocation(), other.TryGetFirstLocation()) &&
+                Equals(this.SymbolLocations.FirstOrDefault(), other.SymbolLocations.FirstOrDefault()) &&
                 Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
-            => this.TryGetFirstLocation()?.GetHashCode() ?? Name.GetHashCode();
+            => this.SymbolLocations.FirstOrDefault()?.GetHashCode() ?? Name.GetHashCode();
 
         internal abstract override bool RequiresCompletion
         {

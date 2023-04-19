@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var firstLocation = this.TryGetFirstLocation();
+            var firstLocation = this.SymbolLocations.FirstOrDefault();
             if (firstLocation is null)
                 return LexicalSortKey.NotInSource;
 
@@ -364,17 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex);
 
-        public Location? TryGetFirstLocation()
-        {
-            var locations = SymbolLocations;
-            return locations.Any() ? locations.First() : null;
-        }
-
         public Location GetFirstLocation()
-            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+            => SymbolLocations.FirstOrDefault() ?? throw new InvalidOperationException("Symbol has no locations");
 
         public Location GetFirstLocationOrNone()
-            => TryGetFirstLocation() ?? Location.None;
+            => SymbolLocations.FirstOrDefault() ?? Location.None;
 
         /// <summary>
         /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref

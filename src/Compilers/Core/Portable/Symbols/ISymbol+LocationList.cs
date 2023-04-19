@@ -69,6 +69,17 @@ public partial interface ISymbol
             throw new InvalidOperationException();
         }
 
+        public Location? FirstOrDefault()
+        {
+            var enumerator = GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                return enumerator.Current;
+            }
+
+            return null;
+        }
+
         public Reversed Reverse() => new Reversed(_symbol);
 
         public Location Last()
