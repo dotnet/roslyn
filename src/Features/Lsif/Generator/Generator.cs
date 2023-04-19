@@ -437,13 +437,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             // Compute colorization data.
             //
-            // Unlike the mainline LSP scenario, where we control both the syntatic colorizer (in-proc syntax tagger)
-            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients
-            // which may have different syntatic classification behavior than us, resulting in missing colors. To avoid
-            // this, we include syntax tokens in the generated data.
+            // Unlike the mainline LSP scenario, where we control both the syntactic colorizer (in-proc syntax tagger)
+            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients which may
+            // have different syntactic classification behavior than us, resulting in missing colors. To avoid this, we
+            // include syntax tokens in the generated data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                // Just get the pure-lsp semantic tokens here.
+                capabilities: null,
                 document,
-                SemanticTokensHelpers.TokenTypeToIndex,
                 range: null,
                 options: Classification.ClassificationOptions.Default,
                 cancellationToken: CancellationToken.None);

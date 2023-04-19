@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
             => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
 
-        public static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities capabilities)
+        public static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities? capabilities)
         {
             if (s_tokenTypeToIndex == null)
             {
@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
-            ClientCapabilities capabilities,
+        public static async Task<int[]> ComputeSemanticTokensDataAsync(
+            ClientCapabilities? capabilities,
             Document document,
             LSP.Range? range,
             ClassificationOptions options,
