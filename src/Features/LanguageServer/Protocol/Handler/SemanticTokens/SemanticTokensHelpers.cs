@@ -21,23 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        //public static IReadOnlyDictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
-        //    => GetTokenSchema(capabilities).TokenTypeMap;
-
-        //public static ImmutableArray<string> GetCustomTokenTypes(ClientCapabilities? capabilities)
-        //    => GetTokenSchema(capabilities).CustomTokenTypes;
-
-        ///// <summary>
-        ///// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
-        ///// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depending on the
-        ///// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
-        ///// </summary>
-        //public static ImmutableArray<string> GetAllTokenTypes(ClientCapabilities? capabilities)
-        //    => GetTokenSchema(capabilities).AllTokenTypes;
-
-        //public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
-        //    => s_vsTokenSchema.AllTokenTypes;
-
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
