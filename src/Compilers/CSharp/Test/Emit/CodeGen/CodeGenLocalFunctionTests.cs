@@ -5682,7 +5682,7 @@ class C
     		instance void M () cil managed 
     	{
     		// Method begins at RVA 0x205a
-    		// Code size 3 (0x3)
+    		// Code size: 3 (0x3)
     		.maxstack 8
     		IL_0000: nop
     		IL_0001: nop
@@ -5692,7 +5692,7 @@ class C
     		instance void .ctor () cil managed 
     	{
     		// Method begins at RVA 0x205e
-    		// Code size 8 (0x8)
+    		// Code size: 8 (0x8)
     		.maxstack 8
     		IL_0000: ldarg.0
     		IL_0001: call instance void [mscorlib]System.Object::.ctor()
@@ -5709,7 +5709,7 @@ class C
     			01 00 2a 00 00 00 00 00
     		)
     		// Method begins at RVA 0x2067
-    		// Code size 2 (0x2)
+    		// Code size: 2 (0x2)
     		.maxstack 8
     		IL_0000: nop
     		IL_0001: ret

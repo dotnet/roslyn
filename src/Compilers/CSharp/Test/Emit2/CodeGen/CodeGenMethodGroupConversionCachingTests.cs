@@ -6096,7 +6096,7 @@ System.Action");
         string Method () cil managed 
     {
         // Method begins at RVA 0x2050
-        // Code size 6 (0x6)
+        // Code size: 6 (0x6)
         .maxstack 8
 
         IL_0000: ldstr ""PASS""
@@ -6107,7 +6107,7 @@ System.Action");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -6125,7 +6125,7 @@ System.Action");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -6143,7 +6143,7 @@ System.Action");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x205f
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -6238,7 +6238,7 @@ class Test
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x211f
-		// Code size 8 (0x8)
+		// Code size: 8 (0x8)
 		.maxstack 8
 
 		IL_0000: ldarg.0
@@ -6257,7 +6257,7 @@ class Test
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -6275,7 +6275,7 @@ class Test
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x205f
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
