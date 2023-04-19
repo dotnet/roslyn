@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
 
-
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
