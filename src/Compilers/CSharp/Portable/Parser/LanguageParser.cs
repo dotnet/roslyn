@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
             IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
-            IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27
+            IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27,
         }
 
         private const int LastTerminatorState = (int)TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
