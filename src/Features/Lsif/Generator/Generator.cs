@@ -5,16 +5,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
@@ -22,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -441,7 +435,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // include syntax tokens in the generated data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 // Just get the pure-lsp semantic tokens here.
-                capabilities: null,
+                new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
                 range: null,
                 options: Classification.ClassificationOptions.Default,
