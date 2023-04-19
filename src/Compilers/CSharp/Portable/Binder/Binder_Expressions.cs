@@ -7949,15 +7949,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            if (expr.Type.HasInlineArrayAttribute(out _) == true && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
-                tryImplicitConversionToFixedBufferIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
+            if (expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
+                tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
             {
-                return bindFixedBufferElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementType, diagnostics);
+                return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementType, diagnostics);
             }
 
             return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
 
-            BoundExpression tryImplicitConversionToFixedBufferIndex(ExpressionSyntax node, BoundExpression index, BindingDiagnosticBag diagnostics, out WellKnownType indexOrRangeWellknownType)
+            BoundExpression tryImplicitConversionToInlineArrayIndex(ExpressionSyntax node, BoundExpression index, BindingDiagnosticBag diagnostics, out WellKnownType indexOrRangeWellknownType)
             {
                 indexOrRangeWellknownType = WellKnownType.Unknown;
                 BoundExpression convertedIndex = TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics);
@@ -7983,7 +7983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedIndex;
             }
 
-            BoundExpression bindFixedBufferElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, TypeWithAnnotations elementType, BindingDiagnosticBag diagnostics)
+            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, TypeWithAnnotations elementType, BindingDiagnosticBag diagnostics)
             {
                 // Check required well-known members. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
