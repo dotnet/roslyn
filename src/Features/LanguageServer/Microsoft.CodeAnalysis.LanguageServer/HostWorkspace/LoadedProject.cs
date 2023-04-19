@@ -38,11 +38,12 @@ internal sealed class LoadedProject : IDisposable
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
+        var projectDirectory = Path.GetDirectoryName(projectSystemProject.FilePath)!;
         var watchedDirectories = new WatchedDirectory[]
         {
-            new(Path.GetDirectoryName(projectSystemProject.FilePath)!, ".cs"),
-            new(Path.GetDirectoryName(projectSystemProject.FilePath)!, ".cshtml"),
-            new(Path.GetDirectoryName(projectSystemProject.FilePath)!, ".razor")
+            new(projectDirectory, ".cs"),
+            new(projectDirectory, ".cshtml"),
+            new(projectDirectory, ".razor")
         };
 
         _fileChangeContext = fileWatcher.CreateContext(watchedDirectories);
