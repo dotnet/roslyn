@@ -68,5 +68,8 @@
     <Compile Remove="Debugging\Resources\*.*" />
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Analyzers\CSharp\Tests\UseVarTestExtensions.cs" Link="CodeRefactorings\UseVarTestExtensions.cs" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>
