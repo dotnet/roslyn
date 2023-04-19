@@ -116,7 +116,7 @@ When a call is intercepted, the interceptor and interceptable methods must meet 
 - When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the `this` modifier is compared to the instance method `this` parameter.
 - The returns and parameters, including the `this` parameter, must have the same ref kinds and types.
 - A warning is reported instead of an error if a type difference is found where the types are not distinct to the runtime. For example, `object` and `dynamic`.
-- No warning or error is reported for a *safe* nullability difference, such as when the interceptable method accepts a `string` parameter, and the interceptor accepts a `string` parameter.
+- No warning or error is reported for a *safe* nullability difference, such as when the interceptable method accepts a `string` parameter, and the interceptor accepts a `string?` parameter.
 - Method names and parameter names are not required to match.
 - Parameter default values are not required to match. When intercepting, default values on the interceptor method are ignored.
 - `params` modifiers are not required to match.
