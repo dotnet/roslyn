@@ -156,16 +156,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        public T Single()
-        {
-            if (this is not [var single])
-            {
-                throw new InvalidOperationException();
-            }
-
-            return single;
-        }
-
         public T First() => this[0];
 
         public T? FirstOrDefault(Func<T, bool> predicate)

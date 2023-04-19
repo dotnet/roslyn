@@ -2261,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factoryArgument: (attributeLocation, interceptor));
         }
 
-        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation, DiagnosticBag diagnostics)
         {
             if (_interceptions is null || callLocation is null)
             {
@@ -2271,10 +2271,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callLineColumn = callLocation.GetLineSpan().Span.Start;
             Debug.Assert(callLocation.SourceTree is not null);
             var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
-            if (_interceptions.TryGetValue(key, out var oneInterception))
+
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
             {
-                // We don't expect to reach this phase if there are duplicate interceptors in the compilation.
-                return oneInterception.Single();
+                if (interceptionsAtAGivenLocation is [var oneInterception])
+                {
+                    return oneInterception;
+                }
+
+                // We don't normally reach this branch in batch compilation.
+                // One scenario where we may reach this is when validating used assemblies, which performs lowering of method bodies even if declaration errors would be reported.
+                // See 'CSharpCompilation.GetCompleteSetOfUsedAssemblies'.
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, callLocation, this.SourceModule.Name, new LocalizableResourceString(nameof(CSharpResources.ERR_DuplicateInterceptor), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
             return null;

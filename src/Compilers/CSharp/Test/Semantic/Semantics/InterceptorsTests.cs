@@ -456,7 +456,6 @@ public class InterceptorsTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyDiagnostics();
         comp.VerifyEmitDiagnostics(
             // Program.cs(13,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 3, 3)]
