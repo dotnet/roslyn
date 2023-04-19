@@ -50,29 +50,5 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 #endif
-
-        public static void AddToAccumulator<TKey, T>(this Dictionary<TKey, object> accumulator, T item, Func<T, TKey> keySelector)
-            where TKey : notnull
-            where T : notnull
-        {
-            var key = keySelector(item);
-            if (accumulator.TryGetValue(key, out var existingValueOrArray))
-            {
-                if (existingValueOrArray is not ArrayBuilder<T> arrayBuilder)
-                {
-                    // Just a single value in the accumulator so far.  Convert to using a builder.
-                    arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
-                    arrayBuilder.Add((T)existingValueOrArray);
-                    accumulator[key] = arrayBuilder;
-                }
-
-                arrayBuilder.Add(item);
-            }
-            else
-            {
-                // Nothing in the dictionary so far.  Add the item directly.
-                accumulator.Add(key, item);
-            }
-        }
     }
 }
