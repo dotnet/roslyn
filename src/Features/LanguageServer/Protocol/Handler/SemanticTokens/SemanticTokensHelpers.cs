@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         private static int[] ComputeTokens(
-            ClientCapabilities capabilities,
+            ClientCapabilities? capabilities,
             TextLineCollection lines,
             ClassifiedSpan[] classifiedSpans,
             Dictionary<string, int> tokenTypesToIndex)
