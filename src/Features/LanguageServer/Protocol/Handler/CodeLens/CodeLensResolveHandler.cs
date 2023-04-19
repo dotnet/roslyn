@@ -40,23 +40,8 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-        var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
-        var cacheEntry = _codeLensCache.GetCachedEntry(currentSyntaxVersion.ToString());
-        ImmutableArray<CodeLensMember> members;
-
-        if (cacheEntry == null)
-        {
-            var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
-            members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            members = cacheEntry.CodeLensMembers;
-        }
-
+        var currentDocumentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var resolveData = GetCodeLensResolveData(request);
-        var memberToResolve = members[resolveData.ListIndex];
 
         request.Command = new LSP.Command
         {
@@ -64,11 +49,28 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             CommandIdentifier = ClientReferencesCommand,
             Arguments = new object[]
             {
-                   resolveData.TextDocument.Uri,
-                   request.Range.Start
+                resolveData.TextDocument.Uri,
+                request.Range.Start
             }
         };
 
+        // If the request is for an older document (e.g. older syntax version)
+        // return a request with empty information.
+        if (resolveData.ResultId != currentDocumentSyntaxVersion.ToString())
+        {
+            context.TraceInformation($"Requested syntax version {resolveData.ResultId} does not match current version {currentDocumentSyntaxVersion}");
+            return request;
+        }
+
+        // If the cache has no information, return an empty request
+        var cacheEntry = _codeLensCache.GetCachedEntry(currentDocumentSyntaxVersion.ToString());
+        if (cacheEntry == null)
+        {
+            context.TraceInformation($"No cached information currently available for {currentDocumentSyntaxVersion}");
+            return request;
+        }
+
+        var memberToResolve = cacheEntry.CodeLensMembers[resolveData.ListIndex];
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
         var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, memberToResolve.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
         if (referenceCount != null)
