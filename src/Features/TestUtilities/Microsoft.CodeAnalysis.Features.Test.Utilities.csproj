@@ -22,8 +22,8 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
-    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <!--
     <ProjectReference Include="..\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
