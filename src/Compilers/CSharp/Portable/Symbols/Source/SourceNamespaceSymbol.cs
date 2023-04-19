@@ -321,49 +321,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 dictionary.AddToAccumulator(BuildSymbol(declaration, diagnostics), static symbol => symbol.Name);
             }
 
-            var result = createResult();
+            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
+            foreach (var (name, value) in dictionary)
+            {
+                ImmutableArray<NamespaceOrTypeSymbol> members;
+
+                if (value is ArrayBuilder<NamespaceOrTypeSymbol> builder)
+                {
+                    Debug.Assert(builder.Count > 1);
+                    bool hasNamespaces = false;
+                    for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
+                    {
+                        hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
+                    }
+
+                    members = hasNamespaces
+                        ? builder.ToImmutable()
+                        : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
+
+                    builder.Free();
+                }
+                else
+                {
+                    NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
+                    members = symbol.Kind == SymbolKind.Namespace
+                        ? ImmutableArray.Create(symbol)
+                        : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create((NamedTypeSymbol)symbol));
+                }
+
+                result.Add(name, members);
+            }
 
             CheckMembers(this, result, diagnostics);
 
             dictionary.Free();
             return result;
-
-            Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> createResult()
-            {
-                var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
-
-                foreach (var (name, value) in dictionary)
-                {
-                    ImmutableArray<NamespaceOrTypeSymbol> members;
-
-                    if (value is ArrayBuilder<NamespaceOrTypeSymbol> builder)
-                    {
-                        Debug.Assert(builder.Count > 1);
-                        bool hasNamespaces = false;
-                        for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                        {
-                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
-                        }
-
-                        members = hasNamespaces
-                            ? builder.ToImmutable()
-                            : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
-
-                        builder.Free();
-                    }
-                    else
-                    {
-                        NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                        members = symbol.Kind == SymbolKind.Namespace
-                            ? ImmutableArray.Create(symbol)
-                            : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create((NamedTypeSymbol)symbol));
-                    }
-
-                    result.Add(name, members);
-                }
-
-                return result;
-            }
         }
 
         private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
