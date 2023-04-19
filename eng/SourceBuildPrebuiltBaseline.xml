@@ -4,7 +4,7 @@
 
     <!-- These are cases where the component chooses, when built in isolation, to 
          remain dependent on stable versions. These versions may not have source build intermediates associated with them.
-         They cannot be SBRPs because they actually provide functionality. In full source build, these versions are
+         They cannot be source build reference packages because they actually provide functionality. In full source build, these versions are
          overridden by previous repo outputs or come from previously source-built artifacts.  --> 
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.Analyzers/*3.3.4*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.AnalyzerUtilities/*3.3.0*" />
