@@ -3778,6 +3778,51 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
+    public void GetTypeByMetadataName_08()
+    {
+        var source1 = """
+            file class C { public static void M() { } }
+            """;
+
+        var comp = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40);
+        comp.VerifyDiagnostics();
+
+        const string metadataName = "<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C";
+
+        var member = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(metadataName, member.MetadataName);
+
+        Assert.Null(comp.GetTypeByMetadataName("C"));
+        Assert.Equal(member, comp.GetTypeByMetadataName(metadataName));
+
+        var source2 = """
+            class C2
+            {
+                void M()
+                {
+                    C.M();
+                }
+            }
+            """;
+
+        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib45);
+        comp2.VerifyDiagnostics(
+        // (5,9): error CS0103: The name 'C' does not exist in the current context
+        //         C.M();
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(5, 9)
+        );
+
+        Assert.NotEqual(comp.Assembly.CorLibrary, comp2.Assembly.CorLibrary);
+
+        var retargeted = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
+        Assert.Equal(metadataName, retargeted.MetadataName);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C"));
+        Assert.Equal(retargeted, comp2.GetTypeByMetadataName(metadataName));
+    }
+
+    [Fact]
     public void AssociatedSyntaxTree_01()
     {
         var source = """
