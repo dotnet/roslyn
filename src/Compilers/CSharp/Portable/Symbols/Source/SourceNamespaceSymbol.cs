@@ -314,17 +314,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            using var builder = new NameToSymbolMapBuilder();
+            var dictionary = PooledDictionary<string, object>.GetInstance();
+
             foreach (var declaration in _mergedDeclaration.Children)
             {
-                builder.Add(BuildSymbol(declaration, diagnostics));
+                addToMap(BuildSymbol(declaration, diagnostics));
             }
 
-            var result = builder.CreateMap();
+            var result = createMap();
 
             CheckMembers(this, result, diagnostics);
 
+            dictionary.Free();
             return result;
+
+            void addToMap(NamespaceOrTypeSymbol symbol)
+            {
+                var name = symbol.Name;
+                if (dictionary.TryGetValue(name, out var builderOrItem))
+                {
+                    if (builderOrItem is not ArrayBuilder<NamespaceOrTypeSymbol> builder)
+                    {
+                        builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(capacity: 2);
+                        builder.Add((NamespaceOrTypeSymbol)builderOrItem);
+                        dictionary[name] = builder;
+                    }
+
+                    builder.Add(symbol);
+                }
+                else
+                {
+                    dictionary[name] = symbol;
+                }
+            }
+
+            Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> createMap()
+            {
+                var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
+
+                foreach (var (name, value) in dictionary)
+                {
+                    ImmutableArray<NamespaceOrTypeSymbol> members;
+
+                    if (value is ArrayBuilder<NamespaceOrTypeSymbol> builder)
+                    {
+                        Debug.Assert(builder.Count > 1);
+                        bool hasNamespaces = false;
+                        for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
+                        {
+                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
+                        }
+
+                        members = hasNamespaces
+                            ? builder.ToImmutable()
+                            : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
+
+                        builder.Free();
+                    }
+                    else
+                    {
+                        NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
+                        members = symbol.Kind == SymbolKind.Namespace
+                            ? ImmutableArray.Create(symbol)
+                            : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create((NamedTypeSymbol)symbol));
+                    }
+
+                    result.Add(name, members);
+                }
+
+                return result;
+            }
         }
 
         private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
@@ -512,78 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        private readonly ref struct NameToSymbolMapBuilder
-        {
-            private readonly PooledDictionary<string, object> _dictionary = PooledDictionary<string, object>.GetInstance();
-
-            public NameToSymbolMapBuilder()
-            {
-            }
-
-            public void Dispose()
-            {
-                _dictionary.Free();
-            }
-
-            public void Add(NamespaceOrTypeSymbol symbol)
-            {
-                var name = symbol.Name;
-                if (_dictionary.TryGetValue(name, out var builderOrItem))
-                {
-                    if (builderOrItem is not ArrayBuilder<NamespaceOrTypeSymbol> builder)
-                    {
-                        builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(capacity: 2);
-                        builder.Add((NamespaceOrTypeSymbol)builderOrItem);
-                        _dictionary[name] = builder;
-                    }
-
-                    builder.Add(symbol);
-                }
-                else
-                {
-                    _dictionary[name] = symbol;
-                }
-            }
-
-            public Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
-            {
-                var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count);
-
-                foreach (var kvp in _dictionary)
-                {
-                    object value = kvp.Value;
-                    ImmutableArray<NamespaceOrTypeSymbol> members;
-
-                    if (value is ArrayBuilder<NamespaceOrTypeSymbol> builder)
-                    {
-                        Debug.Assert(builder.Count > 1);
-                        bool hasNamespaces = false;
-                        for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                        {
-                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
-                        }
-
-                        members = hasNamespaces
-                            ? builder.ToImmutable()
-                            : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
-
-                        builder.Free();
-                    }
-                    else
-                    {
-                        NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                        members = symbol.Kind == SymbolKind.Namespace
-                            ? ImmutableArray.Create(symbol)
-                            : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create((NamedTypeSymbol)symbol));
-                    }
-
-                    result.Add(kvp.Key, members);
-                }
-
-                return result;
-            }
         }
     }
 }
