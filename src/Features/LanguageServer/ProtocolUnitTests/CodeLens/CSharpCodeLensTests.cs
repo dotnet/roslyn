@@ -211,10 +211,10 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
-        var textDocument = CreateTextDocumentIdentifier(testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI());
+        var documentUri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
         var codeLensParams = new LSP.CodeLensParams
         {
-            TextDocument = textDocument
+            TextDocument = CreateTextDocumentIdentifier(documentUri)
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
@@ -227,17 +227,25 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         var cache = testLspServer.GetRequiredLspService<CodeLensCache>();
         Assert.NotNull(cache.GetCachedEntry(firstResultId));
 
+        // Update the document so the syntax version changes
+        await testLspServer.OpenDocumentAsync(documentUri);
+        await testLspServer.InsertTextAsync(documentUri, (0, 0, "A"));
+
         // Execute a few more requests to ensure the first request is removed from the cache.
         await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
+        await testLspServer.InsertTextAsync(documentUri, (0, 0, "B"));
         await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
+
+        await testLspServer.InsertTextAsync(documentUri, (0, 0, "C"));
         var lastCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
         Assert.True(lastCodeLenses.Any());
 
         // Assert that the first result id is no longer in the cache.
         Assert.Null(cache.GetCachedEntry(firstResultId));
 
-        // Assert that the request throws because the item no longer exists in the cache.
-        await Assert.ThrowsAsync<RemoteInvocationException>(async () => await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None));
+        // Assert that the items missing from the cache are still fetched
+        var lensMissingFromCache = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None);
+        Assert.Equal(string.Format(FeaturesResources._0_references_unquoted, "-"), lensMissingFromCache.Command.Title);
 
         // Assert that the server did not shutdown and that we can resolve the latest codelens request we made.
         var lastCodeLens = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, lastCodeLenses.First(), CancellationToken.None);

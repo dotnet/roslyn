@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
         public long UpdateCache(CacheEntry cacheEntry)
         {
-            Action<long> updateCacheIdCallback = (value) => { this._nextResultId = value++; };
+            Action<long> updateCacheIdCallback = (value) => { this._nextResultId = value + 1; };
             return this.UpdateCache(cacheEntry, _nextResultId, updateCacheIdCallback);
         }
     }

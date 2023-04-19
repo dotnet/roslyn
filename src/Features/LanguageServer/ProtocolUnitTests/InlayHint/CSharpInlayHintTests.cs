@@ -121,7 +121,8 @@ class A
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, true);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, true);
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-            var textDocument = CreateTextDocumentIdentifier(document.GetURI());
+            var documentURI = document.GetURI();
+            var textDocument = CreateTextDocumentIdentifier(documentURI);
             var sourceText = await document.GetTextAsync();
             var span = TextSpan.FromBounds(0, sourceText.Length);
 
@@ -141,9 +142,15 @@ class A
             var cache = testLspServer.GetRequiredLspService<InlayHintCache>();
             Assert.NotNull(cache.GetCachedEntry(firstResultId));
 
-            // Execute a few more requests to ensure the first request is removed from the cache.
+            // Update the document with some comments so the syntax version changes
+            await testLspServer.OpenDocumentAsync(documentURI);
+            await testLspServer.InsertTextAsync(documentURI, (5, 0, "//Comment\n"));
+
+            // Execute a few more updates and requests to ensure the first request is removed from the cache.
             await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            await testLspServer.InsertTextAsync(documentURI, (5, 0, "//Comment\n"));
             await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            await testLspServer.InsertTextAsync(documentURI, (5, 0, "//Comment\n"));
             var lastInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
             Assert.True(lastInlayHints.Any());
 
