@@ -721,6 +721,7 @@ function Stop-Processes() {
 #
 function MSBuild() {
   if ($pipelinesLog) {
+    Write-Host "4.1"
     $buildTool = InitializeBuildTool
 
     if ($ci -and $buildTool.Tool -eq 'dotnet') {
@@ -731,6 +732,8 @@ function MSBuild() {
     }
 
     Enable-Nuget-EnhancedRetry
+
+    Write-Host "4.2"
 
     $toolsetBuildProject = InitializeToolset
     $basePath = Split-Path -parent $toolsetBuildProject
@@ -757,6 +760,8 @@ function MSBuild() {
     $args += "/logger:$selectedPath"
   }
 
+  Write-Host "4.3"
+
   MSBuild-Core @args
 }
 
@@ -780,6 +785,8 @@ function MSBuild-Core() {
 
   Enable-Nuget-EnhancedRetry
 
+  Write-Host "4.3.1"
+
   $buildTool = InitializeBuildTool
 
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse /p:ContinuousIntegrationBuild=$ci"
@@ -801,6 +808,8 @@ function MSBuild-Core() {
   }
 
   $env:ARCADE_BUILD_TOOL_COMMAND = "$($buildTool.Path) $cmdArgs"
+
+  Write-Host "Exec process with $($buildTool.Path) and $cmdArgs"
 
   $exitCode = Exec-Process $buildTool.Path $cmdArgs
 

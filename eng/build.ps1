@@ -218,10 +218,16 @@ function BuildSolution() {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
+  Write-Host "1"
+
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
+  Write-Host "2"
+
   $ibcDropName = GetIbcDropName
+
+  Write-Host "3"
 
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
@@ -238,6 +244,8 @@ function BuildSolution() {
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
+  Write-Host "4"
 
   try {
     MSBuild $toolsetBuildProj `
@@ -270,6 +278,7 @@ function BuildSolution() {
   }
   finally {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+    Write-Host "5"
   }
 }
 
