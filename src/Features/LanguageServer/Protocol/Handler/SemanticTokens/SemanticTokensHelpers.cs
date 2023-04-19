@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
         public static async Task<int[]> ComputeSemanticTokensDataAsync(
-            ClientCapabilities? capabilities,
+            ClientCapabilities capabilities,
             Document document,
             LSP.Range? range,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var tokenTypesToIndex =SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
+            var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         private static int[] ComputeTokens(
-            ClientCapabilities? capabilities,
+            ClientCapabilities capabilities,
             TextLineCollection lines,
             ClassifiedSpan[] classifiedSpans,
             IReadOnlyDictionary<string, int> tokenTypesToIndex)

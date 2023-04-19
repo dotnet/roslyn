@@ -153,8 +153,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             TokenTypeToIndex = tokenTypeToIndex;
         }
 
-        public static SemanticTokensSchema GetSchema(ClientCapabilities? capabilities)
-            => capabilities != null && capabilities.HasVisualStudioLspCapability()
+        public static SemanticTokensSchema GetSchema(ClientCapabilities capabilities)
+            => capabilities.HasVisualStudioLspCapability()
                 ? s_vsTokenSchema
                 : s_pureLspTokenSchema;
 
