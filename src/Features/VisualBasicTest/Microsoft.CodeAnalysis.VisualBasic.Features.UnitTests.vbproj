@@ -9,6 +9,10 @@
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\EditorFeatures\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
+    <Compile Include="..\..\EditorFeatures\VisualBasicTest\Utils.vb" Link="Utils.vb" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
