@@ -3389,7 +3389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var anyDuplicates = false;
+            bool anyDuplicates = false;
             foreach ((_, OneOrMany<(Location, MethodSymbol)> interceptionsOfAGivenLocation) in _interceptions)
             {
                 Debug.Assert(interceptionsOfAGivenLocation.Count != 0);
