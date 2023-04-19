@@ -4,13 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -215,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
                 }
 
-                // For "is [", "and [", but not "(["
-                if (previousKind != SyntaxKind.OpenParenToken)
+                // For "is [", "and [", but not "([" or "[["
+                if (previousKind is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }

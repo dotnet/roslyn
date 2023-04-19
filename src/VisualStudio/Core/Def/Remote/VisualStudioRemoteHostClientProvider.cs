@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly IThreadingContext _threadingContext;
 
             private readonly object _gate = new();
-            private VisualStudioRemoteHostClientProvider? _cachedInstance;
+            private VisualStudioRemoteHostClientProvider? _cachedVSInstance;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,13 +70,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    // Either we have no client provider, or we should be asking to get the client for a workspace that
-                    // also shares our services.  This should always be true as we only support this for the VS and
-                    // Preview workspaces, and the latter is created with the services of the former.
-                    Debug.Assert(_cachedInstance is null || _cachedInstance.Services.WorkspaceServices.HostServices == workspaceServices.SolutionServices.WorkspaceServices.HostServices);
+                    // If we have a cached vs instance, and the workspace this is for uses the same host services, then
+                    // we can return that instance.
+                    if (_cachedVSInstance?.Services.WorkspaceServices.HostServices == workspaceServices.SolutionServices.WorkspaceServices.HostServices)
+                        return _cachedVSInstance;
 
-                    _cachedInstance ??= new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
-                    return _cachedInstance;
+                    // Otherwise, we either don't have a cached vs instance, or this is for a different set of host
+                    // services.  Make a fresh provider.  If this was for the VSWorkspace, then cache this for future
+                    // callers with the same services.
+                    var provider = new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                    if (workspaceServices.Workspace is VisualStudioWorkspace)
+                        _cachedVSInstance = provider;
+
+                    return provider;
                 }
             }
         }
