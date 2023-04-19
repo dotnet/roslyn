@@ -23,13 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensHelpers
     {
         /// <summary>
-        /// Maps an LSP token type to the index LSP associates with the token.
-        /// Required since we report tokens back to LSP as a series of ints,
-        /// and LSP needs a way to decipher them.
-        /// </summary>
-        private static Dictionary<string, int>? s_tokenTypeToIndex;
-
-        /// <summary>
         /// Core VS classifications, only map a few things to LSP.  The rest we keep as our own standard classification
         /// type names so those continue to work in VS.
         /// </summary>
@@ -125,6 +118,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
+        /// <summary>
+        /// Maps an LSP token type to the index LSP associates with the token. Required since we report tokens back to
+        /// LSP as a series of ints, and LSP needs a way to decipher them.
+        /// </summary>
+        private static readonly Dictionary<string, int> s_VSTokenTypeToIndex = new();
+
+        /// <inheritdoc cref=" s_VSTokenTypeToIndex"/>
+        private static readonly Dictionary<string, int> s_pureLSPTokenTypeToIndex = new();
+
+        static SemanticTokensHelpers()
+        {
+            InitializeTokenTypeToIndex(s_VSTokenTypeToIndex, s_VSClassificationTypeToSemanticTokenTypeMap);
+            InitializeTokenTypeToIndex(s_pureLSPTokenTypeToIndex, s_pureLspClassificationTypeToSemanticTokenTypeMap);
+
+            static void InitializeTokenTypeToIndex(Dictionary<string, int> tokenTypeToIndex, Dictionary<string, string> tokenTypeMap)
+            {
+                foreach (var lspTokenType in SemanticTokenTypes.AllTypes)
+                    tokenTypeToIndex.Add(lspTokenType, tokenTypeToIndex.Count);
+
+                foreach (var roslynTokenType in GetCustomTokenTypes(tokenTypeMap))
+                    tokenTypeToIndex.Add(roslynTokenType, tokenTypeToIndex.Count);
+            }
+        }
+
         public static Dictionary<string, string> GetTokenTypeMap(ClientCapabilities? capabilities)
             => capabilities != null && capabilities.HasVisualStudioLspCapability()
                 ? s_VSClassificationTypeToSemanticTokenTypeMap
@@ -141,7 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         /// <summary>
         /// Gets all the supported token types for the provided <paramref name="capabilities"/>.  If <paramref
-        /// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depening on the
+        /// name="capabilities"/> this will be the core set of LSP token types that roslyn supports.  Depending on the
         /// capabilities passed in this may be a different set (for example, VS supports more semantic token types).
         /// </summary>
         /// <param name="capabilities"></param>
@@ -152,28 +169,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public static ImmutableArray<string> LegacyGetAllTokenTypesForRazor()
             => SemanticTokenTypes.AllTypes.Concat(GetCustomTokenTypes(s_VSClassificationTypeToSemanticTokenTypeMap)).ToImmutableArray();
 
-        public static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities? capabilities)
-        {
-            if (s_tokenTypeToIndex == null)
-            {
-                s_tokenTypeToIndex = new Dictionary<string, int>();
-
-                var index = 0;
-                foreach (var lspTokenType in SemanticTokenTypes.AllTypes)
-                {
-                    s_tokenTypeToIndex.Add(lspTokenType, index);
-                    index++;
-                }
-
-                foreach (var roslynTokenType in GetCustomTokenTypes(capabilities))
-                {
-                    s_tokenTypeToIndex.Add(roslynTokenType, index);
-                    index++;
-                }
-            }
-
-            return s_tokenTypeToIndex;
-        }
+        private static Dictionary<string, int> GetTokenTypeToIndex(ClientCapabilities? capabilities)
+            => capabilities != null && capabilities.HasVisualStudioLspCapability()
+                ? s_VSTokenTypeToIndex
+                : s_pureLSPTokenTypeToIndex;
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
