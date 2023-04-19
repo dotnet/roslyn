@@ -303,6 +303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(Syntax.Identifier.GetLocation());
 
+        public override Location TryGetFirstLocation() => Syntax.Identifier.GetLocation();
+
         internal override bool GenerateDebugInfo => true;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;

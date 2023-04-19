@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (usingDirective.UnsafeKeyword != default)
             {
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.UnsafeKeyword);
             }
             else if (usingDirective.NamespaceOrType is not NameSyntax)
             {
