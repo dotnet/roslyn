@@ -1,7 +1,6 @@
 
 function Install-Gdn {
     param(
-        [Parameter(Mandatory=$true)]
         [string]$Path,
 
         # If omitted, install the latest version of Guardian, otherwise install that specific version.
