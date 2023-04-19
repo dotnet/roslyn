@@ -5200,10 +5200,10 @@ End Module        </file>
 BC30311: Value of type 'Integer' cannot be converted to 'base'.
                 For i = New base To New first()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'base' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'base' must define operator '+' to be used in a 'For' statement.
                 For j = New base To New first() step new second()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'base' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'base' must define operator '-' to be used in a 'For' statement.
                 For j = New base To New first() step new second()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33038: Type 'base' must define operator '&lt;=' to be used in a 'For' statement.

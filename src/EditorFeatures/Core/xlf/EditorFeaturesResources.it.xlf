@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="All_methods">
-        <source>All methods</source>
-        <target state="translated">Tutti i metodi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_for_clarity">
-        <source>Always for clarity</source>
-        <target state="translated">Sempre per chiarezza</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Per l'identificatore '{0}' è attiva una sessione di ridenominazione inline. Richiamare nuovamente la ridenominazione inline per accedere alle opzioni aggiuntive. È possibile continuare a modificare l'identificatore da rinominare in qualsiasi momento.</target>
@@ -20,11 +10,6 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Applicazione delle modifiche in corso</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters">
-        <source>Avoid unused parameters</source>
-        <target state="translated">Evita i parametri inutilizzati</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -77,16 +62,6 @@
         <target state="translated">Filtro</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="For_locals_parameters_and_members">
-        <source>For locals, parameters and members</source>
-        <target state="translated">Per variabili locali, parametri e membri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_member_access_expressions">
-        <source>For member access expressions</source>
-        <target state="translated">Per espressioni di accesso ai membri</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Formatta documento ha eseguito una pulizia aggiuntiva</target>
@@ -125,11 +100,6 @@
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators</source>
         <target state="translated">In altri operatori binari</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_other_operators">
-        <source>In other operators</source>
-        <target state="translated">In altri operatori</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -172,11 +142,6 @@
         <target state="translated">Individuazione delle basi...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never_if_unnecessary">
-        <source>Never if unnecessary</source>
-        <target state="translated">Mai se non necessario</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_Line">
         <source>New Line</source>
         <target state="translated">Nuova riga</target>
@@ -185,11 +150,6 @@
       <trans-unit id="No">
         <source>No</source>
         <target state="translated">No</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Non_public_methods">
-        <source>Non-public methods</source>
-        <target state="translated">Metodi non pubblici</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -202,84 +162,9 @@
         <target state="translated">Verifica Incolla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
-        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
-        <target state="translated">Preferisci 'System.HashCode' in 'GetHashCode'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_coalesce_expression">
-        <source>Prefer coalesce expression</source>
-        <target state="translated">Preferisci espressione COALESCE</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_initializer">
-        <source>Prefer collection initializer</source>
-        <target state="translated">Preferisci inizializzatore di insieme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_compound_assignments">
-        <source>Prefer compound assignments</source>
-        <target state="translated">Preferisci assegnazioni composte</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
-        <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">Preferisci l'espressione condizionale a 'if' con assegnazioni</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
-        <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="translated">Preferisci l'espressione condizionale a 'if' con valori restituiti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_tuple_name">
-        <source>Prefer explicit tuple name</source>
-        <target state="translated">Preferisci nome di tupla esplicito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="translated">Preferisci tipo di framework</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
-        <source>Prefer inferred anonymous type member names</source>
-        <target state="translated">Preferisci nomi di membro di tipo anonimo dedotti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_tuple_names">
-        <source>Prefer inferred tuple element names</source>
-        <target state="translated">Preferisci nomi di elemento di tupla dedotti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferisci 'is null' per i controlli di uguaglianza dei riferimenti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_propagation">
-        <source>Prefer null propagation</source>
-        <target state="translated">Preferisci propagazione di valori Null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_object_initializer">
-        <source>Prefer object initializer</source>
-        <target state="translated">Preferisci inizializzatore di oggetto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="translated">Preferisci tipo predefinito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly_fields">
-        <source>Prefer readonly fields</source>
-        <target state="translated">Preferisci campi readonly</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simplified_boolean_expressions">
-        <source>Prefer simplified boolean expressions</source>
-        <target state="translated">Preferisci espressioni booleane semplificate</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -315,6 +200,11 @@
       <trans-unit id="Qualify_property_access_with_this_or_Me">
         <source>Qualify property access with 'this' or 'Me'</source>
         <target state="translated">Qualifica l'accesso alle proprietà con 'this' o 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="translated">Variabile riassegnata</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -837,11 +727,6 @@
         <target state="translated">La verifica del documento con chiave identica è già in corso</target>
         <note />
       </trans-unit>
-      <trans-unit id="analyzer_Prefer_auto_properties">
-        <source>Prefer auto properties</source>
-        <target state="translated">Preferisci proprietà automatiche</target>
-        <note />
-      </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">
         <source>document is not currently being tracked</source>
         <target state="translated">al momento il documento non è sottoposto a verifica</target>
@@ -965,11 +850,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">Formatta token</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Rientro automatico</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -1577,6 +1457,51 @@ Continuare?</target>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">Struttura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - Commento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - Classe di caratteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - Alternanza</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - Ancoraggio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - Quantificatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - Carattere di escape automatico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - Raggruppamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - Testo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - Altro carattere di escape</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

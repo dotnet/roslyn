@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia: true);
 
-            if (!(token.Parent is TDirectiveTriviaSyntax directive))
+            if (token.Parent is not TDirectiveTriviaSyntax directive)
             {
                 return null;
             }
@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
         {
-            return directive is TIfDirectiveTriviaSyntax ||
-                   directive is TElseIfDirectiveTriviaSyntax ||
-                   directive is TElseDirectiveTriviaSyntax ||
-                   directive is TEndIfDirectiveTriviaSyntax;
+            return directive is TIfDirectiveTriviaSyntax or
+                   TElseIfDirectiveTriviaSyntax or
+                   TElseDirectiveTriviaSyntax or
+                   TEndIfDirectiveTriviaSyntax;
         }
     }
 }

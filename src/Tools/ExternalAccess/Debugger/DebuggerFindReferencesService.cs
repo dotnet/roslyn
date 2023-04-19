@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -37,15 +35,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
             // Let the presenter know we're starting a search.  It will give us back
             // the context object that the FAR service will push results into.
-            var context = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+            //
+            // We're awaiting the work to find the symbols (as opposed to kicking it off in a
+            // fire-and-forget streaming fashion).  As such, we do not want to use the cancellation
+            // token provided by the presenter.  Instead, we'll let our caller own if this work
+            // is cancelable.
+            var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
             try
             {
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             internal bool CanGeneratePropertyOrField()
             {
-                return ContainingType is { IsImplicitClass: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
+                return ContainingType is { IsImplicitClass: false }
+                    && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
             }
 
             internal bool CanGenerateLocal()
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
                     syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
 
-                ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
+                ContainingMethod = FindContainingMethodSymbol(IdentifierToken.SpanStart, semanticModel, cancellationToken);
 
                 CheckSurroundingContext(semanticDocument, SymbolKind.Field, cancellationToken);
                 CheckSurroundingContext(semanticDocument, SymbolKind.Property, cancellationToken);
@@ -356,6 +357,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             }
                         }
                     }
+                }
+
+                return null;
+            }
+
+            private static IMethodSymbol FindContainingMethodSymbol(int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+                while (symbol != null)
+                {
+                    if (symbol is IMethodSymbol method && !method.IsAnonymousFunction())
+                    {
+                        return method;
+                    }
+
+                    symbol = symbol.ContainingSymbol;
                 }
 
                 return null;

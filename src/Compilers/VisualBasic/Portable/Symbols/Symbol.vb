@@ -63,6 +63,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
+        ''' Gets the token for this symbol as it appears in metadata. Most of the time this Is 0,
+        ''' as it Is when the symbol Is Not loaded from metadata.
+        ''' </summary>
+        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken
+            Get
+                Return 0
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Set the metadata name for this symbol.
         ''' Called from <see cref="OverloadingHelper.SetMetadataNameForAllOverloads"/> for each symbol of the same name in a type.
         ''' </summary>

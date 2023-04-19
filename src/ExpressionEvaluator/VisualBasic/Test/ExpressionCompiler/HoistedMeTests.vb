@@ -555,7 +555,7 @@ End Class
                     Assert.True(displayClassTypes.Any())
                     For Each displayClassType In displayClassTypes
                         Dim displayClassName = displayClassType.Name
-                        Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
+                        Assert.True(displayClassName.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal))
                         For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                             Dim lambdaMethodName = String.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name)
                             Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -612,7 +612,7 @@ End Module
                     Assert.True(displayClassTypes.Any())
                     For Each displayClassType In displayClassTypes
                         Dim displayClassName = displayClassType.Name
-                        Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
+                        Assert.True(displayClassName.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal))
                         For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                             Dim lambdaMethodName = String.Format("M.{0}.{1}", displayClassName, displayClassMethod.Name)
                             Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -1146,7 +1146,7 @@ End Class
                 source,
                 Function(m) m.Name = "M" AndAlso isDesiredOverload(m),
                 Function(originalType)
-                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
+                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(GeneratedNameConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
                     Return stateMachineType.GetMember(Of MethodSymbol)("MoveNext")
                 End Function)
         End Sub
@@ -1156,13 +1156,13 @@ End Class
                 source,
                 isDesiredOverload,
                 Function(originalType)
-                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
+                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal))
                     Return displayClass.GetMembers().OfType(Of MethodSymbol).Single(AddressOf IsLambda)
                 End Function)
         End Sub
 
         Private Shared Function IsLambda(method As MethodSymbol) As Boolean
-            Return method.Name.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
+            Return method.Name.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
         End Function
 
         Private Shared Sub CheckOverloading(source As String, isDesiredOverload As Func(Of MethodSymbol, Boolean), getSynthesizedMethod As Func(Of NamedTypeSymbol, MethodSymbol))

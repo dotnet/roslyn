@@ -352,7 +352,7 @@ public class C : I
 
             Assert.NotEqual(ilGetter.Name, csharpGetter.Name); //name not copied
 
-            var bridge = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var bridge = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Same(csharpGetter, bridge.ImplementingMethod);
             Assert.Same(ilGetter, bridge.ExplicitInterfaceImplementations.Single());
 
@@ -384,7 +384,7 @@ public class C : I
             var csharpGetter = @class.GetProperty("I.P").GetMethod;
 
             Assert.Equal("I.getter", csharpGetter.Name);
-            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length); //not needed
+            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length); //not needed
         }
 
         [Fact]

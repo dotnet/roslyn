@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
+    internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -43,20 +43,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public string Method => MSLSPMethods.TextDocumentCodeActionResolveName;
+        public string Method => LSP.Methods.CodeActionResolveName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
-            => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CodeAction request)
+            => ((JToken)request.Data!).ToObject<CodeActionResolveData>()?.TextDocument;
 
-        public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
+            Assumes.Present(data);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // If we have all non-ApplyChangesOperations, set up to run as command on the server
             // instead of using WorkspaceEdits.
-            if (operations.All(operation => !(operation is ApplyChangesOperation)))
+            if (operations.All(operation => operation is not ApplyChangesOperation))
             {
                 codeAction.Command = SetCommand(codeAction.Title, data);
                 return codeAction;
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
                     textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                 }
             }

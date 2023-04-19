@@ -292,3 +292,4 @@ finally {
   Get-Process VBCSCompiler -ErrorAction SilentlyContinue | Stop-Process
   Write-Host "Stopped VBCSCompiler"
 }
+

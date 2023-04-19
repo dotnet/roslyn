@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,6 +11,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -22,7 +23,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         where TModule : class
         where TRequest : class
     {
-        private readonly TProcess _process;
         private readonly TModule _module;
         private readonly MetadataReader _reader;
         private readonly StringComparer _stringComparer; // for comparing strings
@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly OnFunctionResolvedDelegate<TModule, TRequest> _onFunctionResolved;
 
         internal MetadataResolver(
-            TProcess process,
             TModule module,
             MetadataReader reader,
             bool ignoreCase,
             OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
-            _process = process;
             _module = module;
             _reader = reader;
             _stringComparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
@@ -64,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 // Visit methods.
                 foreach (var methodHandle in typeDef.GetMethods())
                 {
@@ -72,22 +71,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         continue;
                     }
-                    if (MatchesMethod(typeDef, methodDef, typeName, memberName, allTypeParameters, containingArity, memberTypeParameters, memberParameters))
+                    if (MatchesMethod(typeDef, methodDef, memberName, allTypeParameters, containingArity, memberTypeParameters, memberParameters))
                     {
                         OnFunctionResolved(request, methodHandle);
                     }
                 }
+
                 if (memberTypeParameters.IsEmpty)
                 {
                     // Visit properties.
                     foreach (var propertyHandle in typeDef.GetProperties())
                     {
                         var propertyDef = _reader.GetPropertyDefinition(propertyHandle);
-                        if (MatchesProperty(typeDef, propertyDef, typeName, memberName, allTypeParameters, containingArity, memberParameters))
+                        var accessors = propertyDef.GetAccessors();
+                        if (MatchesPropertyOrEvent(propertyDef.Name, accessors.Getter, memberName, allTypeParameters, containingArity, memberParameters))
                         {
-                            var accessors = propertyDef.GetAccessors();
                             OnAccessorResolved(request, accessors.Getter);
                             OnAccessorResolved(request, accessors.Setter);
+                        }
+                    }
+
+                    // Visit events.
+                    foreach (var eventHandle in typeDef.GetEvents())
+                    {
+                        var eventDef = _reader.GetEventDefinition(eventHandle);
+                        var accessors = eventDef.GetAccessors();
+
+                        if (MatchesPropertyOrEvent(eventDef.Name, accessors.Adder, memberName, allTypeParameters, containingArity, memberParameters))
+                        {
+                            OnAccessorResolved(request, accessors.Adder);
+                            OnAccessorResolved(request, accessors.Remover);
                         }
                     }
                 }
@@ -119,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var declaringTypeHandle = typeDef.GetDeclaringType();
-            var declaringType = declaringTypeHandle.IsNil ? default(TypeDefinition) : _reader.GetTypeDefinition(declaringTypeHandle);
+            var declaringType = declaringTypeHandle.IsNil ? default : _reader.GetTypeDefinition(declaringTypeHandle);
             int declaringTypeParameterCount = declaringTypeHandle.IsNil ? 0 : declaringType.GetGenericParameters().Count;
             if (!MatchesTypeParameterCount(typeParameters, typeDef.GetGenericParameters(), declaringTypeParameterCount))
             {
@@ -184,72 +197,106 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private bool MatchesMethod(
             TypeDefinition typeDef,
             MethodDefinition methodDef,
-            Name typeName,
             string methodName,
             ImmutableArray<string> allTypeParameters,
             int containingArity,
             ImmutableArray<string> methodTypeParameters,
             ImmutableArray<ParameterSignature> methodParameters)
         {
-            if ((methodDef.Attributes & MethodAttributes.RTSpecialName) != 0)
-            {
-                if (!_reader.StringComparer.Equals(methodDef.Name, ".ctor", ignoreCase: false))
-                {
-                    // Unhandled special name.
-                    return false;
-                }
-                if (!MatchesTypeName(typeDef, methodName))
-                {
-                    return false;
-                }
-            }
-            else if (!_reader.StringComparer.Equals(methodDef.Name, methodName, _ignoreCase))
+            if (!MatchesMethodName(methodDef, typeDef, methodName))
             {
                 return false;
             }
+
             if (!MatchesTypeParameterCount(methodTypeParameters, methodDef.GetGenericParameters(), offset: 0))
             {
                 return false;
             }
+
             if (methodParameters.IsDefault)
             {
                 return true;
             }
+
             return MatchesParameters(methodDef, allTypeParameters, containingArity, methodTypeParameters, methodParameters);
         }
 
-        private bool MatchesProperty(
-            TypeDefinition typeDef,
-            PropertyDefinition propertyDef,
-            Name typeName,
-            string propertyName,
+        private bool MatchesPropertyOrEvent(
+            StringHandle memberName,
+            MethodDefinitionHandle primaryAccessorHandle,
+            string name,
             ImmutableArray<string> allTypeParameters,
             int containingArity,
             ImmutableArray<ParameterSignature> propertyParameters)
         {
-            if (!_reader.StringComparer.Equals(propertyDef.Name, propertyName, _ignoreCase))
+            if (!MatchesMemberName(memberName, name))
             {
                 return false;
             }
+
             if (propertyParameters.IsDefault)
             {
                 return true;
             }
+
             if (propertyParameters.Length == 0)
             {
-                // Parameter-less properties should be specified
+                // Parameter-less properties/events should be specified
                 // with no parameter list.
                 return false;
             }
-            // Match parameters against getter. Not supporting
+
+            // Match parameters against getter/adder. Not supporting
             // matching against setter for write-only properties.
-            var methodHandle = propertyDef.GetAccessors().Getter;
-            if (methodHandle.IsNil)
+            if (primaryAccessorHandle.IsNil)
             {
                 return false;
             }
-            var methodDef = _reader.GetMethodDefinition(methodHandle);
+
+            var methodDef = _reader.GetMethodDefinition(primaryAccessorHandle);
             return MatchesParameters(methodDef, allTypeParameters, containingArity, ImmutableArray<string>.Empty, propertyParameters);
+        }
+
+        private bool MatchesMethodName(in MethodDefinition methodDef, in TypeDefinition declaringTypeDef, string name)
+        {
+            // special names:
+            if ((methodDef.Attributes & MethodAttributes.RTSpecialName) != 0)
+            {
+                // constructor:
+                var ctorName = (methodDef.Attributes & MethodAttributes.Static) == 0 ? WellKnownMemberNames.InstanceConstructorName : WellKnownMemberNames.StaticConstructorName;
+                if (_reader.StringComparer.Equals(methodDef.Name, ctorName, ignoreCase: false) && MatchesTypeName(declaringTypeDef, name))
+                {
+                    return true;
+                }
+            }
+
+            return MatchesMemberName(methodDef.Name, name);
+        }
+
+        private bool MatchesMemberName(in StringHandle memberName, string name)
+        {
+            if (_reader.StringComparer.Equals(memberName, name, _ignoreCase))
+            {
+                return true;
+            }
+
+            var comparer = _ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+            var metadataName = _reader.GetString(memberName);
+
+            // C# local function
+            if (GeneratedNameParser.TryParseLocalFunctionName(metadataName, out var localFunctionName))
+            {
+                return comparer.Equals(name, localFunctionName);
+            }
+
+            // implicitly implemented interface member:
+            var lastDot = metadataName.LastIndexOf('.');
+            if (lastDot >= 0 && comparer.Equals(metadataName.Substring(lastDot + 1), name))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private ImmutableArray<string> GetAllGenericTypeParameters(Name typeName)

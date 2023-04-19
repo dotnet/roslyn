@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            return CompletionService.FilterItems(helper, itemsWithPatternMatch);
+            return CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText);
         }
     }
 }

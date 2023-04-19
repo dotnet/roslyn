@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // So in the case of totally matching sequences, we process them in O(n) - 
             // both node1 and firstNonMatch2 will be advanced simultaneously.
 
-            Debug.Assert(maxAcceptableDistance >= ExactMatchDistance && maxAcceptableDistance <= MaxDistance);
+            Debug.Assert(maxAcceptableDistance is >= ExactMatchDistance and <= MaxDistance);
             var count1 = s1.Count;
             var count2 = s2.Count;
             var firstNonMatch2 = 0;

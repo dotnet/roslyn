@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.InterfaceDeclaration, 11 },
             { SyntaxKind.StructDeclaration, 12 },
             { SyntaxKind.ClassDeclaration, 13 },
-            { SyntaxKind.DelegateDeclaration, 14 }
+            { SyntaxKind.RecordDeclaration, 14 },
+            { SyntaxKind.RecordStructDeclaration, 15 },
+            { SyntaxKind.DelegateDeclaration, 16 }
         };
 
         private static readonly Dictionary<SyntaxKind, int> s_operatorPrecedenceMap = new(SyntaxFacts.EqualityComparer)

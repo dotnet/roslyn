@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         public static PerLanguageOption2<bool> Enabled =
            new PerLanguageOption2<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
-               storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitComments"));
+               storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitComments"));
     }
 
     [ExportOptionProvider, Shared]

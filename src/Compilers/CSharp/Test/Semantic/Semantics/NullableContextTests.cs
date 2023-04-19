@@ -964,7 +964,8 @@ struct S
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
                 // (6,5): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S(object obj) : this() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F1").WithLocation(6, 5));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F1").WithLocation(6, 5)
+                );
 
             source =
 @"#pragma warning disable 169

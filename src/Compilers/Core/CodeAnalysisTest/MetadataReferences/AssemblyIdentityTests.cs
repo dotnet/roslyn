@@ -222,10 +222,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => new AssemblyIdentity(null));
 
             Assert.Throws<ArgumentException>(
-                () => new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), "", ImmutableArray<byte>.Empty, hasPublicKey: true, isRetargetable: false));
+                () => new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), "", ImmutableArray<byte>.Empty, hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.Default));
 
             Assert.Throws<ArgumentException>(
-                () => new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), "", new byte[] { 1, 2, 3 }.AsImmutableOrNull(), hasPublicKey: false, isRetargetable: false));
+                () => new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), "", new byte[] { 1, 2, 3 }.AsImmutableOrNull(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default));
 
             foreach (var v in new Version[]
             {

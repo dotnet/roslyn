@@ -102,6 +102,11 @@
         <target state="translated">位移和長度超過陣列的界限或計數大於從索引至來源集合尾端的項目數。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">找不到舊值</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">變更非並行集合的作業必須具有獨佔存取權。並行更新已在此集合上執行，並已損毀其狀態。集合的狀態已不再正確。</target>

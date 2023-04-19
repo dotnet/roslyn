@@ -1254,7 +1254,18 @@
       <summary>Creates an ArgumentSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="NameColonSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="BaseExpressionColonSyntax" Base="CSharpSyntaxNode">
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+  </AbstractNode>
+  <Node Name="ExpressionColonSyntax" Base="BaseExpressionColonSyntax">
+    <Kind Name="ExpressionColon"/>
+    <Field Name="Expression" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+  </Node>
+  <Node Name="NameColonSyntax" Base="BaseExpressionColonSyntax">
     <Kind Name="NameColon"/>
     <Field Name="Name" Type="IdentifierNameSyntax">
       <Kind Name="IdentifierName"/>
@@ -1262,8 +1273,7 @@
         <summary>IdentifierNameSyntax representing the identifier name.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true">
       <PropertyComment>
         <summary>SyntaxToken representing colon.</summary>
       </PropertyComment>
@@ -1448,6 +1458,7 @@
     <Kind Name="ParenthesizedLambdaExpression"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ReturnType" Type="TypeSyntax" Optional="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
@@ -2033,7 +2044,7 @@
   </Node>
   <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
     <Kind Name="Subpattern"/>
-    <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
+    <Field Name="ExpressionColon" Type="BaseExpressionColonSyntax" Optional="true"/>
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -3033,20 +3044,29 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="NamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
-    <Kind Name="NamespaceDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+  <AbstractNode Name="BaseNamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
     <Field Name="NamespaceKeyword" Type="SyntaxToken">
       <Kind Name="NamespaceKeyword"/>
     </Field>
     <Field Name="Name" Type="NameSyntax"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken">
-      <Kind Name="OpenBraceToken"/>
-    </Field>
     <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
     <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+  </AbstractNode>
+  <Node Name="NamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
+    <Kind Name="NamespaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="NamespaceKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -3056,6 +3076,21 @@
       </PropertyComment>
       <Kind Name="SemicolonToken"/>
     </Field>
+  </Node>
+  <Node Name="FileScopedNamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
+    <Kind Name="FileScopedNamespaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="NamespaceKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
   </Node>
   <Node Name="AttributeListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
@@ -3720,6 +3755,7 @@
         <summary>Gets the return type.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" keyword.</summary>
@@ -3783,6 +3819,7 @@
       <Kind Name="ImplicitKeyword"/>
       <Kind Name="ExplicitKeyword"/>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" token.</summary>
@@ -4722,12 +4759,16 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
-  <Node Name="LineDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+  <AbstractNode Name="LineOrSpanDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Field Name="LineKeyword" Type="SyntaxToken" />
+    <Field Name="File" Type="SyntaxToken" Optional="true" />
+  </AbstractNode>
+  <Node Name="LineDirectiveTriviaSyntax" Base="LineOrSpanDirectiveTriviaSyntax">
     <Kind Name="LineDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
       <Kind Name="HashToken"/>
     </Field>
-    <Field Name="LineKeyword" Type="SyntaxToken">
+    <Field Name="LineKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="LineKeyword"/>
     </Field>
     <Field Name="Line" Type="SyntaxToken">
@@ -4735,7 +4776,49 @@
       <Kind Name="DefaultKeyword"/>
       <Kind Name="HiddenKeyword"/>
     </Field>
-    <Field Name="File" Type="SyntaxToken" Optional="true">
+    <Field Name="File" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LineDirectivePositionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="LineDirectivePosition"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Line" Type="SyntaxToken">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="CommaToken" Type="SyntaxToken">
+      <Kind Name="CommaToken"/>
+    </Field>
+    <Field Name="Character" Type="SyntaxToken">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="LineSpanDirectiveTriviaSyntax" Base="LineOrSpanDirectiveTriviaSyntax">
+    <Kind Name="LineSpanDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LineKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="LineKeyword"/>
+    </Field>
+     <Field Name="Start" Type="LineDirectivePositionSyntax" />
+     <Field Name="MinusToken" Type="SyntaxToken">
+      <Kind Name="MinusToken"/>
+    </Field>
+    <Field Name="End" Type="LineDirectivePositionSyntax" />
+    <Field Name="CharacterOffset" Type="SyntaxToken"  Optional="true">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken" Override="true">
       <Kind Name="StringLiteralToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">

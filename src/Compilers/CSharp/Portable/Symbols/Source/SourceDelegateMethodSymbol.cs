@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _parameters;
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(InitializeParameters)} prior to accessing this property.");
+                return _parameters.NullToEmpty();
             }
         }
 
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)
                 {
-                    var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: p.Ordinal, suppressOptional: true);
+                    var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: p.Ordinal);
                     parameters.Add(synthesizedParam);
                 }
 
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (p.RefKind != RefKind.None)
                     {
-                        var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: ordinal++, suppressOptional: true);
+                        var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: ordinal++);
                         parameters.Add(synthesizedParam);
                     }
                 }

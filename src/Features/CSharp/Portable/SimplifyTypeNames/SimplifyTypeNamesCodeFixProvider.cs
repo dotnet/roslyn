@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
             var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(
                 Simplifier.Annotation, Formatter.Annotation, DoNotAllowVarAnnotation.Annotation);
 
-            if (annotatedexpressionSyntax.Kind() == SyntaxKind.IsExpression || annotatedexpressionSyntax.Kind() == SyntaxKind.AsExpression)
+            if (annotatedexpressionSyntax.Kind() is SyntaxKind.IsExpression or SyntaxKind.AsExpression)
             {
                 var right = ((BinaryExpressionSyntax)annotatedexpressionSyntax).Right;
                 annotatedexpressionSyntax = annotatedexpressionSyntax.ReplaceNode(right, right.WithAdditionalAnnotations(Simplifier.Annotation));

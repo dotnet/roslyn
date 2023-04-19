@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
@@ -14,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 workspaceDefinition,
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
-                    Dim findUsagesService = document.GetLanguageService(Of IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess)
-                    Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
+                    Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
+                    Await findUsagesService.FindImplementationsAsync(document, position, context, CancellationToken.None).ConfigureAwait(False)
                 End Function,
                 shouldSucceed)
         End Function
@@ -373,7 +374,7 @@ interface I { void $$M(); }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public abstract void [|M|]() { } }
+class C : I { public abstract void M() { } }
 class D : C { public override void [|M|]() { } }}
 interface I { void $$M(); }
         </Document>
@@ -480,7 +481,7 @@ class D : C
         public virtual void $$[|M|]() { }
     }
     abstract class B : A {
-        public abstract override void [|M|]();
+        public abstract override void M();
     }
     sealed class C1 : B {
         public override void [|M|]() { }
@@ -661,6 +662,39 @@ public class StringCreator : IStringCreator
         return default;
     }
 }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function SkipIntermediaryAbstractMethodIfOverridden(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void M(); }
+class D : C { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function IncludeAbstractMethodIfNotOverridden(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void [|M|](); }
+interface I { void $$M(); }
         </Document>
     </Project>
 </Workspace>

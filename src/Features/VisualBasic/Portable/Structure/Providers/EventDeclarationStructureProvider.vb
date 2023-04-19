@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class EventDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of EventStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(eventDeclaration As EventStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  eventDeclaration As EventStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

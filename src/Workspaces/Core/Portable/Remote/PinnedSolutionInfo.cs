@@ -39,12 +39,25 @@ namespace Microsoft.CodeAnalysis.Remote
         [DataMember(Order = 3)]
         public readonly Checksum SolutionChecksum;
 
-        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, int workspaceVersion, Checksum solutionChecksum)
+        /// <summary>
+        /// An optional project that we are pinning information for.  This is used for features that only need
+        /// information for a project (and its dependencies) and not the entire solution.
+        /// </summary>
+        [DataMember(Order = 4)]
+        public readonly ProjectId? ProjectId;
+
+        public PinnedSolutionInfo(
+            int scopeId,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            Checksum solutionChecksum,
+            ProjectId? projectId)
         {
             ScopeId = scopeId;
             FromPrimaryBranch = fromPrimaryBranch;
             WorkspaceVersion = workspaceVersion;
             SolutionChecksum = solutionChecksum;
+            ProjectId = projectId;
         }
     }
 }

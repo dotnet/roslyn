@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> makeMembers(ImmutableArray<Symbol> underlyingMembers)
             {
                 var builder = ArrayBuilder<Symbol>.GetInstance();
-                builder.Add(new SynthesizedInstanceConstructor(this));
                 foreach (var underlyingMember in underlyingMembers)
                 {
                     Debug.Assert(_underlyingType.Equals(underlyingMember.ContainingSymbol));
@@ -101,6 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         default:
                                             builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                             break;
+                                    }
+                                    break;
+
+                                case MethodKind.Constructor:
+                                    if (underlyingMethod.ParameterCount == 0)
+                                    {
+                                        builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                     }
                                     break;
                             }
@@ -254,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(symbolA.GetHashCode() == symbolB.GetHashCode());
         }
 
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;
@@ -370,6 +381,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingParameter.RefCustomModifiers;
+
+        internal override bool IsCallerLineNumber => _underlyingParameter.IsCallerLineNumber;
+
+        internal override bool IsCallerFilePath => _underlyingParameter.IsCallerFilePath;
+
+        internal override bool IsCallerMemberName => _underlyingParameter.IsCallerMemberName;
+
+        internal override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 

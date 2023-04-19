@@ -2,17 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     <[UseExportProvider]>
     Public Class NavigationBarControllerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
-        Public Sub TestDoNotRecomputeAfterFullRecompute()
+        Public Async Function TestDoNotRecomputeAfterFullRecompute() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -28,21 +26,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
 
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
+                Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
+                Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
+
+                Await navbarWaiter.ExpeditedWaitAsync()
+
                 ' The first time this is called, we should get various calls as a part of the
                 ' present
-
-                presentItemsCalled = False
-                mockPresenter.RaiseDropDownFocused()
-
                 Assert.True(presentItemsCalled)
 
                 ' After it, we should not get any calls
                 presentItemsCalled = False
-                mockPresenter.RaiseDropDownFocused()
 
+                Await navbarWaiter.ExpeditedWaitAsync()
                 Assert.False(presentItemsCalled, "The presenter should not have been called a second time.")
             End Using
-        End Sub
+        End Function
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24754"), Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
@@ -117,16 +117,12 @@ class C
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
-                controller.SetWorkspace(workspace)
-
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
                 Await navbarWaiter.ExpeditedWaitAsync()
 
-                memberName = Nothing
-                mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("M1(int x)", memberName)
                 Assert.Equal(projectGlyph, Glyph.CSharpProject)
 
@@ -135,8 +131,6 @@ class C
                 Await workspaceWaiter.ExpeditedWaitAsync()
                 Await navbarWaiter.ExpeditedWaitAsync()
 
-                memberName = Nothing
-                mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("M2(int x)", memberName)
                 Assert.Equal(projectGlyph, Glyph.CSharpProject)
             End Using
@@ -186,16 +180,12 @@ End Class
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
-                controller.SetWorkspace(workspace)
-
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
                 Await navbarWaiter.ExpeditedWaitAsync()
 
-                memberNames = Nothing
-                mockPresenter.RaiseDropDownFocused()
                 Assert.Contains("M1", memberNames)
                 Assert.DoesNotContain("M2", memberNames)
                 Assert.Equal(projectGlyph, Glyph.BasicProject)
@@ -205,8 +195,6 @@ End Class
                 Await workspaceWaiter.ExpeditedWaitAsync()
                 Await navbarWaiter.ExpeditedWaitAsync()
 
-                memberNames = Nothing
-                mockPresenter.RaiseDropDownFocused()
                 Assert.Contains("M2", memberNames)
                 Assert.DoesNotContain("M1", memberNames)
                 Assert.Equal(projectGlyph, Glyph.BasicProject)
@@ -214,7 +202,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestProjectItemsAreSortedCSharp()
+        Public Async Function TestProjectItemsAreSortedCSharp() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="BProj">
@@ -250,14 +238,14 @@ class C
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
+                Await workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider).GetWaiter(FeatureAttribute.NavigationBar).ExpeditedWaitAsync()
 
-                mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestProjectItemsAreSortedVisualBasic()
+        Public Async Function TestProjectItemsAreSortedVisualBasic() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
@@ -289,11 +277,11 @@ End Class
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
+                Await workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider).GetWaiter(FeatureAttribute.NavigationBar).ExpeditedWaitAsync()
 
-                mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestNavigationBarRefreshesAfterProjectRename() As Task
@@ -324,9 +312,8 @@ End Class
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
-                controller.SetWorkspace(workspace)
+                Await workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider).GetWaiter(FeatureAttribute.NavigationBar).ExpeditedWaitAsync()
 
-                mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("VBProj", projectName)
 
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             return new Dictionary<OptionKey2, object>
             {
                 { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey2(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
                 { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
         }
@@ -1235,7 +1234,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1267,7 +1266,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1325,7 +1324,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingOptions2.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1357,7 +1356,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -2158,6 +2157,35 @@ using MS.B;
 ";
 
             var expected = @"$$
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
+        {
+            var code = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+namespace N;
+
 using System.A;
 using System.B;
 

@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (!(argument.Parent is AttributeArgumentListSyntax argumentList))
+            if (argument.Parent is not AttributeArgumentListSyntax argumentList)
             {
                 return null;
             }
 
-            if (!(argumentList.Parent is AttributeSyntax invocableExpression))
+            if (argumentList.Parent is not AttributeSyntax invocableExpression)
             {
                 return null;
             }

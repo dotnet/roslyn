@@ -18,17 +18,17 @@ namespace RunTests
     {
         internal PartitionInfo PartitionInfo { get; }
         internal string TargetFramework { get; }
-        internal string Platform { get; }
+        internal string Architecture { get; }
 
         internal string AssemblyPath => PartitionInfo.AssemblyPath;
         internal string AssemblyName => Path.GetFileName(PartitionInfo.AssemblyPath);
         internal string DisplayName => PartitionInfo.DisplayName;
 
-        internal AssemblyInfo(PartitionInfo partitionInfo, string targetFramework, string platform)
+        internal AssemblyInfo(PartitionInfo partitionInfo, string targetFramework, string architecture)
         {
             PartitionInfo = partitionInfo;
             TargetFramework = targetFramework;
-            Platform = platform;
+            Architecture = architecture;
         }
     }
 

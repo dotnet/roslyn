@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
-                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                else if (type.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }

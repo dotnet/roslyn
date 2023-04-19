@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         protected static bool IsOpenOrCloseBrace(char ch)
-            => ch == '{' || ch == '}';
+            => ch is '{' or '}';
 
         protected static VirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int offset,

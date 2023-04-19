@@ -108,6 +108,8 @@ namespace Microsoft.Cci
                 }
 
                 nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
             Stream peStream = getPeStream();

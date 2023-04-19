@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             if (descriptor == null)
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 effectiveSeverity,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
-                ImmutableDictionary<string, string>.Empty,
+                ImmutableDictionary<string, string?>.Empty,
                 messageArgs);
         }
 
@@ -136,12 +134,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReportDiagnostic effectiveSeverity,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             params object[] messageArgs)
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -182,14 +180,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReportDiagnostic effectiveSeverity,
             IEnumerable<Location> additionalLocations,
             IDictionary<string, IEnumerable<int>> tagIndices,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             params object[] messageArgs)
         {
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());
             Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
-            properties ??= ImmutableDictionary<string, string>.Empty;
-            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
+            properties ??= ImmutableDictionary<string, string?>.Empty;
+            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
 
@@ -230,8 +228,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             LocalizableString message)
         {
             if (descriptor == null)
@@ -257,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 properties);
         }
 
-        public static string GetHelpLinkForDiagnosticId(string id)
+        public static string? GetHelpLinkForDiagnosticId(string id)
         {
             if (id == "RE0001")
             {
@@ -332,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            protected override string GetText(IFormatProvider formatProvider)
+            protected override string GetText(IFormatProvider? formatProvider)
             {
                 var messageFormat = _messageFormat.ToString(formatProvider);
                 return messageFormat != null ?
@@ -340,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     string.Empty;
             }
 
-            protected override bool AreEqual(object other)
+            protected override bool AreEqual(object? other)
             {
                 return other is LocalizableStringWithArguments otherResourceString &&
                     _messageFormat.Equals(otherResourceString._messageFormat) &&

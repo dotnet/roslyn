@@ -102,6 +102,11 @@
         <target state="translated">Offset e lunghezza eccedono i limiti della matrice oppure il conteggio è maggiore del numero di elementi presenti dall'indice alla fine della raccolta di origine.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Non è possibile trovare il valore precedente</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Le operazioni che modificano raccolte non simultanee devono avere accesso esclusivo. Un aggiornamento simultaneo eseguito su questa raccolta ne ha danneggiato lo stato. Lo stato della raccolta non è più corretto.</target>

@@ -439,6 +439,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
+        public override bool IsAssignableTo(Type c)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string ToString()
         {
             return this.Type.ToString();

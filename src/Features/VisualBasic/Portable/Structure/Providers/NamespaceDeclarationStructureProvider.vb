@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class NamespaceDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of NamespaceStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(namespaceDeclaration As NamespaceStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  namespaceDeclaration As NamespaceStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

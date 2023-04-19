@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim eventName = Me.EventSyntax.Identifier.ValueText
             Me._eventName = eventName
-            Me._name = _eventName & EVENT_DELEGATE_SUFFIX
+            Me._name = _eventName & StringConstants.EventDelegateSuffix
         End Sub
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)

@@ -99,6 +99,11 @@
         <target state="translated">"{0}" dosyası okunamadı: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImplicitlySkipAnalyzersMessage">
+        <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
+        <target state="translated">Yapıyı hızlandırmak için çözümleyiciler atlanıyor. Çözümleyicileri çalıştırmak için 'Oluştur' veya 'Yeniden Oluştur' komutunu çalıştırabilirsiniz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Paylaşılan derleme başarısız oldu; önceki araca dönülüyor: {0}</target>

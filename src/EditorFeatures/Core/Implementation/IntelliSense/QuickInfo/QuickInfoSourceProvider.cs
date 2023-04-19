@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -22,26 +23,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     internal partial class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public QuickInfoSourceProvider(
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListenerProvider listenerProvider,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             _threadingContext = threadingContext;
+            _operationExecutor = operationExecutor;
             _streamingPresenter = streamingPresenter;
+            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
         }
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             if (textBuffer.IsInLspEditorContext())
-            {
                 return null;
-            }
 
-            return new QuickInfoSource(textBuffer, _threadingContext, _streamingPresenter);
+            return new QuickInfoSource(
+                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter);
         }
     }
 }

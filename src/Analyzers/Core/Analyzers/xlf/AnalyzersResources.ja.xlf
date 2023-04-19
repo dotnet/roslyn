@@ -87,11 +87,6 @@
         <target state="translated">条件式に変換します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">タプルに変換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">式の値が使用されていません</target>

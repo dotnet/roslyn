@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => syntaxKinds.LogicalAndExpression;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
-            => new MyCodeAction(createChangedDocument, ifKeywordText);
+            => new MyCodeAction(string.Format(FeaturesResources.Split_into_nested_0_statements, ifKeywordText), createChangedDocument);
 
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
-                : base(string.Format(FeaturesResources.Split_into_nested_0_statements, ifKeywordText), createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

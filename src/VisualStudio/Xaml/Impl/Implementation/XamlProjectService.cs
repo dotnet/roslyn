@@ -80,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             {
                 _documentIds.TryAdd(filePath, documentId);
             }
+
             return documentId;
 
             DocumentId? GetDocumentId(string path)
@@ -202,6 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
                     project?.RemoveSourceFile(document.FilePath);
                 }
+
                 _documentIds.TryRemove(filePath, out _);
             }
         }

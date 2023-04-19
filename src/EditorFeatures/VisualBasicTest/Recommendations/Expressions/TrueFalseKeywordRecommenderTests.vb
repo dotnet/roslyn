@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class TrueFalseKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "True", "False")

@@ -956,7 +956,7 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint RotateRight(uint v, int n)
             {
-                Debug.Assert(n >= 0 && n < 32);
+                Debug.Assert(n is >= 0 and < 32);
                 if (n == 0)
                 {
                     return v;
@@ -967,7 +967,7 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputePhysicalSlot(int logicalSlot)
             {
-                Debug.Assert(logicalSlot >= 0 && logicalSlot < 32);
+                Debug.Assert(logicalSlot is >= 0 and < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
                 if (_buckets.Length == 32)
                 {

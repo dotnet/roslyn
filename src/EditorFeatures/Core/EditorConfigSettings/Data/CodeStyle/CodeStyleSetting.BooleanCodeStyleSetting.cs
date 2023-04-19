@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -23,19 +24,24 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                            string? falseValueDescription,
                                            AnalyzerConfigOptions editorConfigOptions,
                                            OptionSet visualStudioOptions,
-                                           OptionUpdater updater)
+                                           OptionUpdater updater,
+                                           string fileName)
                 : base(description, option.Group.Description, trueValueDescription, falseValueDescription, updater)
             {
                 _option = option;
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
+                Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<bool>>(_option, out _);
 
+            public override SettingLocation Location { get; protected set; }
+
             protected override void ChangeSeverity(NotificationOption2 severity)
             {
                 ICodeStyleOption option = GetOption();
+                Location = Location with { LocationKind = LocationKind.EditorConfig };
                 Updater.QueueUpdate(_option, option.WithNotification(severity));
             }
 
@@ -43,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             {
                 var value = valueIndex == 0;
                 ICodeStyleOption option = GetOption();
+                Location = Location with { LocationKind = LocationKind.EditorConfig };
                 Updater.QueueUpdate(_option, option.WithValue(value));
             }
 

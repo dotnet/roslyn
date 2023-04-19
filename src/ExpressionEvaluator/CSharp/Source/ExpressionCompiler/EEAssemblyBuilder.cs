@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IgnoreAccessibility => true;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
 
         internal override NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
         {
             return _getDynamicOperationContextType(contextType);
         }
-
-        public override int CurrentGenerationOrdinal => 0;
 
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
             => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals, diagnostics)) : null;

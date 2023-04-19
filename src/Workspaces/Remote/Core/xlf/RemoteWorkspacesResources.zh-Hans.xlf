@@ -87,6 +87,11 @@
         <target state="translated">导航栏</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">进程遥测</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">项目遥测集合</target>
@@ -130,6 +135,11 @@
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
         <source>Unused reference analysis</source>
         <target state="translated">未使用的引用分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">值跟踪</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

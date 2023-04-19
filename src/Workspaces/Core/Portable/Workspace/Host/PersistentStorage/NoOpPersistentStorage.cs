@@ -6,8 +6,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -21,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public static IChecksummedPersistentStorage GetOrThrow(OptionSet optionSet)
-            => optionSet.GetOption(StorageOptions.DatabaseMustSucceed)
+        public static IChecksummedPersistentStorage GetOrThrow(bool throwOnFailure)
+            => throwOnFailure
                 ? throw new InvalidOperationException("Database was not supported")
                 : Instance;
 

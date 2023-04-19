@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
+            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>()) };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var formattedDocument = await Formatter.FormatAsync(
@@ -41,12 +39,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<IMethodSymbol> GenerateEqualsMethodAsync(
             Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            string localNameOpt, CancellationToken cancellationToken)
+            string? localNameOpt, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateEqualsMethod(
+                generatorInternal, compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
@@ -54,16 +54,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
-                semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateIEquatableEqualsMethod(
+                generatorInternal, semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(
             Document document, INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
             var objName = generator.IdentifierName("obj");
@@ -118,17 +120,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document, INamedTypeSymbol namedType,
             ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var factory = document.GetLanguageService<SyntaxGenerator>();
-            return CreateGetHashCodeMethod(factory, compilation, namedType, members);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var factory = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            return CreateGetHashCodeMethod(factory, generatorInternal, compilation, namedType, members);
         }
 
         private IMethodSymbol CreateGetHashCodeMethod(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             var statements = CreateGetHashCodeStatements(
-                factory, compilation, namedType, members);
+                factory, generatorInternal, compilation, namedType, members);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             // See if there's an accessible System.HashCode we can call into to do all the work.
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
-                compilation, namedType, members, justMemberReference: true);
+                generatorInternal, compilation, namedType, members, justMemberReference: true);
 
             if (components.Length > 0 && hashCodeType != null)
             {
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             // If tuples are available, use (a, b, c).GetHashCode to simply generate the tuple.
-            var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
+            var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName!);
             if (components.Length >= 2 && valueTupleType != null)
             {
                 return ImmutableArray.Create(factory.ReturnStatement(

@@ -24,18 +24,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
-                    if (symbol is INamedTypeSymbol ||
-                        symbol is IMethodSymbol ||
-                        symbol is IPropertySymbol ||
-                        symbol is IEventSymbol)
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                    if (symbol is INamedTypeSymbol or
+                        IMethodSymbol or
+                        IPropertySymbol or
+                        IEventSymbol)
                     {
                         var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         foreach (var implementation in implementations)
                         {
-                            var symbolNode = await graphBuilder.AddNodeAsync(implementation, relatedNode: node).ConfigureAwait(false);
-                            graphBuilder.AddLink(symbolNode, CodeLinkCategories.Implements, node);
+                            var symbolNode = await graphBuilder.AddNodeAsync(
+                                implementation, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                            graphBuilder.AddLink(
+                                symbolNode, CodeLinkCategories.Implements, node, cancellationToken);
                         }
                     }
                 }

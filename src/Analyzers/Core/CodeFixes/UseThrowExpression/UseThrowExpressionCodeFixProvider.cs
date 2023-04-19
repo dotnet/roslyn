@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -15,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
             public MyCodeAction(
                 Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_throw_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_throw_expression, createChangedDocument, nameof(AnalyzersResources.Use_throw_expression))
             {
             }
         }

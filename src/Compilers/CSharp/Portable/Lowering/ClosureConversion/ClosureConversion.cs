@@ -464,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
@@ -1334,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              receiver.Kind == BoundKind.TypeExpression &&
                              remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
 
-                return node.Update(remappedMethod, node.Type);
+                return node.Update(remappedMethod, constrainedToTypeOpt: node.ConstrainedToTypeOpt, node.Type);
             }
 
             return base.VisitFunctionPointerLoad(node);
@@ -1634,17 +1635,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
-                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                            // no need to include the top-level method ordinal in the field name.
-                            (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
-                            topLevelMethodId.Generation,
-                            lambdaId.Ordinal,
-                            lambdaId.Generation);
+                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsMethodTypeParameter();
 
-                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
-                        cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                        // If we want to cache a variable by moving its value into a field,
+                        // the variable cannot use any type parameter from the method it is currently declared within.
+                        if (!hasTypeParametersFromAnyMethod)
+                        {
+                            var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                                // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
+                                // no need to include the top-level method ordinal in the field name.
+                                (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
+                                topLevelMethodId.Generation,
+                                lambdaId.Ordinal,
+                                lambdaId.Generation);
+
+                            var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
+                            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
+                            cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                            result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
+                        }
                     }
                     else
                     {
@@ -1655,9 +1664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_addedStatements == null) _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
+                        result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                     }
-
-                    result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

@@ -10,10 +10,12 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
+Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 
 Imports VSQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem
@@ -43,8 +45,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 }
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
+                Dim operationExecutor = workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
+                    trackingSpan.Object, quickInfoItem, document,
+                    threadingContext, operationExecutor,
+                    AsynchronousOperationListenerProvider.NullListener,
+                    streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
@@ -67,8 +74,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 }
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
+                Dim operationExecutor = workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
+                    trackingSpan.Object, codeAnalysisQuickInfoItem, document,
+                    threadingContext, operationExecutor,
+                    AsynchronousOperationListenerProvider.NullListener,
+                    streamingPresenter, CancellationToken.None)
             End Using
         End Function
     End Class

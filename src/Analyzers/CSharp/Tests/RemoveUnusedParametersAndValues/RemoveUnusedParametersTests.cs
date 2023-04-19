@@ -1582,5 +1582,37 @@ record B(int X, int [|Y|]) : A(X);
 public record Derived(string [|S|]) : Base(42) { }
 ");
         }
+
+        [WorkItem(45743, "https://github.com/dotnet/roslyn/issues/45743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RequiredGetInstanceMethodByICustomMarshaler()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+using System.Runtime.InteropServices;
+
+
+public class C : ICustomMarshaler
+{
+    public void CleanUpManagedData(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public void CleanUpNativeData(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public int GetNativeDataSize()
+        => throw new NotImplementedException();
+
+    public IntPtr MarshalManagedToNative(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public object MarshalNativeToManaged(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public static ICustomMarshaler GetInstance(string [|s|])
+        => null;
+}
+");
+        }
     }
 }

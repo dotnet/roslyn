@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (newSolution != null && newSolution != solution)
             {
                 var title = GetFixAllTitle(fixAllState);
-                return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(newSolution));
+                return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(newSolution), title);
             }
 
             return null;

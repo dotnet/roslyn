@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim overriddenMethod As MethodSymbol = method.OverriddenMethod
 
             For Each parameter In Me.Parameters
-                Dim clone As ParameterSymbol = New SourceClonedParameterSymbol(DirectCast(parameter, SourceParameterSymbol), method, parameter.Ordinal)
+                Dim clone As ParameterSymbol = New SourcePropertyClonedParameterSymbolForAccessors(DirectCast(parameter, SourceParameterSymbol), method)
 
                 If overriddenMethod IsNot Nothing Then
                     CustomModifierUtils.CopyParameterCustomModifiers(overriddenMethod.Parameters(parameter.Ordinal), clone)

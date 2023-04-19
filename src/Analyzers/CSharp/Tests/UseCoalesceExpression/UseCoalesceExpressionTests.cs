@@ -581,5 +581,26 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
+        public async Task TestNotWithTargetTyping()
+        {
+            await TestMissingAsync(
+@"
+class Program
+{
+    class A { }
+    class B { }
+
+    static void Main(string[] args)
+    {
+        var a = new A();
+        var b = new B();
+
+        object x = [||]a != null ? a : b;
+    }
+}");
+        }
     }
 }

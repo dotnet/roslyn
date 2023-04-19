@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                 If diagnosticResults IsNot Nothing Then
                     test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults)
                 End If
+
                 Await test.RunAsync().ConfigureAwait(False)
             End Function
 
@@ -47,6 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                 If diagnnoticResults IsNot Nothing Then
                     test.FixedState.ExpectedDiagnostics.AddRange(diagnnoticResults)
                 End If
+
                 Await test.RunAsync().ConfigureAwait(False)
             End Function
 

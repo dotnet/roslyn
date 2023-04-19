@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime
                 nameof(DateAndTime),
                 nameof(ProvideDateAndTimeCompletions),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
     }
 
     [ExportOptionProvider, Shared]

@@ -42,7 +42,7 @@ namespace BuildBoss
                 { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
             };
 
-            if (configuration != "Debug" && configuration != "Release")
+            if (configuration is not "Debug" and not "Release")
             {
                 Console.Error.WriteLine($"Invalid configuration: '{configuration}'");
                 return false;

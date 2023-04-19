@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
 
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
+
                 if (produceDetailedSequencePoints)
                 {
                     var syntax = (SwitchExpressionSyntax)node.Syntax;

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (!(node is TBinaryExpressionSyntax binaryExpr))
+            if (node is not TBinaryExpressionSyntax binaryExpr)
             {
                 return null;
             }

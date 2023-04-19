@@ -15,9 +15,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -289,8 +291,13 @@ if (true)
 
             var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
+            var operationExecutor = workspace.ExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
-            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, document, threadingContext, streamingPresenter, CancellationToken.None);
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(
+                trackingSpan.Object, info, document,
+                threadingContext, operationExecutor,
+                AsynchronousOperationListenerProvider.NullListener,
+                streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
             var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();

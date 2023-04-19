@@ -145,6 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 For i As Integer = 0 To 7
                     state.SendBackspace()
                 Next
+
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("green")

@@ -14,8 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             AllOptions = s_allOptionsBuilder.ToImmutable()
         End Sub
 
-        Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, ParamArray storageLocations As OptionStorageLocation2()) As [Option2](Of T)
-            Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations)
+        Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, storageLocation As OptionStorageLocation2) As [Option2](Of T)
+            Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocation)
+        End Function
+
+        Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, storageLocation1 As OptionStorageLocation2, storageLocation2 As OptionStorageLocation2) As [Option2](Of T)
+            Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocation1, storageLocation2)
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of Boolean), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As [Option2](Of CodeStyleOption2(Of Boolean))
@@ -23,7 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of String), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As [Option2](Of CodeStyleOption2(Of String))
-            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue), New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
+            Return CreateOption(
+                group, name, defaultValue,
+                EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue),
+                New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
         End Function
 
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption2)

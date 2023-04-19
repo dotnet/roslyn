@@ -3030,8 +3030,7 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
             Assert.NotEmpty(p.ExplicitInterfaceImplementations.Single().TypeCustomModifiers)
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_01()
 
             Dim csSource =
@@ -3058,37 +3057,13 @@ Public Class Test
         Dim x = new C()
         Dim ox As Object = x
 
-        Try
-            ox.P0 = -40
-        Catch ex As System.MissingMemberException
-            System.Console.Write(x.P0)
-            System.Console.Write(" ")
-        End Try
-
+        ox.P0 = -40
         b.Init(ox.P1, -41)
         ob.Init(x.P2, -42)
         ob.Init(ox.P3, -43)
 
-        System.Console.Write(x.P1)
-        System.Console.Write(" ")
-        System.Console.Write(x.P2)
-        System.Console.Write(" ")
-        System.Console.Write(x.P3)
-
-        Try
-            ox(0) = 40
-        Catch ex As System.MissingMemberException
-            System.Console.Write(" ")
-            System.Console.Write(x(0))
-        End Try
-
-        Try
-            ox.Item(1) = 41
-        Catch ex As System.MissingMemberException
-            System.Console.Write(" ")
-            System.Console.Write(x(1))
-        End Try
-
+        ox(0) = 40
+        ox.Item(1) = 41
         b.Init(ox(2), 42)
         ob.Init(x(3), 43)
         b.Init(ox.Item(4), 44)
@@ -3096,7 +3071,15 @@ Public Class Test
         ob.Init(ox(6), 46)
         ob.Init(ox.Item(7), 47)
 
-        For i as Integer = 2 To 7
+        System.Console.Write(x.P0)
+        System.Console.Write(" ")
+        System.Console.Write(x.P1)
+        System.Console.Write(" ")
+        System.Console.Write(x.P2)
+        System.Console.Write(" ")
+        System.Console.Write(x.P3)
+
+        For i as Integer = 0 To 7
             System.Console.Write(" ")
             System.Console.Write(x(i))
         Next
@@ -3111,7 +3094,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim expectedOutput As String = "0 0 0 0 0 0 0 0 0 0 0 0"
+            Dim expectedOutput As String = "-40 -41 0 -43 40 41 42 0 44 0 46 47"
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 
@@ -3119,8 +3102,7 @@ End Class
             CompileAndVerify(comp2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_02()
 
             Dim csSource =
@@ -3144,32 +3126,10 @@ Public Class Test
         Dim x = new C()
         Dim ox As Object = x
 
-        Try
-            ox(0) = 40
-        Catch ex As System.MissingMemberException
-            System.Console.Write(x(0))
-        End Try
-
-        Try
-            ox.Item(1) = 41
-        Catch ex As System.MissingMemberException
-            System.Console.Write(" ")
-            System.Console.Write(x(1))
-        End Try
-
-        Try
-            x(CObj(2)) = 42
-        Catch ex As System.MissingMemberException
-            System.Console.Write(" ")
-            System.Console.Write(x(2))
-        End Try
-
-        Try
-            x.Item(CObj(3)) = 43
-        Catch ex As System.MissingMemberException
-            System.Console.Write(" ")
-            System.Console.Write(x(3))
-        End Try
+        ox(0) = 40
+        ox.Item(1) = 41
+        x(CObj(2)) = 42
+        x.Item(CObj(3)) = 43
 
         b.Init(ox(4), 44)
         ob.Init(ox(5), 45)
@@ -3180,7 +3140,9 @@ Public Class Test
         b.Init(x.Item(CObj(10)), 50)
         ob.Init(x.Item(CObj(11)), 51)
 
-        For i as Integer = 4 To 11
+        System.Console.Write(x(0))
+
+        For i as Integer = 1 To 11
             System.Console.Write(" ")
             System.Console.Write(x(i))
         Next
@@ -3195,7 +3157,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim expectedOutput As String = "0 0 0 0 0 0 0 0 0 0 0 0"
+            Dim expectedOutput As String = "40 41 42 43 44 45 46 47 48 49 50 51"
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IThrowOperation : SemanticModelTestBase
     {
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -2171,9 +2171,9 @@ class C
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
-                // (6,13): error CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,13): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between '<throw expression>' and '<throw expression>'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
                 //         x = y ? throw ex1 : throw ex2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "y ? throw ex1 : throw ex2").WithArguments("target-typed conditional expression", "9.0").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "y ? throw ex1 : throw ex2").WithArguments("8.0", "<throw expression>", "<throw expression>", "9.0").WithLocation(6, 13)
                 );
 
             string expectedOperationTree = @"

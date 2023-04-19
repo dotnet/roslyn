@@ -73,12 +73,12 @@ class C
             Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
             End Sub
 
-            Public Function StartSearch(title As String, supportsReferences As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
-                Return _context
+            Public Function StartSearch(title As String, supportsReferences As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
+                Return (_context, CancellationToken.None)
             End Function
 
-            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
-                Return _context
+            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+                Return (_context, CancellationToken.None)
             End Function
         End Class
     End Class

@@ -37,6 +37,11 @@
         <target state="translated">Mostrar automáticamente la lista de finalización en las listas de argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Bloque con ámbito</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">Editar esquema de color</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Archivo con ámbito</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -121,6 +131,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferir “is null” para comprobaciones de igualdad de referencias</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Preferir comprobación "null' sobre comprobación de tipo</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

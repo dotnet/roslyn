@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            if (type.TypeKind == TypeKind.Error ||
-                type.TypeKind == TypeKind.Unknown)
+            if (type.TypeKind is TypeKind.Error or
+                TypeKind.Unknown)
             {
                 return OperationStatus.ErrorOrUnknownType;
             }

@@ -54,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                                                    If kvp.Key = annotationString Then
                                                                        Return kvp.Value.Select(Function(ts) ts.ToSpan())
                                                                    End If
+
                                                                    Return SpecializedCollections.EmptyEnumerable(Of Span)
                                                                End Function)
         End Function

@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return (canOffer, fixesError: true);
             }
 
-            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax ||
-                                          declaration is ConstructorDeclarationSyntax;
+            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax or
+                                          ConstructorDeclarationSyntax;
             if (isAccessorOrConstructor &&
                 languageVersion < LanguageVersion.CSharp7)
             {

@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(NonMutatingRequestHandlerProvider))
             .AddParts(typeof(FailingRequestHandlerProvider))
             .AddParts(typeof(FailingMutatingRequestHandlerProvider))
-            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider));
+            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider))
+            .AddParts(typeof(LongRunningNonMutatingRequestHandlerProvider));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
@@ -118,6 +119,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             Assert.Empty(responses.Where(r => r.StartTime == default));
             Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+        }
+
+        [Fact]
+        public async Task LongRunningSynchronousNonMutatingTaskDoesNotBlockQueue()
+        {
+            var requests = new[] {
+                new TestRequest(LongRunningNonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+            };
+
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+
+            // Cancel all requests if the request queue is blocked for 1 minute. This will result in a failed test run.
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            var waitables = StartTestRun(testLspServer, requests, cts.Token);
+
+            // Non-long running tasks should run and complete. If there's a test-failure for a "cancellation"
+            // at this point it means our long running task blocked the queue and prevented completion.
+            var responses = await Task.WhenAll(waitables.Skip(1));
+            Assert.Empty(responses.Where(r => r.StartTime == default));
+            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+
+            // Our long-running waitable should still be running until cancelled.
+            var longRunningWaitable = waitables[0];
+            Assert.False(longRunningWaitable.IsCompleted);
         }
 
         [Fact]
@@ -235,14 +262,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             return responses;
         }
 
-        private static List<Task<TestResponse>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests)
+        private static List<Task<TestResponse>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
         {
             var clientCapabilities = new LSP.ClientCapabilities();
 
             var waitables = new List<Task<TestResponse>>();
             foreach (var request in requests)
             {
-                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken));
             }
 
             return waitables;

@@ -1140,6 +1140,123 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 Documentation("My Field"));
         }
 
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_01()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_02()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_03()
+        {
+            var markup =
+@"partial class MyClass
+{
+    public partial void MyMethod();
+
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_04()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_05()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_06()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    partial void MyMethod();
+
+    partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldMinimal()
         {
@@ -6862,6 +6979,76 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels1()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <inheritdoc cref=""M()""/>
+void M(int x) { }
+
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels2()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <summary><inheritdoc cref=""M()""/></summary>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithTypeParamRef()
+        {
+            var markup =
+@"
+public class Program
+{
+    public static void Main() => _ = new Test<int>().$$Clone();
+}
+
+public class Test<T> : ICloneable<Test<T>>
+{
+	/// <inheritdoc/>
+	public Test<T> Clone() => new();
+}
+
+/// <summary>A type that has clonable instances.</summary>
+/// <typeparam name=""T"">The type of instances that can be cloned.</typeparam>
+public interface ICloneable<T>
+{
+    /// <summary>Clones a <typeparamref name=""T""/>.</summary>
+    /// <returns>A clone of the <typeparamref name=""T""/>.</returns>
+    public T Clone();
+}";
+
+            await TestInClassAsync(markup,
+                MainDescription("Test<int> Test<int>.Clone()"),
+                Documentation("Clones a Test<T>."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
             var markup =
@@ -7256,6 +7443,19 @@ public class Student : Person { public Student() : $$base(0) { } }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoReadOnlyRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"readonly record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("readonly record struct Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {
@@ -7334,6 +7534,216 @@ interface IGoo {  }";
 
 line 1
 line     2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation_FromReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void M1() { }
+}
+
+class R
+{
+    public static void M() { C1_1.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_FromTypeParameterReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class R
+{
+    public static void M<T>() where T : I1 { T.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void I1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_01()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class Program
+{
+    System.Delegate D = bo$$ol () => true;
+}",
+                MainDescription("struct System.Boolean"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_02()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A
+{
+    struct B { }
+    System.Delegate D = A.B$$ () => null;
+}",
+                MainDescription("struct A.B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_03()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A<T>
+{
+}
+struct B
+{
+    System.Delegate D = A<B$$> () => null;
+}",
+                MainDescription("struct B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNormalFuncSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                TypeParameterMap($@"
+T {FeaturesResources.is_} int
+TResult {FeaturesResources.is_} string"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate string <anonymous delegate>(ref int)"));
         }
     }
 }

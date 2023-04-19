@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,24 +20,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         internal static readonly string[] RoslynCustomTokenTypes =
         {
+            ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
             ClassificationTypeNames.ControlKeyword,
             ClassificationTypeNames.DelegateName,
+            ClassificationTypeNames.EnumMemberName,
+            ClassificationTypeNames.EnumName,
+            ClassificationTypeNames.EventName,
             ClassificationTypeNames.ExcludedCode,
             ClassificationTypeNames.ExtensionMethodName,
             ClassificationTypeNames.FieldName,
+            ClassificationTypeNames.InterfaceName,
             ClassificationTypeNames.LabelName,
             ClassificationTypeNames.LocalName,
             ClassificationTypeNames.MethodName,
             ClassificationTypeNames.ModuleName,
+            ClassificationTypeNames.NamespaceName,
             ClassificationTypeNames.OperatorOverloaded,
-            ClassificationTypeNames.RecordClassName,
+            ClassificationTypeNames.ParameterName,
+            ClassificationTypeNames.PropertyName,
 
             // Preprocessor
             ClassificationTypeNames.PreprocessorKeyword,
             ClassificationTypeNames.PreprocessorText,
 
             ClassificationTypeNames.Punctuation,
+            ClassificationTypeNames.RecordClassName,
+            ClassificationTypeNames.RecordStructName,
 
             // Regex
             ClassificationTypeNames.RegexAlternation,
@@ -50,7 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.RegexText,
 
             ClassificationTypeNames.StringEscapeCharacter,
+            ClassificationTypeNames.StructName,
             ClassificationTypeNames.Text,
+            ClassificationTypeNames.TypeParameterName,
             ClassificationTypeNames.VerbatimStringLiteral,
             ClassificationTypeNames.WhiteSpace,
 
@@ -83,28 +95,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
             new Dictionary<string, string>
             {
-                [ClassificationTypeNames.ClassName] = LSP.SemanticTokenTypes.Class,
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
-                [ClassificationTypeNames.EnumMemberName] = LSP.SemanticTokenTypes.EnumMember,
-                [ClassificationTypeNames.EnumName] = LSP.SemanticTokenTypes.Enum,
-                [ClassificationTypeNames.EventName] = LSP.SemanticTokenTypes.Event,
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
-                [ClassificationTypeNames.InterfaceName] = LSP.SemanticTokenTypes.Interface,
                 [ClassificationTypeNames.Keyword] = LSP.SemanticTokenTypes.Keyword,
-                [ClassificationTypeNames.NamespaceName] = LSP.SemanticTokenTypes.Namespace,
                 [ClassificationTypeNames.NumericLiteral] = LSP.SemanticTokenTypes.Number,
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
-                [ClassificationTypeNames.ParameterName] = LSP.SemanticTokenTypes.Parameter,
-                [ClassificationTypeNames.PropertyName] = LSP.SemanticTokenTypes.Property,
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
-                [ClassificationTypeNames.StructName] = LSP.SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.TypeParameterName] = LSP.SemanticTokenTypes.TypeParameter,
             };
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
+        internal static async Task<(int[], bool isFinalized)> ComputeSemanticTokensDataAsync(
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
@@ -115,9 +117,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // By default we calculate the tokens for the full document span, although the user 
             // can pass in a range if they wish.
-            var textSpan = range == null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
+            var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
-            var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
+            // results but will speed up how quickly we can respond to the client's request.
+            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
+            var semanticModel = await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(semanticModel);
+            var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
+            document = frozenDocument;
+
+            var classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
@@ -126,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
-            return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
+            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
         }
 
         private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
@@ -292,16 +302,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
             {
                 var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
-                if (classificationType != ClassificationTypeNames.StaticSymbol)
+                if (classificationType == ClassificationTypeNames.StaticSymbol)
                 {
-                    // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
-                    // from integer to LSP token types).
-                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
+                    // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.Static;
+                }
+                else if (classificationType == ClassificationTypeNames.ReassignedVariable)
+                {
+                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.ReassignedVariable;
                 }
                 else
                 {
-                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.Static;
+                    // 6. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // from integer to LSP token types).
+                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
                 }
 
                 // Break out of the loop if we have no more classified spans left, or if the next classified span has

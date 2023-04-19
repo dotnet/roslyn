@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             for (var i = 0; i < text.Length; i++)
             {
-                if (text[i] != ' ' && text[i] != '\t')
+                if (text[i] is not ' ' and not '\t')
                 {
                     return i;
                 }
@@ -349,7 +349,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             return aggregateSpans;
         }
 
-        internal static int GetAdjustedIndentationDelta(this IndentBlockOperation operation, ISyntaxFacts syntaxFacts, SyntaxNode root, SyntaxToken indentationAnchor)
+        internal static int GetAdjustedIndentationDelta(
+            this IndentBlockOperation operation, IHeaderFacts headerFacts, SyntaxNode root, SyntaxToken indentationAnchor)
         {
             if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
             {
@@ -370,8 +371,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             //
             // Adjustments may be requested for conditionLine2 in cases where the anchor for relative indentation is the
             // first token of the containing statement (in this case, the 'if' token).
-            if (syntaxFacts.IsOnIfStatementHeader(root, operation.BaseToken.SpanStart, out var conditionStatement)
-                || syntaxFacts.IsOnWhileStatementHeader(root, operation.BaseToken.SpanStart, out conditionStatement))
+            if (headerFacts.IsOnIfStatementHeader(root, operation.BaseToken.SpanStart, out var conditionStatement)
+                || headerFacts.IsOnWhileStatementHeader(root, operation.BaseToken.SpanStart, out conditionStatement))
             {
                 if (conditionStatement.GetFirstToken() == indentationAnchor)
                 {

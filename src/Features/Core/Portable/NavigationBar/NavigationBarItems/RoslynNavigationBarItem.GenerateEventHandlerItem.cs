@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateEventHandler : AbstractGenerateCodeItem
+        public class GenerateEventHandler : AbstractGenerateCodeItem, IEquatable<GenerateEventHandler>
         {
             public readonly string ContainerName;
             public readonly SymbolKey EventSymbolKey;
@@ -20,6 +22,17 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.GenerateEventHandler(Text, Glyph, ContainerName, EventSymbolKey, DestinationTypeSymbolKey);
+
+            public override bool Equals(object? obj)
+                => Equals(obj as GenerateEventHandler);
+
+            public bool Equals(GenerateEventHandler? other)
+                => base.Equals(other) &&
+                   ContainerName == other.ContainerName &&
+                   EventSymbolKey.Equals(other.EventSymbolKey);
+
+            public override int GetHashCode()
+                => throw new NotImplementedException();
         }
     }
 }

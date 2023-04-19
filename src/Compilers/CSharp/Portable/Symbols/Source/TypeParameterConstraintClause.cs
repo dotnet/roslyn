@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AllValueTypeKinds = ValueType | Unmanaged,
 
         /// <summary>
-        /// All bits except those that are involved into describilng various nullability aspects.
+        /// All bits except those that are involved into describing various nullability aspects.
         /// </summary>
         AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
     }

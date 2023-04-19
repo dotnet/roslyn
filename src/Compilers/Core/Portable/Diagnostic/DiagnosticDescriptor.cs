@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -61,6 +62,15 @@ namespace Microsoft.CodeAnalysis
         /// Custom tags for the diagnostic.
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
+
+        internal ImmutableArray<string> ImmutableCustomTags
+        {
+            get
+            {
+                Debug.Assert(CustomTags is ImmutableArray<string>);
+                return (ImmutableArray<string>)CustomTags;
+            }
+        }
 
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
@@ -139,6 +149,8 @@ namespace Microsoft.CodeAnalysis
             string? helpLinkUri,
             ImmutableArray<string> customTags)
         {
+            Debug.Assert(!customTags.IsDefault);
+
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
@@ -247,7 +259,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable.
+        /// </summary>
+        internal bool IsCompilerOrNotConfigurable()
+        {
+            return AnalyzerManager.HasCompilerOrNotConfigurableTag(ImmutableCustomTags);
         }
     }
 }

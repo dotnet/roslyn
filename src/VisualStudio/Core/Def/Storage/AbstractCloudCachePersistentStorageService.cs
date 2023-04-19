@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
@@ -18,9 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     {
         private const string StorageExtension = "CloudCache";
 
-        protected AbstractCloudCachePersistentStorageService(
-            IPersistentStorageLocationService locationService)
-            : base(locationService)
+        protected AbstractCloudCachePersistentStorageService(IPersistentStorageConfiguration configuration)
+            : base(configuration)
         {
         }
 

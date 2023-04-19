@@ -2524,6 +2524,7 @@ class C
                 expectedItems.Add(new SignatureHelpTestItem($"void C.M(object o)", currentParameterIndex: 0));
                 expectedItems.Add(new SignatureHelpTestItem($"void C.M<T>(Action<T> arg1, T arg2, bool flag)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0));
             }
+
             await VerifyItemWithReferenceWorkerAsync(markup, expectedItems, hideAdvancedMembers: false);
         }
     }

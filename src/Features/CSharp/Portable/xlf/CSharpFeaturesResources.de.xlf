@@ -182,6 +182,11 @@
         <target state="translated">Versiegelung der Klasse "{0}" aufheben</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Verwenden rekursiver Muster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">Warnung: temporäres Inlining in bedingtem Methodenaufruf.</target>
@@ -297,21 +302,6 @@
         <target state="translated">Ungültige Auswahl.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Auswahl enthält kein gültiges Token.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Keine gültige Auswahl zum Durchführen der Extraktion.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Kein gemeinsamer Stammknoten für Extraktion.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Enthält eine ungültige Auswahl.</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">Datensatz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">Datensatzstruktur</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

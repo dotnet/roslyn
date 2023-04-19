@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
+        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration locationService)
             => new VisualStudioCloudCacheStorageService(_serviceProvider, _threadingContext, locationService);
     }
 }

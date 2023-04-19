@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
     <!-- 
       Currently fails on CI against old versions of mono
@@ -29,8 +29,8 @@
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" Condition="'$(TargetFramework)' != 'net5.0'" />
-    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'net5.0'" />
+    <Reference Include="System" Condition="'$(TargetFramework)' != 'net6.0'" />
+    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'net6.0'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>

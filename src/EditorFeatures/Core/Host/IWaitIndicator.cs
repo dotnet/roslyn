@@ -8,6 +8,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
 {
+    [Obsolete("You should now use IUIThreadOperationExecutor, which is a platform supported version of this. If you have a MEF implementation, you can delete it.")]
     internal interface IWaitIndicator
     {
         /// <summary>
@@ -17,8 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         IWaitContext StartWait(string title, string message, bool allowCancel, bool showProgress);
     }
 
+    [Obsolete("You should now use IUIThreadOperationExecutor, which is a platform supported version of this.")]
     internal static class IWaitIndicatorExtensions
     {
+        [Obsolete("You should now use IUIThreadOperationExecutor, which is a platform supported version of this.")]
         public static WaitIndicatorResult Wait(
             this IWaitIndicator waitIndicator, string title, string message, bool allowCancel, Action<IWaitContext> action)
         {

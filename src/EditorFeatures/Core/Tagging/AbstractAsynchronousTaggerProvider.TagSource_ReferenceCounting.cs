@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             /// <summary>How many taggers are currently using us.</summary>
             private int _taggers = 0;
-            private bool _disposed = false;
 
             ~TagSource()
             {
@@ -38,7 +37,6 @@ StackTrace:
             {
                 // this should be only called from UI thread. 
                 // in unit test, must be called from same thread as OnTaggerDisposed
-                Contract.ThrowIfTrue(_disposed);
                 Contract.ThrowIfFalse(_taggers >= 0);
 
                 _taggers++;

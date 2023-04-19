@@ -12,12 +12,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -28,6 +29,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -59,16 +61,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(
             ITextView textView,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            VSUtilities.IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             _textView = textView;
             _streamingPresenter = streamingPresenter;
+            _operationExecutor = operationExecutor;
+            _asyncListener = asyncListener;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
         }
@@ -129,13 +137,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // For telemetry reporting purpose
             static void CheckForExperimentStatus(ITextView textView, Document document)
             {
-                var workspace = document.Project.Solution.Workspace;
+                var options = document.Project.Solution.Options;
 
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                textView.Properties[TargetTypeFilterExperimentEnabled] = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
+                textView.Properties[TargetTypeFilterExperimentEnabled] = options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
 
-                var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
+                var importCompletionOptionValue = options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+                var importCompletionExperimentValue = options.GetOption(CompletionOptions.TypeImportCompletionFeatureFlag);
                 var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
                 textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
             }
@@ -149,8 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService)
         {
             // The trigger reason guarantees that user wants a completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
-                trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
+            if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
+                AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
             {
                 return true;
             }
@@ -368,19 +375,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return null;
-            }
 
             var service = document.GetLanguageService<CompletionService>();
             if (service == null)
-            {
                 return null;
-            }
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, document, ThreadingContext, _streamingPresenter).ToArray();
+            var context = new IntellisenseQuickInfoBuilderContext(
+                document, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)
             {
                 return new ClassifiedTextElement();
@@ -457,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     insertionText = roslynItem.DisplayText;
                 }
 
-                var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
+                var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution);
                 var attributeImages = supportedPlatforms != null ? s_WarningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
 
                 itemData = new VSCompletionItemData(

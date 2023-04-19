@@ -44,20 +44,22 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
+            SyntaxToken previousToken = default;
             foreach (var nodeOrToken in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
             {
                 if (nodeOrToken.IsNode)
                 {
-                    GetBlockSpans(nodeOrToken.AsNode()!, ref spans);
+                    GetBlockSpans(previousToken, nodeOrToken.AsNode()!, ref spans);
                 }
                 else
                 {
                     GetBlockSpans(nodeOrToken.AsToken(), ref spans);
+                    previousToken = nodeOrToken.AsToken();
                 }
             }
         }
 
-        private void GetBlockSpans(SyntaxNode node, ref TemporaryArray<BlockSpan> spans)
+        private void GetBlockSpans(SyntaxToken previousToken, SyntaxNode node, ref TemporaryArray<BlockSpan> spans)
         {
             if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
             {
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    provider.CollectBlockSpans(node, ref spans, _optionProvider, _cancellationToken);
+                    provider.CollectBlockSpans(previousToken, node, ref spans, _optionProvider, _cancellationToken);
                 }
             }
         }

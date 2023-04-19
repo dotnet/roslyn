@@ -461,7 +461,7 @@ lCaptureRValue:
                                     Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
-                                        StringConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
+                                        GeneratedNameConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
                                         Accessibility.Friend),
                                     expression)
             End Select

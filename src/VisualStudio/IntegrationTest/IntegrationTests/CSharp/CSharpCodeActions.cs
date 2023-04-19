@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -19,7 +17,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -70,6 +67,21 @@ public class Foo
     }
 }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public void AddUsingOnIncompleteMember()
+        {
+            // Need to ensure that incomplete member diagnostics run at high pri so that add-using can be
+            // triggered by them.
+            SetUpEditor(@"
+class Program
+{
+    DateTime$$
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("using System;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -486,7 +498,7 @@ public class P2 { }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GFUFuzzyMatchAfterRenameTracking()
+        public void GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             SetUpEditor(@"
 namespace N

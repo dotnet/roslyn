@@ -56,8 +56,7 @@ param (
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
-  [switch]$test32,
-  [switch]$test64,
+  [string]$testArch = "x64",
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
@@ -92,8 +91,7 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
-  Write-Host "  -test32                   Run unit tests in the 32-bit runner"
-  Write-Host "  -test64                   Run units tests in the 64-bit runner"
+  Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
@@ -174,11 +172,6 @@ function Process-Arguments() {
     }
   }
 
-  if ($test32 -and $test64) {
-    Write-Host "Cannot combine -test32 and -test64"
-    exit 1
-  }
-
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
@@ -204,8 +197,6 @@ function Process-Arguments() {
   if ($bootstrap) {
     $script:restore = $true
   }
-
-  $script:test32 = -not $test64
 
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
@@ -233,7 +224,7 @@ function BuildSolution() {
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
-  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
@@ -364,6 +355,10 @@ function TestUsingRunTests() {
     }
   }
 
+  if ($ci) {
+    $env:ROSLYN_TEST_CI = "true"
+  }
+
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
@@ -372,10 +367,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
 
   if (!(Test-Path $runTests)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
+    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
@@ -385,8 +380,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net5.0"
-    $args += " --tfm netcoreapp3.1"
+    $args += " --tfm net6.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -404,7 +398,7 @@ function TestUsingRunTests() {
       $args += " --include '\.UnitTests'"
     }
 
-    if (-not $test32) {
+    if ($testArch -ne "x86") {
       $args += " --exclude '\.InteractiveHost'"
     }
 
@@ -431,12 +425,7 @@ function TestUsingRunTests() {
     $args += " --collectdumps";
   }
 
-  if ($test64) {
-    $args += " --platform x64"
-  }
-  else {
-    $args += " --platform x86"
-  }
+  $args += " --arch $testArch"
 
   if ($sequential) {
     $args += " --sequential"
@@ -455,6 +444,10 @@ function TestUsingRunTests() {
     Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
+    if ($ci) {
+      Remove-Item env:\ROSLYN_TEST_CI
+    }
+
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
@@ -690,7 +683,8 @@ try {
   try
   {
     if ($bootstrap) {
-      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+      $force32 = $testArch -eq "x86"
+      $bootstrapDir = Make-BootstrapBuild -force32:$force32
     }
   }
   catch

@@ -31,10 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 context.RegisterCodeFix(New MyCodeAction(
-                    VisualBasicAnalyzersResources.Remove_ByVal,
                     Function(ct) FixAsync(context.Document, diagnostic, ct)),
                     diagnostic)
             Next
+
             Return Task.CompletedTask
         End Function
 
@@ -50,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Private Class MyCodeAction
             Inherits CustomCodeActions.DocumentChangeAction
 
-            Friend Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
+            Friend Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
+                MyBase.New(VisualBasicAnalyzersResources.Remove_ByVal, createChangedDocument, NameOf(VisualBasicAnalyzersResources.Remove_ByVal))
             End Sub
         End Class
     End Class

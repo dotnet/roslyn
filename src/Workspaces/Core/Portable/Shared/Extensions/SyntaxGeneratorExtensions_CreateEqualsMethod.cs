@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, parseOptions, containingType, symbols, localNameOpt);
+                factory, generatorInternal, compilation, parseOptions, containingType, symbols, localNameOpt);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             SemanticModel semanticModel,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, semanticModel.Compilation, containingType, symbols);
+                factory, generatorInternal, semanticModel.Compilation, containingType, symbols);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             var methodSymbol = constructedEquatableType
@@ -95,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     objNameExpression));
             }
 
-            AddMemberChecks(factory, compilation, members, localNameExpression, expressions);
+            AddMemberChecks(factory, generatorInternal, compilation, members, localNameExpression, expressions);
 
             // Now combine all the comparison expressions together into one final statement like:
             //
@@ -204,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static void AddMemberChecks(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             ImmutableArray<ISymbol> members, SyntaxNode localNameExpression,
             ArrayBuilder<SyntaxNode> expressions)
         {
@@ -249,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 expressions.Add(factory.InvocationExpression(
                         factory.MemberAccessExpression(
-                            GetDefaultEqualityComparer(factory, compilation, GetType(compilation, member)),
+                            GetDefaultEqualityComparer(factory, generatorInternal, compilation, GetType(compilation, member)),
                             factory.IdentifierName(EqualsName)),
                         thisSymbol,
                         otherSymbol));
@@ -258,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<SyntaxNode> CreateIEquatableEqualsMethodStatements(
             SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members)
@@ -290,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            AddMemberChecks(factory, compilation, members, otherNameExpression, expressions);
+            AddMemberChecks(factory, generatorInternal, compilation, members, otherNameExpression, expressions);
 
             // Now combine all the comparison expressions together into one final statement like:
             //
@@ -308,7 +314,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var name = containingType.Name;
             if (name.Length > 0)
             {
-                var parts = StringBreaker.GetWordParts(name);
+                using var parts = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(name, ref parts.AsRef());
                 for (var i = parts.Count - 1; i >= 0; i--)
                 {
                     var p = parts[i];

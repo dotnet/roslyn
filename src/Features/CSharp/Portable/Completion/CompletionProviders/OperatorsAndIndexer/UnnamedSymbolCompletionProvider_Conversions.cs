@@ -20,16 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class UnnamedSymbolCompletionProvider
     {
         // Place conversions before operators.
-        private readonly int ConversionSortingGroupIndex = 1;
+        private const int ConversionSortingGroupIndex = 1;
 
         /// <summary>
         /// Tag to let us know we need to rehydrate the conversion from the parameter and return type.
         /// </summary>
         private const string RehydrateName = "Rehydrate";
-        private static readonly ImmutableDictionary<string, string> ConversionProperties =
+        private static readonly ImmutableDictionary<string, string> s_conversionProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
 
-        private void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
+        // We set conversion items' match priority to lower than default so completion selects other symbols over it when user starts typing.
+        // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
+        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1);
+
+        private static void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
             var (symbols, properties) = GetConversionSymbolsAndProperties(context, conversion);
 
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
                 glyph: Glyph.Operator,
                 symbols: symbols,
-                rules: CompletionItemRules.Default,
+                rules: s_conversionRules,
                 contextPosition: position,
                 properties: properties));
         }
@@ -52,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             // If it's a non-synthesized method, then we can just encode it as is.
             if (conversion is not CodeGenerationSymbol)
-                return (ImmutableArray.Create<ISymbol>(conversion), ConversionProperties);
+                return (ImmutableArray.Create<ISymbol>(conversion), s_conversionProperties);
 
             // Otherwise, encode the constituent parts so we can recover it in GetConversionDescriptionAsync;
-            var properties = ConversionProperties
+            var properties = s_conversionProperties
                 .Add(RehydrateName, RehydrateName)
                 .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? "");
             var symbols = ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);

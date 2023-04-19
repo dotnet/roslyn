@@ -9,6 +9,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeStyle;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddImports
 {
@@ -28,6 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract bool PlaceImportsInsideNamespaces(OptionSet options);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -86,10 +94,10 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         protected abstract bool IsEquivalentImport(SyntaxNode a, SyntaxNode b);
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, OptionSet options)
         {
             contextLocation ??= root;
-            GetContainers(root, contextLocation,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
             switch (import)
@@ -119,11 +127,13 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst,
+            OptionSet options,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
+
+            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, compilation.Language);
 
             var globalImports = GetGlobalImports(compilation, generator);
             var containers = GetAllContainers(root, contextLocation);
@@ -134,7 +144,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
-            GetContainers(root, contextLocation,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
@@ -150,15 +160,24 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode staticUsingContainer, SyntaxNode aliasContainer,
             bool placeSystemNamespaceFirst, bool allowInHiddenRegions, SyntaxNode root, CancellationToken cancellationToken);
 
-        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
+        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, OptionSet options, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
 
             // The node we'll add to if we can't find a specific namespace with imports of 
             // the type we're trying to add.  This will be the closest namespace with any
-            // imports in it, or the root if there are no such namespaces.
-            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports) ?? root;
+            // imports in it
+            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports);
+
+            // If there aren't any existing imports then make sure we honour the inside namespace preference
+            // for using directings if it's set
+            if (fallbackNode is null && PlaceImportsInsideNamespaces(options))
+                fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
+
+            // If all else fails use the root
+            if (fallbackNode is null)
+                fallbackNode = root;
 
             // The specific container to add each type of import to.  We look for a container
             // that already has an import of the same type as the node we want to add to.

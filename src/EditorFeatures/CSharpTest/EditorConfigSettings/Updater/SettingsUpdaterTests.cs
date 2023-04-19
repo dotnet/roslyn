@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language);
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
 
             await TestAsync(
                 string.Empty,
@@ -328,7 +328,7 @@ csharp_new_line_before_else=true";
             var updater = new AnalyzerSettingsUpdater(workspace, "/a/b/config");
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp);
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
@@ -346,7 +346,8 @@ csharp_new_line_before_else=true";
                                                   "",
                                                   editorOptions,
                                                   workspace.Options,
-                                                  updater);
+                                                  updater,
+                                                  null!);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
@@ -363,11 +364,11 @@ csharp_new_line_before_else=true";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestFormattingSettingUpdaterService()
+        public async Task TestWhitespaceSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
             var updater = new OptionUpdater(workspace, "/a/b/config");
-            var setting = FormattingSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater);
+            var setting = WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater, null!);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);

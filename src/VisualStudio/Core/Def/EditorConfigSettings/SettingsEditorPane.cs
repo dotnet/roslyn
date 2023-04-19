@@ -5,11 +5,13 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Editor;
@@ -17,8 +19,8 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.Vie
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -94,9 +96,22 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
             }
 
+            var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+            if (statusService is not null)
+            {
+                // This will show the 'Waiting for Intellisense to initalize' message until the workspace is loaded.
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    if (!await statusService.IsFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false))
+                    {
+                        await statusService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
+                    }
+                });
+            }
+
             // hook up our panel
             _control = new SettingsEditorControl(
-                GetFormattingView(),
+                GetWhitespaceView(),
                 GetCodeStyleView(),
                 GetAnalyzerView(),
                 _workspace,
@@ -115,15 +130,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                 new EventHandler(OnViewCode), new EventHandler(OnQueryViewCode));
             }
 
-            ISettingsEditorView GetFormattingView()
+            ISettingsEditorView GetWhitespaceView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<FormattingSetting>(_fileName);
+                var dataProvider = _settingsDataProviderService.GetSettingsProvider<WhitespaceSetting>(_fileName);
                 if (dataProvider is null)
                 {
-                    throw new InvalidOperationException("Unable to get formatter settings");
+                    throw new InvalidOperationException("Unable to get whitespace settings");
                 }
-                var viewModel = new FormattingViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new FormattingSettingsView(viewModel);
+
+                var viewModel = new WhitespaceViewModel(dataProvider, _controlProvider, _tableMangerProvider);
+                return new WhitespaceSettingsView(viewModel);
             }
 
             ISettingsEditorView GetCodeStyleView()
@@ -133,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 {
                     throw new InvalidOperationException("Unable to get code style settings");
                 }
+
                 var viewModel = new CodeStyleSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
                 return new CodeStyleSettingsView(viewModel);
             }
@@ -240,6 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             {
                 _control.SynchronizeSettings();
             }
+
             return S_OK;
         }
 

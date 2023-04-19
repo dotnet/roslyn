@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder result;
                     if (!binderCache.TryGetValue(key, out result))
                     {
-                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
                         ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                         result = bodyBinder.GetBinder(compilationUnit);
 
@@ -448,11 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DestructorDeclaration:
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:
-                        return OperatorFacts.OperatorNameFromDeclaration((OperatorDeclarationSyntax)baseMethodDeclarationSyntax);
+                        var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
-                            ? WellKnownMemberNames.ImplicitConversionName
-                            : WellKnownMemberNames.ExplicitConversionName;
+                        var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
-            public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
+            public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
                 {
@@ -774,7 +774,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
             }
 
-            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            public override Binder VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax parent)
+            {
+                if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
+                {
+                    return VisitCore(parent.Parent);
+                }
+
+                // Anywhere after the `;` is in the 'body' of this namespace.
+                bool inBody = _position >= parent.SemicolonToken.EndPosition;
+
+                bool inUsing = IsInUsing(parent);
+
+                return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
+            }
+
+            internal Binder VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
@@ -840,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
 
-                if (node is NamespaceDeclarationSyntax namespaceDecl)
+                if (node is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
                     outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
                 }
@@ -942,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new InContainerBinder(globalNamespace, result);
 
                         if (!inUsing &&
-                            SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
+                            SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
                         {
                             ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                             result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
@@ -957,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
 
                 if (inUsing)
                 {
@@ -1297,13 +1312,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(crefSyntax != null);
             Debug.Assert(memberSyntax != null);
 
-            BaseTypeDeclarationSyntax typeDeclSyntax = memberSyntax as BaseTypeDeclarationSyntax;
-
-            Binder binder = (object)typeDeclSyntax == null
-                ? factory.GetBinder(memberSyntax)
-                : factory.GetBinder(memberSyntax, typeDeclSyntax.OpenBraceToken.SpanStart);
+            Binder binder = memberSyntax is BaseTypeDeclarationSyntax typeDeclSyntax
+                ? getBinder(typeDeclSyntax)
+                : factory.GetBinder(memberSyntax);
 
             return MakeCrefBinderInternal(crefSyntax, binder, inParameterOrReturnType);
+
+            Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
+            {
+                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
+                {
+                    return factory.GetInRecordBodyBinder(recordDeclaration);
+                }
+
+                return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);
+            }
         }
 
         /// <summary>

@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1493,92 +1492,6 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenDebuggingStarts(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, host)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate starting a debugging session
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-            End Using
-        End Function
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenExitingDebuggingBreakMode(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, host)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate ending break mode in the debugger (by stepping or continuing)
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-            End Using
-        End Function
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
         Public Async Function InvalidInvocationExpression(host As RenameTestHost) As Task
             ' Everything on the last line of main is parsed as a single invocation expression
@@ -2130,5 +2043,72 @@ class [|C|]
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameExtendedProperty(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        _ = this is { Other.[|Goo|]: not null, Other.Other.[|Goo|]: not null, [|Goo|]: null } ;
+                                    }
+
+                                    public C [|$$Goo|] { get; set; }
+                                    public C Other { get; set; }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInComment(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class [|$$MyClass|]
+                                {
+                                    /// <summary>
+                                    /// Initializes <see cref="MyClass"/>;
+                                    /// </summary>
+                                    MyClass() 
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                session.ApplyReplacementText("Example", True)
+                session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, True)
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "Example")
+            End Using
+        End Function
+
     End Class
 End Namespace

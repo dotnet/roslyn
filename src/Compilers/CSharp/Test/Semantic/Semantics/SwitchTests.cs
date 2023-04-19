@@ -1119,7 +1119,7 @@ class Program
         }
 
         [Fact]
-        public void MultipleLabesWithBadConstantValues()
+        public void MultipleLabelsWithBadConstantValues()
         {
             var source = @"
 class Program

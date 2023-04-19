@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
         {
             // Make sure destination is class or interface since it could be ErrorTypeSymbol
-            if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
+            if (destination.TypeKind is not TypeKind.Interface and not TypeKind.Class)
             {
                 return false;
             }

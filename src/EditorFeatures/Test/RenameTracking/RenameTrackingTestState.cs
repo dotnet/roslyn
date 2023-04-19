@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
-            if (languageName == LanguageNames.CSharp ||
-                languageName == LanguageNames.VisualBasic)
+            if (languageName is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                     _historyRegistry,

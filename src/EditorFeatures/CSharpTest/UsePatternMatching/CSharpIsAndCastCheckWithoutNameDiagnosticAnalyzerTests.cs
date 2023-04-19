@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -520,6 +521,31 @@ class TestFile
             M(file.i);
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
+        public async Task TestNoDiagnosticWhenCS0103Happens()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System.Linq;
+class Bar
+{
+    private void Foo()
+    {
+        var objects = new SpecificThingType[100];
+        var d = from obj in objects
+                let aGenericThing = obj.Prop
+                where aGenericTh[||]ing is SpecificThingType
+                let specificThing = (SpecificThingType)aGenericThing
+                select (obj, specificThing);
+    }
+}
+class SpecificThingType
+{
+    public SpecificThingType Prop { get; }
 }");
         }
     }

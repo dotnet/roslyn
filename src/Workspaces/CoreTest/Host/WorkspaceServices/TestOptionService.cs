@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -17,11 +18,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class TestOptionService
     {
-        public static OptionServiceFactory.OptionService GetService(Workspace workspace, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
+        public static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
         {
-            var mefHostServices = (IMefHostExportProvider)workspace.Services.HostServices;
+            var mefHostServices = (IMefHostExportProvider)services.HostServices;
             var workspaceThreadingService = mefHostServices.GetExportedValues<IWorkspaceThreadingService>().SingleOrDefault();
-            return new OptionServiceFactory.OptionService(new GlobalOptionService(
+            return new GlobalOptionService(
                 workspaceThreadingService,
                 new[]
                 {
@@ -30,9 +31,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new[]
                 {
                     new Lazy<IOptionPersisterProvider>(() => optionPersisterProvider ??= new TestOptionsPersisterProvider())
-                }),
-                workspaceServices: workspace.Services);
+                });
         }
+
+        public static OptionServiceFactory.OptionService GetService(Workspace workspace, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
+            => new OptionServiceFactory.OptionService(GetGlobalOptionService(workspace.Services, optionProvider, optionPersisterProvider), workspaceServices: workspace.Services);
 
         internal class TestOptionsProvider : IOptionProvider
         {

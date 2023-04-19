@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                compilation,
                 conversions,
                 method,
                 arguments.AsImmutable(),
@@ -513,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.MakeParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, this.MakeParameters());
                 }
                 return _lazyParameters;
             }
@@ -557,13 +558,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var parameters = new ParameterSymbol[count - 1];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count - 1);
                 for (int i = 0; i < count - 1; i++)
                 {
-                    parameters[i] = new ReducedExtensionMethodParameterSymbol(this, reducedFromParameters[i + 1]);
+                    parameters.Add(new ReducedExtensionMethodParameterSymbol(this, reducedFromParameters[i + 1]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 
@@ -620,6 +621,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers);
                 }
             }
+
+            internal override bool IsCallerLineNumber
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override bool IsCallerFilePath
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override bool IsCallerMemberName
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override int CallerArgumentExpressionParameterIndex
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+            internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
 
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

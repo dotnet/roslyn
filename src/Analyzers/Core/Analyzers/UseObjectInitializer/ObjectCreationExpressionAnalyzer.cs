@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                if (!(child.AsNode() is TAssignmentStatementSyntax statement))
+                if (child.AsNode() is not TAssignmentStatementSyntax statement)
                 {
                     break;
                 }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetObjectCreationType(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetTypeOfObjectCreationExpression(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
                 if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
                 {
                     break;

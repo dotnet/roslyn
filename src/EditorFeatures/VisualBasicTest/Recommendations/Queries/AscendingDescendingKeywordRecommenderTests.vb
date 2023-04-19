@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class AscendingDescendingKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AscendingDescendingNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Ascending", "Descending")

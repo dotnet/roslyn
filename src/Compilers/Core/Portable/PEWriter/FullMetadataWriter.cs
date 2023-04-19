@@ -330,14 +330,6 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
-        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
         protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition? lastParent = null;

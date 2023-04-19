@@ -108,5 +108,18 @@ class C7 : A<string>.B<object> { }";
                 }
             }
         }
+
+        [WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")]
+        [Fact]
+        public void ErrorInfo_01()
+        {
+            var error = new MissingMetadataTypeSymbol.Nested(new UnsupportedMetadataTypeSymbol(), "Test", 0, false);
+            var info = error.ErrorInfo;
+
+            Assert.Equal(ErrorCode.ERR_BogusType, (ErrorCode)info.Code);
+            Assert.Null(error.ContainingModule);
+            Assert.Null(error.ContainingAssembly);
+            Assert.NotNull(error.ContainingSymbol);
+        }
     }
 }

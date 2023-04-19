@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -74,11 +73,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                         allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var packageSource in _packageSources)
+                var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
+                foreach (var (sourceName, sourceUrl) in packageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindNugetTypeReferencesAsync(
-                        packageSource, allReferences,
+                        sourceName, sourceUrl, allReferences,
                         nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task FindNugetTypeReferencesAsync(
-                PackageSource source,
+                string sourceName,
+                string sourceUrl,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -118,13 +119,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindPackagesWithTypeAsync(
-                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
+                    sourceName, name, arity, cancellationToken).ConfigureAwait(false);
 
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     HandleNugetReference(
-                        source.Source, allReferences, nameNode,
+                        sourceUrl, allReferences, nameNode,
                         isAttributeSearch, result,
                         weight: allReferences.Count);
                 }

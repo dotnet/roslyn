@@ -18,22 +18,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         IWpfTextViewCreationListener
         where TTag : GraphicsTag
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        protected readonly IThreadingContext ThreadingContext;
+        protected readonly IViewTagAggregatorFactoryService TagAggregatorFactoryService;
+        protected readonly IAsynchronousOperationListener AsyncListener;
 
         protected AbstractAdornmentManagerProvider(
             IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _threadingContext = threadingContext;
-            _tagAggregatorFactoryService = tagAggregatorFactoryService;
-            _asyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
+            ThreadingContext = threadingContext;
+            TagAggregatorFactoryService = tagAggregatorFactoryService;
+            AsyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
         }
 
         protected abstract string FeatureAttributeName { get; }
         protected abstract string AdornmentLayerName { get; }
+
+        protected abstract void CreateAdornmentManager(IWpfTextView textView);
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -47,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return;
             }
 
-            // the manager keeps itself alive by listening to text view events.
-            AdornmentManager<TTag>.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            CreateAdornmentManager(textView);
         }
     }
 }

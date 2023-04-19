@@ -3,17 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.OperationProgress;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -28,15 +30,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceStatusServiceFactory(
-            SVsServiceProvider serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
+            SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
             _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
 
             // for now, we use workspace so existing tests can automatically wait for full solution load event
             // subscription done in test
@@ -46,10 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
+            if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                var experimentationService = vsWorkspace.Services.GetRequiredService<IExperimentationService>();
-                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
+                if (!_globalOptions.GetOption(Options.PartialLoadModeFeatureFlag))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
                     return new WorkspaceStatusService();
@@ -174,6 +180,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        [Export(typeof(IOptionProvider)), Shared]
+        internal sealed class Options : IOptionProvider
+        {
+            private const string FeatureName = "VisualStudioWorkspaceStatusService";
+
+            public static readonly Option<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.PartialLoadMode"));
+
+            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
+                PartialLoadModeFeatureFlag);
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Options()
+            {
             }
         }
     }

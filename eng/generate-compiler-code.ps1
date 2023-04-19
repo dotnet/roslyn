@@ -11,7 +11,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($projectFilePath, $toolArgs, $targetFramework) {
   $toolName = Split-Path -leaf $projectFilePath
   Write-Host "Running $toolName $toolArgs"
-  Exec-Console $dotnet "run -p $projectFilePath --framework $targetFramework $toolArgs"
+  Exec-Console $dotnet "run --project $projectFilePath --framework $targetFramework $toolArgs"
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
@@ -22,7 +22,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   $errorFileName = if ($language -eq "CSharp") { "ErrorCode.cs" } else { "Errors.vb" }
   $errorFilePath = Join-Path $languageDir "Errors\$errorFileName"
   $errorGeneratedFilePath = Join-Path $generatedDir "ErrorFacts.Generated.$($languageSuffix)"
-  $targetFramework = "netcoreapp3.1"
+  $targetFramework = "net6.0"
 
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
@@ -74,7 +74,7 @@ function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
   $generationDir = Join-Path $coreDir "Generated"
-  $targetFramework = "net5.0"
+  $targetFramework = "net6.0"
 
   if (-not $test) {
     Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`"" $targetFramework
@@ -91,7 +91,7 @@ function Run-GetTextCore($generatedDir) {
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
   Create-Directory $generatedDir
-  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "netcoreapp3.1"
+  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net6.0"
 }
 
 function Run-GetText() {

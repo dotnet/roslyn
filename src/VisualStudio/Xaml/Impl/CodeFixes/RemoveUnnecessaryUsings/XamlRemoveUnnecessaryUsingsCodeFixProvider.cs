@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
+                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument, nameof(Resources.RemoveUnnecessaryNamespaces))
             {
             }
         }

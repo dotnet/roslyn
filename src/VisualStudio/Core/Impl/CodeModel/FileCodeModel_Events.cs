@@ -20,23 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private const int ElementDeletedDispId = 3;
         private const int ElementDeletedDispId2 = 4;
 
-        public bool FireEvents()
+        public void FireEvents()
         {
-            _codeElementTable.CleanUpDeadObjects();
+            _ = _codeElementTable.CleanUpDeadObjectsAsync(State.ProjectCodeModelFactory.Listener).ReportNonFatalErrorAsync();
 
-            var needMoreTime = _codeElementTable.NeedsCleanUp;
             if (this.IsZombied)
             {
                 // file is removed from the solution. this can happen if a fireevent is enqueued to foreground notification service
                 // but the file itself is removed from the solution before it has a chance to run
-                return needMoreTime;
+                return;
             }
 
             if (!TryGetDocument(out var document))
             {
                 // file is removed from the solution. this can happen if a fireevent is enqueued to foreground notification service
                 // but the file itself is removed from the solution before it has a chance to run
-                return needMoreTime;
+                return;
             }
 
             // TODO(DustinCa): Enqueue unknown change event if a file is closed without being saved.
@@ -48,29 +47,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (oldTree == newTree ||
                 oldTree.IsEquivalentTo(newTree, topLevel: true))
             {
-                return needMoreTime;
+                return;
             }
 
             var eventQueue = this.CodeModelService.CollectCodeModelEvents(oldTree, newTree);
             if (eventQueue.Count == 0)
             {
-                return needMoreTime;
+                return;
             }
 
             var projectCodeModel = this.State.ProjectCodeModelFactory.GetProjectCodeModel(document.Project.Id);
             if (projectCodeModel == null)
             {
-                return needMoreTime;
+                return;
             }
 
             if (!projectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out _))
             {
-                return needMoreTime;
+                return;
             }
 
             var extensibility = (EnvDTE80.IVsExtensibility2)this.State.ServiceProvider.GetService(typeof(EnvDTE.IVsExtensibility));
             if (extensibility == null)
-                return false;
+                return;
 
             foreach (var codeModelEvent in eventQueue)
             {
@@ -95,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            return needMoreTime;
+            return;
         }
 
         private EnvDTE80.vsCMChangeKind ConvertToChangeKind(CodeModelEventType eventType)

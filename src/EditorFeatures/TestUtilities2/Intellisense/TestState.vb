@@ -249,6 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                        End Sub)
                                           End If
                                       End Sub
+
             Dim sessionDismissedHandler = Sub(sender As Object, e As EventArgs) sessionComplete.TrySetResult(Nothing)
 
             Dim session As IAsyncCompletionSession

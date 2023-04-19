@@ -53,27 +53,23 @@ namespace Microsoft.CodeAnalysis
                     && c != '{'
                     && c != '}')
                 {
-                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, c, i), nameof(hintName));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, hintName, c, i), nameof(hintName));
                 }
             }
 
             hintName = AppendExtensionIfRequired(hintName);
             if (this.Contains(hintName))
             {
-                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, hintName), nameof(hintName));
             }
 
             if (source.Encoding is null)
             {
-                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
-
-        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
-
-        public void AddRange(ImmutableArray<GeneratedSyntaxTree> trees) => _sourcesAdded.AddRange(trees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)));
 
         public void RemoveSource(string hintName)
         {
@@ -101,7 +97,32 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public void CopyTo(AdditionalSourcesCollection asc)
+        {
+            // we know the individual hint names are valid, but we do need to check that they
+            // don't collide with any we already have
+            if (asc._sourcesAdded.Count == 0)
+            {
+                asc._sourcesAdded.AddRange(this._sourcesAdded);
+            }
+            else
+            {
+                foreach (var source in this._sourcesAdded)
+                {
+                    if (asc.Contains(source.HintName))
+                    {
+                        throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, source.HintName), "hintName");
+                    }
+                    asc._sourcesAdded.Add(source);
+                }
+            }
+        }
+
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
+
+        internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
+
+        internal void Free() => _sourcesAdded.Free();
 
         private string AppendExtensionIfRequired(string hintName)
         {

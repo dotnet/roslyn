@@ -166,6 +166,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return -1
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsMe As Boolean
             Get
                 Return True

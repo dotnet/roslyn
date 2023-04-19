@@ -148,14 +148,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 return resultCompilationUnit;
             }
 
+            public override SyntaxNode VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration(node, (BaseNamespaceDeclarationSyntax)base.VisitFileScopedNamespaceDeclaration(node));
+
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration(node, (BaseNamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node));
+
+            private SyntaxNode VisitBaseNamespaceDeclaration(
+                BaseNamespaceDeclarationSyntax node,
+                BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                var namespaceDeclaration = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
                 var usingsToRemove = GetUsingsToRemove(node.Usings, namespaceDeclaration.Usings);
                 if (usingsToRemove.Count == 0)
-                {
                     return namespaceDeclaration;
-                }
 
                 ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 

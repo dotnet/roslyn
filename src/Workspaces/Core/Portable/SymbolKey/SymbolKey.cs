@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis
     /// </para>
     /// </summary>
     [DataContract]
-    internal partial struct SymbolKey
+    internal partial struct SymbolKey : IEquatable<SymbolKey>
     {
         /// <summary>
         /// Current format version.  Any time we change anything about our format, we should
@@ -318,5 +319,14 @@ namespace Microsoft.CodeAnalysis
                 IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
                 _ => false,
             };
+
+        public override int GetHashCode()
+            => _symbolKeyData.GetHashCode();
+
+        public override bool Equals(object? obj)
+            => obj is SymbolKey symbolKey && this.Equals(symbolKey);
+
+        public bool Equals(SymbolKey other)
+            => _symbolKeyData == other._symbolKeyData;
     }
 }

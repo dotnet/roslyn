@@ -68,7 +68,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected abstract Table Table { get; }
 
-            protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, out TDatabaseId dataId);
+            /// <summary>
+            /// Gets the internal sqlite db-id (effectively the row-id for the doc or proj table, or just the string-id
+            /// for the solution table) for the provided caller key.  This db-id will be looked up and returned if a
+            /// mapping already exists for it in the db.  Otherwise, a guaranteed unique id will be created for it and
+            /// stored in the db for the future.  This allows all associated data to be cheaply associated with the 
+            /// simple ID, avoiding lots of db bloat if we used the full <paramref name="key"/> in numerous places.
+            /// </summary>
+            /// <param name="allowWrite">Whether or not the caller owns the write lock and thus is ok with the DB id
+            /// being generated and stored for this component key when it currently does not exist.  If <see
+            /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
+            /// </param>
+            protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite, out TDatabaseId dataId);
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
@@ -81,8 +92,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
-                var hashData = ReadChecksumColumn(key, cancellationToken);
-                return hashData != null && checksum == hashData.Value;
+                var optional = ReadColumn(
+                    key,
+                    static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
+                    this,
+                    cancellationToken);
+                return optional.HasValue && checksum == optional.Value;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -93,7 +108,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-                => ReadDataBlobColumn(key, checksum, cancellationToken);
+            {
+                var optional = ReadColumn(
+                    key,
+                    static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
+                    (self: this, checksum),
+                    cancellationToken);
+
+                Contract.ThrowIfTrue(optional.HasValue && optional.Value == null);
+                return optional.HasValue ? optional.Value : null;
+            }
 
             private Optional<T> ReadColumn<T, TData>(
                 TKey key,
@@ -101,12 +125,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 TData data,
                 CancellationToken cancellationToken)
             {
+                // We're reading.  All current scenarios have this happening under the concurrent/read-only scheduler.
+                // If this assert fires either a bug has been introduced, or there is a valid scenario for a writing
+                // codepath to read a column and this assert should be adjusted.
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ConcurrentScheduler);
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
-                    if (TryGetDatabaseId(connection, key, out var dataId))
+
+                    // We're in the reading-only scheduler path, so we can't allow TryGetDatabaseId to write.  Note that
+                    // this is ok, and actually provides the semantics we want.  Specifically, we can be trying to read
+                    // data that either exists in the DB or not.  If it doesn't exist in the DB, then it's fine to fail
+                    // to map from the key to a DB id (since there's nothing to lookup anyways).  And if it does exist
+                    // in the db then finding the ID would succeed (without writing) and we could continue.
+                    if (TryGetDatabaseId(connection, key, allowWrite: false, out var dataId))
                     {
                         try
                         {
@@ -143,29 +178,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 }
             }
 
-            private Stream? ReadDataBlobColumn(
-                TKey key, Checksum? checksum, CancellationToken cancellationToken)
-            {
-                var optional = ReadColumn(
-                    key,
-                    static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
-                    (self: this, checksum),
-                    cancellationToken);
-
-                Contract.ThrowIfTrue(optional.HasValue && optional.Value == null);
-                return optional.HasValue ? optional.Value : null;
-            }
-
-            private Checksum.HashData? ReadChecksumColumn(TKey key, CancellationToken cancellationToken)
-            {
-                var optional = ReadColumn(
-                    key,
-                    static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
-                    this, cancellationToken);
-
-                return optional.HasValue ? optional.Value : null;
-            }
-
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
                     static t => t.self.WriteStream(t.key, t.stream, t.checksum, t.cancellationToken),
@@ -173,14 +185,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private bool WriteStream(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
+                // We're writing.  This better always be under the exclusive scheduler.
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
-                    // Determine the appropriate data-id to store this stream at.
-                    if (TryGetDatabaseId(connection, key, out var dataId))
+                    // Determine the appropriate data-id to store this stream at.  We already are running
+                    // with an exclusive write lock on the DB, so it's safe for us to write the data id to 
+                    // the db on this connection if we need to.
+                    if (TryGetDatabaseId(connection, key, allowWrite: true, out var dataId))
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];

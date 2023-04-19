@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -783,6 +784,30 @@ class Program3
     </Project>
 </Workspace>";
 
+            await TestAsync(initial, expected);
+        }
+
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
+        public async Task AddsParamTag_Record()
+        {
+            var initial = @"
+/// <summary>
+/// 
+/// </summary>
+/// <param name=""Second""></param>
+record R(int [|First|], int Second, int Third);
+";
+
+            var expected = @"
+/// <summary>
+/// 
+/// </summary>
+/// <param name=""First""></param>
+/// <param name=""Second""></param>
+/// <param name=""Third""></param>
+record R(int First, int Second, int Third);
+";
             await TestAsync(initial, expected);
         }
     }

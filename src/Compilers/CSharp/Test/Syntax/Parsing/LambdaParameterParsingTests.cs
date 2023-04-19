@@ -37,7 +37,7 @@ class C {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -45,7 +45,7 @@ class C {
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -62,12 +62,12 @@ class C {
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "System");
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Func");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -86,31 +86,18 @@ class C {
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "f");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.OutKeyword);
-                                                        M(SyntaxKind.IdentifierName); // parameter type
-                                                        {
-                                                            M(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        M(SyntaxKind.IdentifierToken); // parameter name
-                                                    }
-                                                    M(SyntaxKind.CloseParenToken);
-                                                }
-                                                M(SyntaxKind.EqualsGreaterThanToken);
-                                                M(SyntaxKind.IdentifierName); // lambda body
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
                                                     M(SyntaxKind.IdentifierToken);
                                                 }
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
                                     }
@@ -124,6 +111,7 @@ class C {
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -139,7 +127,7 @@ class C {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -147,7 +135,7 @@ class C {
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -164,12 +152,12 @@ class C {
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "System");
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Func");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -188,34 +176,29 @@ class C {
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "f");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.OutKeyword);
-                                                        N(SyntaxKind.IdentifierName); // parameter type
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        M(SyntaxKind.IdentifierToken); // parameter name
-                                                    }
-                                                    M(SyntaxKind.CloseParenToken);
-                                                }
-                                                M(SyntaxKind.EqualsGreaterThanToken);
-                                                M(SyntaxKind.IdentifierName); // lambda body
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
                                                     M(SyntaxKind.IdentifierToken);
                                                 }
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
                                     }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
                                 }
                                 M(SyntaxKind.SemicolonToken);
                             }
@@ -226,6 +209,7 @@ class C {
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -241,7 +225,7 @@ class C {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -249,7 +233,7 @@ class C {
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -266,12 +250,12 @@ class C {
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "System");
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Func");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -290,33 +274,35 @@ class C {
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "f");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.OutKeyword);
-                                                        N(SyntaxKind.IdentifierName); // parameter type
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken); // parameter name
-                                                    }
-                                                    M(SyntaxKind.CloseParenToken);
-                                                }
-                                                M(SyntaxKind.EqualsGreaterThanToken);
-                                                M(SyntaxKind.IdentifierName); // lambda body
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
                                                     M(SyntaxKind.IdentifierToken);
                                                 }
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
@@ -328,6 +314,7 @@ class C {
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -343,7 +330,7 @@ class C {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -351,7 +338,7 @@ class C {
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -368,12 +355,12 @@ class C {
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "System");
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Func");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -392,33 +379,35 @@ class C {
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "f");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.OutKeyword);
-                                                        N(SyntaxKind.IdentifierName); // parameter type
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken); // parameter name
-                                                    }
-                                                    M(SyntaxKind.CloseParenToken);
-                                                }
-                                                M(SyntaxKind.EqualsGreaterThanToken);
-                                                M(SyntaxKind.IdentifierName); // lambda body
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
                                                     M(SyntaxKind.IdentifierToken);
                                                 }
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
@@ -430,6 +419,7 @@ class C {
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -445,7 +435,7 @@ class C {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -453,7 +443,7 @@ class C {
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -470,12 +460,12 @@ class C {
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "System");
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Func");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -494,38 +484,40 @@ class C {
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "f");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.OutKeyword);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken);
-                                                    }
-                                                    N(SyntaxKind.CommaToken);
-                                                    M(SyntaxKind.Parameter);
-                                                    {
-                                                        M(SyntaxKind.IdentifierToken);
-                                                    }
-                                                    M(SyntaxKind.CloseParenToken);
-                                                }
-                                                M(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.OpenParenToken);
                                                 M(SyntaxKind.IdentifierName);
                                                 {
                                                     M(SyntaxKind.IdentifierToken);
                                                 }
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
@@ -537,6 +529,7 @@ class C {
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact, WorkItem(14167, "https://github.com/dotnet/roslyn/issues/14167")]
@@ -584,5 +577,91 @@ class C {
             EOF();
         }
 
+        [Fact]
+        public void Arglist_01()
+        {
+            string source = "(__arglist) => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (__arglist) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(__arglist)").WithArguments("=>").WithLocation(1, 1));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ArgListExpression);
+                {
+                    N(SyntaxKind.ArgListKeyword);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Arglist_02()
+        {
+            string source = "(int x, __arglist) => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (int x, __arglist) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x, __arglist)").WithArguments("=>").WithLocation(1, 1));
+
+            N(SyntaxKind.TupleExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.DeclarationExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.ArgListExpression);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Arglist_03()
+        {
+            string source = "static (__arglist) => { }";
+            UsingExpression(source,
+                // (1,9): error CS1041: Identifier expected; '__arglist' is a keyword
+                // static (__arglist) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "__arglist").WithArguments("", "__arglist").WithLocation(1, 9));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
     }
 }

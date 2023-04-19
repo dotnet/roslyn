@@ -654,5 +654,84 @@ Imports System
 
             Await TestAsync(markup, expected)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithoutStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+        Else
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class",
+"class C
+    sub M(x as String)
+        If x IsNot ""a"" Then
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithOnlyComment() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+            ' A comment in a blank if statement
+        Else
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class",
+"class C
+    sub M(x as String)
+        If x IsNot ""a"" Then
+            DoSomething()
+        Else
+            ' A comment in a blank if statement
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithoutElse() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+          ' Comment
+          x += 1
+        End If
+    end sub
+
+end class",
+"class C
+    sub M(x as String)
+        If x IsNot ""a"" Then
+            Return
+        End If
+        ' Comment
+        x += 1
+    end sub
+
+end class")
+        End Function
     End Class
 End Namespace

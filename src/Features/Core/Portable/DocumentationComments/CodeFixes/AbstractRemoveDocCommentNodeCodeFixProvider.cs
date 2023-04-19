@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_tag, createChangedDocument)
+                : base(FeaturesResources.Remove_tag, createChangedDocument, nameof(FeaturesResources.Remove_tag))
             {
             }
         }

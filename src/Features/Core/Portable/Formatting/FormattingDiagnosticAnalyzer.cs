@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
+            if (context.Options is not WorkspaceAnalyzerOptions workspaceAnalyzerOptions)
             {
                 return;
             }

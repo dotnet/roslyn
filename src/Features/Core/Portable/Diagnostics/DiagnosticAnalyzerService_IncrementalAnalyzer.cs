@@ -20,14 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
-            {
-                return null;
-            }
-
-            return _map.GetValue(workspace, _createIncrementalAnalyzer);
-        }
+            => _map.GetValue(workspace, _createIncrementalAnalyzer);
 
         public void ShutdownAnalyzerFrom(Workspace workspace)
         {

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             if (document != null)
             {
-                var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
+                var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(request.Character))
@@ -78,21 +78,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return edits.ToArrayAndFree();
         }
 
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(
-            IEditorFormattingService formattingService,
+        protected virtual async Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(
+            IFormattingInteractionService formattingService,
             Document document,
             int position,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
+            => await formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken).ConfigureAwait(false);
 
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(
-            IEditorFormattingService formattingService,
+        protected virtual async Task<IList<TextChange>?> GetFormattingChangesAsync(
+            IFormattingInteractionService formattingService,
             Document document,
             char typedChar,
             int position,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken);
+            => await formattingService.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken).ConfigureAwait(false);
     }
 }

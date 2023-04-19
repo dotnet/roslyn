@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Precedence;
@@ -24,19 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             => CSharpSyntaxFacts.Instance;
 
         protected override bool CanRemoveParentheses(
-            ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
+            ParenthesizedExpressionSyntax parenthesizedExpression,
+            SemanticModel semanticModel, CancellationToken cancellationToken,
             out PrecedenceKind precedence, out bool clarifiesPrecedence)
         {
             return CanRemoveParenthesesHelper(
-                parenthesizedExpression, semanticModel,
+                parenthesizedExpression, semanticModel, cancellationToken,
                 out precedence, out clarifiesPrecedence);
         }
 
         public static bool CanRemoveParenthesesHelper(
-            ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
+            ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
             out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
         {
-            var result = parenthesizedExpression.CanRemoveParentheses(semanticModel);
+            var result = parenthesizedExpression.CanRemoveParentheses(semanticModel, cancellationToken);
             if (!result)
             {
                 parentPrecedenceKind = default;
@@ -46,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 
             var inner = parenthesizedExpression.Expression;
             var innerPrecedence = inner.GetOperatorPrecedence();
-            var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
-                                innerPrecedence == OperatorPrecedence.None;
+            var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
+                                OperatorPrecedence.None;
 
             ExpressionSyntax parentExpression;
             switch (parenthesizedExpression.Parent)

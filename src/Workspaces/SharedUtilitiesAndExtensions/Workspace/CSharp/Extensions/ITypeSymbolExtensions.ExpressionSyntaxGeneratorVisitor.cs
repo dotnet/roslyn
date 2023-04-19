@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return typeSyntax;
 
                 typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
+                if (typeSyntax is not SimpleNameSyntax)
                     return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;

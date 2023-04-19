@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
+    [Obsolete("You should now use IUIThreadOperationExecutor, which is a platform supported version of this.")]
     [Export(typeof(IWaitIndicator))]
     internal sealed class VisualStudioWaitIndicator : IWaitIndicator
     {

@@ -1060,6 +1060,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
                             }
 
+                            if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
+                                && withExpr.Initializer.Expressions.Any()
+                                && withExpr.Expression == (object)syntax)
+                            {
+                                return true;
+                            }
+
                             syntax = applyParenthesizedOrNullSuppressionIfAnyCS(syntax);
 
                             if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
@@ -1906,18 +1913,17 @@ endRegion:
 
 #nullable enable
         private static bool IsTopLevelMainMethod([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol
+        {
+            return symbol is IMethodSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
-                ContainingType: { } containingType
-            } && containingType.IsTopLevelMainType();
-
-        private static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol
-            {
-                Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                ContainingType: null,
-                ContainingNamespace: { IsGlobalNamespace: true }
+                ContainingType: INamedTypeSymbol
+                {
+                    Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                    ContainingType: null,
+                    ContainingNamespace: { IsGlobalNamespace: true }
+                }
             };
+        }
     }
 }

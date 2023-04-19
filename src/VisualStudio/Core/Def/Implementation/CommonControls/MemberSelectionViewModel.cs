@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -15,23 +14,24 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 {
     internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
         private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
 
         public MemberSelectionViewModel(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
             TypeKind destinationTypeKind = TypeKind.Class)
         {
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             // Use public property to hook property change events up
             Members = members;
             _symbolToDependentsMap = dependentsMap;
@@ -92,20 +92,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             var checkedMembers = Members
               .WhereAsArray(member => member.IsChecked && member.IsCheckable);
 
-            var waitResult = _waitIndicator.Wait(
+            var result = _uiThreadOperationExecutor.Execute(
                     title: ServicesVSResources.Pull_Members_Up,
-                    message: ServicesVSResources.Calculating_dependents,
-                    allowCancel: true,
+                    defaultDescription: ServicesVSResources.Calculating_dependents,
+                    allowCancellation: true,
                     showProgress: true,
                     context =>
                     {
                         foreach (var member in Members)
                         {
-                            _symbolToDependentsMap[member.Symbol].Wait(context.CancellationToken);
+                            _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
                         }
                     });
 
-            if (waitResult == WaitIndicatorResult.Completed)
+            if (result == UIThreadOperationStatus.Completed)
             {
                 foreach (var member in checkedMembers)
                 {

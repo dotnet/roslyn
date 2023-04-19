@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
             => factory.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName),
                 factory.NameOfExpression(
                     factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 

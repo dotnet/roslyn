@@ -38,7 +38,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
-                NavigateToVirtualTreePoint(newDocument.Project.Solution, navigationPoint, cancellationToken)
+                Dim solution = newDocument.Project.Solution
+                NavigateToPosition(
+                    solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
+                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken)
 
                 transaction.Complete()
             End Using

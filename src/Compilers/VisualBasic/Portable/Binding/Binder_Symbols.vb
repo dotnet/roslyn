@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag.DiagnosticBag)
                             End If
 
-                            binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, sym, typeSyntax)
+                            binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, sym, typeSyntax)
 
                             Return sym
                         End If
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' LookupTypeOrNamespaceSyntax can't return more than one symbol.
                         Dim result = lookupResult.SingleSymbol
-                        binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, result, typeSyntax)
+                        binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, result, typeSyntax)
                         binder.AddTypesAssemblyAsDependency(TryCast(result, NamedTypeSymbol), diagBag)
                         Return result
                     End If
@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
                 binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 lookupResult.Clear()
@@ -1077,7 +1077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
                 End If
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
                 binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 ' Lookup the generic type.

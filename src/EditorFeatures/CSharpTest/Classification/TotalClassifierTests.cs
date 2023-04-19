@@ -2151,5 +2151,23 @@ class Person
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Keyword("namespace"),
+                Namespace("NS"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

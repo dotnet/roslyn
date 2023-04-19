@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
@@ -65,15 +66,19 @@ namespace Microsoft.CodeAnalysis.Serialization
             return await Storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
+        public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
         {
             if (state.Storage is ITemporaryTextStorageWithName storage)
             {
-                return new SerializableSourceText(storage);
+                return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage));
             }
             else
             {
-                return new SerializableSourceText(await state.GetTextAsync(cancellationToken).ConfigureAwait(false));
+                return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                    static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
+                    static (text, _) => new SerializableSourceText(text),
+                    state,
+                    cancellationToken);
             }
         }
     }

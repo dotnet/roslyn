@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 newSemanticDocument.Document,
                                 expandInsideNode: node =>
                                 {
-                                    return !(node is TExpressionSyntax expression)
+                                    return node is not TExpressionSyntax expression
                                         || !newMatches.Contains(expression);
                                 },
                                 cancellationToken: ct)

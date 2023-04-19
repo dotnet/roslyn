@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -37,11 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IForegroundNotificationService notificationService) : base(
+            IAsynchronousOperationListenerProvider listenerProvider) : base(
                 threadingContext,
-                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
-                notificationService)
+                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
         {
         }
 
@@ -51,13 +50,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
+            // Note: Also generate tags when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
+            // because we want to refresh the glyphs in indicator margin.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 AsyncListener,
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -85,9 +87,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var featureEnabled = options.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-            if (!featureEnabled)
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
+
+            var shouldDisableFeature = optionValue == false;
+            if (shouldDisableFeature)
             {
                 return;
             }
@@ -95,16 +100,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            var inheritanceMarginInfoService = document.WithFrozenPartialSemantics(cancellationToken).GetLanguageService<IInheritanceMarginService>();
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;
             }
 
-            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
+            var inheritanceMemberItems = ImmutableArray<InheritanceMarginItem>.Empty;
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken, LogLevel.Information))
+            {
+                inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                     document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
+            }
 
             if (inheritanceMemberItems.IsEmpty)
             {

@@ -21,7 +21,7 @@
             x:Uid="MemberSelectionGrid"
             x:Name="MemberSelectionGrid"
             Grid.Column="0"
-            Margin="2, 5, 12, 2"
+            Margin="0, 5, 12, 2"
             SelectionMode="Extended"
             AutoGenerateColumns="False"
             HeadersVisibility="Column"
@@ -124,7 +124,7 @@
                 Orientation="Vertical"
                 VerticalAlignment="Top"
                 HorizontalAlignment="Center"
-                Margin="0, 4, 0, 0"
+                Margin="0, 5, 0, 0"
                 Width="Auto">
             <Button
                 x:Name="SelectAllButton"
@@ -132,7 +132,7 @@
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectAll}"
                 Click="SelectAllButton_Click"
-                Margin="2, 2, 2, 7"
+                Margin="2, 0, 0, 7"
                 Width="Auto"
                 Height="Auto" />
             <Button
@@ -141,7 +141,7 @@
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=DeselectAll}"
                 Click="DeselectAllButton_Click"
-                Margin="2, 2, 2, 7"
+                Margin="2, 2, 0, 7"
                 Width="Auto"
                 Height="Auto" />
             <Button
@@ -150,14 +150,14 @@
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectDependents}"
                 Click="SelectDependentsButton_Click"
-                Margin="2, 2, 2, 7"
+                Margin="2, 2, 0, 7"
                 Width="Auto"
                 Height="Auto"/>
             <Button
                 x:Name="SelectPublicButton"
                 x:Uid="SelectPublicButton"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectPublic}"
-                Margin="2, 0, 2, 0"
+                Margin="2, 0, 0, 0"
                 Click="SelectPublic_Click"
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Width="Auto"

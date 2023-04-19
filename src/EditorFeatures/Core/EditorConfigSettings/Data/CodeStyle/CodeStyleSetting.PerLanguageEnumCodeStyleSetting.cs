@@ -25,25 +25,32 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    string[] valueDescriptions,
                                                    AnalyzerConfigOptions editorConfigOptions,
                                                    OptionSet visualStudioOptions,
-                                                   OptionUpdater updater)
+                                                   OptionUpdater updater,
+                                                   string fileName)
                 : base(description, enumValues, valueDescriptions, option.Group.Description, updater)
             {
                 _option = option;
+
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
+                Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<T>>(_option, out _);
 
+            public override SettingLocation Location { get; protected set; }
+
             protected override void ChangeSeverity(NotificationOption2 severity)
             {
                 ICodeStyleOption option = GetOption();
+                Location = Location with { LocationKind = LocationKind.EditorConfig };
                 Updater.QueueUpdate(_option, option.WithNotification(severity));
             }
 
             public override void ChangeValue(int valueIndex)
             {
                 ICodeStyleOption option = GetOption();
+                Location = Location with { LocationKind = LocationKind.EditorConfig };
                 Updater.QueueUpdate(_option, option.WithValue(_enumValues[valueIndex]));
             }
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 CancellationToken cancellationToken)
             {
                 var syntaxFactsService = documentToEdit.GetLanguageService<ISyntaxFactsService>();
-                var childNodes = syntaxFactsService.GetMembersOfNamespaceDeclaration(namespaceDeclaration);
+                var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
                 if (childNodes.Count <= 1)
                 {

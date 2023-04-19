@@ -4,12 +4,13 @@
 
 #nullable disable
 
+using System;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarControllerFactoryService
     {
-        INavigationBarController CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
+        IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
     }
 }

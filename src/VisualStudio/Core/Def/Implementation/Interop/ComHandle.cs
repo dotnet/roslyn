@@ -101,12 +101,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             where TNewHandle : class
             where TNewObject : class, TNewHandle
         {
-            if (!(Handle is TNewHandle newHandle))
+            if (Handle is not TNewHandle newHandle)
             {
                 throw new InvalidOperationException("Invalid cast.");
             }
 
-            if (!(Object is TNewObject newObject))
+            if (Object is not TNewObject newObject)
             {
                 throw new InvalidOperationException("Invalid cast.");
             }

@@ -99,6 +99,11 @@
         <target state="translated">Non è stato possibile leggere il file "{0}": {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImplicitlySkipAnalyzersMessage">
+        <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
+        <target state="translated">Gli analizzatori verranno ignorati per velocizzare la compilazione. Per eseguire analizzatori, è possibile eseguire il comando 'Compila' o 'Ricompila'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">La compilazione condivisa non è riuscita. Verrà eseguito il fallback allo strumento: {0}</target>

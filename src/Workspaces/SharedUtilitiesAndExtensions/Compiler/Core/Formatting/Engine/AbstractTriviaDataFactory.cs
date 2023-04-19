@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
         {
-            Contract.ThrowIfFalse(lineIndex >= 0 && lineIndex < LineBreakCacheSize);
+            Contract.ThrowIfFalse(lineIndex is >= 0 and < LineBreakCacheSize);
             Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
 
             // set up caches

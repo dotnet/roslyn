@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                    document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
                 return AddImportFixData.CreateForPackageSymbol(
                     textChanges, _source, _packageName, _versionOpt);

@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public TService? GetService<TService>() where TService : class, IDocumentService
         {
-            if (typeof(TService) == typeof(ISpanMappingService))
+            var serviceType = typeof(TService);
+            if (serviceType == typeof(ISpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IDocumentExcerptService))
+            if (serviceType == typeof(IDocumentExcerptService))
             {
                 if (_excerptService == null)
                 {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_excerptService;
             }
 
-            if (typeof(TService) == typeof(DocumentPropertiesService))
+            if (serviceType == typeof(DocumentPropertiesService))
             {
                 if (_documentPropertiesService == null)
                 {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
-            if (!(getAndSetMethods.GetMethodDeclaration is MethodDeclarationSyntax getMethodDeclaration))
+            if (getAndSetMethods.GetMethodDeclaration is not MethodDeclarationSyntax getMethodDeclaration)
             {
                 return;
             }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods)
         {
             var setMethod = getAndSetMethods.SetMethod;
-            if (!(getAndSetMethods.SetMethodDeclaration is MethodDeclarationSyntax setMethodDeclaration) || setMethod?.Parameters.Length != 1)
+            if (getAndSetMethods.SetMethodDeclaration is not MethodDeclarationSyntax setMethodDeclaration || setMethod?.Parameters.Length != 1)
             {
                 return null;
             }
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            if (!(nameToken.Parent is IdentifierNameSyntax nameNode))
+            if (nameToken.Parent is not IdentifierNameSyntax nameNode)
             {
                 return;
             }

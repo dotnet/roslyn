@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class MultiLineIfBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of MultiLineIfBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As MultiLineIfBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As MultiLineIfBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

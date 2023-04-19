@@ -40,6 +40,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\ReplaceDiscardDeclarationsWithAssignments\IReplaceDiscardDeclarationsWithAssignmentsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IFileBannerFactsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IHeaderFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxGeneratorInternalExtensions\SyntaxGeneratorInternal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />

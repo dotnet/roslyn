@@ -48,25 +48,30 @@ record Derived(int I) // The positional member 'Base.I' found corresponding to t
 }
 ```
 
-4. In C# 10, method groups are implicitly convertible to `System.Delegate`, and lambda expressions are implicitly convertible to `System.Delegate` and `System.Linq.Expressions.Expression`.
+4. In .NET 5 and Visual Studio 16.9 (and earlier), top-level statements could be used in a program containing a type named `Program`. In .NET 6 and Visual Studio 17.0, top-level statements generate a partial declaration of a `Program` class, so any user-defined `Program` type must also be a partial class.
 
-    This is a breaking change to overload resolution if there exists an overload with a `System.Delegate` or `System.Linq.Expressions.Expression` parameter that is applicable and the closest applicable overload with a strongly-typed delegate parameter is in an enclosing namespace.
+```csharp
+System.Console.Write("top-level");
+Method();
 
-    ```C#
-    class C
+partial class Program
+{
+    static void Method()
     {
-        static void Main()
-        {
-            var c = new C();
-            c.M(Main);      // C#9: E.M(), C#10: C.M()
-            c.M(() => { }); // C#9: E.M(), C#10: C.M()
-        }
-    
-        void M(System.Delegate d) { }
     }
+}
+```
 
-    static class E
+5. https://github.com/dotnet/roslyn/issues/53021 C# will now report an error for a misplaced ```::``` token in explicit interface implementation. In this example code:
+
+    ``` C#
+    void N::I::M()
     {
-        public static void M(this object x, System.Action y) { }
     }
     ```
+
+    Previous versions of Roslyn wouldn't report any errors.
+
+    We now report an error for a ```::``` token before M.
+
+

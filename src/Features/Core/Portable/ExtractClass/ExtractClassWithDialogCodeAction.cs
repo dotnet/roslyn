@@ -60,10 +60,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         {
             if (options is ExtractClassOptions extractClassOptions)
             {
-                // Find the original type
-                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                 // Map the symbols we're removing to annotations
                 // so we can find them easily
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
@@ -73,7 +69,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     _selectedTypeDeclarationNode,
                     cancellationToken).ConfigureAwait(false);
 
-                var fileBanner = syntaxFacts.GetFileBanner(root);
                 var namespaceService = _document.GetRequiredLanguageService<AbstractExtractInterfaceService>();
 
                 // Create the symbol for the new type 
@@ -104,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         _document.Project.Id,
                         _document.Folders,
                         newType,
-                        fileBanner,
+                        _document,
                         cancellationToken).ConfigureAwait(false);
 
                 // Update the original type to have the new base

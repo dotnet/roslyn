@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
@@ -17,6 +19,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
 
+        Public Shared ReadOnly ReloadableAttributeSrc As String = "
+Imports System.Runtime.CompilerServices
+Namespace System.Runtime.CompilerServices
+    Class CreateNewOnMetadataUpdateAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+"
+
         Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
             Return New VisualBasicEditAndContinueAnalyzer()
         End Function
@@ -26,6 +37,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Async
             Iterator
         End Enum
+
+        Public Shared Function GetResource(keyword As String) As String
+            Select Case keyword
+                Case "Class"
+                    Return FeaturesResources.class_
+                Case "Structure"
+                    Return VBFeaturesResources.structure_
+                Case "Module"
+                    Return VBFeaturesResources.module_
+                Case "Interface"
+                    Return FeaturesResources.interface_
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End Select
+        End Function
 
         Friend Shared NoSemanticEdits As SemanticEditDescription() = Array.Empty(Of SemanticEditDescription)
 
@@ -41,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
-                syntaxMap:=Nothing,
+                syntaxMap,
                 hasSyntaxMap:=syntaxMap IsNot Nothing)
         End Function
 
@@ -65,17 +91,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Optional activeStatements As ActiveStatementsDescription = Nothing,
             Optional semanticEdits As SemanticEditDescription() = Nothing,
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing) As DocumentAnalysisResultsDescription
-            Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)
+            Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)
         End Function
 
-        Private Shared Function ParseSource(source As String) As SyntaxTree
-            Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            Return validator.ParseText(ActiveStatementsDescription.ClearTags(source))
+        Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
+                path:=documentIndex.ToString())
         End Function
 
-        Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
-            Dim tree1 = ParseSource(src1)
-            Dim tree2 = ParseSource(src2)
+        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScript(Of SyntaxNode)
+            Dim tree1 = ParseSource(src1, documentIndex)
+            Dim tree2 = ParseSource(src2, documentIndex)
 
             tree1.GetDiagnostics().Verify()
             tree2.GetDiagnostics().Verify()
@@ -154,12 +182,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End Select
         End Function
 
-        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String) As ActiveStatementsDescription
-            Return New ActiveStatementsDescription(oldSource, newSource)
+        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing, Optional path As String = "0") As ActiveStatementsDescription
+            Return New ActiveStatementsDescription(oldSource, newSource, Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=path), flags)
         End Function
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
             Return New SyntaxMapDescription(oldSource, newSource)
+        End Function
+
+        Friend Shared Function GetActiveStatementDebugInfos(
+            markedSources As String(),
+            Optional filePaths As String() = Nothing,
+            Optional methodRowIds As Integer() = Nothing,
+            Optional modules As Guid() = Nothing,
+            Optional methodVersions As Integer() = Nothing,
+            Optional ilOffsets As Integer() = Nothing,
+            Optional flags As ActiveStatementFlags() = Nothing) As ImmutableArray(Of ManagedActiveStatementDebugInfo)
+
+            Return ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                Function(source, path) SyntaxFactory.ParseSyntaxTree(source, path:=path),
+                markedSources,
+                filePaths,
+                extension:=".vb",
+                methodRowIds,
+                modules,
+                methodVersions,
+                ilOffsets,
+                flags)
         End Function
     End Class
 End Namespace

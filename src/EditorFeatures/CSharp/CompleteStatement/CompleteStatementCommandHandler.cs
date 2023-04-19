@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, true);
                 }
+
                 return false;
             }
             else if (syntaxFacts.IsStatement(currentNode)

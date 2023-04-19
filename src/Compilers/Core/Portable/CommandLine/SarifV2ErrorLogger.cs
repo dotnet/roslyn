@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                         _writer.Write("helpUri", descriptor.HelpLinkUri);
                     }
 
-                    if (!string.IsNullOrEmpty(descriptor.Category) || descriptor.CustomTags.Any())
+                    if (!string.IsNullOrEmpty(descriptor.Category) || descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteObjectStart("properties");
 
@@ -217,11 +217,11 @@ namespace Microsoft.CodeAnalysis
                             _writer.Write("category", descriptor.Category);
                         }
 
-                        if (descriptor.CustomTags.Any())
+                        if (descriptor.ImmutableCustomTags.Any())
                         {
                             _writer.WriteArrayStart("tags");
 
-                            foreach (string tag in descriptor.CustomTags)
+                            foreach (string tag in descriptor.ImmutableCustomTags)
                             {
                                 _writer.Write(tag);
                             }

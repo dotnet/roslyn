@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -118,7 +117,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     // Usually applying this code action pops up a dialog allowing the user to choose which options.
                     // We can't do that here, so instead we just take the defaults until we have more intent data.
-                    var options = new PickMembersResult(dialogAction.ViableMembers, dialogAction.PickMembersOptions);
+                    var options = new PickMembersResult(
+                        dialogAction.ViableMembers,
+                        dialogAction.PickMembersOptions,
+                        selectedAll: true);
                     var operations = await dialogAction.GetOperationsAsync(options: options, cancellationToken).ConfigureAwait(false);
                     return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
                 }
@@ -163,14 +165,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return null;
             }
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return null;
             }
@@ -195,6 +197,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             // don't offer to generate anything.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
+            {
+                return null;
+            }
+
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             {
                 return null;
             }

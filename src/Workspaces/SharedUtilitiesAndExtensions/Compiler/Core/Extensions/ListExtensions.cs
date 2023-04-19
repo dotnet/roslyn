@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -36,6 +37,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             list.RemoveRange(targetIndex, list.Count - targetIndex);
+        }
+
+        /// <summary>
+        /// Attempts to remove the first item selected by <paramref name="selector"/>.
+        /// </summary>
+        /// <returns>
+        /// True if any item has been removed.
+        /// </returns>
+        public static bool TryRemoveFirst<T, TArg>(this IList<T> list, Func<T, TArg, bool> selector, TArg arg, [NotNullWhen(true)] out T? removedItem)
+            where T : notnull
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                var item = list[i];
+                if (selector(item, arg))
+                {
+                    list.RemoveAt(i);
+                    removedItem = item;
+                    return true;
+                }
+            }
+
+            removedItem = default;
+            return false;
         }
     }
 }

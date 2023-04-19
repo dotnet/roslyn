@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             for (var i = expressions.Length - 1; i >= 0; i--)
             {
                 var expression = expressions[i];
-                if (IsValidAwaitableExpression(expression, model, syntaxFacts))
+                if (IsValidAwaitableExpression(model, syntaxFacts, expression, cancellationToken))
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
@@ -63,24 +63,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             }
         }
 
-        private static bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
+        private static bool IsValidAwaitableExpression(
+            SemanticModel model, ISyntaxFactsService syntaxFacts, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
+            if (syntaxFacts.IsExpressionOfInvocationExpression(node.Parent))
             {
                 // Do not offer fix on `MethodAsync()$$.ConfigureAwait()`
                 // Do offer fix on `MethodAsync()$$.Invalid()`
-                if (!model.GetTypeInfo(invocation.GetRequiredParent().GetRequiredParent()).Type.IsErrorType())
+                if (!model.GetTypeInfo(node.GetRequiredParent().GetRequiredParent(), cancellationToken).Type.IsErrorType())
                     return false;
             }
 
-            if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))
+            if (syntaxFacts.IsExpressionOfAwaitExpression(node))
                 return false;
 
-            var type = model.GetTypeInfo(invocation).Type;
-            if (type?.IsAwaitableNonDynamic(model, invocation.SpanStart) == true)
-                return true;
+            // if we're on an actual type symbol itself (like literally `Task`) we don't want to offer to add await.
+            // we only want to add for actual expressions whose type is awaitable, not on the awaitable type itself.
+            var symbol = model.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
+            if (symbol is ITypeSymbol)
+                return false;
 
-            return false;
+            var type = model.GetTypeInfo(node, cancellationToken).Type;
+            return type?.IsAwaitableNonDynamic(model, node.SpanStart) == true;
         }
 
         private static Task<Document> AddAwaitAsync(
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

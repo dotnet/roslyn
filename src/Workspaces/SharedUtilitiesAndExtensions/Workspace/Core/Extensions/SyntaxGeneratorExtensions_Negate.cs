@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (variableExpression is IPropertyReferenceOperation propertyOperation)
                 {
                     var property = propertyOperation.Property;
-                    if ((property.Name == nameof(Array.Length) || property.Name == LongLength))
+                    if ((property.Name is (nameof(Array.Length)) or LongLength))
                     {
                         var containingType = property.ContainingType;
                         if (containingType?.SpecialType == SpecialType.System_Array ||

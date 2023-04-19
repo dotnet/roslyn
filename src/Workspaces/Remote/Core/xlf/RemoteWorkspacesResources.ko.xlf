@@ -87,6 +87,11 @@
         <target state="translated">탐색 모음</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">프로세스 원격 측정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">프로젝트 원격 분석 컬렉션</target>
@@ -130,6 +135,11 @@
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
         <source>Unused reference analysis</source>
         <target state="translated">사용되지 않는 참조 분석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">값 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Public Shared ReadOnly Instance As New VisualBasicSyntaxTriviaService
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxFacts.Instance, SyntaxKind.EndOfLineTrivia)
+            MyBase.New(SyntaxKind.EndOfLineTrivia)
         End Sub
     End Class
 End Namespace

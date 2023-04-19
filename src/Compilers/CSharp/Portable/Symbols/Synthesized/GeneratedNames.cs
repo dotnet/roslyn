@@ -2,27 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal static partial class GeneratedNames
+    internal static class GeneratedNames
     {
-        internal const string SynthesizedLocalNamePrefix = "CS$";
-        internal const char DotReplacementInTypeNames = '-';
-        private const string SuffixSeparator = "__";
         private const char IdSeparator = '_';
         private const char GenerationSeparator = '#';
-        private const char LocalFunctionNameTerminator = '|';
 
         internal static bool IsGeneratedMemberName(string memberName)
         {
@@ -72,24 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return name;
         }
 
-        internal const string AnonymousNamePrefix = "<>f__AnonymousType";
-
-        internal static bool TryParseAnonymousTypeTemplateName(string name, out int index)
-        {
-            // No callers require anonymous types from net modules,
-            // so names with module id are ignored.
-            if (name.StartsWith(AnonymousNamePrefix, StringComparison.Ordinal))
-            {
-                if (int.TryParse(name.Substring(AnonymousNamePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out index))
-                {
-                    return true;
-                }
-            }
-
-            index = -1;
-            return false;
-        }
-
         internal static string MakeAnonymousTypeBackingFieldName(string propertyName)
         {
             return "<" + propertyName + ">i__Field";
@@ -98,19 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeAnonymousTypeParameterName(string propertyName)
         {
             return "<" + propertyName + ">j__TPar";
-        }
-
-        internal static bool TryParseAnonymousTypeParameterName(string typeParameterName, out string propertyName)
-        {
-            if (typeParameterName.StartsWith("<", StringComparison.Ordinal) &&
-                typeParameterName.EndsWith(">j__TPar", StringComparison.Ordinal))
-            {
-                propertyName = typeParameterName.Substring(1, typeParameterName.Length - 9);
-                return true;
-            }
-
-            propertyName = null;
-            return false;
         }
 
         internal static string MakeStateMachineTypeName(string methodName, int methodOrdinal, int generation)
@@ -154,15 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(lambdaOrdinal >= 0);
             Debug.Assert(lambdaGeneration >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localFunctionName, LocalFunctionNameTerminator, lambdaOrdinal, lambdaGeneration);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localFunctionName, GeneratedNameConstants.LocalFunctionNameTerminator, lambdaOrdinal, lambdaGeneration);
         }
 
         private static string MakeMethodScopedSynthesizedName(
             GeneratedNameKind kind,
             int methodOrdinal,
             int methodGeneration,
-            string methodNameOpt = null,
-            string suffix = null,
+            string? methodName = null,
+            string? suffix = null,
             char suffixTerminator = default,
             int entityOrdinal = -1,
             int entityGeneration = -1)
@@ -177,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = result.Builder;
             builder.Append('<');
 
-            if (methodNameOpt != null)
+            if (methodName != null)
             {
-                builder.Append(methodNameOpt);
+                builder.Append(methodName);
 
                 // CLR generally allows names with dots, however some APIs like IMetaDataImport
                 // can only return full type names combined with namespaces. 
@@ -190,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // As a replacement use a character not allowed in C# identifier to avoid conflicts.
                 if (kind.IsTypeName())
                 {
-                    builder.Replace('.', DotReplacementInTypeNames);
+                    builder.Replace('.', GeneratedNameConstants.DotReplacementInTypeNames);
                 }
             }
 
@@ -199,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (suffix != null || methodOrdinal >= 0 || entityOrdinal >= 0)
             {
-                builder.Append(SuffixSeparator);
+                builder.Append(GeneratedNameConstants.SuffixSeparator);
                 builder.Append(suffix);
 
                 if (suffixTerminator != default)
@@ -237,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
+        internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string? localName = null)
         {
-            Debug.Assert((localNameOpt != null) == (kind == SynthesizedLocalKind.UserDefined));
+            Debug.Assert((localName != null) == (kind == SynthesizedLocalKind.UserDefined));
             Debug.Assert(slotIndex >= 0);
             Debug.Assert(kind.IsLongLived());
 
@@ -253,10 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
             builder.Append('<');
-            if (localNameOpt != null)
+            if (localName != null)
             {
-                Debug.Assert(localNameOpt.IndexOf('.') == -1);
-                builder.Append(localNameOpt);
+                Debug.Assert(localName.IndexOf('.') == -1);
+                builder.Append(localName);
             }
 
             builder.Append('>');
@@ -280,109 +240,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToStringAndFree();
         }
 
-        // The type of generated name. See TryParseGeneratedName.
-        internal static GeneratedNameKind GetKind(string name)
-        {
-            GeneratedNameKind kind;
-            int openBracketOffset;
-            int closeBracketOffset;
-            return TryParseGeneratedName(name, out kind, out openBracketOffset, out closeBracketOffset) ? kind : GeneratedNameKind.None;
-        }
-
-        // Parse the generated name. Returns true for names of the form
-        // [CS$]<[middle]>c[__[suffix]] where [CS$] is included for certain
-        // generated names, where [middle] and [__[suffix]] are optional,
-        // and where c is a single character in [1-9a-z]
-        // (csharp\LanguageAnalysis\LIB\SpecialName.cpp).
-        internal static bool TryParseGeneratedName(
-            string name,
-            out GeneratedNameKind kind,
-            out int openBracketOffset,
-            out int closeBracketOffset)
-        {
-            openBracketOffset = -1;
-            if (name.StartsWith("CS$<", StringComparison.Ordinal))
-            {
-                openBracketOffset = 3;
-            }
-            else if (name.StartsWith("<", StringComparison.Ordinal))
-            {
-                openBracketOffset = 0;
-            }
-
-            if (openBracketOffset >= 0)
-            {
-                closeBracketOffset = name.IndexOfBalancedParenthesis(openBracketOffset, '>');
-                if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
-                {
-                    int c = name[closeBracketOffset + 1];
-                    if ((c >= '1' && c <= '9') || (c >= 'a' && c <= 'z')) // Note '0' is not special.
-                    {
-                        kind = (GeneratedNameKind)c;
-                        return true;
-                    }
-                }
-            }
-
-            kind = GeneratedNameKind.None;
-            openBracketOffset = -1;
-            closeBracketOffset = -1;
-            return false;
-        }
-
-        internal static bool TryParseSourceMethodNameFromGeneratedName(string generatedName, GeneratedNameKind requiredKind, out string methodName)
-        {
-            int openBracketOffset;
-            int closeBracketOffset;
-            GeneratedNameKind kind;
-            if (!TryParseGeneratedName(generatedName, out kind, out openBracketOffset, out closeBracketOffset))
-            {
-                methodName = null;
-                return false;
-            }
-
-            if (requiredKind != 0 && kind != requiredKind)
-            {
-                methodName = null;
-                return false;
-            }
-
-            methodName = generatedName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
-
-            if (kind.IsTypeName())
-            {
-                methodName = methodName.Replace(DotReplacementInTypeNames, '.');
-            }
-
-            return true;
-        }
-
         internal static string AsyncAwaiterFieldName(int slotIndex)
         {
             Debug.Assert((char)GeneratedNameKind.AwaiterField == 'u');
             return "<>u__" + StringExtensions.GetNumeral(slotIndex + 1);
-        }
-
-        // Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
-        // Such a name ends with "__{slot index + 1}". 
-        // Returned slot index is >= 0.
-        internal static bool TryParseSlotIndex(string fieldName, out int slotIndex)
-        {
-            int lastUnder = fieldName.LastIndexOf('_');
-            if (lastUnder - 1 < 0 || lastUnder == fieldName.Length || fieldName[lastUnder - 1] != '_')
-            {
-                slotIndex = -1;
-                return false;
-            }
-
-            if (int.TryParse(fieldName.Substring(lastUnder + 1), NumberStyles.None, CultureInfo.InvariantCulture, out slotIndex) && slotIndex >= 1)
-            {
-                slotIndex--;
-                return true;
-            }
-
-            slotIndex = -1;
-            return false;
         }
 
         internal static string MakeCachedFrameInstanceFieldName()
@@ -391,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>9";
         }
 
-        internal static string MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
+        internal static string? MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
         {
             Debug.Assert(kind.IsLongLived());
 
@@ -406,18 +267,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeSynthesizedInstrumentationPayloadLocalFieldName(int uniqueId)
         {
-            return SynthesizedLocalNamePrefix + "InstrumentationPayload" + StringExtensions.GetNumeral(uniqueId);
+            return GeneratedNameConstants.SynthesizedLocalNamePrefix + "InstrumentationPayload" + StringExtensions.GetNumeral(uniqueId);
         }
 
         internal static string MakeLambdaDisplayLocalName(int uniqueId)
         {
             Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');
-            return SynthesizedLocalNamePrefix + "<>8__locals" + StringExtensions.GetNumeral(uniqueId);
-        }
-
-        internal static bool IsSynthesizedLocalName(string name)
-        {
-            return name.StartsWith(SynthesizedLocalNamePrefix, StringComparison.Ordinal);
+            return GeneratedNameConstants.SynthesizedLocalNamePrefix + "<>8__locals" + StringExtensions.GetNumeral(uniqueId);
         }
 
         internal static string MakeFixedFieldImplementationName(string fieldName)
@@ -494,39 +350,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string ActionDelegateNamePrefix = "<>A";
+        internal const string FuncDelegateNamePrefix = "<>F";
+        private const int DelegateNamePrefixLength = 3;
+        private const int DelegateNamePrefixLengthWithOpenBrace = 4;
+
         /// <summary>
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
-        internal static string MakeDynamicCallSiteDelegateName(BitVector byRefs, bool returnsVoid, int generation)
+        internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            builder.Append(returnsVoid ? "<>A" : "<>F");
+            builder.Append(returnsVoid ? ActionDelegateNamePrefix : FuncDelegateNamePrefix);
 
             if (!byRefs.IsNull)
             {
-                builder.Append("{");
-
-                int i = 0;
-                foreach (int byRefIndex in byRefs.Words())
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(",");
-                    }
-
-                    builder.AppendFormat("{0:x8}", byRefIndex);
-                    i++;
-                }
-
-                builder.Append("}");
-                Debug.Assert(i > 0);
+                builder.Append(byRefs.ToRefKindString());
             }
 
             AppendOptionalGeneration(builder, generation);
             return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
+        {
+            byRefs = default;
+            parameterCount = 0;
+            generation = 0;
+
+            name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
+
+            returnsVoid = name.StartsWith(ActionDelegateNamePrefix);
+
+            if (!returnsVoid && !name.StartsWith(FuncDelegateNamePrefix))
+            {
+                return false;
+            }
+
+            // The character after the prefix should be an open brace
+            if (name[DelegateNamePrefixLength] != '{')
+            {
+                return false;
+            }
+
+            parameterCount = arity - (returnsVoid ? 0 : 1);
+
+            var lastBraceIndex = name.LastIndexOf('}');
+            if (lastBraceIndex < 0)
+            {
+                return false;
+            }
+
+            // The ref kind string is between the two braces
+            var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..lastBraceIndex];
+
+            if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+            {
+                return false;
+            }
+
+            // If there is a generation index it will be directly after the brace, otherwise the brace
+            // is the last character
+            if (lastBraceIndex < name.Length - 1)
+            {
+                // Format is a '#' followed by the generation number
+                if (name[lastBraceIndex + 1] != '#')
+                {
+                    return false;
+                }
+
+                if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
+                {
+                    return false;
+                }
+            }
+
+            Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
+            return true;
         }
 
         internal static string AsyncBuilderFieldName()

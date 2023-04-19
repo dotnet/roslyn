@@ -198,6 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                         parts.Add(Punctuation(SyntaxKind.CommaToken))
                         parts.Add(Space())
                     End If
+
                     parts.Add(Keyword(SyntaxKind.NewKeyword))
                 End If
 

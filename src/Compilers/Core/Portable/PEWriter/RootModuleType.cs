@@ -17,7 +17,13 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        private readonly IUnit _unit;
         private IReadOnlyList<IMethodDefinition>? _methods;
+
+        public RootModuleType(IUnit unit)
+        {
+            _unit = unit;
+        }
 
         public void SetStaticConstructorBody(ImmutableArray<byte> il)
         {
@@ -232,7 +238,7 @@ namespace Microsoft.Cci
 
         IUnitReference INamespaceTypeReference.GetUnit(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            return _unit;
         }
 
         string INamespaceTypeReference.NamespaceName

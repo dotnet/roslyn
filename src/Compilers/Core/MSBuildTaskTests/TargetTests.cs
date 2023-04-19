@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class TargetTests
+    public class TargetTests : TestBase
     {
         [Fact]
         public void GenerateEditorConfigShouldNotRunWhenNoPropertiesOrMetadata()
@@ -399,7 +399,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "3.0", "8.0")]
         [InlineData(".NETCoreApp", "3.1", "8.0")]
         [InlineData(".NETCoreApp", "5.0", "9.0")]
-        [InlineData(".NETCoreApp", "6.0", "")]
+        [InlineData(".NETCoreApp", "6.0", "10.0")]
+        [InlineData(".NETCoreApp", "7.0", "")]
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]
@@ -408,6 +409,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         [InlineData("UnknownTFM", "0.0", "7.3")]
         [InlineData("UnknownTFM", "5.0", "7.3")]
+        [InlineData("UnknownTFM", "6.0", "7.3")]
         public void LanguageVersionGivenTargetFramework(string tfi, string tfv, string expectedVersion)
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
@@ -432,7 +434,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             // This will fail whenever the current language version is updated.
             // Ensure you update the target files to select the correct CSharp version for the newest target framework
             // and add to the theory data above to cover it, before changing this version to make the test pass again.
-            Assert.Equal(CSharp.LanguageVersion.CSharp9, CSharp.LanguageVersionFacts.CurrentVersion);
+            Assert.Equal(CSharp.LanguageVersion.CSharp10, CSharp.LanguageVersionFacts.CurrentVersion);
         }
 
         [Fact]
@@ -714,6 +716,148 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(1337109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
+        public void TestImplicitlySkipAnalyzers(
+            [CombinatorialValues(true, false, null)] bool? runAnalyzers,
+            [CombinatorialValues(true, false, null)] bool? implicitBuild,
+            [CombinatorialValues(true, false, null)] bool? treatWarningsAsErrors,
+            [CombinatorialValues(true, false, null)] bool? optimizeImplicitBuild,
+            [CombinatorialValues(true, null)] bool? sdkStyleProject)
+        {
+            var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
+            var implicitBuildPropertyGroupString = getPropertyGroup("IsImplicitlyTriggeredBuild", implicitBuild);
+            var treatWarningsAsErrorsPropertyGroupString = getPropertyGroup("TreatWarningsAsErrors", treatWarningsAsErrors);
+            var optimizeImplicitBuildPropertyGroupString = getPropertyGroup("OptimizeImplicitlyTriggeredBuild", optimizeImplicitBuild);
+            var sdkStyleProjectPropertyGroupString = getPropertyGroup("UsingMicrosoftNETSdk", sdkStyleProject);
+
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+{runAnalyzersPropertyGroupString}
+{implicitBuildPropertyGroupString}
+{treatWarningsAsErrorsPropertyGroupString}
+{optimizeImplicitBuildPropertyGroupString}
+{sdkStyleProjectPropertyGroupString}
+
+
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "_ComputeSkipAnalyzers", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var analyzersEnabled = runAnalyzers ?? true;
+            var expectedImplicitlySkippedAnalyzers = analyzersEnabled &&
+                implicitBuild == true &&
+                sdkStyleProject == true &&
+                (treatWarningsAsErrors != true || optimizeImplicitBuild == true);
+            var expectedImplicitlySkippedAnalyzersValue = expectedImplicitlySkippedAnalyzers ? "true" : "";
+            var actualImplicitlySkippedAnalyzersValue = instance.GetPropertyValue("_ImplicitlySkipAnalyzers");
+            Assert.Equal(expectedImplicitlySkippedAnalyzersValue, actualImplicitlySkippedAnalyzersValue);
+
+            var expectedSkipAnalyzersValue = !analyzersEnabled || expectedImplicitlySkippedAnalyzers ? "true" : "";
+            var actualSkipAnalyzersValue = instance.GetPropertyValue("_SkipAnalyzers");
+            Assert.Equal(expectedSkipAnalyzersValue, actualSkipAnalyzersValue);
+
+            var expectedFeaturesValue = expectedImplicitlySkippedAnalyzers ? "run-nullable-analysis=never;" : "";
+            var actualFeaturesValue = instance.GetPropertyValue("Features");
+            Assert.Equal(expectedFeaturesValue, actualFeaturesValue);
+            return;
+
+            static string getPropertyGroup(string propertyName, bool? propertyValue)
+            {
+                if (!propertyValue.HasValue)
+                {
+                    return string.Empty;
+                }
+
+                return $@"
+    <PropertyGroup>
+        <{propertyName}>{propertyValue.Value}</{propertyName}>
+    </PropertyGroup>";
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(1337109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
+        public void TestLastBuildWithSkipAnalyzers(
+            [CombinatorialValues(true, false, null)] bool? runAnalyzers,
+            bool lastBuildWithSkipAnalyzersFileExists)
+        {
+            var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
+            var intermediatePathDir = Temp.CreateDirectory();
+            var intermediatePath = intermediatePathDir + Path.DirectorySeparatorChar.ToString();
+
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+{runAnalyzersPropertyGroupString}
+
+    <PropertyGroup>
+        <IntermediateOutputPath>{intermediatePath}</IntermediateOutputPath>
+    </PropertyGroup>
+
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var msbuildProjectFileName = instance.GetPropertyValue("MSBuildProjectFile");
+            var expectedLastBuildWithSkipAnalyzers = intermediatePath + msbuildProjectFileName + ".BuildWithSkipAnalyzers";
+            if (lastBuildWithSkipAnalyzersFileExists)
+            {
+                _ = intermediatePathDir.CreateFile(msbuildProjectFileName + ".BuildWithSkipAnalyzers");
+            }
+
+            bool runSuccess = instance.Build(target: "_ComputeSkipAnalyzers", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var actualLastBuildWithSkipAnalyzers = instance.GetPropertyValue("_LastBuildWithSkipAnalyzers");
+            Assert.Equal(expectedLastBuildWithSkipAnalyzers, actualLastBuildWithSkipAnalyzers);
+
+            var skipAnalyzers = !(runAnalyzers ?? true);
+            var expectedCustomAdditionalCompileInput = lastBuildWithSkipAnalyzersFileExists && !skipAnalyzers;
+
+            var items = instance.GetItems("CustomAdditionalCompileInputs");
+            var expectedItemCount = expectedCustomAdditionalCompileInput ? 1 : 0;
+            Assert.Equal(expectedItemCount, items.Count);
+            if (expectedCustomAdditionalCompileInput)
+            {
+                Assert.Equal(expectedLastBuildWithSkipAnalyzers, items.Single().EvaluatedInclude);
+            }
+
+            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists && !skipAnalyzers;
+            items = instance.GetItems("UpToDateCheckInput");
+            expectedItemCount = expectedUpToDateCheckInput ? 1 : 0;
+            Assert.Equal(expectedItemCount, items.Count);
+            if (expectedUpToDateCheckInput)
+            {
+                var item = items.Single();
+                Assert.Equal(expectedLastBuildWithSkipAnalyzers, item.EvaluatedInclude);
+                Assert.Equal("ImplicitBuild", item.GetMetadataValue("Kind"));
+            }
+
+            return;
+
+            static string getPropertyGroup(string propertyName, bool? propertyValue)
+            {
+                if (!propertyValue.HasValue)
+                {
+                    return string.Empty;
+                }
+
+                return $@"
+    <PropertyGroup>
+        <{propertyName}>{propertyValue.Value}</{propertyName}>
+    </PropertyGroup>";
+            }
+        }
+
         [Fact]
         public void ProjectCapabilityIsNotAddedWhenRoslynComponentIsUnspecified()
         {
@@ -747,6 +891,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Contains("RoslynComponent", caps);
         }
 
+        [Fact]
+        public void CompilerApiVersionIsSet()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var compilerApiVersionString = instance.GetPropertyValue("CompilerApiVersion");
+            Assert.StartsWith("roslyn", compilerApiVersionString);
+
+            var compilerApiVersion = Version.Parse(compilerApiVersionString.Substring("roslyn".Length));
+
+            var expectedVersionString = GetType().Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .Single(a => a.Key == "CurrentCompilerApiVersion")
+                .Value ?? string.Empty;
+            var expectedVersion = Version.Parse(expectedVersionString);
+
+            Assert.Equal(expectedVersion, compilerApiVersion);
+        }
+
         private static ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
@@ -767,6 +935,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             addTask(proj, "MakeDir", new()
             {
                 { "Directories", "System.String[]" }
+            });
+
+            // dummy Message task
+            addTask(proj, "Message", new()
+            {
+                { "Text", "System.String" },
+                { "Importance", "System.String" }
             });
 
             // create an instance and return it

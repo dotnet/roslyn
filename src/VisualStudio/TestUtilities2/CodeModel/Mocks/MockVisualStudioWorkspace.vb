@@ -64,6 +64,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Throw New NotImplementedException()
         End Function
 
+        Public Overrides Function TryGoToDefinitionAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Throw New NotImplementedException()
+        End Function
+
         Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
             Throw New NotImplementedException()
         End Function

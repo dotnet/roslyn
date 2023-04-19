@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var test = "global using ns1;";
 
-            UsingTree(test, TestOptions.RegularPreview);
+            UsingTree(test, TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -273,9 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "global using ns1;";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using ns1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var test = "namespace ns { global using ns1; }";
 
-            UsingTree(test, TestOptions.RegularPreview);
+            UsingTree(test, TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "namespace ns { global using ns1; }";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,16): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // namespace ns { global using ns1; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 16)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var test = "global using static ns1;";
 
-            UsingTree(test, TestOptions.RegularPreview);
+            UsingTree(test, TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "global using static ns1;";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using static ns1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using static ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using static ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var test = "namespace ns { global using static ns1; }";
 
-            UsingTree(test, TestOptions.RegularPreview);
+            UsingTree(test, TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -462,9 +462,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "namespace ns { global using static ns1; }";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,16): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // namespace ns { global using static ns1; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using static ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using static ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 16)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -533,9 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "global using alias = ns1;";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using alias = ns1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using alias = ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using alias = ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -611,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var test = "namespace ns { global using alias = ns1; }";
 
             UsingTree(test, TestOptions.Regular9,
-                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,16): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // namespace ns { global using alias = ns1; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using alias = ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using alias = ns1;").WithArguments("global using directive", "10.0").WithLocation(1, 16)
                 );
 
             N(SyntaxKind.CompilationUnit);

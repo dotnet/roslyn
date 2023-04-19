@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
 {
@@ -32,16 +33,18 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// It can also show messages about no references being found at the end of the search.
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
-        /// <param name="cancellationToken">External cancellation token controlling whether finding shoudl be canceled
-        /// or not.  This will be combined with a cancellation token owned by the <see cref="FindUsagesContext"/>.
-        /// Callers should consider <see cref="FindUsagesContext.CancellationToken"/> to be the source of truth for
-        /// cancellation from that point on.</param>
-        FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken);
+        /// <returns>A cancellation token that will be triggered if the presenter thinks the search
+        /// should stop.  This can normally happen if the presenter view is closed, or recycled to
+        /// start a new search in it.  Callers should only use this if they intend to report results
+        /// asynchronously and thus relinquish their own control over cancellation from their own
+        /// surrounding context.  If the caller intends to populate the presenter synchronously,
+        /// then this cancellation token can be ignored.</returns>
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences);
 
         /// <summary>
         /// Call this method to display the Containing Type, Containing Member, or Kind columns
         /// </summary>
-        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken);
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -63,11 +66,18 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
         {
-            // Can only navigate or present items on UI thread.
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (items.IsDefaultOrEmpty)
+                return false;
 
-            // Ignore any definitions that we can't navigate to.
-            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace, cancellationToken));
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
+            foreach (var item in items)
+            {
+                // Ignore any definitions that we can't navigate to.
+                if (await item.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
+                    definitionsBuilder.Add(item);
+            }
+
+            var definitions = definitionsBuilder.ToImmutable();
 
             // See if there's a third party external item we can navigate to.  If so, defer 
             // to that item and finish.
@@ -77,10 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (item.TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken))
-                {
+                if (await item.TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
@@ -95,23 +103,29 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return nonExternalItems[0].TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken);
+                return await nonExternalItems[0].TryNavigateToAsync(
+                    workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
             }
 
             if (presenter != null)
             {
+                // Can only navigate or present items on UI thread.
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // We have multiple definitions, or we have definitions with multiple locations. Present this to the
-                // user so they can decide where they want to go to.  If we cancel this will trigger the context to
-                // cancel as well.
-                var context = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
+                // user so they can decide where they want to go to.
+                //
+                // We ignore the cancellation token returned by StartSearch as we're in a context where
+                // we've computed all the results and we're synchronously populating the UI with it.
+                var (context, _) = presenter.StartSearch(title, supportsReferences: false);
                 try
                 {
                     foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 

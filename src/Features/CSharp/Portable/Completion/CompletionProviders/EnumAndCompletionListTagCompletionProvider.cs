@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // as an 'int' type, not the enum type.
 
             // See if we're after a common enum-combining operator.
-            if (token.Kind() == SyntaxKind.BarToken ||
-                token.Kind() == SyntaxKind.AmpersandToken ||
-                token.Kind() == SyntaxKind.CaretToken)
+            if (token.Kind() is SyntaxKind.BarToken or
+                SyntaxKind.AmpersandToken or
+                SyntaxKind.CaretToken)
             {
                 // See if the type we're looking at is the underlying type for the enum we're contained in.
                 var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
-            if (type.TypeKind == TypeKind.Struct || type.TypeKind == TypeKind.Class)
+            if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
                 return type as INamedTypeSymbol;
 
             return null;

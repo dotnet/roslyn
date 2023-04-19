@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        private void GetMainDocumentAndPreviews(TestParameters parameters, TestWorkspace workspace, out Document document, out SolutionPreviewResult previews)
+        private async Task<(Document document, SolutionPreviewResult previews)> GetMainDocumentAndPreviewsAsync(TestParameters parameters, TestWorkspace workspace)
         {
-            document = GetDocument(workspace);
+            var document = GetDocument(workspace);
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
             var span = document.GetSyntaxRootAsync().Result.Span;
             var refactorings = new List<CodeAction>();
@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = refactorings.Single();
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None);
+            var previews = await editHandler.GetPreviewsAsync(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None);
+
+            return (document, previews);
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14421")]
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var parameters = new TestParameters();
             using var workspace = CreateWorkspaceFromOptions("class D {}", parameters);
 
-            GetMainDocumentAndPreviews(parameters, workspace, out var document, out var previews);
+            var (document, previews) = await GetMainDocumentAndPreviewsAsync(parameters, workspace);
 
             // The changed document comes first.
             var previewObjects = await previews.GetPreviewsAsync();

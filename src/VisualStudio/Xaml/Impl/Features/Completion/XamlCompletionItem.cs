@@ -27,5 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
         public ISymbol Symbol { get; set; }
         public XamlEventDescription? EventDescription { get; set; }
         public bool RetriggerCompletion { get; set; }
+        public bool IsSnippet { get; set; }
     }
 }

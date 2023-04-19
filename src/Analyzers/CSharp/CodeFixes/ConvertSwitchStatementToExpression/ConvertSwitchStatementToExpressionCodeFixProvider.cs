@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument)
+                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression))
             {
             }
         }

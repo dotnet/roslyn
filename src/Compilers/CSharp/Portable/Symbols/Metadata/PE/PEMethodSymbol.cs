@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -389,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override NamedTypeSymbol ContainingType => _containingType;
 
         public override string Name => _name;
+
+        public override int MetadataToken => MetadataTokens.GetToken(_handle);
 
         private bool HasFlag(MethodAttributes flag)
         {
@@ -1174,16 +1177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return MethodKind.DelegateInvoke;
                         }
                         break;
-                    default:
-                        // Note: this is expensive, so check it last
-                        // Note: method being processed may have an explicit method .override but still be 
-                        //       publicly accessible, the decision here is being made based on the method's name
-                        if (!SyntaxFacts.IsValidIdentifier(this.Name) && !this.ExplicitInterfaceImplementations.IsEmpty)
-                        {
-                            return MethodKind.ExplicitInterfaceImplementation;
-                        }
-                        break;
                 }
+            }
+
+            // Note: this is expensive, so check it last
+            // Note: method being processed may have an explicit method .override but still be 
+            //       publicly accessible, the decision here is being made based on the method's name
+            if (!SyntaxFacts.IsValidIdentifier(this.Name) && !this.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                return MethodKind.ExplicitInterfaceImplementation;
             }
 
             return MethodKind.Ordinary;

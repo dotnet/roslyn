@@ -102,6 +102,11 @@
         <target state="translated">Offset und Länge für das Array liegen außerhalb des gültigen Bereichs, oder die Anzahl ist größer als die Anzahl der Elemente vom Index bis zum Ende der Quellsammlung.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Der alte Wert wurde nicht gefunden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Vorgänge, die nicht parallele Sammlungen ändern, müssen exklusiven Zugriff besitzen. Für diese Sammlung wurde ein paralleles Update durchgeführt, das einen Statusfehler ausgelöst hat. Der Status der Sammlung ist nicht mehr korrekt.</target>

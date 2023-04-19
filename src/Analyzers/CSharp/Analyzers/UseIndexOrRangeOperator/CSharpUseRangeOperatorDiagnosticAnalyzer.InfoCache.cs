@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -28,13 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// </summary>
             [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
             public readonly INamedTypeSymbol RangeType;
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo = new();
 
-            public InfoCache(Compilation compilation)
+            private InfoCache(INamedTypeSymbol rangeType, INamedTypeSymbol stringType)
             {
-                RangeType = compilation.GetBestTypeByMetadataName("System.Range");
-
-                _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
+                RangeType = rangeType;
 
                 // Always allow using System.Range indexers with System.String.Substring.  The
                 // compiler has hard-coded knowledge on how to use this type, even if there is no
@@ -42,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 //
                 // Ensure that we can actually get the 'string' type. We may fail if there is no
                 // proper mscorlib reference (for example, while a project is loading).
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
                 if (!stringType.IsErrorType())
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
@@ -51,6 +46,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                     _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
+            }
+
+            public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
+            {
+                var rangeType = compilation.GetBestTypeByMetadataName("System.Range");
+                if (rangeType == null)
+                {
+                    infoCache = null;
+                    return false;
+                }
+
+                var stringType = compilation.GetSpecialType(SpecialType.System_String);
+                infoCache = new InfoCache(rangeType, stringType);
+                return true;
             }
 
             private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)

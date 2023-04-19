@@ -102,6 +102,11 @@
         <target state="translated">Смещение и длина вышли за границы массива или значение счетчика превышает количество элементов от указателя до конца исходной коллекции.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Не удается найти старое значение</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Операции, которые изменяют коллекции, не обрабатываемые параллельно, должны иметь монопольный доступ. В этой коллекции было выполнено параллельное обновление, и ее состояние повреждено. Состояние коллекции больше не является достоверным.</target>

@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
@@ -17,10 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(SymbolCompletionProvider)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -6340,6 +6335,34 @@ End Class]]></code>.Value
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt?.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Day")
+            Await VerifyItemIsAbsentAsync(text, "Value")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Value")
+            Await VerifyItemIsAbsentAsync(text, "Day")
+        End Function
+
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestHidePropertyBackingFieldAndEventsAtExpressionLevel() As Task
@@ -7750,6 +7773,7 @@ End Namespace
             For index = 2 To 8
                 Await VerifyItemExistsAsync(text, "Item" + index.ToString())
             Next
+
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
@@ -8428,7 +8452,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8443,7 +8467,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, False)
+            TargetTypedCompletionFilterFeatureFlag = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8458,7 +8482,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer

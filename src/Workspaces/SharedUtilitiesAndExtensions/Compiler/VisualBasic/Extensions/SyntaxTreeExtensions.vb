@@ -91,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
                 node = node.Parent
             End While
+
             Return False
         End Function
 
@@ -134,6 +135,7 @@ recurse:
                                 Return trivia
                             End If
                         Next
+
                         For Each trivia In child.GetLeadingTrivia.Reverse
                             If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
@@ -142,6 +144,7 @@ recurse:
                     End If
                 End If
             Next
+
             Return Nothing
         End Function
 

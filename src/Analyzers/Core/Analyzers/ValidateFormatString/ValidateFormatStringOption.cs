@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 nameof(ValidateFormatStringOption),
                 nameof(ReportInvalidPlaceholdersInStringDotFormatCalls),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
     }
 }

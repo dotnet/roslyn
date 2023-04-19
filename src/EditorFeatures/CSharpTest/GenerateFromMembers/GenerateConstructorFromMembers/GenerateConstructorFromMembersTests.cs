@@ -1764,5 +1764,30 @@ unsafe class Z
     }
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+<![CDATA[ class Z<T> where T : class ]]>
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }

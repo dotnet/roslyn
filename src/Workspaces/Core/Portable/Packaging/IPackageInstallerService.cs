@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
@@ -21,10 +18,11 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId,
+        bool TryInstallPackage(
+            Workspace workspace, DocumentId documentId,
             string source, string packageName,
-            string versionOpt, bool includePrerelease,
-            CancellationToken cancellationToken);
+            string? version, bool includePrerelease,
+            IProgressTracker progressTracker, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Packaging
             Source = source;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is PackageSource source && Equals(source);
 
         public bool Equals(PackageSource other)

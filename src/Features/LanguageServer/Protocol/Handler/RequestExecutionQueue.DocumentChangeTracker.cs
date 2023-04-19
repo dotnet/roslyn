@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public List<SourceText> GetTrackedTexts()
                 => _queue._documentChangeTracker.GetTrackedDocuments().Select(i => i.Text).ToList();
+
+            public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
         }
     }
 }

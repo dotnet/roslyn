@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             InitializerExpressionSyntax node,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
@@ -58,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //
                 // However, the hint span should be the entire object creation.
 
-                var previousToken = node.OpenBraceToken.GetPreviousToken();
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),

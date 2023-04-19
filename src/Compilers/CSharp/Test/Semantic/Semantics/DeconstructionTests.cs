@@ -6258,5 +6258,124 @@ IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_1()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((var i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var i, i)").WithLocation(6, 18),
+                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 23),
+                // (6,26): error CS0841: Cannot use local variable 'i' before it is declared
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_2()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (var i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 14),
+                // (6,17): error CS0841: Cannot use local variable 'i' before it is declared
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 17),
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_3()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(int i, i)").WithLocation(6, 18),
+                // (6,26): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "foreach iteration variable").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_4()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (int i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (int i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
     }
 }

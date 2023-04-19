@@ -44,24 +44,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case local.SynthesizedKind
                     Case SynthesizedLocalKind.LambdaDisplayClass
                         uniqueId += 1
-                        Return StringConstants.HoistedSpecialVariablePrefix & StringConstants.ClosureVariablePrefix & uniqueId
+                        Return GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix & uniqueId
 
                     Case SynthesizedLocalKind.With
                         uniqueId += 1
-                        Return StringConstants.HoistedWithLocalPrefix & uniqueId
+                        Return GeneratedNameConstants.HoistedWithLocalPrefix & uniqueId
 
                     Case Else
                         uniqueId += 1
-                        Return StringConstants.HoistedSpecialVariablePrefix & uniqueId
+                        Return GeneratedNameConstants.HoistedSpecialVariablePrefix & uniqueId
                 End Select
             End If
 
             Dim parameter = TryCast(captured, ParameterSymbol)
             If parameter IsNot Nothing AndAlso parameter.IsMe Then
-                Return StringConstants.HoistedMeName
+                Return GeneratedNameConstants.HoistedMeName
             End If
 
-            Return StringConstants.HoistedUserVariablePrefix & captured.Name
+            Return GeneratedNameConstants.HoistedUserVariablePrefix & captured.Name
         End Function
 
         Public Shared Function GetCapturedVariableFieldType(frame As LambdaFrame, captured As Symbol) As TypeSymbol

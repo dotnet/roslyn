@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+        private static readonly char[] s_projectSeperators = new[] { ';' };
 
         private static CompletionItem CreateWorker(
             string displayText,
@@ -187,12 +188,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (position == -1)
                 position = item.Span.Start;
 
-            var workspace = document.Project.Solution.Workspace;
-
-            var supportedPlatforms = GetSupportedPlatforms(item, workspace);
+            var supportedPlatforms = GetSupportedPlatforms(item, document.Project.Solution);
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            var workspace = document.Project.Solution.Workspace;
             return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
@@ -225,16 +225,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static readonly char[] projectSeperators = new[] { ';' };
-        public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Workspace workspace)
+        public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Solution solution)
         {
             if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects)
                 && item.Properties.TryGetValue("CandidateProjects", out var candidateProjects))
             {
                 return new SupportedPlatformData(
-                    invalidProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
-                    candidateProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
-                    workspace);
+                    solution,
+                    invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
+                    candidateProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList());
             }
 
             return null;
@@ -354,14 +353,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-
             var position = GetDescriptionPosition(item);
-            var supportedPlatforms = GetSupportedPlatforms(item, workspace);
+            var supportedPlatforms = GetSupportedPlatforms(item, document.Project.Solution);
 
             if (symbols.Count != 0)
             {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }
             else
             {

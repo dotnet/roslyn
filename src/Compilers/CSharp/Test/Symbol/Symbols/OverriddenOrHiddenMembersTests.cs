@@ -2025,7 +2025,7 @@ class B2 : B1, I1
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is static.
+                // (10,16): error CS0736: 'B2' does not implement instance interface member 'I1.Goo'. 'B2.Goo' cannot implement the interface member because it is static.
                 // class B2 : B1, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Goo", "B2.Goo").WithLocation(10, 16));
 
@@ -2064,10 +2064,10 @@ class B3 : I
     public static void M<T>() { }
 }";
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
-                // (5,15): error CS0736: 'B2' does not implement interface member 'I.M<T>()'. 'A.M<T>()' cannot implement an interface member because it is static.
+                // (5,15): error CS0736: 'B2' does not implement instance interface member 'I.M<T>()'. 'A.M<T>()' cannot implement the interface member because it is static.
                 // class B2 : A, I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B2", "I.M<T>()", "A.M<T>()").WithLocation(5, 15),
-                // (8,12): error CS0736: 'B3' does not implement interface member 'I.M<T>()'. 'B3.M<T>()' cannot implement an interface member because it is static.
+                // (8,12): error CS0736: 'B3' does not implement instance interface member 'I.M<T>()'. 'B3.M<T>()' cannot implement the interface member because it is static.
                 // class B3 : I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B3", "I.M<T>()", "B3.M<T>()").WithLocation(8, 12));
         }

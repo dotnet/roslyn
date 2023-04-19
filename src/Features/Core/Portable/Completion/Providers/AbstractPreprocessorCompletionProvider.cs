@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await originatingDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var service = originatingDocument.GetRequiredLanguageService<ISyntaxContextService>();
             var solution = originatingDocument.Project.Solution;
-            var syntaxContext = service.CreateContext(solution.Workspace, semanticModel, position, cancellationToken);
+            var syntaxContext = service.CreateContext(originatingDocument, semanticModel, position, cancellationToken);
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 

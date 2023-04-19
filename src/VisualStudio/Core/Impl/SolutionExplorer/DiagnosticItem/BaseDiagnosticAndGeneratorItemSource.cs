@@ -130,9 +130,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)
         {
-            if (e.Kind == WorkspaceChangeKind.SolutionCleared ||
-                e.Kind == WorkspaceChangeKind.SolutionReloaded ||
-                e.Kind == WorkspaceChangeKind.SolutionRemoved)
+            if (e.Kind is WorkspaceChangeKind.SolutionCleared or
+                WorkspaceChangeKind.SolutionReloaded or
+                WorkspaceChangeKind.SolutionRemoved)
             {
                 Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
             }

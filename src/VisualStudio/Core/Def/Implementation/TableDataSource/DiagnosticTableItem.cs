@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is DiagnosticTableItem otherDiagnosticItem))
+            if (other is not DiagnosticTableItem otherDiagnosticItem)
             {
                 return false;
             }

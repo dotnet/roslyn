@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_parameters.IsEmpty)
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
                 }

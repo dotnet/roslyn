@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            var token = root.FindTokenOnLeftOfPosition(position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
                 if (isTriggerToken(token) &&
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
-                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunctionExpression(n))
                         .OfType<TSyntax>()
                         .SkipWhile(syntax => !isArgumentListToken(syntax, token))
                         .FirstOrDefault();

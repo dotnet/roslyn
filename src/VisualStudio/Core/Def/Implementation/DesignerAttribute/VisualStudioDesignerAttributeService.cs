@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -66,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             Shell.SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
@@ -75,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
                 TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
+                asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes),
                 ThreadingContext.DisposalToken);
         }
 
@@ -143,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     workspaceKinds: WorkspaceKind.Host));
         }
 
-        private async Task NotifyProjectSystemAsync(
+        private async ValueTask NotifyProjectSystemAsync(
             ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

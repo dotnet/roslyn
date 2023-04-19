@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SyntacticClassificationTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _listener;
-        private readonly ClassificationTypeMap _typeMap;
+        private readonly SyntacticClassificationTypeMap _typeMap;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SyntacticClassificationTaggerProvider(
             IThreadingContext threadingContext,
-            ClassificationTypeMap typeMap,
+            SyntacticClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, assertIsForeground: false)
         {

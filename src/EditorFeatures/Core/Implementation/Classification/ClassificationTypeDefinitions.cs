@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition UserMembersConstantsTypeDefinition;
         #endregion
-        #region User Memebers - Locals
+        #region User Members - Locals
         [Export]
         [Name(ClassificationTypeNames.LocalName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
@@ -345,6 +345,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralText)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
+        #endregion
+
+        #region Reassigned Variable
+        [Export]
+        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition ReassignedVariableTypeDefinition;
         #endregion
 
         #region Static Symbol

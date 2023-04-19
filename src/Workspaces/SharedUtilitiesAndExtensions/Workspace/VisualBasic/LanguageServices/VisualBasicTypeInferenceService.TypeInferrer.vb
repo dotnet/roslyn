@@ -639,6 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression) Then
                     Return InferTypeInCallStatement()
                 End If
+
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
             End Function
 

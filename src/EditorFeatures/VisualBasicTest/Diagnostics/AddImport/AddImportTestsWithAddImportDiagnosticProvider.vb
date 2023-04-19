@@ -105,62 +105,6 @@ Class MultiDictionary(Of K, V)
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
-        Public Async Function TestImportIncompleteSub() As Task
-            Await TestAsync(
-"Class A
-    Dim a As Action = Sub()
-                          Try
-                          Catch ex As [|TestException|]
- End Sub
-End Class
-Namespace T
-    Class TestException
-        Inherits Exception
-    End Class
-End Namespace",
-                "Imports T
-
-Class A
-    Dim a As Action = Sub()
-                          Try
-                          Catch ex As TestException
- End Sub
-End Class
-Namespace T
-    Class TestException
-        Inherits Exception
-    End Class
-End Namespace", TestHost.InProcess)
-        End Function
-
-        <WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
-        <Fact>
-        Public Async Function TestImportIncompleteSub2() As Task
-            Await TestAsync(
-"Imports System.Linq
-Namespace X
-    Class Test
-    End Class
-End Namespace
-Class C
-    Sub New()
-        Dim s As Action = Sub()
-                              Dim a = New [|Test|]()",
-                "Imports System.Linq
-Imports X
-
-Namespace X
-    Class Test
-    End Class
-End Namespace
-Class C
-    Sub New()
-        Dim s As Action = Sub()
-                              Dim a = New Test()", TestHost.InProcess)
-        End Function
-
         <WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>
         <Fact>
         Public Async Function TestMissingDiagnosticForNameOf() As Task
