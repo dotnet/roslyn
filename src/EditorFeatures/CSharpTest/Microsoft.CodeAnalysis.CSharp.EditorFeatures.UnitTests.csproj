@@ -71,5 +71,8 @@
   <ItemGroup>
     <Compile Include="..\..\Analyzers\CSharp\Tests\UseVarTestExtensions.cs" Link="CodeRefactorings\UseVarTestExtensions.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interactive\CodeActions\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>
