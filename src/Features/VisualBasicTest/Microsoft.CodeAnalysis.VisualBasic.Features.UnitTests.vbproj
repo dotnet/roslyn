@@ -35,13 +35,6 @@
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
-    <!--
-    <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
-    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
-    -->
     <ProjectReference Include="..\..\EditorFeatures\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
   </ItemGroup>
