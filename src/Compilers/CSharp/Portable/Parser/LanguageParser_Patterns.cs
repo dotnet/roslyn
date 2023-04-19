@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return PostSkipAction.Abort;
 
             // `:` is usually treated as incorrect separation token. This helps for error recovery in basic typing scenarios like `{ Prop:$$ Prop1: { ... } }`.
-            // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider this case: `case { Prop: { }: case ...`.
+            // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider the following example: `case { Prop: { }: case ...`.
             // Normally we would skip second `:` and `case` keyword after it as a bad tokens and continue parsing pattern, which produces a lot of noise errors.
             // In order to avoid that and produce single error of missing `}` we exit on unexpected `:` in such cases.
             if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
