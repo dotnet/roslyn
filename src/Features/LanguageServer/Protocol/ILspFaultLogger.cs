@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface ILspFaultLogger
 {
-    void Initialize();
+    void Initialize(string telemetryLevel);
     void ReportFault(Exception exception, LogLevel logLevel, bool forceDump);
 }

@@ -17,12 +17,13 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.VisualStudio.Composition;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, CancellationToken cancellationToken)
+static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, string? telemetryLevel, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -74,7 +75,14 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     }
 
     // Initialize the fault handler if it's available
-    exportProvider.GetExportedValues<ILspFaultLogger>().SingleOrDefault()?.Initialize();
+    if (telemetryLevel is not null)
+    {
+        try
+        {
+            exportProvider.GetExportedValue<ILspFaultLogger?>()?.Initialize(telemetryLevel);
+        }
+        catch (CompositionFailedException) { }
+    }
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -156,6 +164,11 @@ static Parser CreateCommandLineParser()
         Description = "The file name to use for the project.razor.json file (for Razor projects).",
         IsRequired = false,
     };
+    var telemetryLevelOption = new Option<string?>("--telemetryLevel", getDefaultValue: () => null)
+    {
+        Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
+        IsRequired = false,
+    };
 
     var rootCommand = new RootCommand()
     {
@@ -164,6 +177,7 @@ static Parser CreateCommandLineParser()
         logLevelOption,
         starredCompletionsPathOption,
         projectRazorJsonFileNameOption,
+        telemetryLevelOption,
     };
     rootCommand.SetHandler(context =>
     {
@@ -173,8 +187,9 @@ static Parser CreateCommandLineParser()
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
+        var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
