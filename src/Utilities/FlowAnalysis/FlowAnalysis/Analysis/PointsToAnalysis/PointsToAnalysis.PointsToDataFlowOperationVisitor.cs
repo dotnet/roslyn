@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         Debug.Assert(value == _defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity));
                         Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var currentValue) ||
                                      currentValue.Kind == PointsToAbstractValueKind.Unknown &&
-                                     (analysisEntity.Symbol as IParameterSymbol)?.RefKind == RefKind.Out);
+                                     analysisEntity.Symbol is IParameterSymbol { RefKind: RefKind.Out });
                         return;
                     }
 

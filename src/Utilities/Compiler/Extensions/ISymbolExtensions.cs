@@ -94,7 +94,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.Constructor };
         }
 
         public static bool IsDestructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
@@ -104,7 +104,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsIndexer([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IPropertySymbol)?.IsIndexer == true;
+            return symbol is IPropertySymbol { IsIndexer: true };
         }
 
         public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
@@ -153,12 +153,12 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsUserDefinedOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator };
         }
 
         public static bool IsConversionOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Conversion;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.Conversion };
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)

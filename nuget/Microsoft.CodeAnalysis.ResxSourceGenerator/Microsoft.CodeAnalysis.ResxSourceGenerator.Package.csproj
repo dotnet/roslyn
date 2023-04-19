@@ -12,6 +12,7 @@
     <ReleaseNotes>Source generator for resource files</ReleaseNotes>
     <PackageTags>Microsoft.CodeAnalysis.ResxSourceGenerator, analyzers</PackageTags>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <IsShippingPackage>true</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup>

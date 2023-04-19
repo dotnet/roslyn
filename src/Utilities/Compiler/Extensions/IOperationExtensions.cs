@@ -684,7 +684,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static IOperation? WalkUpParentheses(this IOperation? operation)
         {
             if (operation is null)
@@ -730,7 +730,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static IOperation? WalkUpConversion(this IOperation? operation)
         {
             if (operation is null)
@@ -1039,7 +1039,7 @@ namespace Analyzer.Utilities.Extensions
             else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
                 reDimClauseOperation.Operand == operation)
             {
-                return (reDimClauseOperation.Parent as IReDimOperation)?.Preserve == true
+                return reDimClauseOperation.Parent is IReDimOperation { Preserve: true }
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
