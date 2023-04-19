@@ -833,15 +833,17 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<TKey, ImmutableArray<TSource>> ToDictionary<TSource, TKey>(this ImmutableArray<TSource> items, Func<TSource, TKey> keySelector)
+        public static Dictionary<TKey, ImmutableArray<TSource>> ToDictionary<TSource, TKey>(this ImmutableArray<TSource> items, Func<TSource, TKey> keySelector)
             where TKey : notnull
             where TSource : class
         {
-            return ToDictionary<TSource, TSource, TKey, VoidResult, TSource>(items, static (x, _) => x, keySelector, data: default);
+            return ToDictionary<TSource, TSource, TKey, VoidResult, TSource>(items, static (x, _) => x, keySelector, data: default, downcastUnused: null);
         }
 
-        internal static Dictionary<TKey, ImmutableArray<TResult>> ToDictionary<TSource, TResult, TKey, TData, TDowncast>(
-            this ImmutableArray<TSource> items, Func<TSource, TData, TResult> selector, Func<TResult, TKey> keySelector, TData data)
+        public static Dictionary<TKey, ImmutableArray<TResult>> ToDictionary<TSource, TResult, TKey, TData, TDowncast>(
+#pragma warning disable IDE0060 // Remove unused parameter. `TDowncast? downcastUnused` is here just so we can get type inference to work at callsites without having to pass all type arguments along.
+            this ImmutableArray<TSource> items, Func<TSource, TData, TResult> selector, Func<TResult, TKey> keySelector, TData data, TDowncast? downcastUnused)
+#pragma warning restore IDE0060 // Remove unused parameter
             where TKey : notnull
             where TSource : notnull
             where TResult : notnull
@@ -907,15 +909,9 @@ namespace Microsoft.CodeAnalysis
                     // try to place a downcasted array in the result if all the elements are of that downcasted type.
                     if (pair.Value is ArrayBuilder<TResult> arrayBuilder)
                     {
-                        if (arrayBuilder.All(static v => v is TDowncast))
-                        {
-                            dictionary.Add(pair.Key, ImmutableArray<TResult>.CastUp(arrayBuilder.ToDowncastedImmutable<TDowncast>()));
-                            arrayBuilder.Free();
-                        }
-                        else
-                        {
-                            dictionary.Add(pair.Key, arrayBuilder.ToImmutableAndFree());
-                        }
+                        dictionary.Add(pair.Key, arrayBuilder.All(static v => v is TDowncast)
+                            ? ImmutableArray<TResult>.CastUp(arrayBuilder.ToDowncastedImmutableAndFree<TDowncast>())
+                            : arrayBuilder.ToImmutableAndFree());
                     }
                     else
                     {

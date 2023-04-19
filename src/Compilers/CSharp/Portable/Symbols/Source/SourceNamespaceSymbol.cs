@@ -314,10 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var result = _mergedDeclaration.Children.ToDictionary<MergedNamespaceOrTypeDeclaration,NamespaceOrTypeSymbol, string, (SourceNamespaceSymbol @this, BindingDiagnosticBag diagnostics), NamedTypeSymbol>(
+            var result = _mergedDeclaration.Children.ToDictionary(
                 static (declaration, tuple) => tuple.@this.BuildSymbol(declaration, tuple.diagnostics),
                 static symbol => symbol.Name,
-                (this, diagnostics));
+                (@this: this, diagnostics),
+                downcastUnused: (NamedTypeSymbol)null);
 
             CheckMembers(this, result, diagnostics);
 
