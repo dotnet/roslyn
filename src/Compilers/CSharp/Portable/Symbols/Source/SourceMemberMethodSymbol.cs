@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
-        protected ImmutableArray<Location> locations;
+        protected readonly Location _location;
         protected string lazyDocComment;
         protected string lazyExpandedDocComment;
 
@@ -218,24 +218,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
-            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location), isIterator)
-        {
-        }
-
         protected SourceMemberMethodSymbol(
             NamedTypeSymbol containingType,
             SyntaxReference syntaxReferenceOpt,
-            ImmutableArray<Location> locations,
+            Location location,
             bool isIterator)
             : base(syntaxReferenceOpt, isIterator)
         {
-            Debug.Assert((object)containingType != null);
-            Debug.Assert(!locations.IsEmpty);
+            Debug.Assert(containingType is not null);
+            Debug.Assert(location is not null);
             Debug.Assert(containingType.DeclaringCompilation is not null);
 
             _containingType = containingType;
-            this.locations = locations;
+            _location = location;
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
@@ -667,12 +662,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// which might return locations of partial methods.
         /// </summary>
         public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
-            }
-        }
+            => ImmutableArray.Create(_location);
+
+        public override Location TryGetFirstLocation()
+            => _location;
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -840,17 +833,16 @@ done:
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var compilation = this.DeclaringCompilation;
-            var location = locations[0];
 
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ShouldEmitNullableContextValue(out _))
             {
-                compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableContextAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
         }
 

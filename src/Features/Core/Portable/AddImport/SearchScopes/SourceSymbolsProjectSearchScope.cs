@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                            {
                                var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
                                return compilation.Assembly;
-                           }, cacheResult: true);
+                           });
             }
         }
     }
