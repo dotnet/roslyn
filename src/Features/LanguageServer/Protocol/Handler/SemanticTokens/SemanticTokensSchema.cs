@@ -32,81 +32,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
              });
 
         /// <summary>
-        /// The 'pure' set of classification types maps everything reasonable to the well defined values actually in LSP.
+        /// The 'pure' set of classification types maps exact roslyn matches to the well defined values actually in LSP.
+        /// For example "class name" to "class".  Importantly though, if there is no exact match, we do not map things
+        /// along.  This allows the user to theme things however they want.
         /// </summary>
         private static readonly SemanticTokensSchema s_pureLspTokenSchema = new(
             s_vsTokenSchema.TokenTypeMap.Concat(new Dictionary<string, string>
             {
-                // No specific lsp property for this.
-                [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword,
-
-                // No specific lsp property for this.
-                [ClassificationTypeNames.OperatorOverloaded] = SemanticTokenTypes.Operator,
-
-                // No specific lsp property for this.
-                [ClassificationTypeNames.VerbatimStringLiteral] = SemanticTokenTypes.String,
-
-                // No specific lsp property for all of these
                 [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.RecordClassName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.DelegateName] = SemanticTokenTypes.Class,
-                [ClassificationTypeNames.ModuleName] = SemanticTokenTypes.Class,
-
-                // No specific lsp property for both of these
                 [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.RecordStructName] = SemanticTokenTypes.Struct,
-
                 [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
                 [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
                 [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
                 [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
                 [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
                 [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Variable,
-
-                // No specific lsp property for all of these
                 [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
-                [ClassificationTypeNames.FieldName] = SemanticTokenTypes.Property,
-                [ClassificationTypeNames.ConstantName] = SemanticTokenTypes.Property,
-
-                // No specific lsp property for all of these
                 [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Method,
-                [ClassificationTypeNames.ExtensionMethodName] = SemanticTokenTypes.Method,
-
                 [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
                 [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
                 [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
-
                 // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
                 [ClassificationTypeNames.LabelName] = "label",
-
-                // No specific lsp property for all of these
-                [ClassificationTypeNames.RegexComment] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexCharacterClass] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexAnchor] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexQuantifier] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexGrouping] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexAlternation] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexText] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexSelfEscapedCharacter] = SemanticTokenTypes.Regexp,
-                [ClassificationTypeNames.RegexOtherEscape] = SemanticTokenTypes.Regexp,
-
-                // TODO: Missing lsp classifications for xml doc comments, xml literals (vb), json.
-
-                // TODO: Missing specific lsp classifications for the following classification type names.
-
-#if false
-                public const string ExcludedCode = "excluded code";
-                public const string WhiteSpace = "whitespace";
-                public const string Text = "text";
-
-                internal const string ReassignedVariable = "reassigned variable";
-                public const string StaticSymbol = "static symbol";
-
-                public const string PreprocessorText = "preprocessor text";
-                public const string Punctuation = "punctuation";
-                public const string StringEscapeCharacter = "string - escape character";
-#endif
-
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
         /// <summary>
