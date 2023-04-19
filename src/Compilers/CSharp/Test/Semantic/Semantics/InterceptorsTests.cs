@@ -90,6 +90,29 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void SelfInterception()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    InterceptableMethod();
+                }
+
+                [Interceptable]
+                [InterceptsLocation("Program.cs", 8, 9)]
+                public static void InterceptableMethod() { Console.Write(1); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void StaticInterceptable_StaticInterceptor_NoParameters()
     {
         var source = """
@@ -466,6 +489,52 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateLocation_02()
+    {
+        var source0 = """
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() { }
+            }
+            """;
+
+        var source1 = """
+            using System.Runtime.CompilerServices;
+
+            class D1
+            {
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M1() { }
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+
+            class D2
+            {
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M1() { }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source0, "Program.cs"), (source1, "File1.cs"), (source2, "File2.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // File2.cs(5,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 3, 3)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 3, 3)").WithLocation(5, 6),
+            // File1.cs(5,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 3, 3)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 3, 3)").WithLocation(5, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptsLocationFromMetadata()
     {
         // Verify that `[InterceptsLocation]` on a method from metadata does not cause a call in the current compilation to be intercepted.
@@ -738,6 +807,38 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void ParameterNameDifference()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod(string s1) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod(s1: "1");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1(this C c, string s2) { Console.Write(s2); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void AttributeArgumentLabels_01()
     {
         var source = """
@@ -879,7 +980,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void BadMethodKind()
+    public void InterceptsLocation_BadMethodKind()
     {
         var source = """
             using System.Runtime.CompilerServices;
@@ -922,7 +1023,7 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void LocalFunctionInterceptable()
+    public void Interceptable_BadMethodKind()
     {
         var source = """
             using System.Runtime.CompilerServices;
@@ -935,21 +1036,33 @@ public class InterceptorsTests : CSharpTestBase
             {
                 public static void Main()
                 {
+                    var lambda = [Interceptable] (string param) => { }; // 1
+
                     InterceptableMethod("call site");
 
-                    [Interceptable]
+                    [Interceptable] // 2
                     static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
                 }
 
-                [InterceptsLocation("Program.cs", 11, 9)]
-                public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
+                public static string Prop
+                {
+                    [Interceptable] // 3
+                    set { }
+                }
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyDiagnostics(
-            // Program.cs(13,10): error CS27008: An interceptable method must be an ordinary member method.
-            //         [Interceptable]
-            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(13, 10));
+            // Program.cs(11,23): error CS27008: An interceptable method must be an ordinary member method.
+            //         var lambda = [Interceptable] (string param) => { }; // 1
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(11, 23),
+            // Program.cs(15,10): error CS27008: An interceptable method must be an ordinary member method.
+            //         [Interceptable] // 2
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(15, 10),
+            // Program.cs(21,10): error CS27008: An interceptable method must be an ordinary member method.
+            //         [Interceptable] // 3
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(21, 10)
+            );
     }
 
     [Fact]
@@ -1617,7 +1730,7 @@ public class InterceptorsTests : CSharpTestBase
             {
             }
             """;
-        // PROTOTYPE(ic): the character suggested here is wrong. What should we do to give a useful diagnostic here?
+
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
                 // Program.cs(19,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '13' and character '13'?
@@ -2565,5 +2678,60 @@ partial struct CustomHandler
             // OtherFile.cs(48,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'OtherFile.cs'.
             //     [InterceptsLocation("OtherFile.cs", 42, 9)]
             Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""OtherFile.cs""").WithArguments("OtherFile.cs").WithLocation(48, 25));
+    }
+
+    [Fact]
+    public void ObsoleteInterceptor()
+    {
+        // Expect no Obsolete diagnostics to be reported
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() => throw null!;
+            }
+
+            class D
+            {
+                [Obsolete]
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M1() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CallerInfo()
+    {
+        // CallerLineNumber, etc. on the interceptor doesn't affect the default arguments passed to an intercepted call.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M(int lineNumber = 1) => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M1([CallerLineNumber] int lineNumber = 0) => Console.Write(lineNumber);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 }
