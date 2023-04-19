@@ -1797,12 +1797,11 @@ public class InterceptorsTests : CSharpTestBase
         // Safe nullability difference
         var source = """
             using System.Runtime.CompilerServices;
-            using System;
 
             class C
             {
                 [Interceptable]
-                public void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
+                public string? InterceptableMethod(string param) => throw null!;
             }
 
             static class Program
@@ -1816,16 +1815,12 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)]
-                public static void Interceptor1(this C s, string? param) { Console.Write("interceptor " + param); }
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static string Interceptor1(this C s, string? param) => throw null!;
             }
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(15,11): warning CS27017: Intercepting a call to 'C.InterceptableMethod(string)' with interceptor 'D.Interceptor1(C, string?)', but the signatures do not match.
-            //         c.InterceptableMethod("call site");
-            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("C.InterceptableMethod(string)", "D.Interceptor1(C, string?)").WithLocation(15, 11)
-            );
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -1834,12 +1829,14 @@ public class InterceptorsTests : CSharpTestBase
         // Unsafe nullability difference
         var source = """
             using System.Runtime.CompilerServices;
-            using System;
 
             class C
             {
                 [Interceptable]
-                public void InterceptableMethod(string? param) { Console.Write("interceptable " + param); }
+                public void Method1(string? param1) => throw null!;
+
+                [Interceptable]
+                public string Method2() => throw null!;
             }
 
             static class Program
@@ -1847,22 +1844,118 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Main()
                 {
                     var c = new C();
-                    c.InterceptableMethod("call site");
+                    c.Method1("call site");
+                    _ = c.Method2();
                 }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)]
-                public static void Interceptor1(this C s, string param) { Console.Write("interceptor " + param); }
+                [InterceptsLocation("Program.cs", 17, 11)] // 1
+                public static void Interceptor1(this C s, string param2) => throw null!;
+
+                [InterceptsLocation("Program.cs", 18, 15)] // 2
+                public static string? Interceptor2(this C s) => throw null!;
             }
             """;
+
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,11): warning CS27017: Intercepting a call to 'C.InterceptableMethod(string?)' with interceptor 'D.Interceptor1(C, string)', but the signatures do not match.
-            //         c.InterceptableMethod("call site");
-            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("C.InterceptableMethod(string?)", "D.Interceptor1(C, string)").WithLocation(15, 11)
+            // Program.cs(24,6): warning CS27022: Nullability of reference types in type of parameter 'param2' doesn't match interceptable method 'C.Method1(string?)'.
+            //     [InterceptsLocation("Program.cs", 17, 11)] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, @"InterceptsLocation(""Program.cs"", 17, 11)").WithArguments("param2", "C.Method1(string?)").WithLocation(24, 6),
+            // Program.cs(27,6): warning CS27021: Nullability of reference types in return type doesn't match interceptable method 'C.Method2()'.
+            //     [InterceptsLocation("Program.cs", 18, 15)] // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, @"InterceptsLocation(""Program.cs"", 18, 15)").WithArguments("C.Method2()").WithLocation(27, 6)
             );
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableDisable());
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(6,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+            //     public void Method1(string? param1) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 31),
+            // Program.cs(28,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+            //     public static string? Interceptor2(this C s) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 25)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_06()
+    {
+        // 'dynamic' difference
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                [Interceptable]
+                public void Method1(object param1) => throw null!;
+
+                [Interceptable]
+                public dynamic Method2() => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.Method1("call site");
+                    _ = c.Method2();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 17, 11)] // 1
+                public static void Interceptor1(this C s, dynamic param2) => throw null!;
+
+                [InterceptsLocation("Program.cs", 18, 15)] // 2
+                public static object Interceptor2(this C s) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,11): warning CS27017: Intercepting a call to 'C.Method1(object)' with interceptor 'D.Interceptor1(C, dynamic)', but the signatures do not match.
+            //         c.Method1("call site");
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "Method1").WithArguments("C.Method1(object)", "D.Interceptor1(C, dynamic)").WithLocation(17, 11),
+            // Program.cs(18,15): warning CS27017: Intercepting a call to 'C.Method2()' with interceptor 'D.Interceptor2(C)', but the signatures do not match.
+            //         _ = c.Method2();
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "Method2").WithArguments("C.Method2()", "D.Interceptor2(C)").WithLocation(18, 15)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_07()
+    {
+        // tuple element name difference
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                [Interceptable]
+                public void Method1((string x, string y) param1) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.Method1(default!);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static void Interceptor1(this C s, (string a, string b) param2) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

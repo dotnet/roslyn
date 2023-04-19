@@ -2214,6 +2214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorNotAccessible = 27018,
         ERR_InterceptorScopedMismatch = 27019,
         ERR_InterceptorLineCharacterMustBePositive = 27020,
+        WRN_NullabilityMismatchInReturnTypeOnInterceptor = 27021,
+        WRN_NullabilityMismatchInParameterTypeOnInterceptor = 27022,
 
         #endregion
 

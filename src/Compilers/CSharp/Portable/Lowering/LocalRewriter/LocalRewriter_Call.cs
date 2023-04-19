@@ -173,12 +173,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
             var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
+
+
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
                 return;
             }
-            else if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
+
+            _ = SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                _compilation,
+                method,
+                symbolForCompare,
+                _diagnostics,
+                static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, attributeLocation, method);
+                },
+                static (diagnostics, method, interceptor, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, attributeLocation, new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat), method);
+                },
+                extraArgument: attributeLocation);
+
+            if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
             {
                 this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
             }
