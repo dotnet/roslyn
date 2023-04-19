@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundExpressionStatement(syntax,
                     new BoundCall(syntax,
                         receiverOpt: receiver,
-                        initialBindingReceiverIsSubjectToCloning: false,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: objectType.InstanceConstructors[0],
                         arguments: ImmutableArray<BoundExpression>.Empty,
                         argumentNamesOpt: ImmutableArray<string>.Empty,

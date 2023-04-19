@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var createInstanceCall = new BoundCall(
                 syntax,
                 receiverOpt: null,
-                initialBindingReceiverIsSubjectToCloning: false,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),

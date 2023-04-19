@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
-            bool initialBindingReceiverIsSubjectToCloning,
+            ThreeState initialBindingReceiverIsSubjectToCloning,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundCall Update(BoundExpression? receiverOpt,
-                                bool initialBindingReceiverIsSubjectToCloning,
+                                ThreeState initialBindingReceiverIsSubjectToCloning,
                                 MethodSymbol method,
                                 ImmutableArray<BoundExpression> arguments,
                                 ImmutableArray<string> argumentNamesOpt,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: node,
                 receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
-                initialBindingReceiverIsSubjectToCloning: false,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: method,
                 arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),
                 argumentNamesOpt: namedArguments,
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundCall(syntax,
                     receiverOpt,
-                    initialBindingReceiverIsSubjectToCloning: false,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: method,
                     arguments: arguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIndexerAccess(
                 node,
                 receiverOpt,
-                initialBindingReceiverIsSubjectToCloning: false,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 indexer,
                 arguments,
                 namedArguments,
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundIndexerAccess(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
-            bool initialBindingReceiverIsSubjectToCloning,
+            ThreeState initialBindingReceiverIsSubjectToCloning,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
-                                         bool initialBindingReceiverIsSubjectToCloning,
+                                         ThreeState initialBindingReceiverIsSubjectToCloning,
                                          PropertySymbol indexer,
                                          ImmutableArray<BoundExpression> arguments,
                                          ImmutableArray<string> argumentNamesOpt,

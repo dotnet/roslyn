@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
-                    initialBindingReceiverIsSubjectToCloning: false,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     default(ImmutableArray<string>),
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
-                    initialBindingReceiverIsSubjectToCloning: false,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     default(ImmutableArray<string>),
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundCall(
                         syntax,
                         receiverOpt: null,
-                        initialBindingReceiverIsSubjectToCloning: false,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         arrayEmpty,
                         ImmutableArray<BoundExpression>.Empty,
                         default(ImmutableArray<string>),

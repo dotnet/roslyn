@@ -1146,20 +1146,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        internal bool ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
             => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
 
-        internal bool ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
             if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
             {
-                return false;
+                return ThreeState.False;
             }
 
             var valueKind = method.IsEffectivelyReadOnly
                 ? BindValueKind.RefersToLocation
                 : BindValueKind.RefersToLocation | BindValueKind.Assignable;
-            return !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+            var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+            return result.ToThreeState();
         }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)

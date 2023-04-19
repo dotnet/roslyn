@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new BoundCall(
                 syntax,
                 receiver,
-                initialBindingReceiverIsSubjectToCloning: false,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundCall userMainInvocation = new BoundCall(
                         syntax: _userMainReturnTypeSyntax,
                         receiverOpt: null,
-                        initialBindingReceiverIsSubjectToCloning: false,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: userMain,
                         arguments: arguments,
                         argumentNamesOpt: default(ImmutableArray<string>),

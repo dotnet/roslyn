@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIndexerAccess(
                 syntax,
                 transformedReceiver,
-                initialBindingReceiverIsSubjectToCloning: false,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
