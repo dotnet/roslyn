@@ -69,7 +69,6 @@
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Analyzers\CSharp\Tests\UseVarTestExtensions.cs" Link="CodeRefactorings\UseVarTestExtensions.cs" />
     <Compile Include="..\..\Features\CSharpTest\CodeActions\AbstractCSharpCodeActionTest.cs" Link="CodeActions\AbstractCSharpCodeActionTest.cs" />
     <Compile Include="..\..\Features\CSharpTest\CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" Link="CodeActions\ExceptionInCodeAction.cs" />
     <Compile Include="..\..\Features\CSharpTest\Utilities\CodeSnippets.cs" Link="Utilities\CodeSnippets.cs" />
