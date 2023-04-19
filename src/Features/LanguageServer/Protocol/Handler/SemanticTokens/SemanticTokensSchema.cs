@@ -160,5 +160,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public static SemanticTokensSchema LegacyTokenSchemaForRazor
             => s_vsTokenSchema;
+
+        public static SemanticTokensSchema LegacyTokensSchemaForLSIF
+            => s_vsTokenSchema;
     }
 }

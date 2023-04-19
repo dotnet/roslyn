@@ -71,16 +71,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             var generator = new Generator(lsifJsonWriter, logFile);
 
-            // Pass the set of supported SemanticTokenTypes. Order must match
-            // the order used for serialization of semantic tokens array. This
-            // array is analogous to the equivalent array in https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
+            // Pass the set of supported SemanticTokenTypes. Order must match the order used for serialization of
+            // semantic tokens array. This array is analogous to the equivalent array in
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
             //
-            // Ideally semantic tokens support would use the well-known, common
-            // set of token types specified in LSP's SemanticTokenTypes to reduce
-            // the number of tokens a particular LSIF consumer must understand,
-            // but Roslyn currently employs a large number of custom token types
-            // that aren't yet standardized in LSP or LSIF's well-known set so we
-            // will pass both LSP and Roslyn custom token types for now.
+            // Ideally semantic tokens support would use the well-known, common set of token types specified in LSP's
+            // SemanticTokenTypes to reduce the number of tokens a particular LSIF consumer must understand, but Roslyn
+            // currently employs a large number of custom token types that aren't yet standardized in LSP or LSIF's
+            // well-known set so we will pass both LSP and Roslyn custom token types for now.
             var capabilitiesVertex = new Capabilities(
                 generator._idFactory,
                 HoverProvider,
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensSchema.GetSchema(capabilities: null).AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
