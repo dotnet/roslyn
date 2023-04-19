@@ -314,47 +314,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var dictionary = PooledDictionary<string, object>.GetInstance();
-
-            foreach (var declaration in _mergedDeclaration.Children)
-            {
-                dictionary.AddToAccumulator(BuildSymbol(declaration, diagnostics), static symbol => symbol.Name);
-            }
-
-            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
-            foreach (var (name, value) in dictionary)
-            {
-                ImmutableArray<NamespaceOrTypeSymbol> members;
-
-                if (value is ArrayBuilder<NamespaceOrTypeSymbol> builder)
-                {
-                    Debug.Assert(builder.Count > 1);
-                    bool hasNamespaces = false;
-                    for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                    {
-                        hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
-                    }
-
-                    members = hasNamespaces
-                        ? builder.ToImmutable()
-                        : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
-
-                    builder.Free();
-                }
-                else
-                {
-                    NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                    members = symbol.Kind == SymbolKind.Namespace
-                        ? ImmutableArray.Create(symbol)
-                        : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create((NamedTypeSymbol)symbol));
-                }
-
-                result.Add(name, members);
-            }
+            var result = _mergedDeclaration.Children.ToDictionary<MergedNamespaceOrTypeDeclaration,NamespaceOrTypeSymbol, string, (SourceNamespaceSymbol @this, BindingDiagnosticBag diagnostics), NamedTypeSymbol>(
+                static (declaration, tuple) => tuple.@this.BuildSymbol(declaration, tuple.diagnostics),
+                static symbol => symbol.Name,
+                (this, diagnostics));
 
             CheckMembers(this, result, diagnostics);
 
-            dictionary.Free();
             return result;
         }
 

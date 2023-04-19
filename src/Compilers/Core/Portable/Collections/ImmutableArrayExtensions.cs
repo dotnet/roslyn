@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Linq;
@@ -832,14 +833,24 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector)
-            where K : notnull
-            where T : notnull
+        internal static Dictionary<TKey, ImmutableArray<TSource>> ToDictionary<TSource, TKey>(this ImmutableArray<TSource> items, Func<TSource, TKey> keySelector)
+            where TKey : notnull
+            where TSource : class
+        {
+            return ToDictionary<TSource, TSource, TKey, VoidResult, TSource>(items, static (x, _) => x, keySelector, data: default);
+        }
+
+        internal static Dictionary<TKey, ImmutableArray<TResult>> ToDictionary<TSource, TResult, TKey, TData, TDowncast>(
+            this ImmutableArray<TSource> items, Func<TSource, TData, TResult> selector, Func<TResult, TKey> keySelector, TData data)
+            where TKey : notnull
+            where TSource : notnull
+            where TResult : notnull
+            where TDowncast : class, TResult
         {
             if (items.Length == 1)
             {
-                T value = items[0];
-                return new Dictionary<K, ImmutableArray<T>>(1)
+                var value = selector(items[0], data);
+                return new Dictionary<TKey, ImmutableArray<TResult>>(1)
                 {
                     {  keySelector(value), ImmutableArray.Create(value) },
                 };
@@ -847,7 +858,7 @@ namespace Microsoft.CodeAnalysis
 
             if (items.Length == 0)
             {
-                return new Dictionary<K, ImmutableArray<T>>();
+                return new Dictionary<TKey, ImmutableArray<TResult>>();
             }
 
             // bucketize
@@ -856,20 +867,63 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator = PooledDictionary<K, object>.GetInstance();
+            var accumulator = PooledDictionary<TKey, object>.GetInstance();
             foreach (var item in items)
             {
-                accumulator.AddToAccumulator(item, keySelector);
+                var value = selector(item, data);
+                var key = keySelector(value);
+                if (accumulator.TryGetValue(key, out var existingValueOrArray))
+                {
+                    if (existingValueOrArray is not ArrayBuilder<TResult> arrayBuilder)
+                    {
+                        // Just a single value in the accumulator so far.  Convert to using a builder.
+                        arrayBuilder = ArrayBuilder<TResult>.GetInstance(capacity: 2);
+                        arrayBuilder.Add((TResult)existingValueOrArray);
+                        accumulator[key] = arrayBuilder;
+                    }
+
+                    arrayBuilder.Add(value);
+                }
+                else
+                {
+                    // Nothing in the dictionary so far.  Add the item directly.
+                    accumulator.Add(key, value);
+                }
             }
 
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
+            var dictionary = new Dictionary<TKey, ImmutableArray<TResult>>(accumulator.Count);
 
             // freeze
             foreach (var pair in accumulator)
             {
-                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
-                    ? arrayBuilder.ToImmutableAndFree()
-                    : ImmutableArray.Create((T)pair.Value));
+                if (typeof(TSource) == typeof(TDowncast))
+                {
+                    dictionary.Add(pair.Key, pair.Value is ArrayBuilder<TResult> arrayBuilder
+                        ? arrayBuilder.ToImmutableAndFree()
+                        : ImmutableArray.Create((TResult)pair.Value));
+                }
+                else
+                {
+                    // try to place a downcasted array in the result if all the elements are of that downcasted type.
+                    if (pair.Value is ArrayBuilder<TResult> arrayBuilder)
+                    {
+                        if (arrayBuilder.All(static v => v is TDowncast))
+                        {
+                            dictionary.Add(pair.Key, ImmutableArray<TResult>.CastUp(arrayBuilder.ToDowncastedImmutable<TDowncast>()));
+                            arrayBuilder.Free();
+                        }
+                        else
+                        {
+                            dictionary.Add(pair.Key, arrayBuilder.ToImmutableAndFree());
+                        }
+                    }
+                    else
+                    {
+                        dictionary.Add(pair.Key, pair.Value is TDowncast downcast
+                            ? ImmutableArray<TResult>.CastUp(ImmutableArray.Create(downcast))
+                            : ImmutableArray.Create((TResult)pair.Value));
+                    }
+                }
             }
 
             accumulator.Free();
