@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new BoundCall(
                 syntax,
                 receiver,
+                initialBindingReceiverIsSubjectToCloning: false,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
@@ -300,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
-                receiverCloned: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
@@ -345,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundCall userMainInvocation = new BoundCall(
                         syntax: _userMainReturnTypeSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: false,
                         method: userMain,
                         arguments: arguments,
                         argumentNamesOpt: default(ImmutableArray<string>),
@@ -352,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         isDelegateCall: false,
                         expanded: false,
                         invokedAsExtensionMethod: false,
-                        receiverCloned: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
                         defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,

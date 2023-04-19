@@ -1139,18 +1139,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        receiverCloned: ReceiverCloned(receiver, method),
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
 
-        internal bool ReceiverCloned(BoundExpression? receiver, PropertySymbol property)
-            => ReceiverCloned(receiver, property.GetMethod ?? property.SetMethod);
+        internal bool ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
+            => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
 
-        internal bool ReceiverCloned(BoundExpression? receiver, MethodSymbol method)
+        internal bool ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
             if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
             {

@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: false,
                     method,
                     rewrittenArguments,
                     default(ImmutableArray<string>),
@@ -249,7 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isDelegateCall: false,
                     expanded: false,
                     invokedAsExtensionMethod: invokedAsExtensionMethod,
-                    receiverCloned: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: false,
                     method,
                     rewrittenArguments,
                     default(ImmutableArray<string>),
@@ -266,7 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.IsDelegateCall,
                     false,
                     node.InvokedAsExtensionMethod,
-                    receiverCloned: false,
                     default(ImmutableArray<int>),
                     default(BitVector),
                     node.ResultKind,
@@ -1294,7 +1294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
                     return new BoundCall(
                         syntax,
-                        null,
+                        receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: false,
                         arrayEmpty,
                         ImmutableArray<BoundExpression>.Empty,
                         default(ImmutableArray<string>),
@@ -1302,7 +1303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isDelegateCall: false,
                         expanded: false,
                         invokedAsExtensionMethod: false,
-                        receiverCloned: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
                         defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,

@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
+            bool initialBindingReceiverIsSubjectToCloning,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
@@ -91,17 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall,
             bool expanded,
             bool invokedAsExtensionMethod,
-            bool receiverCloned,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, receiverCloned, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, type: type, hasErrors: hasErrors)
         {
         }
 
         public BoundCall Update(BoundExpression? receiverOpt,
+                                bool initialBindingReceiverIsSubjectToCloning,
                                 MethodSymbol method,
                                 ImmutableArray<BoundExpression> arguments,
                                 ImmutableArray<string> argumentNamesOpt,
@@ -109,12 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool isDelegateCall,
                                 bool expanded,
                                 bool invokedAsExtensionMethod,
-                                bool receiverCloned,
                                 ImmutableArray<int> argsToParamsOpt,
                                 BitVector defaultArguments,
                                 LookupResultKind resultKind,
                                 TypeSymbol type)
-            => Update(receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, receiverCloned, argsToParamsOpt, defaultArguments, resultKind, this.OriginalMethodsOpt, type);
+            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, this.OriginalMethodsOpt, type);
 
         public static BoundCall ErrorCall(
             SyntaxNode node,
@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: node,
                 receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
+                initialBindingReceiverIsSubjectToCloning: false,
                 method: method,
                 arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),
                 argumentNamesOpt: namedArguments,
@@ -144,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isDelegateCall: isDelegateCall,
                 expanded: false,
                 invokedAsExtensionMethod: invokedAsExtensionMethod,
-                receiverCloned: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 resultKind: resultKind,
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(ReceiverOpt, Method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ReceiverCloned, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
+            return this.Update(ReceiverOpt, InitialBindingReceiverIsSubjectToCloning, Method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
         public BoundCall Update(BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ReceiverCloned, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
+            return this.Update(receiverOpt, InitialBindingReceiverIsSubjectToCloning, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method)
@@ -182,14 +182,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundCall(syntax,
                     receiverOpt,
-                    method,
-                    arguments,
+                    initialBindingReceiverIsSubjectToCloning: false,
+                    method: method,
+                    arguments: arguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKindsOpt: method.ParameterRefKinds,
                     isDelegateCall: false,
                     expanded: false,
                     invokedAsExtensionMethod: false,
-                    receiverCloned: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: LookupResultKind.Viable,
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIndexerAccess(
                 node,
                 receiverOpt,
-                receiverCloned: false,
+                initialBindingReceiverIsSubjectToCloning: false,
                 indexer,
                 arguments,
                 namedArguments,
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundIndexerAccess(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
-            bool receiverCloned,
+            bool initialBindingReceiverIsSubjectToCloning,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, receiverCloned, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
-                                         bool receiverCloned,
+                                         bool initialBindingReceiverIsSubjectToCloning,
                                          PropertySymbol indexer,
                                          ImmutableArray<BoundExpression> arguments,
                                          ImmutableArray<string> argumentNamesOpt,
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ImmutableArray<int> argsToParamsOpt,
                                          BitVector defaultArguments,
                                          TypeSymbol type)
-            => Update(receiverOpt, receiverCloned, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
+            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
     }
 
     internal sealed partial class BoundConversion

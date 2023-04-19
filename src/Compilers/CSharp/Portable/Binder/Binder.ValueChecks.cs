@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
-                    indexerAccess.ReceiverCloned,
+                    indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     indexerAccess.Indexer,
                     argumentsBuilder.ToImmutableAndFree(),
                     indexerAccess.ArgumentNamesOpt,
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return GetInvocationEscapeWithUpdatedRules(symbol, receiver, receiverCloned, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
+                return GetInvocationEscapeWithUpdatedRules(symbol, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
             }
 
             // SPEC: (also applies to the CheckInvocationEscape counterpart)
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
-                receiverCloned: false,
+                receiverIsSubjectToCloning: false,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1842,7 +1842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint GetInvocationEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1857,7 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1918,7 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, receiverCloned, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
+                return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
             }
 
             // SPEC: 
@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
-                receiverCloned: false,
+                receiverIsSubjectToCloning: false,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetInvocationArgumentsForEscape(
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2094,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 
                 Debug.Assert(receiver.Type is { });
-                if (receiverCloned)
+                if (receiverIsSubjectToCloning)
                 {
                     Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsValueType == true);
 #if DEBUG
@@ -2225,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2260,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetEscapeValuesForUpdatedRules(
                 symbol,
                 receiver,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2303,7 +2303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetEscapeValuesForUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2322,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2435,7 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiverOpt,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2445,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, receiverCloned, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
+                return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
             }
 
             // SPEC:
@@ -2473,7 +2473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiverOpt,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt: default,
@@ -2539,7 +2539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiverOpt,
-            bool receiverCloned,
+            bool receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2552,7 +2552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetEscapeValuesForUpdatedRules(
                 symbol,
                 receiverOpt,
-                receiverCloned,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -3045,7 +3045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             call.Method,
                             call.ReceiverOpt,
-                            call.ReceiverCloned,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3067,7 +3067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             methodSymbol,
                             receiver: null,
-                            receiverCloned: false,
+                            receiverIsSubjectToCloning: false,
                             methodSymbol.Parameters,
                             ptrInvocation.Arguments,
                             ptrInvocation.ArgumentRefKindsOpt,
@@ -3084,7 +3084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
-                            indexerAccess.ReceiverCloned,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3106,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
-                                indexerAccess.ReceiverCloned,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3128,7 +3128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 call.Method,
                                 implicitIndexerAccess.Receiver,
-                                call.ReceiverCloned,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3148,7 +3148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
-                        propertyAccess.ReceiverCloned,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -3301,7 +3301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Syntax,
                             methodSymbol,
                             call.ReceiverOpt,
-                            call.ReceiverCloned,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3327,7 +3327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Syntax,
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
-                            indexerAccess.ReceiverCloned,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3358,7 +3358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Syntax,
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
-                                indexerAccess.ReceiverCloned,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3384,7 +3384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Syntax,
                                 methodSymbol,
                                 implicitIndexerAccess.Receiver,
-                                call.ReceiverCloned,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3413,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         functionPointerInvocation.Syntax,
                         signature,
                         functionPointerInvocation.InvokedExpression,
-                        receiverCloned: false,
+                        receiverIsSubjectToCloning: false,
                         signature.Parameters,
                         functionPointerInvocation.Arguments,
                         functionPointerInvocation.ArgumentRefKindsOpt,
@@ -3438,7 +3438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertyAccess.Syntax,
                         propertySymbol,
                         propertyAccess.ReceiverOpt,
-                        propertyAccess.ReceiverCloned,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -3629,7 +3629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             call.Method,
                             call.ReceiverOpt,
-                            call.ReceiverCloned,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             call.Method.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3645,7 +3645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         ptrSymbol,
                         receiver: null,
-                        receiverCloned: false,
+                        receiverIsSubjectToCloning: false,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -3661,7 +3661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
-                            indexerAccess.ReceiverCloned,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3683,7 +3683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
-                                indexerAccess.ReceiverCloned,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3699,7 +3699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 call.Method,
                                 implicitIndexerAccess.Receiver,
-                                call.ReceiverCloned,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 call.Method.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3718,7 +3718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
-                        propertyAccess.ReceiverCloned,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -3733,7 +3733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var escape = GetInvocationEscapeScope(
                         constructorSymbol,
                         receiver: null,
-                        receiverCloned: false,
+                        receiverIsSubjectToCloning: false,
                         constructorSymbol.Parameters,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
@@ -4067,7 +4067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Syntax,
                             methodSymbol,
                             call.ReceiverOpt,
-                            call.ReceiverCloned,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -4087,7 +4087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ptrInvocation.Syntax,
                         ptrSymbol,
                         receiver: null,
-                        receiverCloned: false,
+                        receiverIsSubjectToCloning: false,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -4107,7 +4107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Syntax,
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
-                            indexerAccess.ReceiverCloned,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -4133,7 +4133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Syntax,
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
-                                indexerAccess.ReceiverCloned,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -4155,7 +4155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Syntax,
                                 methodSymbol,
                                 implicitIndexerAccess.Receiver,
-                                call.ReceiverCloned,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -4178,7 +4178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertyAccess.Syntax,
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
-                        propertyAccess.ReceiverCloned,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -4198,7 +4198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             objectCreation.Syntax,
                             constructorSymbol,
                             receiver: null,
-                            receiverCloned: false,
+                            receiverIsSubjectToCloning: false,
                             constructorSymbol.Parameters,
                             objectCreation.Arguments,
                             objectCreation.ArgumentRefKindsOpt,

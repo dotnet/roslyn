@@ -4333,6 +4333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundCall(
                         nonNullSyntax,
                         receiver,
+                        initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, resultMember),
                         resultMember,
                         arguments,
                         analyzedArguments.GetNames(),
@@ -4340,7 +4341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isDelegateCall: false,
                         expanded,
                         invokedAsExtensionMethod: false,
-                        receiverCloned: ReceiverCloned(receiver, resultMember),
                         argsToParamsOpt: argsToParamsOpt,
                         defaultArguments: defaultArguments,
                         resultKind: LookupResultKind.Viable,
@@ -7603,7 +7603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, receiverCloned: ReceiverCloned(receiver, propertySymbol), propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 #nullable disable
 
@@ -8503,7 +8503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
-                    receiverCloned: ReceiverCloned(receiver, property),
+                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
                     property,
                     arguments,
                     argumentNames,

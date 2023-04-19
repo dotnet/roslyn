@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
 
             return result.Update(
-                result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
-                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod, result.ReceiverCloned,
+                result.ReceiverOpt, result.InitialBindingReceiverIsSubjectToCloning, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
+                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
                 argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
         }
 

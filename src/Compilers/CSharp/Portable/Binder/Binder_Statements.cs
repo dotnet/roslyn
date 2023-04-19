@@ -3859,6 +3859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: false,
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNamesOpt: ImmutableArray<string>.Empty,
@@ -3866,7 +3867,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
-                receiverCloned: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
@@ -3906,6 +3906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: false,
                 method: baseConstructor,
                 arguments: ImmutableArray.Create(argument),
                 argumentNamesOpt: default,
@@ -3913,7 +3914,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
-                receiverCloned: false,
                 argsToParamsOpt: default,
                 defaultArguments: default,
                 resultKind: LookupResultKind.Viable,

@@ -335,7 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var createInstanceCall = new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: false,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
@@ -343,7 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
-                receiverCloned: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
