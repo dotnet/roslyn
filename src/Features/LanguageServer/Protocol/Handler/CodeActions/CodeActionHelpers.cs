@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 builder.Add(new LSP.CodeAction
                 {
-                    // Add extra space because this is shown to user.
+                    // Change this ti -> because it is shown to the user
                     Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
