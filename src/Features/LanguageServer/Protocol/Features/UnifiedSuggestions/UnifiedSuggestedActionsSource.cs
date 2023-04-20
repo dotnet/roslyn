@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
+            bool includeConfigureAndSuppressFixer,
             CancellationToken cancellationToken)
         {
             var originalSolution = document.Project.Solution;
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 priorityProvider,
                 fallbackOptions,
                 addOperationScope,
-                cancellationToken), cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                includeConfigureAndSuppressFixer: includeConfigureAndSuppressFixer), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

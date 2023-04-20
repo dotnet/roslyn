@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         /// <summary>
-        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="generateVSInternalCodeAction"/>.
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="hasVsLspCapability"/>.
         /// </summary>
         /// <remarks>
         /// Used by CodeActionsHandler.
@@ -34,17 +34,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            bool generateVSInternalCodeAction,
+            bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return Array.Empty<LSP.CodeAction>();
 
             using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
             // VS-LSP support nested code action, but standard LSP doesn't.
-            if (generateVSInternalCodeAction)
+            if (hasVsLspCapability)
             {
                 var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 builder.Add(new LSP.CodeAction
                 {
                     // Add extra space because this is shown to user.
-                    Title = currentTitle.Replace("|", " | "),
+                    Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
                     Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
@@ -251,10 +251,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, selection, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
 
@@ -306,6 +307,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
+            bool includeConfigureAndSuppressFixer,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                fallbackOptions, addOperationScope: _ => null, includeConfigureAndSuppressFixer: includeConfigureAndSuppressFixer, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions,

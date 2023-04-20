@@ -70,12 +70,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
+            var hasVsLspCapability = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document,
                 data.Range,
                 options,
                 _codeFixService,
                 _codeRefactoringService,
+                hasVsLspCapability,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);

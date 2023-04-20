@@ -160,11 +160,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
+            bool includeConfigureAndSuppressFixer,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
-            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
+            var includeSuppressionFixes = includeConfigureAndSuppressFixer && priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.

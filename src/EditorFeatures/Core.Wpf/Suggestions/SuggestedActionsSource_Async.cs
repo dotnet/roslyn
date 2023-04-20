@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priorityProvider, options, addOperationScope, cancellationToken).AsTask();
+                        priorityProvider, options, addOperationScope, includeConfigureAndSuppressFixer: true, cancellationToken).AsTask();
                 }
 
                 Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
