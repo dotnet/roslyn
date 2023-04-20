@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Note, this test may pass even if GetValueAsync posted a task to the threadpool, since the 
             // current thread may context switch out and allow the threadpool to complete the task before
             // we check the state.  However, a failure here definitely indicates a bug in AsyncLazy.
-            var lazy = new AsyncLazy<int>(c => Task.FromResult(5), cacheResult: true);
+            var lazy = AsyncLazy.Create(c => Task.FromResult(5));
             var t = lazy.GetValueAsync(CancellationToken.None);
             Assert.Equal(TaskStatus.RanToCompletion, t.Status);
             Assert.Equal(5, t.Result);
@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
 
                     return 42;
-                },
-                cacheResult: false);
+                });
 
             // Second, start a synchronous request. While we are in the GetValue, we will record which thread is being occupied by the request
             Thread synchronousRequestThread = null;
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }, synchronousComputeFunction: synchronousComputation, cacheResult: false);
+            }, synchronousComputeFunction: synchronousComputation);
 
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -201,14 +200,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var lazy = new AsyncLazy<object>(c => Task.Run((Func<object>)(() =>
+            var lazy = AsyncLazy.Create(c => Task.Run((Func<object>)(() =>
             {
                 cancellationTokenSource.Cancel();
                 while (true)
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }), c), cacheResult: true);
+            }), c));
 
             var task = lazy.GetValueAsync(cancellationTokenSource.Token);
 
