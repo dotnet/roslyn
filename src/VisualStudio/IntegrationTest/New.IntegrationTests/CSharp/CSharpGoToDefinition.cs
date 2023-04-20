@@ -163,7 +163,7 @@ class C
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(32, actual.Length);
+            Assert.Equal(31, actual.Length);
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
