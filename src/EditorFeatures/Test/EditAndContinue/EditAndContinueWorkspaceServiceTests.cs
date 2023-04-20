@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             };
         }
 
-        private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueWorkspaceService service, Type[] additionalParts = null)
+        private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[] additionalParts = null)
         {
             var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
             solution = workspace.CurrentSolution;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return workspace;
         }
 
-        private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueWorkspaceService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
+        private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
         {
             var composition = EditorTestCompositions.EditorFeatures
                 .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
@@ -161,16 +161,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return document.Project.Solution;
         }
 
-        private EditAndContinueWorkspaceService GetEditAndContinueService(Workspace workspace)
+        private EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
         {
-            var service = (EditAndContinueWorkspaceService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
             var accessor = service.GetTestAccessor();
             accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
             return service;
         }
 
         private async Task<DebuggingSession> StartDebuggingSessionAsync(
-            EditAndContinueWorkspaceService service,
+            EditAndContinueService service,
             Solution solution,
             CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
             IPdbMatchingSourceTextProvider sourceTextProvider = null)

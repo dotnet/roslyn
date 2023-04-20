@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                var log = EditAndContinueWorkspaceService.Log;
+                var log = EditAndContinueService.Log;
 
                 log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
