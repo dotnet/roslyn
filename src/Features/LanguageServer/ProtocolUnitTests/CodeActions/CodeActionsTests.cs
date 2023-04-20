@@ -173,7 +173,7 @@ class ABC
         }
 
         [WpfTheory, CombinatorialData]
-        public async Task TestStardardLspNestedCodeAction(bool mutatingLspWorkspace)
+        public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
         {
             var markup = @"
 class ABC
@@ -200,6 +200,8 @@ class ABC
 
             var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
             var resultsTitles = results.Select(r => r.Title).ToArray();
+            // Inline method refactoring provide nested code actions.
+            // Make sure it is correctly displayed.
             Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline 'A()'"));
             Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline and keep 'A()'"));
         }

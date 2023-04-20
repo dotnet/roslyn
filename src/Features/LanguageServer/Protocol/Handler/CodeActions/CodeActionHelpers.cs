@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
+            // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
+            // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
@@ -254,6 +256,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
+            // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
+            // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, selection, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
