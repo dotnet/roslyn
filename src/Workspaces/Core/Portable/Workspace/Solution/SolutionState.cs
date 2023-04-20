@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
-                c => ComputeChecksumsAsync(projectsToInclude: null, c), cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
 
             CheckInvariants();
 

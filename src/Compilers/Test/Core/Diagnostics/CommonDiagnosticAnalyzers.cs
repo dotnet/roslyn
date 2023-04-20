@@ -1919,8 +1919,8 @@ namespace Microsoft.CodeAnalysis
                     if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(SymbolsStarted.Select(s => s.ToDisplayString())));
-                        var symbolsEndedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(symbolsEnded.Select(s => s.ToDisplayString())));
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString().Order()));
+                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString().Order()));
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
 
@@ -2268,7 +2268,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-            public string GetSortedSymbolCallbacksString() => string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(_symbolCallbacks.Select(s => s.Name)));
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
 
             public override void Initialize(AnalysisContext context)
             {

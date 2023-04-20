@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
             var lazy = s_projectToSourceChecksum.GetValue(
-                project.State, static p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
+                project.State, static p => AsyncLazy.Create(c => ComputeSourceSymbolsChecksumAsync(p, c)));
 
             return lazy.GetValueAsync(cancellationToken);
         }

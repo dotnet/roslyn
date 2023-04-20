@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
-                modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
+                modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
                 result |= defaultAccess;
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (one == DeclarationModifiers.Partial)
                 {
                     var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                    messageId.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                    messageId.CheckFeatureAvailability(diagnostics, modifier);
 
                     // `partial` must always be the last modifier according to the language.  However, there was a bug
                     // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for

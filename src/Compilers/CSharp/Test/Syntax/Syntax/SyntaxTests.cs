@@ -7,6 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -246,6 +247,33 @@ void goo()
             foreach (var kind in SyntaxFacts.GetPunctuationKinds())
             {
                 Assert.True(SyntaxFacts.IsPunctuation(kind));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67485")]
+        public void IsAttributeTargetSpecifier()
+        {
+            foreach (var kind in (SyntaxKind[])Enum.GetValues(typeof(SyntaxKind)))
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.AssemblyKeyword:
+                    case SyntaxKind.ModuleKeyword:
+                    case SyntaxKind.EventKeyword:
+                    case SyntaxKind.FieldKeyword:
+                    case SyntaxKind.MethodKeyword:
+                    case SyntaxKind.ParamKeyword:
+                    case SyntaxKind.PropertyKeyword:
+                    case SyntaxKind.ReturnKeyword:
+                    case SyntaxKind.TypeKeyword:
+                    case SyntaxKind.TypeVarKeyword:
+                        Assert.True(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be true""");
+                        break;
+
+                    default:
+                        Assert.False(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be false""");
+                        break;
+                }
             }
         }
     }
