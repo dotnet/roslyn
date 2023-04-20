@@ -2639,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionLiteralExpression:
                     {
-                        if ((object)operand.Type == null)
+                        if (operand.Type is null)
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
                             return;
