@@ -8,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1149,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
             => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
 
-        private static bool ReceiverCannotBeSubjectToCloning(BoundExpression? receiver)
+        private static bool ReceiverCannotBeSubjectToCloning([NotNullWhen(returnValue: false)] BoundExpression? receiver)
         {
             return receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true;
         }
