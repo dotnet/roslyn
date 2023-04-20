@@ -70,7 +70,6 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CodeRefactorings\" />
     <Folder Include="My Project\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
