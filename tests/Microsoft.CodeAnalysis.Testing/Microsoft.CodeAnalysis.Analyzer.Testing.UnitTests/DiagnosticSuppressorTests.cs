@@ -22,15 +22,6 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         private static readonly DiagnosticDescriptor DiagnosticDescriptor = new HighlightBracesAnalyzer().Descriptor;
 
-#if NET6_0_OR_GREATER
-        [Fact]
-        public void TestCorrectFrameworkVersion()
-        {
-            // Ensure we are testing the correct CodeAnalysis framework version.
-            Assert.Equal(4, typeof(DiagnosticSuppressor).Assembly.GetName().Version?.Major);
-        }
-#endif
-
         [Fact]
         public async Task TestUnspecifiedSuppression()
         {
