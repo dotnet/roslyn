@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new AsyncLazy<TreeAndVersion>(
                 c => FullyParseTreeAsync(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
-                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
-                cacheResult: true);
+                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c));
         }
 
         private static async Task<TreeAndVersion> FullyParseTreeAsync(
@@ -170,8 +169,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new AsyncLazy<TreeAndVersion>(
                 c => IncrementallyParseTreeAsync(oldTreeSource, newTextSource, loadTextOptions, c),
-                c => IncrementallyParseTree(oldTreeSource, newTextSource, loadTextOptions, c),
-                cacheResult: true);
+                c => IncrementallyParseTree(oldTreeSource, newTextSource, loadTextOptions, c));
         }
 
         private static async Task<TreeAndVersion> IncrementallyParseTreeAsync(
@@ -545,10 +543,7 @@ namespace Microsoft.CodeAnalysis
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 var lazyTextAndVersion = new TreeTextSource(
-                    new AsyncLazy<SourceText>(
-                        tree.GetTextAsync,
-                        tree.GetText,
-                        cacheResult: true),
+                    new AsyncLazy<SourceText>(tree.GetTextAsync, tree.GetText),
                     textVersion);
 
                 return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));

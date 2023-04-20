@@ -43,7 +43,7 @@ internal static class StarredCompletionAssemblyHelper
                     serviceBroker,
                     completionsAssemblyLocation,
                     logger
-                ), cacheResult: true);
+                ));
         }
         catch (Exception ex)
         {
