@@ -2493,17 +2493,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
                 GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
-            using var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
-            if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
+            var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
+            if (analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {
-                return;
+                // Execute stateless syntax node actions.
+                executeNodeActions();
+
+                // Execute actions in executable code: code block actions, operation actions and operation block actions.
+                executeExecutableCodeActions();
             }
 
-            // Execute stateless syntax node actions.
-            executeNodeActions();
-
-            // Execute actions in executable code: code block actions, operation actions and operation block actions.
-            executeExecutableCodeActions();
+            declarationAnalysisData.Free();
 
             return;
 
