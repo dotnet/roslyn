@@ -2247,22 +2247,24 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Main()
                 {
                     int i = 0;
-                    C.InterceptableMethod(ref i);
+                    _ = C.InterceptableMethod(ref i);
                 }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)] // 1
-                public static ref int Interceptor1(scoped ref int value) => throw null!;
+                static int i;
+
+                [InterceptsLocation("Program.cs", 15, 15)]
+                public static ref int Interceptor1(scoped ref int value)
+                {
+                    Console.Write(1);
+                    return ref i;
+                }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(ref int)' with 'D.Interceptor1(scoped ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
-            //     [InterceptsLocation("Program.cs", 15, 11)] // 1
-            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(ref int)", "D.Interceptor1(scoped ref int)").WithLocation(21, 6)
-            );
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2284,22 +2286,25 @@ public class InterceptorsTests : CSharpTestBase
             {
                 public static void Main()
                 {
-                    C.InterceptableMethod(out int i);
+                    _ = C.InterceptableMethod(out int i);
                 }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)] // 1
-                public static ref int Interceptor1(out int value) => throw null!;
+                static int i;
+
+                [InterceptsLocation("Program.cs", 15, 15)]
+                public static ref int Interceptor1(out int value)
+                {
+                    Console.Write(1);
+                    value = 0;
+                    return ref i;
+                }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, options: WithNullableEnable());
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(out int)' with 'D.Interceptor1(out int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
-            //     [InterceptsLocation("Program.cs", 15, 11)] // 1
-            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(out int)", "D.Interceptor1(out int)").WithLocation(21, 6)
-            );
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]

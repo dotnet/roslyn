@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_InterceptorScopedMismatch, attributeLocation, method, symbolForCompare);
                 },
                 extraArgument: attributeLocation,
-                allowVariance: false,
+                allowVariance: true,
                 // Since we've already reduced 'symbolForCompare', we compare as though it is not an extension.
                 invokedAsExtensionMethod: false))
             {
