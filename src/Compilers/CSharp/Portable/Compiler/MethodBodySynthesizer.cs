@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall processHandlerCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: getOrCreateCall,
-                initialBindingReceiverIsSubjectToCloning: Binder.CheckReceiverIsNotSubjectToCloning(getOrCreateCall),
+                initialBindingReceiverIsSubjectToCloning: Binder.TryReceiverIsSubjectToCloning(getOrCreateCall),
                 method: processHandlerMethod,
                 arg0: parameterAccess);
 
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundCall.Synthesized(
                         syntax,
                         receiver,
-                        initialBindingReceiverIsSubjectToCloning: Binder.CheckReceiverIsNotSubjectToCloning(receiver),
+                        initialBindingReceiverIsSubjectToCloning: Binder.TryReceiverIsSubjectToCloning(receiver),
                         baseTypeFinalize))
                 { WasCompilerGenerated = true };
 
