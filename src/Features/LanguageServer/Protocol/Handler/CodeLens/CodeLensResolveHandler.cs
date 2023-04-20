@@ -62,15 +62,21 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             return request;
         }
 
-        // If the cache has no information, return an empty request
         var cacheEntry = _codeLensCache.GetCachedEntry(currentDocumentSyntaxVersion.ToString());
+        ImmutableArray<CodeLensMember> members;
+
+        // If the cache has no information, fetch the required code lens members
         if (cacheEntry == null)
         {
-            context.TraceInformation($"No cached information currently available for {currentDocumentSyntaxVersion}");
-            return request;
+            var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
+            members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            members = cacheEntry.CodeLensMembers;
         }
 
-        var memberToResolve = cacheEntry.CodeLensMembers[resolveData.ListIndex];
+        var memberToResolve = members[resolveData.ListIndex];
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
         var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, memberToResolve.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
         if (referenceCount != null)
