@@ -248,14 +248,17 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()'
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
         Public Sub TestAwaitExpression_InStatement_InSub()
             Dim source = <![CDATA[
+Imports System
 Imports System.Threading.Tasks
 
 Public Module Program
-    Public Sub M()
-        Dim lambda = Async Sub()
-                        Await M2()'BIND:"Await M2()"
-                     End Sub
-    End Sub
+    Public Async Function M() as Task
+        Dim lambda As Action = Async Sub()
+                                 Await M2()'BIND:"Await M2()"
+                               End Sub
+
+        Await lambda()
+    End Function
 
     Public Function M2() As Task(Of String)
         Throw New System.Exception()
@@ -272,7 +275,12 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()'
       Arguments(0)
 ]]>.Value
 
-            Dim expectedDiagnostics = String.Empty
+            Dim expectedDiagnostics = <![CDATA[
+BC30491: Expression does not produce a value.
+        Await lambda()
+              ~~~~~~~~
+]]>.Value
+
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
         End Sub
