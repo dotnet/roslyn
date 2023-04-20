@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             bool itemDefaultsSupported,
             TextSpan defaultSpan,
             CompletionItem item,
+            CompletionService completionService,
             CancellationToken cancellationToken)
         {
             var lspItem = new LSP.VSInternalCompletionItem
@@ -55,8 +56,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else
             {
-                await DefaultLspCompletionResultCreationService.PopulateTextEditAsync(
-                    document, documentText, itemDefaultsSupported, defaultSpan, item, lspItem, cancellationToken).ConfigureAwait(false);
+                await LspCompletionUtilities.PopulateTextEditAsync(
+                    document,
+                    documentText,
+                    itemDefaultsSupported,
+                    defaultSpan,
+                    item,
+                    lspItem,
+                    completionService,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return lspItem;
@@ -65,6 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public async Task<LSP.CompletionItem> ResolveAsync(
             LSP.CompletionItem completionItem,
             CompletionItem selectedItem,
+            LSP.TextDocumentIdentifier textDocumentIdentifier,
             Document document,
             LSP.ClientCapabilities clientCapabilities,
             CompletionService completionService,
@@ -100,58 +109,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Contract.ThrowIfTrue(completionItem.TextEdit != null);
 
                 var snippetsSupported = clientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var (edit, _, _) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
+                    document, completionService, selectedItem, snippetsSupported, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
 
-                completionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
+                completionItem.TextEdit = edit;
             }
 
             return completionItem;
-        }
-
-        // Internal for testing
-        internal static async Task<LSP.TextEdit> GenerateTextEditAsync(
-            Document document,
-            CompletionService completionService,
-            CompletionItem selectedItem,
-            bool snippetsSupported,
-            CancellationToken cancellationToken)
-        {
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var completionChange = await completionService.GetChangeAsync(
-                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var completionChangeSpan = completionChange.TextChange.Span;
-            var newText = completionChange.TextChange.NewText;
-            Contract.ThrowIfNull(newText);
-
-            // If snippets are supported, that means we can move the caret (represented by $0) to
-            // a new location.
-            if (snippetsSupported)
-            {
-                var caretPosition = completionChange.NewPosition;
-                if (caretPosition.HasValue)
-                {
-                    // caretPosition is the absolute position of the caret in the document.
-                    // We want the position relative to the start of the snippet.
-                    var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
-
-                    // The caret could technically be placed outside the bounds of the text
-                    // being inserted. This situation is currently unsupported in LSP, so in
-                    // these cases we won't move the caret.
-                    if (relativeCaretPosition >= 0 && relativeCaretPosition <= newText.Length)
-                    {
-                        newText = newText.Insert(relativeCaretPosition, "$0");
-                    }
-                }
-            }
-
-            var textEdit = new LSP.TextEdit()
-            {
-                NewText = newText,
-                Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-            };
-
-            return textEdit;
         }
     }
 }

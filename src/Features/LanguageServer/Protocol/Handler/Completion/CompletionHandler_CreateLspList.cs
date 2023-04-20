@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
+            var snippetsSupported = completionCapabilities?.CompletionItem?.SnippetSupport ?? false;
+            var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
+            var completionService = document.GetRequiredLanguageService<CompletionService>();
+
             foreach (var item in list.ItemsList)
                 lspCompletionItems.Add(await CreateLSPCompletionItemAsync(item).ConfigureAwait(false));
 
@@ -86,17 +90,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(CompletionItem item)
             {
-                var snippetsSupported = completionCapabilities?.CompletionItem?.SnippetSupport ?? false;
-                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-
                 // Defer to host to create the actual completion item (including potential subclasses), and add any
                 // custom information.
                 var lspItem = await creationService.CreateAsync(
-                    document, documentText, snippetsSupported, itemDefaultsSupported, defaultSpan, item, cancellationToken).ConfigureAwait(false);
+                    document, documentText, snippetsSupported, itemDefaultsSupported, defaultSpan, item, completionService, cancellationToken).ConfigureAwait(false);
 
                 // Now add data common to all hosts.
                 lspItem.Data = completionItemResolveData;
-                lspItem.Label = $"{item.DisplayTextPrefix}{item.DisplayText}{item.DisplayTextSuffix}";
+                lspItem.Label = item.GetEntireDisplayText();
 
                 lspItem.SortText = item.SortText;
                 lspItem.FilterText = item.FilterText;

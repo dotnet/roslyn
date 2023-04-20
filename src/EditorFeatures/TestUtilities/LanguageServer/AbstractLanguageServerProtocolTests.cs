@@ -49,7 +49,11 @@ namespace Roslyn.Test.Utilities
             TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+        protected static readonly TestComposition EditorFeaturesLspComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+            .AddParts(typeof(TestDocumentTrackingService))
+            .AddParts(typeof(TestWorkspaceRegistrationService));
+
+        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -102,7 +106,7 @@ namespace Roslyn.Test.Utilities
             public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
         }
 
-        protected virtual TestComposition Composition => s_composition;
+        protected virtual TestComposition Composition => EditorFeaturesLspComposition;
 
         private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
             => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
