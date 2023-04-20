@@ -79,10 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
+                // Walk all the way up the expression to the non-expression parent.  Effectively, once we change an
+                // expression *within* some larger expression context, we want to stop rewriting any further sibling
+                // expressions as they could be affected by this change.
                 SyntaxNode parent = expression;
                 while (parent.Parent is ExpressionSyntax parentExpression)
                     parent = parentExpression;
 
+                // if we're in an argument list, walk up into that as well as the change in one expression can affect
+                // other expressions in other arguments.
                 if (parent.Parent is ArgumentSyntax argument)
                     parent = argument;
 
@@ -157,9 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 Func<TExpression, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TExpression : SyntaxNode
             {
-                // Walk all the way up the expression to the non-expression parent.  Effectively, once we change an
-                // expression *within* some larger expression context, we want to stop rewriting any further sibling
-                // expressions as they could be affected by this change.
                 var parentNode = GetParentNode(expression);
                 if (parentNode == null)
                     return newNode;
