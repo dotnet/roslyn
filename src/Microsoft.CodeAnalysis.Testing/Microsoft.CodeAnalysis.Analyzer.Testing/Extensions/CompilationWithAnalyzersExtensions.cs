@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
     internal static class CompilationWithAnalyzersExtensions
     {
         private static readonly Func<CompilationWithAnalyzers, CancellationToken, Task> s_getAnalysisResultAsync;
+        private static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> s_createCompilationWithAnalyzers;
         private static readonly Func<Task, object> s_getTaskOfAnalysisResultResult;
         private static readonly object s_invalidResultSentinel = new object();
 
@@ -35,8 +37,34 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
                 taskOfAnalysisResult = null;
             }
 
+            var compilationWithAnalyzersOptionsType = typeof(CompilationWithAnalyzers).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions");
+            var constructorInfo = compilationWithAnalyzersOptionsType is not null
+                ? typeof(CompilationWithAnalyzers).GetConstructor(new[] { typeof(Compilation), typeof(ImmutableArray<DiagnosticAnalyzer>), compilationWithAnalyzersOptionsType })
+                : null;
+            if (constructorInfo is not null)
+            {
+                RoslynDebug.AssertNotNull(compilationWithAnalyzersOptionsType);
+                s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
+                {
+                    Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException = null;
+                    var concurrentAnalysis = true;
+                    var logAnalyzerExecutionTime = true;
+                    var reportSuppressedDiagnostics = true;
+                    var analysisOptions = Activator.CreateInstance(compilationWithAnalyzersOptionsType, options, onAnalyzerException, concurrentAnalysis, logAnalyzerExecutionTime, reportSuppressedDiagnostics);
+                    return (CompilationWithAnalyzers)Activator.CreateInstance(typeof(CompilationWithAnalyzers), compilation, analyzers, analysisOptions)!;
+                };
+            }
+            else
+            {
+                s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
+                    compilation.WithAnalyzers(analyzers, options, cancellationToken);
+            }
+
             s_getTaskOfAnalysisResultResult = LightupHelpers.CreatePropertyAccessor<Task, object>(taskOfAnalysisResult, nameof(Task<object>.Result), s_invalidResultSentinel);
         }
+
+        public static CompilationWithAnalyzers Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+            => s_createCompilationWithAnalyzers(compilation, analyzers, options, cancellationToken);
 
         public static async Task<AnalysisResultWrapper> GetAnalysisResultAsync(this CompilationWithAnalyzers compilationWithAnalyzers, CancellationToken cancellationToken)
         {
