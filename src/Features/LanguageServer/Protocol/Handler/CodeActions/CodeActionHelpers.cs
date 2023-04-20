@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 builder.Add(new LSP.CodeAction
                 {
-                    // Change this ti -> because it is shown to the user
+                    // Change this to -> because it is shown to the user
                     Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
