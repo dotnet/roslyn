@@ -42,8 +42,8 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
 
     [Shared]
     [Export(typeof(Refresher))]
-    [Export(typeof(IDiagnosticRefresher))]
-    internal sealed class Refresher : IDiagnosticRefresher
+    [Export(typeof(IDiagnosticsRefresher))]
+    internal sealed class Refresher : IDiagnosticsRefresher
     {
         public event Action? WorkspaceRefreshRequested;
         public event Action<Document>? DocumentRefreshRequested;
