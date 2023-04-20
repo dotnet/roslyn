@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
                 GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
-            using var declarationAnalysisData = AnalyzerDriver<TLanguageKindEnum>.ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
+            using var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
             if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {
                 return;
