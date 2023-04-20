@@ -109,6 +109,9 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
+        protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
+            => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
+
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
         /// </summary>
@@ -244,7 +247,8 @@ namespace Roslyn.Test.Utilities
             string? insertText = null,
             string? sortText = null,
             string? filterText = null,
-            long resultId = 0)
+            long resultId = 0,
+            bool vsResolveTextEditOnCommit = false)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -264,7 +268,8 @@ namespace Roslyn.Test.Utilities
                 {
                     ResultId = resultId,
                 }),
-                Preselect = preselect
+                Preselect = preselect,
+                VsResolveTextEditOnCommit = vsResolveTextEditOnCommit
             };
 
             if (tags != null)

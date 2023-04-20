@@ -6,10 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
+using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
+using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
 {
@@ -97,6 +104,58 @@ class A
     }
 }";
             await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace, hasTextEdits: false);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDoesNotShutdownServerIfCacheEntryMissing(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        var {|int:|}x = 5;
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, true);
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+            var textDocument = CreateTextDocumentIdentifier(document.GetURI());
+            var sourceText = await document.GetTextAsync();
+            var span = TextSpan.FromBounds(0, sourceText.Length);
+
+            var inlayHintParams = new LSP.InlayHintParams
+            {
+                TextDocument = textDocument,
+                Range = ProtocolConversions.TextSpanToRange(span, sourceText)
+            };
+
+            var actualInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            var firstInlayHint = actualInlayHints.First();
+            var data = JsonConvert.DeserializeObject<InlayHintResolveData>(firstInlayHint.Data!.ToString());
+            AssertEx.NotNull(data);
+            var firstResultId = data.ResultId;
+
+            // Verify the inlay hint item is in the cache.
+            var cache = testLspServer.GetRequiredLspService<InlayHintCache>();
+            Assert.NotNull(cache.GetCachedEntry(firstResultId));
+
+            // Execute a few more requests to ensure the first request is removed from the cache.
+            await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            var lastInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            Assert.True(lastInlayHints.Any());
+
+            // Assert that the first result id is no longer in the cache.
+            Assert.Null(cache.GetCachedEntry(firstResultId));
+
+            // Assert that the request throws because the item no longer exists in the cache.
+            await Assert.ThrowsAsync<RemoteInvocationException>(async () => await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, firstInlayHint, CancellationToken.None));
+
+            // Assert that the server did not shutdown and that we can resolve the latest inlay hint request we made.
+            var lastInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, lastInlayHints.First(), CancellationToken.None);
+            Assert.NotNull(lastInlayHint?.ToolTip);
         }
 
         private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace, bool hasTextEdits = true)

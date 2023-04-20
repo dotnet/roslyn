@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
 
-                return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectsToInclude, c), cacheResult: true);
+                return AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude, c));
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)

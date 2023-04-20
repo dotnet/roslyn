@@ -45,6 +45,7 @@
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
 
       <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
+      <TfmSpecificPackageFile Include="$(ProjectDepsFilePath)" PackagePath="tools\$(TargetFramework)\any" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
     </ItemGroup>
   </Target>
 

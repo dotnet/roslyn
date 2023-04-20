@@ -66,33 +66,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // In near future, the diagnostic computation invocation into CompilationWithAnalyzers will be moved to OOP.
                 // This should help simplify and/or remove the IDE layer diagnostic caching in devenv process.
 
-                // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
-                using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
+                // First attempt to fetch diagnostics from the cache, while computing the analyzers that are not cached.
+                using var _ = ArrayBuilder<(DiagnosticAnalyzer analyzer, ActiveFileState state)>.GetInstance(out var nonCachedAnalyzersAndStates);
                 foreach (var stateSet in stateSets)
                 {
-                    var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
+                    var (activeFileState, existingData) = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
                         backgroundAnalysisScope, compilerDiagnosticsScope, isActiveDocument, isVisibleDocument,
                         isOpenDocument, isGeneratedRazorDocument, cancellationToken, out var isAnalyzerSuppressed);
-                    if (data.HasValue)
+                    if (existingData.HasValue)
                     {
-                        PersistAndRaiseDiagnosticsIfNeeded(data.Value, stateSet);
+                        PersistAndRaiseDiagnosticsIfNeeded(existingData.Value, stateSet.Analyzer, activeFileState);
                     }
                     else if (!isAnalyzerSuppressed)
                     {
-                        nonCachedStateSets.Add(stateSet);
+                        nonCachedAnalyzersAndStates.Add((stateSet.Analyzer, activeFileState));
                     }
                 }
 
                 // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
-                if (nonCachedStateSets.Count > 0)
+                if (nonCachedAnalyzersAndStates.Count > 0)
                 {
-                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
+                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedAnalyzersAndStates.SelectAsArray(s => s.analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit: false, logPerformanceInfo: false, onAnalysisException: OnAnalysisException);
                     var logTelemetry = GlobalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-                    foreach (var stateSet in nonCachedStateSets)
+                    foreach (var (analyzer, state) in nonCachedAnalyzersAndStates)
                     {
-                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
-                        PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, analyzer, state, logTelemetry, cancellationToken).ConfigureAwait(false);
+                        PersistAndRaiseDiagnosticsIfNeeded(computedData, analyzer, state);
                     }
                 }
             }
@@ -101,19 +101,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 throw ExceptionUtilities.Unreachable();
             }
 
-            void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, StateSet stateSet)
+            void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, DiagnosticAnalyzer analyzer, ActiveFileState state)
             {
                 if (result.FromCache == true)
                 {
-                    RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
+                    RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, result.Items);
                     return;
                 }
 
                 // no cancellation after this point.
-                var state = stateSet.GetOrCreateActiveFileState(document.Id);
                 state.Save(kind, result.ToPersistData());
 
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
+                RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, result.OldItems, result.Items);
             }
 
             void OnAnalysisException()
@@ -325,9 +324,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     // clear all doucment diagnostics
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal, raiseEvents);
                 }
             });
         }
@@ -352,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         foreach (var stateSet in stateSets)
                         {
                             // clear all project diagnostics
-                            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
+                            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet.Analyzer, raiseEvents);
                         }
                     });
                 }
@@ -508,17 +507,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             });
         }
 
-        private void RaiseDocumentDiagnosticsIfNeeded(TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
-            => RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, ImmutableArray<DiagnosticData>.Empty, items);
+        private void RaiseDocumentDiagnosticsIfNeeded(TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
+            => RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, ImmutableArray<DiagnosticData>.Empty, items);
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, AnalyzerService.RaiseDiagnosticsUpdated, forceUpdate: false);
+            RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, oldItems, newItems, AnalyzerService.RaiseDiagnosticsUpdated, forceUpdate: false);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            TextDocument document, StateSet stateSet, AnalysisKind kind,
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
             DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
@@ -535,11 +534,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var oldItems = oldResult.GetDocumentDiagnostics(document.Id, kind);
             var newItems = newResult.GetDocumentDiagnostics(document.Id, kind);
 
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents, forceUpdate);
+            RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, oldItems, newItems, raiseEvents, forceUpdate);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            TextDocument document, StateSet stateSet, AnalysisKind kind,
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
             Action<DiagnosticsUpdatedArgs> raiseEvents,
             bool forceUpdate)
@@ -550,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
+            RaiseDiagnosticsCreated(document, analyzer, kind, newItems, raiseEvents);
         }
 
         private async Task RaiseProjectDiagnosticsCreatedAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents, CancellationToken cancellationToken)
@@ -581,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult, raiseEvents);
 
                 // we don't raise events for active file. it will be taken cared by active file analysis
                 if (stateSet.IsActiveFile(documentId))
@@ -589,18 +588,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult, raiseEvents);
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult, raiseEvents);
             }
 
-            RaiseDiagnosticsCreated(project, stateSet, newAnalysisResult.GetOtherDiagnostics(), raiseEvents);
+            RaiseDiagnosticsCreated(project, stateSet.Analyzer, newAnalysisResult.GetOtherDiagnostics(), raiseEvents);
         }
 
         private void RaiseProjectDiagnosticsRemoved(StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             foreach (var documentId in documentIds)
             {
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal, raiseEvents);
 
                 // we don't raise events for active file. it will be taken care of by active file analysis
                 if (!handleActiveFile && stateSet.IsActiveFile(documentId))
@@ -608,11 +607,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic, raiseEvents);
             }
 
-            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
+            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet.Analyzer, raiseEvents);
         }
     }
 }
