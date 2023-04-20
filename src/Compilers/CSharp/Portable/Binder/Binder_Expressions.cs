@@ -408,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expr,
                             collectionType,
                             wasTargetTyped: false,
-                            hasEnumerableInitializerType: true,
                             wasCompilerGenerated: expr.WasCompilerGenerated,
                             diagnostics,
                             hasErrors);

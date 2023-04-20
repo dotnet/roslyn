@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan
                     => bindArrayOrSpan(syntax, targetType, getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics), node.Initializers, elementType!, diagnostics),
                 ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer
-                    => BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, hasEnumerableInitializerType: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics),
+                    => BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics),
                 var collectionTypeKind
                     => throw ExceptionUtilities.UnexpectedValue(collectionTypeKind),
             };
@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionLiteralExpression node,
             TypeSymbol targetType,
             bool wasTargetTyped,
-            bool hasEnumerableInitializerType,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
@@ -553,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = BindCollectionInitializerElementAddMethod(
                     element.Syntax,
                     ImmutableArray.Create(element),
-                    hasEnumerableInitializerType,
+                    hasEnumerableInitializerType: true,
                     collectionInitializerAddMethodBinder,
                     diagnostics,
                     implicitReceiver);
