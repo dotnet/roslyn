@@ -522,9 +522,10 @@ public class InterceptorsTests : CSharpTestBase
     [Fact]
     public void DuplicateLocation_03()
     {
-        // When InterceptsLocationAttribute is inherited, it results in a duplicate interception.
+        // InterceptsLocationAttribute is not considered to *duplicate* an interception, even if it is inherited.
         var source = """
             using System.Runtime.CompilerServices;
+            using System;
 
             var d = new D();
             d.M();
@@ -534,13 +535,13 @@ public class InterceptorsTests : CSharpTestBase
                 [Interceptable]
                 public void M() => throw null!;
 
-                [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
+                [InterceptsLocation("Program.cs", 5, 3)]
                 public virtual void Interceptor() => throw null!;
             }
 
             class D : C
             {
-                public override void Interceptor() => throw null!;
+                public override void Interceptor() => Console.Write(1);
             }
 
             namespace System.Runtime.CompilerServices
@@ -558,15 +559,8 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation((source, "Program.cs"));
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(11,6): error CS27016: The indicated call is intercepted multiple times.
-            //     [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
-            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(11, 6),
-            // Program.cs(11,6): error CS27016: The indicated call is intercepted multiple times.
-            //     [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
-            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(11, 6)
-            );
+        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]

@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
-        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Inteceptor)>>? _interceptions;
+        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
 
         internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
         {
@@ -2257,8 +2257,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
             dictionary.AddOrUpdate((filePath, line, character),
                 addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
-                updateValueFactory: static (key, existingValue, newValue) => existingValue.Add(newValue),
-                factoryArgument: (attributeLocation, interceptor));
+                updateValueFactory: static (key, existingValues, newValue) =>
+                {
+                    // AddInterception can be called when attributes are decoded on a symbol, which can happen for the same symbol concurrently.
+                    // If something else has already added the interceptor denoted by a given `[InterceptsLocation]`, we want to drop it.
+                    // Since the collection is almost always length 1, a simple foreach is adequate for detecting this.
+                    foreach (var (attributeLocation, interceptor) in existingValues)
+                    {
+                        if (attributeLocation == newValue.AttributeLocation && interceptor.Equals(newValue.Interceptor, TypeCompareKind.ConsiderEverything))
+                        {
+                            return existingValues;
+                        }
+                    }
+                    return existingValues.Add(newValue);
+                },
+                // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
+                factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
 
         internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation, BindingDiagnosticBag diagnostics)

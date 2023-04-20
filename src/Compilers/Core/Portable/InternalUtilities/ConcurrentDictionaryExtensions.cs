@@ -39,7 +39,9 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        public static TValue AddOrUpdate<TKey, TArg, TValue>(
+        // original signature:
+        // public TValue ConcurrentDictionary<TKey, TValue>.AddOrUpdate<TArg>(TKey key, Func<TKey,TArg,TValue> addValueFactory, Func<TKey,TValue,TArg,TValue> updateValueFactory, TArg factoryArgument);
+        public static TValue AddOrUpdate<TKey, TValue, TArg>(
             this ConcurrentDictionary<TKey, TValue> dictionary,
             TKey key,
             Func<TKey, TArg, TValue> addValueFactory,
