@@ -248,7 +248,7 @@ namespace Roslyn.Test.Utilities
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
             LSP.TextEdit? textEdit = null,
-            string? insertText = null,
+            string? textEditText = null,
             string? sortText = null,
             string? filterText = null,
             long resultId = 0,
@@ -262,7 +262,7 @@ namespace Roslyn.Test.Utilities
             var item = new LSP.VSInternalCompletionItem()
             {
                 TextEdit = textEdit,
-                InsertText = insertText,
+                TextEditText = textEditText,
                 FilterText = filterText,
                 Label = label,
                 SortText = sortText,
