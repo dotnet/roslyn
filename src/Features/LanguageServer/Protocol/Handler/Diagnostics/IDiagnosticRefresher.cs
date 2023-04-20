@@ -19,27 +19,4 @@ internal interface IDiagnosticRefresher
     /// Requests document diangostics refresh.
     /// </summary>
     void RequestDocumentRefresh(Document document);
-
-}
-
-[Shared]
-[Export(typeof(DiagnosticRefresher))]
-[Export(typeof(IDiagnosticRefresher))]
-internal sealed class DiagnosticRefresher : IDiagnosticRefresher
-{
-    public event Action? WorkspaceRefreshRequested;
-    public event Action<Document>? DocumentRefreshRequested;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DiagnosticRefresher()
-    {
-    }
-
-    public void RequestWorkspaceRefresh()
-        => WorkspaceRefreshRequested?.Invoke();
-
-    public void RequestDocumentRefresh(Document document)
-        => DocumentRefreshRequested?.Invoke(document);
-
 }
