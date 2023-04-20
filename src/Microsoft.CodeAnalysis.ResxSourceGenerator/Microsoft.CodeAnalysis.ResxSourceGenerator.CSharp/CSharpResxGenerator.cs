@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp
     [Generator(LanguageNames.CSharp)]
     internal sealed class CSharpResxGenerator : AbstractResxGenerator
     {
-        protected override bool SupportsNullable(GeneratorExecutionContext context)
+        protected override bool SupportsNullable(Compilation compilation)
         {
-            return ((CSharpCompilation)context.Compilation).LanguageVersion >= LanguageVersion.CSharp8;
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp8;
         }
     }
 }

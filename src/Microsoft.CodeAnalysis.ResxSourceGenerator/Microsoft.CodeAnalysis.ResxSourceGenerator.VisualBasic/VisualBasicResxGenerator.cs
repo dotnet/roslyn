@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic
     [Generator(LanguageNames.VisualBasic)]
     internal sealed class VisualBasicResxGenerator : AbstractResxGenerator
     {
-        protected override bool SupportsNullable(GeneratorExecutionContext context)
+        protected override bool SupportsNullable(Compilation compilation)
         {
             return false;
         }
