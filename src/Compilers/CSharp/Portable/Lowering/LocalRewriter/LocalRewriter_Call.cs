@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            bool invokedAsExtensionMethod,
             Location? interceptableLocation)
         {
             // PROTOTYPE(ic):
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
-                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
                 return;
             }
 
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
             {
-                this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
+                this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
             }
 
             method.TryGetThisParameter(out var methodThisParameter);
@@ -215,6 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 default:
                     break;
+            }
+
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
+            {
+                // Special case when intercepting an extension method call in reduced form with a non-extension.
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
+                // PROTOYPE(ic): use a symbol display format which includes the 'this' modifier?
+                //this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, new FormattedSymbol(method.Parameters[0], SymbolDisplayFormat.CSharpErrorMessageFormat), method);
+                return;
             }
 
             if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
@@ -290,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod);
 
-            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, node.InterceptableLocation);
+            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
             var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
             if (Instrument)

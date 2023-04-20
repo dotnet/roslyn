@@ -13,35 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    // PROTOTYPE(ic): test a case where the original method has type parameter constraints.
-    // PROTOTYPE(ic): for now we will just completely disallow type parameters in the interceptor.
-    // PROTOTYPE(ic): test where interceptable is a constructed method or a retargeting method.
     // PROTOTYPE(ic): Ensure that all `MethodSymbol.IsInterceptable` implementations have test coverage.
-    // PROTOTYPE(ic): test where there are differences between 'scoped' modifiers and '[UnscopedRef]' attributes
 
     // PROTOTYPE(ic): Possible test cases:
     //
     // * Intercept instance method with instance method in same class, base class, derived class
     // * Intercept with extern method
-    // * Intercept with abstract or interface method
     // * Intercept an abstract or interface method
     // * Intercept a virtual or overridden method
     // * Intercept a non-extension call to a static method with a static method when one or both are extension methods
     // * Intercept a struct instance method with an extension method with by-value / by-ref this parameter
     // * An explicit interface implementation marked as interceptable
-    // * Intercept a generic method call when the type parameters are / are not substituted
 
-    // PROTOTYPE(ic): test a valid case with large numbers of interceptors. (EndToEndTests?)
     // PROTOTYPE(ic): test intercepting an extension method with a non-extension method. Perhaps should be an error for simplicity even if calling in non-reduced form.
-
-    // PROTOTYPE(ic): test when parameter names differ or appear in a different order in interceptor vs interceptable method.
-
-    // PROTOTYPE(ic): duplicates
-    // PROTOTYPE(ic): intercept with instance method
-    // PROTOTYPE(ic): intercept with instance base method
-
-    // PROTOTYPE(ic): test interceptable explicit interface implementation (should error).
-    // PROTOTYPE(ic): test interceptor with 'ref this' to match a struct interceptable method.
 
     private static readonly (string, string) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;
@@ -49,7 +33,7 @@ public class InterceptorsTests : CSharpTestBase
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class InterceptableAttribute : Attribute { }
 
-        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
             public InterceptsLocationAttribute(string filePath, int line, int character)
@@ -535,6 +519,56 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateLocation_03()
+    {
+        // When InterceptsLocationAttribute is inherited, it results in a duplicate interception.
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            var d = new D();
+            d.M();
+
+            class C
+            {
+                [Interceptable]
+                public void M() => throw null!;
+
+                [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
+                public virtual void Interceptor() => throw null!;
+            }
+
+            class D : C
+            {
+                public override void Interceptor() => throw null!;
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Method)]
+                public sealed class InterceptableAttribute : Attribute { }
+
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+                public sealed class InterceptsLocationAttribute : Attribute
+                {
+                    public InterceptsLocationAttribute(string filePath, int line, int character)
+                    {
+                    }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation((source, "Program.cs"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(11,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(11, 6),
+            // Program.cs(11,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 4, 3)] // 1, 2
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(11, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptsLocationFromMetadata()
     {
         // Verify that `[InterceptsLocation]` on a method from metadata does not cause a call in the current compilation to be intercepted.
@@ -744,6 +778,34 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableExtensionMethod_InterceptorStaticMethod()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            var c = new C();
+            c.InterceptableMethod();
+
+            class C { }
+
+            static class D
+            {
+                [Interceptable]
+                public static void InterceptableMethod(this C c) => throw null!;
+
+                [InterceptsLocation("Program.cs", 5, 3)]
+                public static void Interceptor1(C c) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(14,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C c' on 'D.InterceptableMethod(C)'.
+            //     [InterceptsLocation("Program.cs", 5, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 5, 3)").WithArguments("C c", "D.InterceptableMethod(C)").WithLocation(14, 6));
+    }
+
+    [Fact]
     public void InterceptableStaticMethod_InterceptorInstanceMethod()
     {
         var source = """
@@ -835,6 +897,40 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ParameterNamesInDifferentOrder()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public void InterceptableMethod(string s1, string s2) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("1", "2");
+                    c.InterceptableMethod(s2: "4", s1: "3");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                [InterceptsLocation("Program.cs", 16, 11)]
+                public static void Interceptor1(this C c, string s2, string s1) { Console.Write(s2); Console.Write(s1); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1234");
         verifier.VerifyDiagnostics();
     }
 
@@ -1284,6 +1380,37 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 14, 37)]
             Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 14, 37)").WithArguments(">").WithLocation(22, 6)
             );
+    }
+
+    [Fact]
+    public void InterceptableGeneric_03()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod<T>(T t) where T : class => throw null!;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    C.InterceptableMethod<string>("1");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)]
+                public static void Interceptor1(string s) { Console.Write(s); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2728,6 +2855,126 @@ partial struct CustomHandler
             {
                 [InterceptsLocation("Program.cs", 4, 3)]
                 public static void M1([CallerLineNumber] int lineNumber = 0) => Console.Write(lineNumber);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableExplicitImplementation()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            var c = new C();
+            ((I)c).M();
+
+            interface I
+            {
+                void M();
+            }
+
+            class C : I
+            {
+                [Interceptable] // 1
+                void I.M() => throw null!;
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 5, 8)]
+                public static void Interceptor(this I i) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(14,6): error CS27008: An interceptable method must be an ordinary member method.
+            //     [Interceptable] // 1
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "Interceptable").WithLocation(14, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptorExtern()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() => throw null!;
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static extern void Interceptor();
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorAbstract()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            var d = new D();
+            d.M();
+
+            abstract class C
+            {
+                [Interceptable]
+                public void M() => throw null!;
+
+                [InterceptsLocation("Program.cs", 5, 3)]
+                public abstract void Interceptor();
+            }
+
+            class D : C
+            {
+                public override void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorInterface()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            I i = new C();
+            i.M();
+
+            interface I
+            {
+                [Interceptable]
+                public void M();
+
+                [InterceptsLocation("Program.cs", 5, 3)]
+                void Interceptor();
+            }
+
+            class C : I
+            {
+                public void M() => throw null!;
+                public void Interceptor() => Console.Write(1);
             }
             """;
 
