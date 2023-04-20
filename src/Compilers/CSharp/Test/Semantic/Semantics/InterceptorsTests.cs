@@ -2166,6 +2166,7 @@ public class InterceptorsTests : CSharpTestBase
         // tuple element name difference
         var source = """
             using System.Runtime.CompilerServices;
+            using System;
 
             class C
             {
@@ -2184,12 +2185,12 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 14, 11)]
-                public static void Interceptor1(this C s, (string a, string b) param2) => throw null!;
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1(this C s, (string a, string b) param2) => Console.Write(1);
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2441,6 +2442,84 @@ public class InterceptorsTests : CSharpTestBase
               IL_0000:  ldarg.0
               IL_0001:  ldarg.1
               IL_0002:  call       "bool object.NotReferenceEquals(object, object)"
+              IL_0007:  brfalse.s  IL_000b
+              IL_0009:  ldnull
+              IL_000a:  throw
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ReferenceEquals_02()
+    {
+        // Intercept a call to object.ReferenceEquals
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                public static void M0(object? obj1, object? obj2)
+                {
+                    if (object.ReferenceEquals(obj1, obj2))
+                       throw null!;
+                }
+
+                [InterceptsLocation("Program.cs", 7, 20)]
+                public static bool Interceptor(object? obj1, object? obj2)
+                {
+                    return false;
+                }
+            }
+
+            namespace System
+            {
+                public class Object
+                {
+                    [Interceptable]
+                    public static bool ReferenceEquals(object? obj1, object? obj2) => throw null!;
+                }
+            
+                public class Void { }
+                public struct Boolean { }
+                public class String { }
+                public class Attribute { }
+                public abstract class Enum { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets targets) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Exception { }
+                public abstract class ValueType { }
+                public struct Int32 { }
+                public struct Byte { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class InterceptableAttribute : Attribute { }
+
+                public sealed class InterceptsLocationAttribute : Attribute
+                {
+                    public InterceptsLocationAttribute(string filePath, int line, int column)
+                    {
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), options: WithNullableEnable()), verify: Verification.Skipped);
+        verifier.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+        verifier.VerifyIL("D.M0", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "bool D.Interceptor(object, object)"
               IL_0007:  brfalse.s  IL_000b
               IL_0009:  ldnull
               IL_000a:  throw
@@ -2919,8 +2998,17 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource });
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size        6 (0x6)
+              .maxstack  0
+              IL_0000:  call       "void D.Interceptor()"
+              IL_0005:  ret
+            }
+            """);
     }
 
     [Fact]
