@@ -59,7 +59,7 @@ internal abstract class ResolveCache<TCacheEntry, T> : ILspService where TCacheE
     /// <returns>
     /// The generated resultId associated with the passed in completion list.
     /// </returns>
-    public T UpdateCache(TCacheEntry cacheEntry, T resultId, Action<T> updateResultIdCallback = null)
+    public T UpdateCache(TCacheEntry cacheEntry, T resultId, Action<T>? updateResultIdCallback = null)
     {
         lock (_accessLock)
         {
@@ -90,7 +90,8 @@ internal abstract class ResolveCache<TCacheEntry, T> : ILspService where TCacheE
         {
             foreach (var item in _resultIdToCachedItem)
             {
-                if (item.ResultId.Equals(resultId))
+                if (item.ResultId is not null &&
+                    item.ResultId.Equals(resultId))
                 {
                     // We found a match - return entry
                     return item.CacheEntry;
