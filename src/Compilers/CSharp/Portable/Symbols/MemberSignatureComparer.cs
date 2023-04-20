@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
-        /// Determines if an interceptor has a compatible signature with an interceptable method, including type differences ignored by the runtime.
+        /// Determines if an interceptor has a compatible signature with an interceptable method.
+        /// If the comparison returns 'true' when using <see cref="InterceptorsComparer"/>, but 'false' when using this comparer, a warning is reported.
         /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
         /// </summary>
         public static readonly MemberSignatureComparer InterceptorsStrictComparer = new MemberSignatureComparer(
