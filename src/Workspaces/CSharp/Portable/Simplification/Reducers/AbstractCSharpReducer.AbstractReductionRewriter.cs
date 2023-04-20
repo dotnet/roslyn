@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -78,17 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
-                var lastExpression = expression;
-                for (SyntaxNode? current = expression; current != null; current = current.Parent)
-                {
-                    if (current is ExpressionSyntax currentExpression)
-                    {
-                        lastExpression = currentExpression;
-                    }
-                }
+                SyntaxNode parent = expression;
+                while (parent.Parent is ExpressionSyntax parentExpression)
+                    parent = parentExpression;
 
-                Contract.ThrowIfNull(lastExpression.Parent);
-                return lastExpression.Parent;
+                if (parent.Parent is ArgumentSyntax argument)
+                    parent = argument;
+
+                return parent.GetRequiredParent();
             }
 
             private static SyntaxNode GetParentNode(PatternSyntax pattern)
@@ -159,6 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 Func<TExpression, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TExpression : SyntaxNode
             {
+                // Walk all the way up the expression to the non-expression parent.  Effectively, once we change an
+                // expression *within* some larger expression context, we want to stop rewriting any further sibling
+                // expressions as they could be affected by this change.
                 var parentNode = GetParentNode(expression);
                 if (parentNode == null)
                     return newNode;
