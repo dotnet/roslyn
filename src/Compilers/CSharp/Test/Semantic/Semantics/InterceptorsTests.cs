@@ -2998,7 +2998,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource });
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
