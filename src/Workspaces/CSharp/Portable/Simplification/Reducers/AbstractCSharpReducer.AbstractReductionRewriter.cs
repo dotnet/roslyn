@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 SyntaxNode parent = expression;
                 for (var current = (SyntaxNode)expression; current != null; current = current.Parent)
                 {
+                    // if we're in an argument, walk up into that as well as the change in one argument can affect
+                    // other arguments in a call.
                     if (current is ExpressionSyntax or ArgumentSyntax)
                         parent = current;
                 }
