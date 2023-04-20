@@ -246,7 +246,7 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()'
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
-        Public Sub TestAwaitExpression_InStatement_InSub()
+        Public Sub TestAwaitExpression_InStatement_InSubLambda()
             Dim source = <![CDATA[
 Imports System
 Imports System.Threading.Tasks
