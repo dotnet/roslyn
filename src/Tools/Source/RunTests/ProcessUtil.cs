@@ -10,15 +10,19 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.Versioning;
 
 namespace RunTests
 {
-    [SupportedOSPlatform("windows")]
     internal static class ProcessUtil
     {
         internal static int? TryGetParentProcessId(Process p)
         {
+            // System.Management is not supported outside of Windows.
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return null;
+            }
+
             try
             {
                 ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");
