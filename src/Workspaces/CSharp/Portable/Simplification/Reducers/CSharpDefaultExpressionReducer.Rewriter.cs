@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
-                => SimplifyExpression(
+                => SimplifyNode(
                     node,
                     newNode: base.VisitDefaultExpression(node),
                     simplifier: _simplifyDefaultExpression);
