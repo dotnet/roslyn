@@ -211,7 +211,7 @@ struct Buffer
         public void InlineArrayType_07_WrongLength()
         {
             var src = @"
-[System.Runtime.CompilerServices.InlineArray(0)]
+[System.Runtime.CompilerServices.InlineArray(-2)]
 struct Buffer
 {
     private int _element0;
