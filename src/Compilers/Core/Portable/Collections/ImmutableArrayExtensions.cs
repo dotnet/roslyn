@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Roslyn.Utilities;
 
 #if DEBUG
 using System.Linq;
@@ -833,60 +832,22 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        public static Dictionary<TKey, ImmutableArray<TSource>> ToDictionary<TSource, TKey>(this ImmutableArray<TSource> items, Func<TSource, TKey> keySelector)
-            where TKey : notnull
-            where TSource : class
-        {
-            return ToDictionary<TSource, TSource, TKey, VoidResult, TSource>(items, static (x, _) => x, keySelector, data: default, downcastUnused: null);
-        }
-
-        /// <summary>
-        /// Produces a dictionary from a list of <paramref name="items"/> mapping from <typeparamref name="TKey"/>s to
-        /// an array of <typeparamref name="TResult"/>s.  The values of the dictionary are produced using <paramref
-        /// name="selector"/> on each item in <paramref name="items"/>.  They keys of the dictionary are producing using
-        /// <paramref name="keySelector"/> on those values.  Values with the same key are grouped into an <see
-        /// cref="ImmutableArray{TResult}"/>.  All arrays returned will always have at least one element in them.
-        /// <para/>
-        /// Clients of this API can ask for special behavior if all values are also an instance of <typeparamref
-        /// name="TDowncast"/>.  In that event an <see cref="ImmutableArray{TDowncast}"/> will be created instead of an
-        /// <see cref="ImmutableArray{TResult}"/>.  This allows clients to directly cast to that type avoiding an
-        /// unnecessary copy when passing around to strongly typed helpers that want to use the derived type.
-        /// </summary>
-        public static Dictionary<TKey, ImmutableArray<TResult>> ToDictionary<TSource, TResult, TKey, TData, TDowncast>(
-#pragma warning disable IDE0060 // Remove unused parameter. `TDowncast? downcastUnused` is here just so we can get type inference to work at callsites without having to pass all type arguments along.
-            this ImmutableArray<TSource> items, Func<TSource, TData, TResult> selector, Func<TResult, TKey> keySelector, TData data, TDowncast? downcastUnused)
-#pragma warning restore IDE0060 // Remove unused parameter
-            where TKey : notnull
-            where TSource : notnull
-            where TResult : notnull
-            where TDowncast : class, TResult
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
+            where T : notnull
         {
             if (items.Length == 1)
             {
-                var value = selector(items[0], data);
-                var key = keySelector(value);
-
-                // Ensure the jit only goes through the special downcast path if it would matter for the caller. i.e. if
-                // TSource==TDowncast we can avoid any checks altogether.
-                var result = new Dictionary<TKey, ImmutableArray<TResult>>(1);
-
-                if (typeof(TSource) == typeof(TDowncast))
+                T value = items[0];
+                return new Dictionary<K, ImmutableArray<T>>(1, comparer)
                 {
-                    result.Add(key, ImmutableArray.Create(value));
-                }
-                else
-                {
-                    result.Add(key, value is TDowncast downcast
-                        ? ImmutableArray<TResult>.CastUp(ImmutableArray.Create(downcast))
-                        : ImmutableArray.Create(value));
-                }
-
-                return result;
+                    {  keySelector(value), ImmutableArray.Create(value) },
+                };
             }
 
             if (items.Length == 0)
             {
-                return new Dictionary<TKey, ImmutableArray<TResult>>();
+                return new Dictionary<K, ImmutableArray<T>>(comparer);
             }
 
             // bucketize
@@ -895,65 +856,42 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator = PooledDictionary<TKey, object>.GetInstance();
+            var accumulator = new Dictionary<K, object>(items.Length, comparer);
             foreach (var item in items)
             {
-                var value = selector(item, data);
-                var key = keySelector(value);
+                var key = keySelector(item);
                 if (accumulator.TryGetValue(key, out var existingValueOrArray))
                 {
-                    if (existingValueOrArray is not ArrayBuilder<TResult> arrayBuilder)
+                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
+                    {
+                        // Already a builder in the accumulator, just add to that.
+                        arrayBuilder.Add(item);
+                    }
+                    else
                     {
                         // Just a single value in the accumulator so far.  Convert to using a builder.
-                        arrayBuilder = ArrayBuilder<TResult>.GetInstance(capacity: 2);
-                        arrayBuilder.Add((TResult)existingValueOrArray);
+                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                        arrayBuilder.Add((T)existingValueOrArray);
+                        arrayBuilder.Add(item);
                         accumulator[key] = arrayBuilder;
                     }
-
-                    arrayBuilder.Add(value);
                 }
                 else
                 {
                     // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, value);
+                    accumulator.Add(key, item);
                 }
             }
 
-            var dictionary = new Dictionary<TKey, ImmutableArray<TResult>>(accumulator.Count);
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
 
             // freeze
             foreach (var pair in accumulator)
             {
-                // Ensure the jit only goes through the special downcast path if it would matter for the caller. i.e. if
-                // TSource==TDowncast we can avoid any checks altogether.
-                if (typeof(TSource) == typeof(TDowncast))
-                {
-                    dictionary.Add(pair.Key, pair.Value is ArrayBuilder<TResult> arrayBuilder
-                        ? arrayBuilder.ToImmutableAndFree()
-                        : ImmutableArray.Create((TResult)pair.Value));
-                }
-                else
-                {
-                    // try to place a downcasted array in the result if all the elements are of that downcasted type.
-                    // This helps clients like SourceNamespaceSymbol which can then avoid future allocations of
-                    // ImmutableArray<NamedTypeSymbol> for children in the common case where all children are only
-                    // types.
-                    if (pair.Value is ArrayBuilder<TResult> arrayBuilder)
-                    {
-                        dictionary.Add(pair.Key, arrayBuilder.All(static v => v is TDowncast)
-                            ? ImmutableArray<TResult>.CastUp(arrayBuilder.ToDowncastedImmutableAndFree<TDowncast>())
-                            : arrayBuilder.ToImmutableAndFree());
-                    }
-                    else
-                    {
-                        dictionary.Add(pair.Key, pair.Value is TDowncast downcast
-                            ? ImmutableArray<TResult>.CastUp(ImmutableArray.Create(downcast))
-                            : ImmutableArray.Create((TResult)pair.Value));
-                    }
-                }
+                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
+                    ? arrayBuilder.ToImmutableAndFree()
+                    : ImmutableArray.Create((T)pair.Value));
             }
-
-            accumulator.Free();
 
             return dictionary;
         }
