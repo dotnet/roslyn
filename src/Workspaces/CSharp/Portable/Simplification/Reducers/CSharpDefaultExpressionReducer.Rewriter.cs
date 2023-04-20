@@ -33,12 +33,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 CSharpSimplifierOptions options,
                 CancellationToken cancellationToken)
             {
-                var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
+                // if the rewriter has more work, then that means a previous node it hit was rewritten.  We can't
+                // rewrite this node as the combination of rewrites themselves may be invalid.  For example, if we have:
+                //
+                //  Goo(default(int), default(int));
+                //  void Goo(int a, int b);
+                //  void Goo(string a, string b);
+                //
+                // Each of those arguments can be simplified *independently* from the other.  e.g. both:
+                //
+                //  Goo(default, default(int)); and Goo(default(int), default);
+                //
+                // are legal.  However, simplifying both is not legal.
 
-                if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
+                if (!this.HasMoreWork)
                 {
-                    return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
-                                        .WithTriviaFrom(node);
+                    var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
+
+                    if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
+                    {
+                        return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
+                                            .WithTriviaFrom(node);
+                    }
                 }
 
                 return node;
