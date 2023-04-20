@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
             // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return Array.Empty<LSP.CodeAction>();
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
             // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, selection, includeConfigureAndSuppressFixer: hasVsLspCapability, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
 
@@ -311,7 +311,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
-            bool includeConfigureAndSuppressFixer,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -320,7 +319,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, addOperationScope: _ => null, includeConfigureAndSuppressFixer: includeConfigureAndSuppressFixer, cancellationToken).ConfigureAwait(false);
+                fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions,
