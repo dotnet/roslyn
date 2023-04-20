@@ -840,6 +840,18 @@ namespace Microsoft.CodeAnalysis
             return ToDictionary<TSource, TSource, TKey, VoidResult, TSource>(items, static (x, _) => x, keySelector, data: default, downcastUnused: null);
         }
 
+        /// <summary>
+        /// Produces a dictionary from a list of <paramref name="items"/> mapping from <typeparamref name="TKey"/>s to
+        /// an array of <typeparamref name="TResult"/>s.  The values of the dictionary are produced using <paramref
+        /// name="selector"/> on each item in <paramref name="items"/>.  They keys of the dictionary are producing using
+        /// <paramref name="keySelector"/> on those values.  Values with the same key are grouped into an <see
+        /// cref="ImmutableArray{TResult}"/>.  All arrays returned will always have at least one element in them.
+        /// <para/>
+        /// Clients of this API can ask for special behavior if all values are also an instance of <typeparamref
+        /// name="TDowncast"/>.  In that event an <see cref="ImmutableArray{TDowncast}"/> will be created instead of an
+        /// <see cref="ImmutableArray{TResult}"/>.  This allows clients to directly cast to that type avoiding an
+        /// unnecessary copy when passing around to strongly typed helpers that want to use the derived type.
+        /// </summary>
         public static Dictionary<TKey, ImmutableArray<TResult>> ToDictionary<TSource, TResult, TKey, TData, TDowncast>(
 #pragma warning disable IDE0060 // Remove unused parameter. `TDowncast? downcastUnused` is here just so we can get type inference to work at callsites without having to pass all type arguments along.
             this ImmutableArray<TSource> items, Func<TSource, TData, TResult> selector, Func<TResult, TKey> keySelector, TData data, TDowncast? downcastUnused)
