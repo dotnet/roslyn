@@ -383,9 +383,10 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,11): error CS27007: Cannot intercept method 'C.InterceptableMethod(string)' with interceptor 'D.Interceptor1(C, string)' because the signatures do not match.
-            //         c.InterceptableMethod("call site");
-            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("C.InterceptableMethod(string)", "D.Interceptor1(C, string)").WithLocation(15, 11));
+            // Program.cs(21,6): error CS27007: Cannot intercept method 'C.InterceptableMethod(string)' with interceptor 'D.Interceptor1(C, string)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod(string)", "D.Interceptor1(C, string)").WithLocation(21, 6)
+            );
     }
 
     [Fact]
@@ -1949,9 +1950,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-                // Program.cs(15,11): error CS27007: Cannot intercept method 'Program.InterceptableMethod(I1, string)' with interceptor 'D.Interceptor1(I1, int)' because the signatures do not match.
-                //         c.InterceptableMethod("call site");
-                Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "InterceptableMethod").WithArguments("Program.InterceptableMethod(I1, string)", "D.Interceptor1(I1, int)").WithLocation(15, 11)
+                // Program.cs(21,6): error CS27007: Cannot intercept method 'Program.InterceptableMethod(I1, string)' with interceptor 'D.Interceptor1(I1, int)' because the signatures do not match.
+                //     [InterceptsLocation("Program.cs", 15, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("Program.InterceptableMethod(I1, string)", "D.Interceptor1(I1, int)").WithLocation(21, 6)
             );
     }
 
@@ -2156,12 +2157,12 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(17,11): warning CS27017: Intercepting a call to 'C.Method1(object)' with interceptor 'D.Interceptor1(C, dynamic)', but the signatures do not match.
-            //         c.Method1("call site");
-            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "Method1").WithArguments("C.Method1(object)", "D.Interceptor1(C, dynamic)").WithLocation(17, 11),
-            // Program.cs(18,15): warning CS27017: Intercepting a call to 'C.Method2()' with interceptor 'D.Interceptor2(C)', but the signatures do not match.
-            //         _ = c.Method2();
-            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "Method2").WithArguments("C.Method2()", "D.Interceptor2(C)").WithLocation(18, 15)
+            // Program.cs(24,6): warning CS27017: Intercepting a call to 'C.Method1(object)' with interceptor 'D.Interceptor1(C, dynamic)', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 17, 11)] // 1
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 17, 11)").WithArguments("C.Method1(object)", "D.Interceptor1(C, dynamic)").WithLocation(24, 6),
+            // Program.cs(27,6): warning CS27017: Intercepting a call to 'C.Method2()' with interceptor 'D.Interceptor2(C)', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 18, 15)] // 2
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 18, 15)").WithArguments("C.Method2()", "D.Interceptor2(C)").WithLocation(27, 6)
             );
     }
 
