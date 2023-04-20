@@ -174,8 +174,6 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
 
-        protected TestStage TestStage { get; private set; }
-
         private readonly ConcurrentBag<Workspace> _workspaces = new ConcurrentBag<Workspace>();
 
         /// <summary>
@@ -191,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             finally
             {
-                TestStage = TestStage.Idle;
                 while (_workspaces.TryTake(out var workspace))
                 {
                     workspace.Dispose();
@@ -466,12 +463,8 @@ namespace Microsoft.CodeAnalysis.Testing
             (string filename, SourceText content)[] sources = primaryProject.Sources.ToArray();
 
             var analyzers = GetDiagnosticAnalyzers().ToImmutableArray();
-
-            TestStage = TestStage.Diagnostic;
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(primaryProject, additionalProjects, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);
-            TestStage = TestStage.GeneratedCode;
             await VerifyGeneratedCodeDiagnosticsAsync(analyzers, sources, primaryProject, additionalProjects, expected, verifier, cancellationToken).ConfigureAwait(false);
-            TestStage = TestStage.Suppression;
             await VerifySuppressionDiagnosticsAsync(analyzers, sources, primaryProject, additionalProjects, expected, verifier, cancellationToken).ConfigureAwait(false);
         }
 
@@ -530,7 +523,14 @@ namespace Microsoft.CodeAnalysis.Testing
             var suppressedDiagnostics = expected.Where(x => IsSubjectToExclusion(x, analyzers, sources)).Select(x => x.Id).Distinct();
             var suppression = prefix + " " + string.Join(", ", suppressedDiagnostics);
             var transformedProject = primaryProject.WithSources(primaryProject.Sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $"{suppression}\r\n"))).ToImmutableArray());
-            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, suppressionVerifier);
+            var actualDiagnostics = await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false);
+
+            // For #pragma verification, we only care about unsuppressed diagnostics. Filter out suppressed diagnostics
+            // from both the expected and actual lists.
+            actualDiagnostics = actualDiagnostics.Where((projectAndDiagnostic) => !projectAndDiagnostic.diagnostic.IsSuppressed()).ToImmutableArray();
+            expectedResults = expectedResults.Where(diagnosticResult => diagnosticResult.IsSuppressed != true).ToArray();
+
+            VerifyDiagnosticResults(actualDiagnostics, analyzers, expectedResults, suppressionVerifier);
         }
 
         /// <summary>
@@ -1316,18 +1316,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
         protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            var reportSuppressedDiagnostics = TestStage switch
-            {
-                // During the diagnostic check we need to switch on 'reporting suppressed diagnostics' when we are testing a suppressor.
-                TestStage.Diagnostic => analyzers.ContainsDiagnosticSuppressors(),
-
-                // All other checks assume 'reporting suppressed diagnostics' is off by default
-                _ => false,
-            };
-
-            return CompilationWithAnalyzersExtensions.CreateCompilationWithAnalyzers(compilation, analyzers, options, reportSuppressedDiagnostics, cancellationToken);
-        }
+            => CompilationWithAnalyzersExtensions.Create(compilation, analyzers, options, cancellationToken);
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the
