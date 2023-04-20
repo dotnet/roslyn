@@ -82,19 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Walk all the way up the expression to the non-expression parent.  Effectively, once we change an
                 // expression *within* some larger expression context, we want to stop rewriting any further sibling
                 // expressions as they could be affected by this change.
-                SyntaxNode parent = expression;
-                for (var current = (SyntaxNode)expression; current != null; current = current.Parent)
-                {
-                    if (current is ExpressionSyntax currentExpression)
-                        parent = currentExpression;
-                }
-
+                //
                 // if we're in an argument list, walk up into that as well as the change in one expression can affect
                 // other expressions in other arguments.
-                if (parent.Parent is ArgumentSyntax argument)
-                    parent = argument;
-
-                return parent.GetRequiredParent();
+                return expression.AncestorsAndSelf(ascendOutOfTrivia: false).Last(a => a is ExpressionSyntax or ArgumentSyntax).GetRequiredParent();
             }
 
             private static SyntaxNode GetParentNode(PatternSyntax pattern)
