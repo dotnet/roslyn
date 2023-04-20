@@ -852,10 +852,24 @@ namespace Microsoft.CodeAnalysis
             if (items.Length == 1)
             {
                 var value = selector(items[0], data);
-                return new Dictionary<TKey, ImmutableArray<TResult>>(1)
+                var key = keySelector(value);
+
+                // Ensure the jit only goes through the special downcast path if it would matter for the caller. i.e. if
+                // TSource==TDowncast we can avoid any checks altogether.
+                var result = new Dictionary<TKey, ImmutableArray<TResult>>(1);
+
+                if (typeof(TSource) == typeof(TDowncast))
                 {
-                    {  keySelector(value), ImmutableArray.Create(value) },
-                };
+                    result.Add(key, ImmutableArray.Create(value));
+                }
+                else
+                {
+                    result.Add(key, value is TDowncast downcast
+                        ? ImmutableArray<TResult>.CastUp(ImmutableArray.Create(downcast))
+                        : ImmutableArray.Create(value));
+                }
+
+                return result;
             }
 
             if (items.Length == 0)
