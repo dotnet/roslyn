@@ -279,7 +279,7 @@ public class InterceptorsTests : CSharpTestBase
         var verifier1 = CompileAndVerify((source1, "File1.cs"), new[] { comp0.ToMetadataReference() }, expectedOutput: "1");
         verifier1.VerifyDiagnostics();
 
-        // https://github.com/dotnet/roslyn/issues/67079
+        // PROTOTYPE(ic): https://github.com/dotnet/roslyn/issues/67079
         // We are generally treating file-local definitions in source as matching the names of well-known attributes.
         // Once the type is emitted to metadata and read back in, we no longer recognize it as the same attribute due to name mangling.
         var verifier1_1 = CompileAndVerify((source1, "File1.cs"), new[] { comp0.EmitToImageReference() }, expectedOutput: "1");
