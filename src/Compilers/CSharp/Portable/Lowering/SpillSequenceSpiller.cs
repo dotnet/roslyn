@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = receiverBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(receiver, node.Method, arguments));
+            return UpdateExpression(builder, node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, arguments));
         }
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)

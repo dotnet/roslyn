@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters, node.ArgumentRefKindsOpt);
 
-            return node.Update(receiver, method, rewrittenArguments);
+            return node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, rewrittenArguments);
         }
 
         private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
