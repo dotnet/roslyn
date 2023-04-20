@@ -4,6 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
+/// <summary>
+/// Used to send request for diagnostic pull to the client.
+/// </summary>
 internal interface IDiagnosticsRefresher
 {
     /// <summary>
@@ -12,7 +15,7 @@ internal interface IDiagnosticsRefresher
     void RequestWorkspaceRefresh();
 
     /// <summary>
-    /// Requests document diangostics refresh.
+    /// Requests document diagnostics refresh.
     /// </summary>
     void RequestDocumentRefresh(Document document);
 }
