@@ -2052,6 +2052,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
             {
+                if (!localSymbol.HasSourceLocation)
+                    return false;
+
                 var declarator = localSymbol.GetDeclaratorSyntax();
 
                 // trivial position check, before more costly tree check (which requires walking up the nodes). Most
