@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, array);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
         }
 
         /// <summary>
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // types to all special value types.
             if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
             {
-                return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod);
+                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod);
+                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
 
             if (callWithoutCopy)
@@ -487,6 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
                         new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         objectToStringMethod),
                     whenNullOpt: null,
                     id: currentConditionalAccessID,

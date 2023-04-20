@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall getOrCreateCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: getOrCreateMethod,
                 arg0: fieldAccess);
 
@@ -298,6 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall processHandlerCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: getOrCreateCall,
+                initialBindingReceiverIsSubjectToCloning: Binder.CheckReceiverIsNotSubjectToCloning(getOrCreateCall),
                 method: processHandlerMethod,
                 arg0: parameterAccess);
 
@@ -395,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                     operand: BoundCall.Synthesized(syntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: updateMethod,
                         arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter)),
                     conversion: Conversion.ExplicitReference,
@@ -459,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                 operand: BoundCall.Synthesized(syntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: updateMethod,
                     arguments: ImmutableArray.Create<BoundExpression>(boundTmps[1], boundParameter)),
                 conversion: Conversion.ExplicitReference,
@@ -476,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1)
             BoundExpression compareExchange = BoundCall.Synthesized(syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: compareExchangeMethod,
                 arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundTmps[2], boundTmps[1]));
 
@@ -534,14 +539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)baseTypeFinalize != null)
             {
+                var receiver = new BoundBaseReference(syntax, method.ContainingType) { WasCompilerGenerated = true };
                 BoundStatement baseFinalizeCall = new BoundExpressionStatement(
                     syntax,
                     BoundCall.Synthesized(
                         syntax,
-                        new BoundBaseReference(
-                            syntax,
-                            method.ContainingType)
-                        { WasCompilerGenerated = true },
+                        receiver,
+                        initialBindingReceiverIsSubjectToCloning: Binder.CheckReceiverIsNotSubjectToCloning(receiver),
                         baseTypeFinalize))
                 { WasCompilerGenerated = true };
 

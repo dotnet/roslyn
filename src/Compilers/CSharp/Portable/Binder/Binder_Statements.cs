@@ -3856,11 +3856,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
 
             BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
-            Debug.Assert(receiver.Type?.IsValueType != true); // so we can pass initialBindingReceiverIsSubjectToCloning: false
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                initialBindingReceiverIsSubjectToCloning: CheckReceiverIsNotSubjectToCloning(receiver),
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNamesOpt: ImmutableArray<string>.Empty,

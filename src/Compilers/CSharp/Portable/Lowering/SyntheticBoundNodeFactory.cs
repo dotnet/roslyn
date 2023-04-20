@@ -1669,7 +1669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
-            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+            return BoundCall.Synthesized(
+                syntax,
+                expression,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
         }
 
         internal BoundExpression RewriteNullableNullEquality(

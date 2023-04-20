@@ -1163,6 +1163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.ToThreeState();
         }
 
+        internal static ThreeState CheckReceiverIsNotSubjectToCloning(BoundExpression? receiver)
+        {
+            Debug.Assert(receiver?.Type?.IsValueType != true);
+            return ThreeState.False;
+        }
+
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)
         {
             var token = syntax switch

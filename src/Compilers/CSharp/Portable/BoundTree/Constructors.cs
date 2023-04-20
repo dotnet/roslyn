@@ -163,26 +163,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, InitialBindingReceiverIsSubjectToCloning, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray<BoundExpression>.Empty);
+            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0));
+            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0, arg1));
+            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0, arg1));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             return new BoundCall(syntax,
                     receiverOpt,
-                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning,
                     method: method,
                     arguments: arguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
