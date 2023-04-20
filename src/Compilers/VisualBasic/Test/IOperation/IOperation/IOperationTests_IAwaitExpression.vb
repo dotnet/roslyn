@@ -243,5 +243,38 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()'
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
+        Public Sub TestAwaitExpression_InStatement_InSub()
+            Dim source = <![CDATA[
+Imports System.Threading.Tasks
+
+Public Module Program
+    Public Sub M()
+        Dim lambda = Async Sub()
+                        Await M2()'BIND:"Await M2()"
+                     End Sub
+    End Sub
+
+    Public Function M2() As Task(Of String)
+        Throw New System.Exception()
+    End Function
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()')
+  Expression:
+    IInvocationOperation (Function Program.M2() As System.Threading.Tasks.Task(Of System.String)) (OperationKind.Invocation, Type: System.Threading.Tasks.Task(Of System.String)) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
+        End Sub
     End Class
 End Namespace
