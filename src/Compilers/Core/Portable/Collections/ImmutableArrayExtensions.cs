@@ -832,14 +832,14 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector)
             where K : notnull
             where T : notnull
         {
             if (items.Length == 1)
             {
                 T value = items[0];
-                return new Dictionary<K, ImmutableArray<T>>(1, comparer)
+                return new Dictionary<K, ImmutableArray<T>>(1)
                 {
                     {  keySelector(value), ImmutableArray.Create(value) },
                 };
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis
 
             if (items.Length == 0)
             {
-                return new Dictionary<K, ImmutableArray<T>>(comparer);
+                return new Dictionary<K, ImmutableArray<T>>();
             }
 
             // bucketize
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator = new Dictionary<K, object>(items.Length, comparer);
+            var accumulator = PooledDictionary<K, object>.GetInstance();
             foreach (var item in items)
             {
                 var key = keySelector(item);
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
 
             // freeze
             foreach (var pair in accumulator)
@@ -892,6 +892,8 @@ namespace Microsoft.CodeAnalysis
                     ? arrayBuilder.ToImmutableAndFree()
                     : ImmutableArray.Create((T)pair.Value));
             }
+
+            accumulator.Free();
 
             return dictionary;
         }

@@ -2300,6 +2300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             throw new NotImplementedException();
         }
 
+        internal override bool HasSourceLocation => false;
+
         public override RefKind RefKind
         {
             get { return RefKind.None; }
