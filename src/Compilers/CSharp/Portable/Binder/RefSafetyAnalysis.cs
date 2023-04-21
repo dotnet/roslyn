@@ -665,6 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCall(BoundCall node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
@@ -786,8 +787,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
