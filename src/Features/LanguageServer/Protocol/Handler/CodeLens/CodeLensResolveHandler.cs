@@ -23,11 +23,8 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     /// </summary>
     private const string ClientReferencesCommand = "roslyn.client.peekReferences";
 
-    private readonly CodeLensCache _codeLensCache;
-
-    public CodeLensResolveHandler(CodeLensCache codeLensCache)
+    public CodeLensResolveHandler()
     {
-        _codeLensCache = codeLensCache;
     }
 
     public bool MutatesSolutionState => false;
@@ -54,27 +51,15 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             }
         };
 
-        // If the request is for an older document (e.g. older syntax version)
-        // return a request with empty information.
-        if (resolveData.ResultId != currentDocumentSyntaxVersion.ToString())
+        // If the request is for an older version of the document, return a request with '- references'
+        if (resolveData.SyntaxVersion != currentDocumentSyntaxVersion)
         {
-            context.TraceInformation($"Requested syntax version {resolveData.ResultId} does not match current version {currentDocumentSyntaxVersion}");
+            context.TraceInformation($"Requested syntax version {resolveData.SyntaxVersion} does not match current version {currentDocumentSyntaxVersion}");
             return request;
         }
 
-        var cacheEntry = _codeLensCache.GetCachedEntry(currentDocumentSyntaxVersion.ToString());
-        ImmutableArray<CodeLensMember> members;
-
-        // If the cache has no information, fetch the required code lens members
-        if (cacheEntry == null)
-        {
-            var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
-            members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            members = cacheEntry.CodeLensMembers;
-        }
+        var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
+        var members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
 
         var memberToResolve = members[resolveData.ListIndex];
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();

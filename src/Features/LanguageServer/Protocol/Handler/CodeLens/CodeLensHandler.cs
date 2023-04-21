@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -45,12 +46,6 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
-        var codeLensCache = context.GetRequiredLspService<CodeLensCache>();
-
-        // Store the members in the resolve cache so that when we get a resolve request for a particular
-        // member we can re-use the syntax node and span we already computed here.
-        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, syntaxVersion), syntaxVersion.ToString());
-
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.
         // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730462
 
@@ -63,7 +58,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             {
                 Range = range,
                 Command = null,
-                Data = new CodeLensResolveData(resultId, i, request.TextDocument)
+                Data = new CodeLensResolveData(syntaxVersion, i, request.TextDocument)
             };
 
             codeLenses.Add(codeLens);
