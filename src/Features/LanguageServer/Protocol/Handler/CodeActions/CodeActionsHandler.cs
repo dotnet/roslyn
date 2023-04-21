@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var clientCapability = context.GetRequiredClientCapabilities();
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, document, options, _codeFixService, _codeRefactoringService, generateVSInternalCodeAction: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
+                request, document, options, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
             return codeActions;
         }
     }
