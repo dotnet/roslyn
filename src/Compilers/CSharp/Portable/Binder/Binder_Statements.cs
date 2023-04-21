@@ -3859,7 +3859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
-                initialBindingReceiverIsSubjectToCloning: TryReceiverIsSubjectToCloning(receiver),
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNamesOpt: ImmutableArray<string>.Empty,
@@ -3906,7 +3906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray.Create(argument),
                 argumentNamesOpt: default,

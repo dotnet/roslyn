@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall processHandlerCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: getOrCreateCall,
-                initialBindingReceiverIsSubjectToCloning: Binder.TryReceiverIsSubjectToCloning(getOrCreateCall),
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: processHandlerMethod,
                 arg0: parameterAccess);
 
@@ -539,13 +539,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)baseTypeFinalize != null)
             {
-                var receiver = new BoundBaseReference(syntax, method.ContainingType) { WasCompilerGenerated = true };
                 BoundStatement baseFinalizeCall = new BoundExpressionStatement(
                     syntax,
                     BoundCall.Synthesized(
                         syntax,
-                        receiver,
-                        initialBindingReceiverIsSubjectToCloning: Binder.TryReceiverIsSubjectToCloning(receiver),
+                        new BoundBaseReference(
+                            syntax,
+                            method.ContainingType)
+                        { WasCompilerGenerated = true },
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                         baseTypeFinalize))
                 { WasCompilerGenerated = true };
 

@@ -8,9 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1151,14 +1149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
             => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
 
-        private static bool ReceiverCannotBeSubjectToCloning([NotNullWhen(returnValue: false)] BoundExpression? receiver)
-        {
-            return receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true;
-        }
-
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
-            if (ReceiverCannotBeSubjectToCloning(receiver))
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
             {
                 return ThreeState.False;
             }
@@ -1168,16 +1161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : BindValueKind.RefersToLocation | BindValueKind.Assignable;
             var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
             return result.ToThreeState();
-        }
-
-        internal static ThreeState TryReceiverIsSubjectToCloning(BoundExpression? receiver)
-        {
-            if (ReceiverCannotBeSubjectToCloning(receiver))
-            {
-                return ThreeState.False;
-            }
-
-            return ThreeState.Unknown;
         }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)
