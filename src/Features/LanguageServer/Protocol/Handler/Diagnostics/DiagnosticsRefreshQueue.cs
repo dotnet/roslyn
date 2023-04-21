@@ -46,7 +46,6 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
     internal sealed class Refresher : IDiagnosticsRefresher
     {
         public event Action? WorkspaceRefreshRequested;
-        public event Action<Document>? DocumentRefreshRequested;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -56,9 +55,6 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
 
         public void RequestWorkspaceRefresh()
             => WorkspaceRefreshRequested?.Invoke();
-
-        public void RequestDocumentRefresh(Document document)
-            => DocumentRefreshRequested?.Invoke(document);
     }
 
     private readonly Refresher _refresher;
@@ -74,21 +70,16 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         _refresher = refresher;
 
         refresher.WorkspaceRefreshRequested += WorkspaceRefreshRequested;
-        refresher.DocumentRefreshRequested += DocumentRefreshRequested;
     }
 
     public override void Dispose()
     {
         base.Dispose();
         _refresher.WorkspaceRefreshRequested -= WorkspaceRefreshRequested;
-        _refresher.DocumentRefreshRequested -= DocumentRefreshRequested;
     }
 
     private void WorkspaceRefreshRequested()
         => EnqueueRefreshNotification(documentUri: null);
-
-    private void DocumentRefreshRequested(Document document)
-        => EnqueueRefreshNotification(document.GetURI());
 
     protected override string GetFeatureAttribute()
         => FeatureAttribute.DiagnosticService;

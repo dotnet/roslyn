@@ -13,9 +13,4 @@ internal interface IDiagnosticsRefresher
     /// Requests workspace diagnostics refresh.
     /// </summary>
     void RequestWorkspaceRefresh();
-
-    /// <summary>
-    /// Requests document diagnostics refresh.
-    /// </summary>
-    void RequestDocumentRefresh(Document document);
 }
