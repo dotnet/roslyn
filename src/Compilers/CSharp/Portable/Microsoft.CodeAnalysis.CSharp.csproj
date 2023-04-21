@@ -29,6 +29,10 @@
            we want to grab the generator.-->
       <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\EnumeratorSourceGenerator\EnumeratorSourceGenerator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />

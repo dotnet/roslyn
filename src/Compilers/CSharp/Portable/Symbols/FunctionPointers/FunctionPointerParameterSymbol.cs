@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class FunctionPointerParameterSymbol : ParameterSymbol
+    internal sealed partial class FunctionPointerParameterSymbol : ParameterSymbol
     {
         private readonly FunctionPointerMethodSymbol _containingSymbol;
 
@@ -68,11 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal int MethodHashCode()
             => Hash.Combine(TypeWithAnnotations.GetHashCode(), ((int)FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind)).GetHashCode());
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
-        public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-        public override Location GetCurrentLocation(int slot, int index) => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsDiscard => false;
         public override bool IsParams => false;

@@ -52,6 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride Overrides ReadOnly Property Name As String
         Public MustOverride Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
+        Public MustOverride Overrides ReadOnly Property LocationsCount As Integer
+        Public MustOverride Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+        Public MustOverride Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+        Public MustOverride Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get

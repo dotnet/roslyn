@@ -80,29 +80,12 @@ Friend Class MockNamespaceSymbol
         End Get
     End Property
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
             Return ImmutableArray(Of Location).Empty
         End Get
     End Property
-
-    Public Overrides ReadOnly Property LocationsCount As Integer
-        Get
-            Return SymbolLocationHelper.Empty.LocationsCount
-        End Get
-    End Property
-
-    Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-    End Function
-
-    Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-    End Function
-
-    Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-    End Function
 
     Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
         Get
@@ -263,29 +246,12 @@ Friend Class MockNamedTypeSymbol
         Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
             Return ImmutableArray(Of Location).Empty
         End Get
     End Property
-
-    Public Overrides ReadOnly Property LocationsCount As Integer
-        Get
-            Return SymbolLocationHelper.Empty.LocationsCount
-        End Get
-    End Property
-
-    Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-    End Function
-
-    Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-    End Function
-
-    Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-    End Function
 
     Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
         Get
@@ -593,29 +559,12 @@ Friend Class MockMethodSymbol
         Throw New NotImplementedException()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
             Return ImmutableArray(Of Location).Empty
         End Get
     End Property
-
-    Public Overrides ReadOnly Property LocationsCount As Integer
-        Get
-            Return SymbolLocationHelper.Empty.LocationsCount
-        End Get
-    End Property
-
-    Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-    End Function
-
-    Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-    End Function
-
-    Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-    End Function
 
     Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
         Get
@@ -745,29 +694,12 @@ Friend Class MockModuleSymbol
         End Get
     End Property
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
             Return ImmutableArray(Of Location).Empty
         End Get
     End Property
-
-    Public Overrides ReadOnly Property LocationsCount As Integer
-        Get
-            Return SymbolLocationHelper.Empty.LocationsCount
-        End Get
-    End Property
-
-    Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-    End Function
-
-    Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-    End Function
-
-    Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-    End Function
 
     Friend Overrides ReadOnly Property TypeNames As ICollection(Of String)
         Get
@@ -837,29 +769,12 @@ Friend Class MockAssemblySymbol
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
             Return ImmutableArray(Of Location).Empty
         End Get
     End Property
-
-    Public Overrides ReadOnly Property LocationsCount As Integer
-        Get
-            Return SymbolLocationHelper.Empty.LocationsCount
-        End Get
-    End Property
-
-    Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-    End Function
-
-    Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-    End Function
-
-    Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-    End Function
 
     Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
         Get

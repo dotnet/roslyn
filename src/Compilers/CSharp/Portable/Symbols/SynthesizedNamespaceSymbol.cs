@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Synthesized namespace that contains synthesized types or subnamespaces.
     /// All its members are stored in a table on <see cref="CommonPEModuleBuilder"/>.
     /// </summary>
-    internal sealed class SynthesizedNamespaceSymbol : NamespaceSymbol
+    internal sealed partial class SynthesizedNamespaceSymbol : NamespaceSymbol
     {
         private readonly string _name;
         private readonly NamespaceSymbol _containingSymbol;
@@ -59,19 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override AssemblySymbol ContainingAssembly
             => _containingSymbol.ContainingAssembly;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
             => ImmutableArray<Location>.Empty;
-
-        public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             => ImmutableArray<SyntaxReference>.Empty;

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A <see cref="MissingAssemblySymbol"/> is a special kind of <see cref="AssemblySymbol"/> that represents
     /// an assembly that couldn't be found.
     /// </summary>
-    internal class MissingAssemblySymbol : AssemblySymbol
+    internal partial class MissingAssemblySymbol : AssemblySymbol
     {
         protected readonly AssemblyIdentity identity;
         protected readonly MissingModuleSymbol moduleSymbol;
@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return identity.Equals(other.Identity);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -117,17 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<Location>.Empty;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {

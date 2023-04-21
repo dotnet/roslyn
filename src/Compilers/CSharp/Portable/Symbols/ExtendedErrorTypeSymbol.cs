@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// An error type, used to represent the type of a type binding
     /// operation when binding fails.
     /// </summary>
-    internal sealed class ExtendedErrorTypeSymbol : ErrorTypeSymbol
+    internal sealed partial class ExtendedErrorTypeSymbol : ErrorTypeSymbol
     {
         private readonly string _name;
         private readonly int _arity;
@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // public override SymbolKind Kind { get { return SymbolKind.Error; } }
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -180,17 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<Location>.Empty;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override NamedTypeSymbol ConstructedFrom
         {

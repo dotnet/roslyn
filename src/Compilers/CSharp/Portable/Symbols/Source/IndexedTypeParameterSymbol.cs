@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 
     /// They do not have constraints, variance, or attributes. 
     /// </summary>
-    internal sealed class IndexedTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class IndexedTypeParameterSymbol : TypeParameterSymbol
     {
         private static TypeParameterSymbol[] s_parameterPool = Array.Empty<TypeParameterSymbol>();
 
@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -192,17 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<Location>.Empty;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
