@@ -2186,6 +2186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
+        ERR_BadStaticAfterUnsafe = 9133,
+
+        ERR_BadCaseInSwitchArm = 9134,
+        ERR_ConstantValueOfTypeExpected = 9135,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         ERR_CollectionLiteralTargetTypeNotConstructible = 9500, // PROTOTYPE: Update error numbers.
         ERR_ExpressionTreeContainsCollectionLiteral = 9501,

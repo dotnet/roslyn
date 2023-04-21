@@ -113,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern
         Public ReadOnly Property DeclarationPattern As Integer? Implements ISyntaxKinds.DeclarationPattern
+        Public ReadOnly Property ListPattern As Integer? Implements ISyntaxKinds.ListPattern
         Public ReadOnly Property NotPattern As Integer? Implements ISyntaxKinds.NotPattern
         Public ReadOnly Property OrPattern As Integer? Implements ISyntaxKinds.OrPattern
         Public ReadOnly Property ParenthesizedPattern As Integer? Implements ISyntaxKinds.ParenthesizedPattern
@@ -145,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
         Public ReadOnly Property ConstructorDeclaration As Integer = SyntaxKind.ConstructorBlock Implements ISyntaxKinds.ConstructorDeclaration
+        Public ReadOnly Property EnumDeclaration As Integer = SyntaxKind.EnumBlock Implements ISyntaxKinds.EnumDeclaration
         Public ReadOnly Property InterfaceDeclaration As Integer = SyntaxKind.InterfaceBlock Implements ISyntaxKinds.InterfaceDeclaration
         Public ReadOnly Property StructDeclaration As Integer? Implements ISyntaxKinds.StructDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter

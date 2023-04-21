@@ -342,7 +342,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
-        <target state="new">C# and Visual Basic References</target>
+        <target state="translated">C# および Visual Basic の参照</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -612,7 +612,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deconstruct_locals_for_0">
         <source>Deconstruct locals for '{0}'</source>
-        <target state="new">Deconstruct locals for '{0}'</target>
+        <target state="translated">'{0}' のローカルを分解します</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -747,7 +747,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
         <source>'Find All References' not invoked on applicable symbol</source>
-        <target state="new">'Find All References' not invoked on applicable symbol</target>
+        <target state="translated">該当するシンボルに対して 'Find All References' が呼び出されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2692,7 +2692,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="This_0_has_1_references">
         <source>This {0} has {1} reference(s).</source>
-        <target state="new">This {0} has {1} reference(s).</target>
+        <target state="translated">この {0} には {1} 個の参照があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -2849,6 +2849,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">アクティブ ステートメントの前後の async 修飾子または iterator 修飾子を更新するには、アプリケーションを再起動する必要があります。</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
@@ -3127,7 +3132,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_reference_unquoted">
         <source>{0} reference</source>
-        <target state="new">{0} reference</target>
+        <target state="translated">{0} 個の参照</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -3137,7 +3142,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_references_unquoted">
         <source>{0} references</source>
-        <target state="new">{0} references</target>
+        <target state="translated">{0} 個の参照</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3549,7 +3554,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="get_only_property">
         <source>get-only property</source>
-        <target state="new">get-only property</target>
+        <target state="translated">get 専用プロパティ</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">

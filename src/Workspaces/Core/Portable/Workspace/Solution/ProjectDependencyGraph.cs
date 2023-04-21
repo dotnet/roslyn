@@ -128,6 +128,17 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
 
+            if (!_referencesMap.ContainsKey(projectId))
+            {
+                // This project doesn't have any references currently, so we delegate to WithAdditionalProjectReferences
+                return WithAdditionalProjectReferences(projectId, projectReferences);
+            }
+            else if (projectReferences.Count == 0)
+            {
+                // We are removing all project references; do so directly
+                return WithAllProjectReferencesRemoved(projectId);
+            }
+
             // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything.
             // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
 
