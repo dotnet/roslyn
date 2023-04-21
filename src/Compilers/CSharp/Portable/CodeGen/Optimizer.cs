@@ -614,6 +614,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?");
 
+            if (node.Instrumentation != null)
+            {
+                DeclareLocal(node.Instrumentation.Local, stack: 0);
+            }
+
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
             DeclareLocals(node.Locals, 0);
@@ -2294,6 +2299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             throw new NotImplementedException();
         }
+
+        internal override bool HasSourceLocation => false;
 
         public override RefKind RefKind
         {

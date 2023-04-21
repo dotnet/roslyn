@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int CloseBraceToken { get; }
         int? CloseBracketToken { get; }
         int CloseParenToken { get; }
+        int CommaToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region expressions
 
+        int AddressOfExpression { get; }
         int AnonymousObjectCreationExpression { get; }
         int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
@@ -156,6 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? AndPattern { get; }
         int? ConstantPattern { get; }
         int? DeclarationPattern { get; }
+        int? ListPattern { get; }
         int? NotPattern { get; }
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
@@ -187,6 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int Attribute { get; }
         int ClassDeclaration { get; }
         int ConstructorDeclaration { get; }
+        int EnumDeclaration { get; }
         int InterfaceDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }

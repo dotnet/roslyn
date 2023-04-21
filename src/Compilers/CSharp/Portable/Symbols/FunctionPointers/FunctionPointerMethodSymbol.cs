@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
                     }
 
-                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier.GetLocation());
+                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier);
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }

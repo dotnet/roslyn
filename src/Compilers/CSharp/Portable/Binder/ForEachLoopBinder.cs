@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsAsync)
             {
-                CheckFeatureAvailability(_syntax, MessageID.IDS_FeatureAsyncStreams, diagnostics, _syntax.AwaitKeyword.GetLocation());
+                CheckFeatureAvailability(_syntax.AwaitKeyword, MessageID.IDS_FeatureAsyncStreams, diagnostics);
             }
 
             // Use the right binder to avoid seeing iteration variable
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword.GetLocation(), isDelegateConversion: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword, isDelegateConversion: false);
             // MoveNext is an instance method, so it does not need to have unmanaged callers only diagnostics reported.
             // Either a diagnostic was reported at the declaration of the method (for the invalid attribute), or MoveNext
             // is marked as not supported and we won't get here in the first place (for metadata import).
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
             }
 
-            diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteInfo);
+            diagnostics.Add(_syntax.ForEachKeyword, useSiteInfo);
 
             // Due to the way we extracted the various types, these conversions should always be possible.
             // CAVEAT: if we're iterating over an array of pointers, the current conversion will fail since we

@@ -3577,9 +3577,9 @@ static Microsoft.CodeAnalysis.ModelExtensions.GetTypeInfo(this Microsoft.CodeAna
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromFile(string! path) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.Collections.Generic.IEnumerable<byte>! peImage) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.Collections.Immutable.ImmutableArray<byte> peImage) -> Microsoft.CodeAnalysis.ModuleMetadata!
-static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.IntPtr peImage, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
-static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
-static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
+static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(nint peImage, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
+static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(nint metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
+static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(nint metadata, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream! peStream, bool leaveOpen = false) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream! peStream, System.Reflection.PortableExecutable.PEStreamOptions options) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.NullableContextExtensions.AnnotationsEnabled(this Microsoft.CodeAnalysis.NullableContext context) -> bool

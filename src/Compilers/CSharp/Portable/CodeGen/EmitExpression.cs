@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.IsOperator:
-                    EmitIsExpression((BoundIsOperator)expression, used);
+                    EmitIsExpression((BoundIsOperator)expression, used, omitBooleanConversion: false);
                     break;
 
                 case BoundKind.AsOperator:
@@ -255,6 +255,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.SourceDocumentIndex:
                     Debug.Assert(used);
                     EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
+                    break;
+
+                case BoundKind.LocalId:
+                    Debug.Assert(used);
+                    EmitLocalIdExpression((BoundLocalId)expression);
+                    break;
+
+                case BoundKind.ParameterId:
+                    Debug.Assert(used);
+                    EmitParameterIdExpression((BoundParameterId)expression);
                     break;
 
                 case BoundKind.MethodInfo:
@@ -3148,7 +3158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIsExpression(BoundIsOperator isOp, bool used)
+        private void EmitIsExpression(BoundIsOperator isOp, bool used, bool omitBooleanConversion)
         {
             var operand = isOp.Operand;
             EmitExpression(operand, used);
@@ -3162,8 +3172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 _builder.EmitOpCode(ILOpCode.Isinst);
                 EmitSymbolToken(isOp.TargetType.Type, isOp.Syntax);
-                _builder.EmitOpCode(ILOpCode.Ldnull);
-                _builder.EmitOpCode(ILOpCode.Cgt_un);
+
+                if (!omitBooleanConversion)
+                {
+                    _builder.EmitOpCode(ILOpCode.Ldnull);
+                    _builder.EmitOpCode(ILOpCode.Cgt_un);
+                }
             }
         }
 
@@ -3310,6 +3324,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
         }
 
+        private void EmitLocalIdExpression(BoundLocalId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(GetLocal(node.Local).SlotIndex);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitParameterIdExpression(BoundParameterId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitHoistedVariableId(FieldSymbol field, SyntaxNode syntax)
+        {
+            Debug.Assert(field.IsDefinition);
+            var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
+
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
+        }
+
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
         {
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
@@ -3436,6 +3487,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
+            // Generate branchless IL for (b ? 1 : 0).
+            if (used && _ilEmitStyle != ILEmitStyle.Debug &&
+                (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
+                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
+                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                isConsequenceOne != isAlternativeOne &&
+                TryEmitComparison(expr.Condition, sense: isConsequenceOne))
+            {
+                var toType = expr.Type.PrimitiveTypeCode;
+                if (toType != Cci.PrimitiveTypeCode.Boolean)
+                {
+                    _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.Int32, toType, @checked: false);
+                }
+                return;
+            }
+
             object consequenceLabel = new object();
             object doneLabel = new object();
 
@@ -3500,6 +3567,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
+
+            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
+            {
+                if (expr.ConstantValueOpt is { } constantValue)
+                {
+                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
+                    {
+                        isOne = i == 1;
+                        return true;
+                    }
+
+                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
+                    {
+                        isOne = b;
+                        return true;
+                    }
+
+                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
+                    {
+                        isOne = c == 1;
+                        return true;
+                    }
+                }
+
+                isOne = false;
+                return false;
+            }
         }
 
         /// <summary>

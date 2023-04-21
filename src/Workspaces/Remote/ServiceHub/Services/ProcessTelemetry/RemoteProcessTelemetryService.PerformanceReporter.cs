@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         foreach (var analyzerInfo in pooledObject.Object)
                         {
                             // this will report telemetry under VS. this will let us see how accurate our performance tracking is
-                            RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo, KeyValueLogMessage.Create(m =>
+                            RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo2, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
                                 m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
             _action = action;
         }
 
-        public IncrementalGeneratorOutputKind Kind => (IncrementalGeneratorOutputKind)0b100000; // several steps higher than IncrementalGeneratorOutputKind.Implementation
+        public IncrementalGeneratorOutputKind Kind => GeneratorDriver.HostKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {

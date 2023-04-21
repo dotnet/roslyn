@@ -159,7 +159,7 @@ class Derived : BaseClass
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocation()
         {
             var markup = @"
@@ -177,7 +177,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocationWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -195,7 +195,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -213,7 +213,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocationWithoutClosingParenWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -231,7 +231,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickInt()
         {
             var markup = @"
@@ -252,7 +252,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickString()
         {
             var markup = @"
@@ -294,7 +294,7 @@ class Goo
 
         #region "Trigger tests"
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
@@ -312,7 +312,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerParensWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -330,7 +330,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -348,7 +348,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerCommaWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -590,7 +590,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -599,7 +599,7 @@ class C
             await TestAsync(markup);
         }
 
-        [Fact, WorkItem(1082601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082601")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082601")]
         public async Task TestInvocationWithBadParameterList()
         {
             var markup = @"
@@ -692,7 +692,7 @@ class C : D
         [InlineData("i2: 1, $$,", 0)]
         [InlineData("i2: 1, i1: $$,", 0)]
         [InlineData("i2: 1, $$, i1: 2", 2)]
-        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_NamesAndEmptyPositions(string arguments, int expectedParameterIndex)
         {
             var markup = $@"
@@ -726,7 +726,7 @@ class Program
         [InlineData("$$, ", 0, 0)]
         [InlineData(",$$", 1, 0)]
         [InlineData("$$, s: string.Empty", 0, 0)]
-        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
         {
             var markup = $@"

@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var solutionChangeAction = SolutionChangeAction.Create("", GetUpdatedSolutionAsync, "");
 
                 using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
-                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
+                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
+                    this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
                 result.Add(_installOperation);
                 return result.ToImmutable();
             }

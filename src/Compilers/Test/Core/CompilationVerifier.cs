@@ -15,6 +15,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
@@ -184,7 +185,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
         {
-            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+            VerifyTypeIL(typeName, output =>
+            {
+                // All our tests predate ilspy adding `// Header size: ...` to the contents.  So trim that out since we
+                // really don't need to validate superfluous IL comments
+                expected = RemoveHeaderComments(expected);
+                output = RemoveHeaderComments(output);
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false);
+            });
+        }
+
+        private static readonly Regex s_headerCommentsRegex = new("""^\s*// Header size: [0-9]+\s*$""", RegexOptions.Multiline);
+
+        private static string RemoveHeaderComments(string value)
+        {
+            return s_headerCommentsRegex.Replace(value, "");
         }
 
         /// <summary>
@@ -345,6 +361,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (!actualSuccess && verification.ILVerifyMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
             {
+                if (!verification.IncludeTokensAndModuleIds)
+                {
+                    actualMessage = Regex.Replace(actualMessage, @"\[[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\]", "");
+                }
+
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(verification.ILVerifyMessage, actualMessage);
             }
 
@@ -560,9 +581,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
-        {
-            var methodData = _testData.GetMethodData(qualifiedMethodName);
+            => VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
 
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
+        {
             Dictionary<int, string> markers = null;
 
             if (sequencePoints)

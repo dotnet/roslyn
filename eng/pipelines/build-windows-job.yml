@@ -33,7 +33,11 @@ jobs:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
   variables:
-    artifactName: ${{ parameters.testArtifactName }}
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+    - name: artifactName
+      value: ${{ parameters.testArtifactName }}
 
   steps:
     - template: checkout-windows-task.yml

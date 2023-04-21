@@ -10252,7 +10252,7 @@ End Class
                 System.ValueTuple(Of Integer, T) V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""Function C(Of T).get_Data() As (Integer, T)""
+  IL_0002:  call       ""Function C(Of T).get_Data() As System.ValueTuple(Of Integer, T)""
   IL_0007:  stloc.1
   IL_0008:  ldloca.s   V_1
   IL_000a:  ldflda     ""System.ValueTuple(Of Integer, T).Item2 As T""
@@ -10325,7 +10325,7 @@ End Class
                 System.ValueTuple(Of Integer, T) V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""Function C(Of T).get_Data() As (Integer, T)""
+  IL_0002:  call       ""Function C(Of T).get_Data() As System.ValueTuple(Of Integer, T)""
   IL_0007:  stloc.1
   IL_0008:  ldloca.s   V_1
   IL_000a:  ldflda     ""System.ValueTuple(Of Integer, T).Item2 As T""

@@ -15,10 +15,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
             };
 
+        private static readonly OptionGroup s_optionGroup = new(name: "symbol_search", description: "");
+
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
-            new("SymbolSearchOptions_SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
+            new("dotnet_search_reference_assemblies",
+                SymbolSearchOptions.Default.SearchReferenceAssemblies,
+                group: s_optionGroup);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new("SymbolSearchOptions_SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages);
+            new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages, group: s_optionGroup);
     }
 }

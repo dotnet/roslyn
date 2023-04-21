@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis
     // Members of well known types
     internal enum WellKnownMember
     {
+        System_Object__ToString,
+
         System_Math__RoundDouble,
         System_Math__PowDoubleDouble,
 
@@ -425,6 +427,46 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogMethodEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLambdaEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineMethodEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineLambdaEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogReturn,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId,
+
+        // Each of the following LogLocalStore helpers have a matching LogParameterStore helper below.
+        // The corresponding helpers must be listed in the same order.
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreBoolean,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreByte,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreParameterAlias,
+
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreBoolean,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreByte,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt16,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt32,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt64,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreString,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreObject,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStorePointer,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUnmanaged,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreParameterAlias,
+
+        // No LogParameterStoreLocalAlias since address of a local can't be assigned to a parameter
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias,
 
         System_Runtime_CompilerServices_NullableAttribute__ctorByte,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
