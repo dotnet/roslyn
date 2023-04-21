@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
                     // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
                     // do this in en-US as that's the only culture where we control the text exactly
-                    // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                    // and can ensure it exactly matches Regex.  We depend on localization to do a
                     // good enough job here for other languages.
                     if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
                     {

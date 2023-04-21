@@ -1,9 +1,12 @@
 # Shallow checkout sources on Windows
+
+# Git path based on https://github.com/microsoft/azure-pipelines-agent/blob/f98a479ab3cc323ff17b8cb75d5ab5f953f342cc/src/Agent.Plugins/GitCliManager.cs#L90
 steps:
   - checkout: none
 
   - script: |
       @echo on
+      set PATH=$(Agent.HomeDirectory)\externals\git\cmd;%PATH%
       git init
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
