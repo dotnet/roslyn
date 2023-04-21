@@ -622,7 +622,7 @@ class Program
         [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInLocalFunction()
         {
-            const int nestingLevel = 40;
+            const int nestingLevel = 400;
 
             var builder = new StringBuilder();
             builder.AppendLine("#nullable enable");
@@ -648,10 +648,7 @@ class Program
             var source = builder.ToString();
             var comp = CreateCompilation(source);
             comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
-            comp.VerifyDiagnostics(
-                // (10,15): error CS8078: An expression is too long or complex to compile
-                //         C c = new C()
-                Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(10, 15));
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
