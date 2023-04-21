@@ -163,8 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (!AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref discardedUseSiteInfo))
+
+            var useSiteInfo = this.GetNewCompoundUseSiteInfo();
+            var isAccessible = !AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref useSiteInfo);
+            this._diagnostics.Add(attributeLocation, useSiteInfo);
+            if (!isAccessible)
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorNotAccessible, attributeLocation, interceptor, containingMethod);
                 return;
