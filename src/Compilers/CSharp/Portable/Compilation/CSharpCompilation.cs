@@ -2293,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return oneInterception;
                 }
 
-                // We don't normally reach this branch in batch compilation.
+                // We don't normally reach this branch in batch compilation, because we would have already reported an error after the declaration phase.
                 // One scenario where we may reach this is when validating used assemblies, which performs lowering of method bodies even if declaration errors would be reported.
                 // See 'CSharpCompilation.GetCompleteSetOfUsedAssemblies'.
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, callLocation, this.SourceModule.Name, new LocalizableResourceString(nameof(CSharpResources.ERR_DuplicateInterceptor), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
