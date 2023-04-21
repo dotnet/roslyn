@@ -2767,7 +2767,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAbstractAnalysisValue targetValue = Visit(operation.Target, argument);
             TAbstractAnalysisValue assignedValue = Visit(operation.Value, argument);
             var value = ComputeValueForCompoundAssignment(operation, targetValue, assignedValue, operation.Target.Type, operation.Value.Type);
-            SetAbstractValueForAssignment(operation.Target, operation.Value, value);
+            if (operation.Target is IFlowCaptureReferenceOperation flowCaptureReference)
+            {
+                HandleFlowCaptureReferenceAssignment(flowCaptureReference, operation.Value, assignedValue);
+            }
+            else
+            {
+                SetAbstractValueForAssignment(operation.Target, operation.Value, assignedValue);
+            }
+
             return value;
         }
 
