@@ -164,7 +164,7 @@ End Module
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2050
-		// Code size 13 (0xd)
+		// Code size: 13 (0xd)
 		.maxstack 8
 		.entrypoint
 		IL_0000: ldc.i4.s 123
@@ -183,7 +183,7 @@ End Module
 				01 00 01 70 00 00
 			)
 		// Method begins at RVA 0x205e
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.1
 		IL_0001: call void [System.Console]System.Console::WriteLine(string)
@@ -210,7 +210,7 @@ End Module
         instance void .ctor () cil managed
     {
         // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -229,7 +229,7 @@ End Module
                 01 00 01 49 00 00 // I
             )
         // Method begins at RVA 0x2058
-        // Code size 9 (0x9)
+        // Code size: 9 (0x9)
         .maxstack 8
 
         IL_0000: nop
@@ -890,7 +890,7 @@ BC42504: The CallerArgumentExpressionAttribute applied to parameter 'p' will hav
                 01 00 01 70 00 00
             )
         // Method begins at RVA 0x2050
-        // Code size 9 (0x9)
+        // Code size: 9 (0x9)
         .maxstack 8
 
         IL_0000: nop
@@ -1423,7 +1423,7 @@ End Module
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -1442,7 +1442,7 @@ End Module
                 01 00 04 6c 65 66 74 00 00
             )
         // Method begins at RVA 0x2058
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 1
         .locals init (
             [0] class C

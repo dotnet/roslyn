@@ -314,13 +314,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
+            var builder = new NameToSymbolMapBuilder();
             foreach (var declaration in _mergedDeclaration.Children)
             {
                 builder.Add(BuildSymbol(declaration, diagnostics));
             }
 
             var result = builder.CreateMap();
+            builder.Free();
 
             CheckMembers(this, result, diagnostics);
 
@@ -516,11 +517,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly struct NameToSymbolMapBuilder
         {
-            private readonly Dictionary<string, object> _dictionary;
+            private readonly PooledDictionary<string, object> _dictionary = PooledDictionary<string, object>.GetInstance();
 
-            public NameToSymbolMapBuilder(int capacity)
+            public NameToSymbolMapBuilder()
             {
-                _dictionary = new Dictionary<string, object>(capacity, StringOrdinalComparer.Instance);
+            }
+
+            public void Free()
+            {
+                _dictionary.Free();
             }
 
             public void Add(NamespaceOrTypeSymbol symbol)
@@ -546,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
             {
-                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count, StringOrdinalComparer.Instance);
+                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count);
 
                 foreach (var kvp in _dictionary)
                 {
