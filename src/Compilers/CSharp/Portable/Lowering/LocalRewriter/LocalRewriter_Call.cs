@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingMethod is not null);
 
             var useSiteInfo = this.GetNewCompoundUseSiteInfo();
-            var isAccessible = !AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref useSiteInfo);
+            var isAccessible = AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref useSiteInfo);
             this._diagnostics.Add(attributeLocation, useSiteInfo);
             if (!isAccessible)
             {
