@@ -6583,8 +6583,7 @@ parse_member_name:;
                         lastTokenOfType = this.EatToken();
                         result = ScanTypeFlags.NullableType;
                         break;
-                    case SyntaxKind.AsteriskToken
-                            when lastTokenOfType.Kind != SyntaxKind.CloseBracketToken: // don't allow `Type[]*`
+                    case SyntaxKind.AsteriskToken:
                         // Check for pointer type(s)
                         switch (mode)
                         {
@@ -6923,7 +6922,7 @@ done:
 
                             return true;
                         }
-                    case SyntaxKind.AsteriskToken when type.Kind != SyntaxKind.ArrayType:
+                    case SyntaxKind.AsteriskToken:
                         switch (mode)
                         {
                             case ParseTypeMode.AfterIs:
