@@ -10967,7 +10967,7 @@ class C
     }
 }
 ";
-        var edits = GetTopEdits(src1, src2);
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 capabilities:
