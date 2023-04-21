@@ -17,7 +17,7 @@ internal static class StarredCompletionAssemblyHelper
 
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
     private const string ALCName = "IntelliCode-ALC";
-    private const string CompletionHelperClassFullName = "PythiaVSGreen.VSGreenCompletionHelper";
+    private const string CompletionHelperClassFullName = "PythiaCSDevKit.CSDevKitCompletionHelper";
     private const string CreateCompletionProviderMethodName = "CreateCompletionProviderAsync";
 
     /// <summary>
@@ -30,7 +30,7 @@ internal static class StarredCompletionAssemblyHelper
     {
         if (string.IsNullOrEmpty(completionsAssemblyLocation))
         {
-            return; //no location provided means it wasn't passed through from green
+            return; //no location provided means it wasn't passed through from C# Dev Kit
         }
         var logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
         try

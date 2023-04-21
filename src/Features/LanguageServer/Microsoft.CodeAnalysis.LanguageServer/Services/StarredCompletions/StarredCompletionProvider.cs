@@ -13,11 +13,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 
 [ExportCompletionProvider("CSharpStarredCompletionProvider", LanguageNames.CSharp), Shared]
-internal class CSharpStarredCompletionProvider : CompletionProvider
+internal class StarredCompletionProvider : CompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpStarredCompletionProvider() { }
+    public StarredCompletionProvider() { }
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)
     {
