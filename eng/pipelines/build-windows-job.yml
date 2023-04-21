@@ -37,13 +37,13 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog
 
     - task: PowerShell@2 
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests
