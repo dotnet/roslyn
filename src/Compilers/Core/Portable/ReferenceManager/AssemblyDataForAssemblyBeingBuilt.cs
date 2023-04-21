@@ -75,16 +75,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override AssemblyReferenceBinding[] BindAssemblyReferences(
-                MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies,
+                ImmutableArray<AssemblyData> assemblies,
                 AssemblyIdentityComparer assemblyIdentityComparer)
             {
                 var boundReferences = new AssemblyReferenceBinding[_referencedAssemblies.Length];
 
                 for (int i = 0; i < _referencedAssemblyData.Length; i++)
                 {
-                    Debug.Assert(assemblies[_referencedAssemblyData[i].Identity.Name].Contains((_referencedAssemblyData[i], i + 1)));
-                    boundReferences[i] = new AssemblyReferenceBinding(_referencedAssemblyData[i].Identity, i + 1);
+                    Debug.Assert(ReferenceEquals(_referencedAssemblyData[i], assemblies[i + 1]));
+                    boundReferences[i] = new AssemblyReferenceBinding(assemblies[i + 1].Identity, i + 1);
                 }
+
+                // references from added modules shouldn't resolve against the assembly being built (definition #0)
+                const int definitionStartIndex = 1;
 
                 // resolve references coming from linked modules:
                 for (int i = _referencedAssemblyData.Length; i < _referencedAssemblies.Length; i++)
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                     boundReferences[i] = ResolveReferencedAssembly(
                         _referencedAssemblies[i],
                         assemblies,
-                        resolveAgainstAssemblyBeingBuilt: false, // references from added modules shouldn't resolve against the assembly being built (definition #0)
+                        definitionStartIndex,
                         assemblyIdentityComparer);
                 }
 

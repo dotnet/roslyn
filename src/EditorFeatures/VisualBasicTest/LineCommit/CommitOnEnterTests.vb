@@ -323,7 +323,7 @@ End Class
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
-        Public Sub TestDontCommitInsideStringLiteral()
+        Public Sub TestDoNotCommitInsideStringLiteral()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>

@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
-        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <target state="translated">'{0}' 식별자는 이 컨텍스트에서 '{1}' 형식과 '{2}' 매개 변수 사이에 모호합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseRefLike">
         <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="new">Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</target>
+        <target state="translated">무명 메서드, 람다 식, 쿼리 식 또는 로컬 함수 내에 ref 유사 형식이 있는 '{0}' 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</target>
+        <target state="translated">익명 메서드, 람다 식, 쿼리 식 및 구조체 내의 로컬 함수는 인스턴스 멤버 내에서도 사용되는 기본 생성자 매개 변수에 액세스할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</target>
+        <target state="translated">구조체의 인스턴스 멤버 내에 있는 무명 메서드, 람다 식, 쿼리 식 및 로컬 함수는 기본 생성자 매개 변수에 액세스할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 매개 변수는 할당할 수 없습니다(형식의 init 전용 setter 또는 변수 이니셜라이저 제외).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 매개 변수 '{0}'의 멤버는 수정할 수 없습니다(형식의 init 전용 setter 또는 변수 이니셜라이저 제외).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -192,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute는 기본값이 있는 매개 변수에만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="translated">스위치 식 arm은 'case' 키워드로 시작하지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
@@ -229,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
         <source>Using alias cannot be a nullable reference type.</source>
-        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <target state="translated">별칭 사용은 nullable 참조 형식일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -259,12 +264,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">'{0}' 형식의 using 문 리소스는 비동기 메서드 또는 비동기 람다 식에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
-        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <target state="translated">별칭을 사용하는 것은 'ref' 유형일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="translated">'static' 한정자는 'unsafe' 한정자 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -273,8 +283,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
-        <source>Only a using alias can be 'unsafe'.</source>
-        <target state="new">Only a using alias can be 'unsafe'.</target>
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="translated">'using static' 또는 'using alias'만 'unsafe'일 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -405,6 +415,11 @@
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">'{0}' 형식의 식은 '{1}' 형식의 패턴으로 처리할 수 없습니다. 언어 버전 '{2}' 이상을 사용하여 개방형 형식과 상수 패턴을 일치시키세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="translated">'{0}' 형식의 상수 값이 필요</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
@@ -729,7 +744,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in this context is not supported.</source>
-        <target state="needs-review-translation">특성의 'typeof'에 함수 포인터 형식을 사용할 수 없습니다.</target>
+        <target state="translated">이 컨텍스트에서 함수 포인터 형식을 사용하는 것은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -929,7 +944,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
         <source>Cannot use primary constructor parameter '{0}' in this context.</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <target state="translated">이 컨텍스트에서는 기본 생성자 '{0}' 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1084,7 +1099,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
-        <target state="needs-review-translation">단일 레코드 partial 선언에만 매개 변수 목록을 사용할 수 있습니다.</target>
+        <target state="translated">단일 부분 형식 선언만 매개 변수 목록을 가질 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1359,7 +1374,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="needs-review-translation">매개 변수 목록을 사용하여 '레코드 구조체'에 선언된 생성자에는 기본 생성자 또는 명시적으로 선언된 생성자를 호출하는 'this' 이니셜라이저가 있어야 합니다.</target>
+        <target state="translated">매개 변수 목록을 사용하여 'struct'에 선언된 생성자에는 기본 생성자 또는 명시적으로 선언된 생성자를 호출하는 'this' 이니셜라이저가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1394,12 +1409,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 매개 변수는 ref 또는 out 값으로 사용할 수 없습니다(형식의 init 전용 setter 또는 변수 이니셜라이저 제외).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 '{0}' 매개 변수의 멤버는 ref 또는 out 값으로 사용할 수 없습니다(형식의 init 전용 setter 또는 변수 이니셜라이저 제외).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
@@ -1414,17 +1429,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
         <source>Cannot return primary constructor parameter '{0}' by reference.</source>
-        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <target state="translated">참조로 기본 생성자 '{0}’ 매개 변수를 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 매개 변수는 쓰기 가능 참조로 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">읽기 전용 형식의 기본 생성자 '{0}' 매개 변수 의 멤버는 쓰기 가능 참조로 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1644,7 +1659,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
-        <target state="new">Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</target>
+        <target state="translated">'{1}' 형식의 구조체 기본 생성자 '{0}' 매개 변수로 인해 구조체 레이아웃의 주기가 발생합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1729,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
-        <target state="new">Unexpected parameter list.</target>
+        <target state="translated">예기치 않은 매개 변수 목록입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1744,7 +1759,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <target state="translated">'{0}'은(는) 인식할 수 없는 RefSafetyRulesAttribute 버전이 있는 모듈에 정의되어 있으며 '11'이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -1774,12 +1789,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
         <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
-        <target state="new">Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</target>
+        <target state="translated">인스턴스 멤버 내에서 ref, out 또는 기본 생성자 '{0}' 매개 변수를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</target>
+        <target state="translated">인스턴스 멤버 내에 ref 유사 형식이 있는 기본 생성자 '{0}' 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1907,6 +1927,11 @@
         <target state="translated">유추된 대리자 형식</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="new">instance member in 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="translated">람다 특성</target>
@@ -1949,7 +1974,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePrimaryConstructors">
         <source>primary constructors</source>
-        <target state="new">primary constructors</target>
+        <target state="translated">기본 생성자</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -1999,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUsingTypeAlias">
         <source>using type alias</source>
-        <target state="new">using type alias</target>
+        <target state="translated">유형 별칭 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2034,12 +2059,12 @@
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2144,12 +2169,12 @@
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">'{0}' 매개 변수는 둘러싸인 형식의 상태로 캡처되며 해당 값도 기본 생성자에 전달됩니다. 기본 클래스에서도 값을 캡처할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">매개 변수는 둘러싸인 형식의 상태로 캡처되며 해당 값도 기본 생성자에 전달됩니다. 기본 클래스에서도 값을 캡처할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2554,7 +2579,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
-        <target state="needs-review-translation">매개 변수 목록이 있는 레코드에 선언된 생성자에는 'this' 생성자 이니셜라이저가 있어야 합니다.</target>
+        <target state="translated">매개 변수 목록이 있는 형식에서 선언된 생성자에는 'this' 생성자 이니셜라이저가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4437,12 +4462,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
         <source>Parameter '{0}' is unread.</source>
-        <target state="new">Parameter '{0}' is unread.</target>
+        <target state="translated">‘{0}’ 매개 변수를 읽지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
         <source>Parameter is unread.</source>
-        <target state="new">Parameter is unread.</target>
+        <target state="translated">매개 변수를 읽지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
@@ -10385,22 +10410,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 필요한 형식 major[.minor[.build[.revision]]]을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">지정한 버전 문자열 '{0}'에는 결정성과 호환되지 않는 와일드카드가 포함되어 있습니다. 버전 문자열에서 와일드카드를 제거하거나 이 컴파일에 대해 결정성을 사용하지 않도록 설정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 필요한 형식 major.minor.build.revision(와일드카드 없음)을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
+        <target state="translated">지정한 버전 문자열 '{0}'이(가) 권장 형식 major.minor.build.revision을 따르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
@@ -11674,11 +11699,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
         <target state="translated">'{0}'은(는) '{1}'이므로 참조로 반환할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}'의 필드는 '{1}'이므로 참조로 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

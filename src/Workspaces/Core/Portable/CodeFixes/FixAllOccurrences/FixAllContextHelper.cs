@@ -130,9 +130,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => solution.GetDocument(d.Location.SourceTree)))
+
+            // NOTE: We use 'GetTextDocumentForLocation' extension to ensure we also handle external location diagnostics in non-C#/VB languages.
+            foreach (var (textDocument, diagnosticsForDocument) in diagnostics.GroupBy(d => solution.GetTextDocumentForLocation(d.Location)))
             {
-                if (document is null)
+                if (textDocument is not Document document)
                     continue;
 
                 cancellationToken.ThrowIfCancellationRequested();

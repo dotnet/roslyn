@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  5
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.2
-                  IL_0002:  stfld      "int S.<y>PC__BackingField"
+                  IL_0002:  stfld      "int S.<y>P"
                   IL_0007:  ldarg.0
                   IL_0008:  ldc.i4.2
                   IL_0009:  newarr     "int"
@@ -2352,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0012:  dup
                   IL_0013:  ldc.i4.1
                   IL_0014:  ldarg.0
-                  IL_0015:  ldfld      "int S.<y>PC__BackingField"
+                  IL_0015:  ldfld      "int S.<y>P"
                   IL_001a:  stelem.i4
                   IL_001b:  stfld      "int[] S.F"
                   IL_0020:  ret
@@ -2393,7 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.2
-                  IL_0002:  stfld      "int C.<y>PC__BackingField"
+                  IL_0002:  stfld      "int C.<y>P"
                   IL_0007:  newobj     "C.<>c__DisplayClass0_0..ctor()"
                   IL_000c:  stloc.0
                   IL_000d:  ldloc.0

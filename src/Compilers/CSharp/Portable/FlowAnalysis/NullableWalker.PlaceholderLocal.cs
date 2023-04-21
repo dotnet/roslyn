@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null) => null;
             internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable();
+            internal override bool HasSourceLocation => false;
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
                 SynthesizedLocalKind kind, SyntaxNode syntax
 #if DEBUG

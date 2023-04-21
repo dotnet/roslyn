@@ -493,6 +493,11 @@ namespace Microsoft.Cci
         /// <see cref="ImmutableArray{SourceSpan}.Empty"/> if not applicable.
         /// </summary>
         ImmutableArray<SourceSpan> CodeCoverageSpans { get; }
+
+        /// <summary>
+        /// True if this is a body of a Primary Constructor.
+        /// </summary>
+        bool IsPrimaryConstructor { get; }
     }
 
     /// <summary>

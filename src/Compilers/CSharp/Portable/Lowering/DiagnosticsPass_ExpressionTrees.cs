@@ -529,18 +529,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in lambda.Parameters)
                 {
-                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
+                    if (p.RefKind != RefKind.None && p.TryGetFirstLocation() is Location location)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, location);
                     }
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.GetFirstLocation(), p.Type.Name);
                     }
 
                     if (!reportedAttributes && !p.GetAttributes().IsEmpty)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.GetFirstLocation());
                         reportedAttributes = true;
                     }
                 }

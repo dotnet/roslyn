@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TargetFramework[]? targetFrameworks = null,
             EditAndContinueCapabilities? capabilities = null)
         {
-            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp })
+            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetCoreApp, TargetFramework.NetFramework })
             {
                 new CSharpEditAndContinueTestHelpers().VerifySemantics(editScripts, targetFramework, results, capabilities);
             }

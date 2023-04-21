@@ -47,14 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public Test()
             {
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -97,13 +89,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return result;
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
 #if !CODE_STYLE
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
 
             protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
-                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, isBlocking: false, cancellationToken);
+                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);
 
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.

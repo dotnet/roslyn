@@ -142,28 +142,20 @@ internal class HandlerProvider : IHandlerProvider
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
             {
-                MethodInfo? methodInfo;
-                if (requestType is not null && responseType is not null)
+                var methodInfo = (requestType != null, responseType != null) switch
                 {
-                    methodInfo = handlerType.GetMethod(nameof(IRequestHandler<object, object, object>.HandleRequestAsync), new Type[] { requestType, contextType, typeof(CancellationToken) });
-                }
-                else if (requestType is not null)
-                {
-                    methodInfo = handlerType.GetMethod(nameof(INotificationHandler<object, object>.HandleNotificationAsync), new Type[] { requestType, contextType, typeof(CancellationToken) });
-                }
-                else
-                {
-                    methodInfo = handlerType.GetMethod(nameof(INotificationHandler<object>.HandleNotificationAsync), new Type[] { contextType, typeof(CancellationToken) });
-                }
+                    (true, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object, object>.HandleRequestAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
+                    (false, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object>.HandleRequestAsync), new Type[] { contextType, typeof(CancellationToken) }),
+                    (true, false) => handlerType.GetMethod(nameof(INotificationHandler<object, object>.HandleNotificationAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
+                    (false, false) => handlerType.GetMethod(nameof(INotificationHandler<object>.HandleNotificationAsync), new Type[] { contextType, typeof(CancellationToken) })
+                };
 
                 if (methodInfo is null)
                 {
                     throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
                 }
 
-                var attribute = methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
-
-                return attribute;
+                return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
             }
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromClassOrInterface(Type type)

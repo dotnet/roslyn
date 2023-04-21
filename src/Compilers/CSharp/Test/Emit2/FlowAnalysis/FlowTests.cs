@@ -5912,5 +5912,31 @@ class C
 ";
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void NameOf_Nested()
+        {
+            var source = """
+                System.Console.WriteLine(C.M());
+                public class C
+                {
+                    private C c;
+                    public static string M() => nameof(c.c.c);
+                }
+                """;
+
+            var expectedDiagnostic =
+                // (4,15): warning CS0649: Field 'C.c' is never assigned to, and will always have its default value null
+                //     private C c;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "c").WithArguments("C.c", "null").WithLocation(4, 15);
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                expectedDiagnostic,
+                // (5,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(c.c.c);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c").WithArguments("instance member in 'nameof'").WithLocation(5, 40));
+        }
     }
 }

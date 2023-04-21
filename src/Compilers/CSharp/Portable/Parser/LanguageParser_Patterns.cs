@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
             };
         }
+
         private PatternSyntax ParsePattern(Precedence precedence, bool afterIs = false, bool whenIsKeyword = false)
         {
             return ParseDisjunctivePattern(precedence, afterIs, whenIsKeyword);
@@ -429,7 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatement()
         {
+            var savedState = _termState;
+            _termState |= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
+            _termState = savedState;
             return ConvertPatternToExpressionIfPossible(pattern);
         }
 
@@ -536,6 +539,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
                 return PostSkipAction.Abort;
 
+            // `:` is usually treated as incorrect separation token. This helps for error recovery in basic typing scenarios like `{ Prop:$$ Prop1: { ... } }`.
+            // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider the following example: `case { Prop: { }: case ...`.
+            // Normally we would skip second `:` and `case` keyword after it as bad tokens and continue parsing pattern, which produces a lot of noise errors.
+            // In order to avoid that and produce single error of missing `}` we exit on unexpected `:` in such cases.
+            if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
+                return PostSkipAction.Abort;
+
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken,
@@ -561,14 +571,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
+                // Help out in the case where a user is converting a switch statement to a switch expression. Note:
+                // `default(...)` and `default` will also be consumed as a legal syntactic patterns (though the latter
+                // will fail during binding).  So if the user has `default:` we will recover fine as we handle the
+                // errant colon below.
+                var errantCase = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
+                    ? AddError(this.EatToken(), ErrorCode.ERR_BadCaseInSwitchArm)
+                    : null;
+
+                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
+                if (errantCase != null)
+                    pattern = AddLeadingSkippedSyntax(pattern, errantCase);
+
                 // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
                 // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
+
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(
-                    ParsePattern(Precedence.Coalescing, whenIsKeyword: true),
+                    pattern,
                     ParseWhenClause(Precedence.Coalescing),
-                    this.EatToken(SyntaxKind.EqualsGreaterThanToken),
+                    // Help out in the case where a user is converting a switch statement to a switch expression.
+                    // Consume the `:` as a `=>` and report an error.
+                    this.CurrentToken.Kind == SyntaxKind.ColonToken
+                        ? this.EatTokenAsKind(SyntaxKind.EqualsGreaterThanToken)
+                        : this.EatToken(SyntaxKind.EqualsGreaterThanToken),
                     ParseExpressionCore());
 
                 // If we're not making progress, abort
@@ -585,9 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
-            _pool.Free(arms);
-            return result;
+            return _pool.ToListAndFree(arms);
         }
 
         private ListPatternSyntax ParseListPattern(bool whenIsKeyword)

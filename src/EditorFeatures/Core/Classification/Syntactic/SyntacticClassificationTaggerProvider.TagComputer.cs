@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (classificationService == null)
                     return null;
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+                using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
                 foreach (var span in spans)
                     AddClassifications(span);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
             }
 
-            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void AddSyntacticClassificationsForDocument(
                 IClassificationService classificationService, SnapshotSpan span,
-                Document document, SyntaxNode? root, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+                Document document, SyntaxNode? root, SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 var cancellationToken = CancellationToken.None;
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (_lastLineCache.TryUseCache(span, classifiedSpans))
                     return;
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
+                using var _ = Classifier.GetPooledList(out var tempList);
 
                 // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
                 if (root == null)
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private void AddClassifiedSpansForPreviousDocument(
                 IClassificationService classificationService, SnapshotSpan span,
                 ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot,
-                ArrayBuilder<ClassifiedSpan> classifiedSpans)
+                SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
@@ -459,7 +459,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
                 else
                 {
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
+                    using var _ = Classifier.GetPooledList(out var tempList);
+
                     AddSyntacticClassificationsForDocument(classificationService, translatedSpan, lastProcessedDocument, lastProcessedRoot, tempList);
 
                     var currentSnapshot = span.Snapshot;

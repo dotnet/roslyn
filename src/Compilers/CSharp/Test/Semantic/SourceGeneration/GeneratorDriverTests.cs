@@ -1471,6 +1471,51 @@ class C { }
             Assert.Equal(e, runResults.Results[0].Exception);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67386")]
+        public void Incremental_Generators_Exception_In_Comparer()
+        {
+            var source = """
+                class Attr : System.Attribute { }
+                [Attr] class C { }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var e = new InvalidOperationException("abc");
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                var name = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("Attr")
+                    .Select((c, _) => c.Identifier.ValueText)
+                    .WithComparer(new LambdaComparer<string>((_, _) => throw e));
+                ctx.RegisterSourceOutput(name, (spc, n) => spc.AddSource(n, "// generated"));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Empty(runResults.Diagnostics);
+            Assert.Equal("// generated", runResults.Results.Single().GeneratedSources.Single().SourceText.ToString());
+
+            compilation = compilation.ReplaceSyntaxTree(syntaxTree, CSharpSyntaxTree.ParseText("""
+                class Attr : System.Attribute { }
+                [Attr] class D { }
+                """, parseOptions));
+            compilation.VerifyDiagnostics();
+
+            driver = driver.RunGenerators(compilation);
+            runResults = driver.GetRunResult();
+
+            AssertEx.Equal(
+                "warning CS8785: Generator 'PipelineCallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'InvalidOperationException' with message 'abc'",
+                runResults.Diagnostics.Single().ToString());
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results.Single().Exception);
+        }
+
         [Fact]
         public void Incremental_Generators_Exception_During_Execution_Doesnt_Produce_AnySource()
         {
@@ -3407,6 +3452,67 @@ class C { }
 
             Assert.False(gen1Called); // Generator 1 did not re-run
             Assert.True(gen2Called);
+        }
+
+        [Fact, WorkItem(66451, "https://github.com/dotnet/roslyn/issues/66451")]
+        public void Transform_MultipleInputs_RemoveFirst_ModifySecond()
+        {
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var provider = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (node, _) => node is ClassDeclarationSyntax c,
+                        static (gsc, _) => gsc.Node)
+                    .Select(static (node, _) => (ClassDeclarationSyntax)node)
+                    .Where(static (node) => node.Modifiers.Any(SyntaxKind.PartialKeyword))
+                    .WithTrackingName("MyTransformNode");
+                ctx.RegisterSourceOutput(provider, static (spc, syntax) =>
+                {
+                    spc.AddSource(
+                        $"{syntax.Identifier.Text}.g",
+                        $"partial class {syntax.Identifier.Text} {{ /* generated */ }}");
+                });
+            }));
+
+            var parseOptions = TestOptions.RegularPreview;
+
+            var source1 = """
+                public partial class Class1 { }
+                """;
+            var source2 = """
+                public partial class Class2 { }
+                """;
+
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            verify(ref driver, compilation);
+
+            // Remove Class1 from the final provider via a TransformNode
+            // (by removing the partial keyword).
+            replace(ref compilation, parseOptions, "Class1", """
+                public class Class1 { }
+                """);
+            verify(ref driver, compilation);
+
+            // Modify Class2 (make it internal).
+            replace(ref compilation, parseOptions, "Class2", """
+                internal partial class Class2 { }
+                """);
+            verify(ref driver, compilation);
+
+            static void verify(ref GeneratorDriver driver, Compilation compilation)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                generatorDiagnostics.Verify();
+            }
+
+            static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string className, string source)
+            {
+                var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
+                compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
+            }
         }
     }
 }

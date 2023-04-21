@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return newNode;
                 }
 
-                if (!node.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                if (!node.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                 {
                     var simplifiedNode = simplifier(node, this.SemanticModel, this.Options, this.CancellationToken);
                     if (simplifiedNode != node)
