@@ -4397,7 +4397,7 @@ End Class
 </symbols>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip:="https://github.com/dotnet/roslyn/issues/67908")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Constant_AllTypes()
             Dim source =
 <compilation>

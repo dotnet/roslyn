@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67908")]
+        [Fact]
         public void StringsWithSurrogateChar()
         {
             var source = @"
@@ -84,7 +84,7 @@ public class T
         }
 
         [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67908")]
+        [Fact]
         public void InvalidUnicodeString()
         {
             var source = @"
@@ -145,7 +145,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67908")]
+        [Fact]
         public void AllTypes()
         {
             var source = @"
@@ -466,7 +466,7 @@ class C
 </symbols>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67908")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {
@@ -648,7 +648,7 @@ this is a string constant that is too long to fit into the PDB"";
         }
 
         [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67908")]
+        [Fact]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
             const int length = 2031;
