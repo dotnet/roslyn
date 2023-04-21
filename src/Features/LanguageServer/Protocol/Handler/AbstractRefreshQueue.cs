@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return ValueTaskFactory.CompletedTask;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
             _disposalTokenSource.Cancel();

@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             _globalOptionService.OptionChanged += OnOptionChanged;
         }
 
+        public override void Dispose()
+        {
+            base.Dispose();
+            _globalOptionService.OptionChanged -= OnOptionChanged;
+        }
+
         private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             if (e.Option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
