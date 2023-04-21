@@ -288,12 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxTree.GetRoot();
         }
 
-        private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method)
+        private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, ThreeState receiverIsSubjectToCloning, MethodSymbol method)
         {
             return new BoundCall(
                 syntax,
                 receiver,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                initialBindingReceiverIsSubjectToCloning: receiverIsSubjectToCloning,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 Debug.Assert(!initializer.ReturnType.IsDynamic());
-                var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
+                var initializeCall = CreateParameterlessCall(syntax, scriptLocal, receiverIsSubjectToCloning: ThreeState.False, initializer);
                 BoundExpression getAwaiterGetResultCall;
                 if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
                 {
@@ -594,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var initializeResult = CreateParameterlessCall(
                     syntax,
                     submissionLocal,
+                    receiverIsSubjectToCloning: ThreeState.False,
                     initializer);
                 Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.Type, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(
