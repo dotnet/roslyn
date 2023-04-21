@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -23,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, IDiagnosticsRefresher diagnosticsRefresher, IGlobalOptionService globalOptions)
+            : base(analyzerService, diagnosticsRefresher, globalOptions)
         {
         }
 

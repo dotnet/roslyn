@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
+        private readonly IDiagnosticsRefresher _diagnosticRefresher;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
@@ -53,13 +54,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Lazy<IManagedHotReloadService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            PdbMatchingSourceTextProvider sourceTextProvider)
+            PdbMatchingSourceTextProvider sourceTextProvider,
+            IDiagnosticsRefresher diagnosticRefresher)
         {
             WorkspaceProvider = workspaceProvider;
             _debuggerService = debuggerService;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
             _sourceTextProvider = sourceTextProvider;
+            _diagnosticRefresher = diagnosticRefresher;
         }
 
         public void SetFileLoggingDirectory(string? logDirectory)
@@ -154,6 +157,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -182,6 +187,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
                 GetActiveStatementTrackingService().EndTracking();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -201,6 +208,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -265,6 +274,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var solution = GetCurrentCompileTimeSolution();
                     await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
+                    _diagnosticRefresher.RequestWorkspaceRefresh();
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -338,6 +349,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
+
+            _diagnosticRefresher.RequestWorkspaceRefresh();
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());

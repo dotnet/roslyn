@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IDiagnosticsRefresher diagnosticsRefresher)
         {
             AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
@@ -56,8 +58,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
-            GlobalOptions = globalOptions;
+
+            globalOptions.OptionChanged += (_, e) =>
+            {
+                if (IsGlobalOptionAffectingDiagnostics(e.Option))
+                {
+                    diagnosticsRefresher.RequestWorkspaceRefresh();
+                }
+            };
         }
+
+        public static bool IsGlobalOptionAffectingDiagnostics(IOption2 option)
+            => option == NamingStyleOptions.NamingPreferences ||
+               option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
+               option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+               option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
+               option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
