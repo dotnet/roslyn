@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 #pragma warning disable IDE0010 // Add missing cases (noise)
@@ -50,13 +51,23 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 {
                     var (resourceFile, (optionsProvider, compilationInfo)) = resourceFileAndOptions;
                     var options = optionsProvider.GetOptions(resourceFile);
-                    if (options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
-                        && !string.IsNullOrEmpty(generateSourceText)
-                        && generateSourceText != "unset"
-                        && !string.Equals(bool.TrueString, generateSourceText, StringComparison.OrdinalIgnoreCase))
+
+                    // Use the GenerateSource property if provided. Otherwise, the value of GenerateSource defaults to
+                    // true for resources without an explicit culture.
+                    var explicitGenerateSource = IsGenerateSource(options);
+                    if (explicitGenerateSource == false)
                     {
-                        // Source generation is disabled for this resource file
+                        // Source generation is explicitly disabled for this resource file
                         return Array.Empty<ResourceInformation>();
+                    }
+                    else if (explicitGenerateSource != true)
+                    {
+                        var implicitGenerateSource = !IsExplicitWithCulture(options);
+                        if (!implicitGenerateSource)
+                        {
+                            // Source generation is disabled for this resource file
+                            return Array.Empty<ResourceInformation>();
+                        }
                     }
 
                     if (!optionsProvider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
@@ -128,6 +139,30 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         context.AddSource($"{Path.GetFileName(resourceInformation.ResourceFile.Path)}.Error", errorText);
                     }
                 });
+        }
+
+        private static bool? IsGenerateSource(AnalyzerConfigOptions options)
+        {
+            if (!options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
+                || !bool.TryParse(generateSourceText, out var generateSource))
+            {
+                // This resource did not explicitly set GenerateSource to true or false
+                return null;
+            }
+
+            return generateSource;
+        }
+
+        private static bool IsExplicitWithCulture(AnalyzerConfigOptions options)
+        {
+            if (!options.TryGetValue("build_metadata.AdditionalFiles.WithCulture", out var withCultureText)
+                || !bool.TryParse(withCultureText, out var withCulture))
+            {
+                // Assume the resource does not have a culture when there is no indication otherwise
+                return false;
+            }
+
+            return withCulture;
         }
 
         /// <summary>
