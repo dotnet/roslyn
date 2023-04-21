@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
         /// </summary>
-        private static readonly TypeWithState _invalidType = TypeWithState.Create(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
+        private static readonly TypeWithState _invalidType = TypeWithState.Create(new UnsupportedMetadataTypeSymbol(), NullableFlowState.NotNull);
 
         /// <summary>
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
@@ -4402,6 +4402,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             SetLvalueResultType(node, result);
 
+            return null;
+        }
+
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            Debug.Assert(!IsConditionalState);
+
+            var expressionType = VisitRvalueWithState(node.Expression).Type;
+
+            Debug.Assert(!IsConditionalState);
+            Debug.Assert(expressionType is not null);
+            Debug.Assert(expressionType.IsValueType);
+
+            VisitRvalue(node.Argument);
+
+            TypeWithAnnotations type = expressionType.TryGetInlineArrayElementType();
+
+            if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                type = TypeWithAnnotations.Create(((NamedTypeSymbol)node.Type).OriginalDefinition.Construct(ImmutableArray.Create(type)));
+            }
+
+            SetResult(node, type.ToTypeWithState(), type);
             return null;
         }
 

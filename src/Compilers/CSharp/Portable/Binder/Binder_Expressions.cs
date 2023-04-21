@@ -5116,6 +5116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerElementAccess:
                     return CheckValue(boundMember, valueKind, diagnostics);
 
+                // PROTOTYPE(InlineArrays): case BoundKind.InlineArrayAccess:
+
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
             }
@@ -7944,11 +7946,133 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // able to get more semantic analysis of the indexing operation. We do not
                 // want to report cascading errors.
 
-                BoundExpression result = BindElementAccessCore(node, expr, analyzedArguments, BindingDiagnosticBag.Discarded);
-                return result;
+                diagnostics = BindingDiagnosticBag.Discarded;
+            }
+
+            if (expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
+                tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
+            {
+                return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementType, diagnostics);
             }
 
             return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
+
+            BoundExpression tryImplicitConversionToInlineArrayIndex(ExpressionSyntax node, BoundExpression index, BindingDiagnosticBag diagnostics, out WellKnownType indexOrRangeWellknownType)
+            {
+                indexOrRangeWellknownType = WellKnownType.Unknown;
+                BoundExpression convertedIndex = TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics);
+
+                if (convertedIndex is null)
+                {
+                    convertedIndex = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics);
+
+                    if (convertedIndex is null)
+                    {
+                        convertedIndex = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
+                        if (convertedIndex is object)
+                        {
+                            indexOrRangeWellknownType = WellKnownType.System_Range;
+                        }
+                    }
+                    else
+                    {
+                        indexOrRangeWellknownType = WellKnownType.System_Index;
+                    }
+                }
+
+                return convertedIndex;
+            }
+
+            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, TypeWithAnnotations elementType, BindingDiagnosticBag diagnostics)
+            {
+                // Check required well-known members. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                if (indexOrRangeWellknownType != WellKnownType.Unknown)
+                {
+                    if (indexOrRangeWellknownType == WellKnownType.System_Range)
+                    {
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Range__get_Start, diagnostics, syntax: node);
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Range__get_End, diagnostics, syntax: node);
+                    }
+
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Index__GetOffset, diagnostics, syntax: node);
+                }
+
+                if (analyzedArguments.Names.Count > 0)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentForArray, node);
+                }
+
+                ReportRefOrOutArgument(analyzedArguments, diagnostics);
+
+                WellKnownMember createSpanHelper;
+                WellKnownMember getItemOrSliceHelper;
+                bool isValue = false;
+
+                if (CheckValueKind(node, expr, BindValueKind.RefersToLocation | BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                {
+                    createSpanHelper = WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan;
+                    getItemOrSliceHelper = indexOrRangeWellknownType == WellKnownType.System_Range ? WellKnownMember.System_Span_T__Slice_Int_Int : WellKnownMember.System_Span_T__get_Item;
+                }
+                else
+                {
+                    createSpanHelper = WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan;
+                    getItemOrSliceHelper = indexOrRangeWellknownType == WellKnownType.System_Range ? WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int : WellKnownMember.System_ReadOnlySpan_T__get_Item;
+
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T, diagnostics, syntax: node);
+
+                    if (!CheckValueKind(node, expr, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                    {
+                        if (indexOrRangeWellknownType == WellKnownType.System_Range)
+                        {
+                            Location location;
+
+                            if (expr.Syntax.Parent is ConditionalAccessExpressionSyntax conditional &&
+                                conditional.Expression == expr.Syntax)
+                            {
+                                location = expr.Syntax.SyntaxTree.GetLocation(TextSpan.FromBounds(expr.Syntax.SpanStart, conditional.OperatorToken.Span.End));
+                            }
+                            else
+                            {
+                                location = expr.Syntax.GetLocation();
+                            }
+
+                            Error(diagnostics, ErrorCode.ERR_RefReturnLvalueExpected, location);
+                        }
+                        else
+                        {
+                            isValue = true;
+                        }
+                    }
+                }
+
+                // PROTOTYPE(InlineArrays): Check bounds
+
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+
+                // PROTOTYPE(InlineArrays): Verify constraints for the elementType (can be used as a type argument)
+                // PROTOTYPE(InlineArrays): Check language version and runtime support
+                // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.
+
+                TypeSymbol resultType;
+
+                if (indexOrRangeWellknownType == WellKnownType.System_Range)
+                {
+                    // The symbols will be verified as return types of 'createSpanHelper', no need to check them again
+                    resultType = Compilation.GetWellKnownType(
+                        getItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T).
+                        Construct(ImmutableArray.Create(elementType));
+                }
+                else
+                {
+                    resultType = elementType.Type;
+                }
+
+                return new BoundInlineArrayAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
+            }
         }
 
         private BoundExpression BadIndexerExpression(SyntaxNode node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticInfo errorOpt, BindingDiagnosticBag diagnostics)

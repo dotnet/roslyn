@@ -34,4 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Operand);
     }
+
+    partial class BoundInlineArrayAccess
+    {
+        // PROTOTYPE(InlineArrays): remove once IOperation is implemented
+        protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Expression, this.Argument);
+    }
 }

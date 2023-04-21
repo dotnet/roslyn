@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitImplicitIndexerAccess(node);
         }
 
+        public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            // PROTOTYPE(InlineArrays): Disallow.
+            return base.VisitInlineArrayAccess(node);
+        }
+
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
             if (_inExpressionLambda)

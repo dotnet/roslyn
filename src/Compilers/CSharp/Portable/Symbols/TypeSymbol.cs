@@ -2466,5 +2466,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsRecord { get; }
 
         internal abstract bool IsRecordStruct { get; }
+
+        internal abstract bool HasInlineArrayAttribute(out int length);
+
+        internal TypeWithAnnotations TryGetInlineArrayElementType()
+        {
+            Debug.Assert(HasInlineArrayAttribute(out var length) && length > 0);
+
+            TypeWithAnnotations elementType = default;
+
+            if (this.TypeKind == TypeKind.Struct)
+            {
+                foreach (Symbol member in GetMembers())
+                {
+                    if (member is FieldSymbol { IsStatic: false } field)
+                    {
+                        if (field.RefKind != RefKind.None || elementType.HasType)
+                        {
+                            return default;
+                        }
+                        else
+                        {
+                            elementType = field.TypeWithAnnotations;
+                        }
+                    }
+                }
+            }
+
+            return elementType;
+        }
     }
 }

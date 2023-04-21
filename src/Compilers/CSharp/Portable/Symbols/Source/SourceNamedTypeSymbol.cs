@@ -1118,6 +1118,17 @@ next:;
                 // CS1608: The Required attribute is not permitted on C# types
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InlineArrayAttribute))
+            {
+                if (arguments.GetOrCreateData<TypeWellKnownAttributeData>().InlineArrayLength == 0)
+                {
+                    int length = attribute.CommonConstructorArguments[0].DecodeValue<int>(SpecialType.System_Int32);
+
+                    // PROTOTYPE(InlineArrays): Validate the length and the shape of the type?
+
+                    arguments.GetOrCreateData<TypeWellKnownAttributeData>().InlineArrayLength = length > 0 ? length : -1;
+                }
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute
                 | ReservedAttributes.IsReadOnlyAttribute
@@ -1540,6 +1551,19 @@ next:;
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
+            if (data?.InlineArrayLength is > 0 and var lengthFromAttribute)
+            {
+                length = lengthFromAttribute;
+                return true;
+            }
+
+            length = 0;
+            return false;
         }
 
         /// <remarks>

@@ -1512,6 +1512,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+
+                        // PROTOTYPE(InlineArrays): Ensure adequate test coverage
+
+                        switch (elementAccess.Expression.Kind)
+                        {
+                            case BoundKind.Local:
+                                {
+                                    var local = (BoundLocal)elementAccess.Expression;
+                                    if (local.LocalSymbol.RefKind != RefKind.None && !isRef)
+                                    {
+                                        // Writing through the (reference) value of a reference local
+                                        // requires us to read the reference itself.
+                                        if (written) VisitRvalue(local, isKnownToBeAnLvalue: true);
+                                    }
+                                    else
+                                    {
+                                        if (written) NoteWrite(local, null, read);
+                                    }
+                                    break;
+                                }
+
+                            case BoundKind.InlineArrayAccess:
+                                AssignImpl(elementAccess.Expression, null, isRef, written, read);
+                                break;
+
+                            case BoundKind.Parameter:
+                                {
+                                    var paramExpr = (BoundParameter)elementAccess.Expression;
+                                    var param = paramExpr.ParameterSymbol;
+                                    // If we're ref-reassigning an out parameter we're effectively
+                                    // leaving the original
+                                    if (isRef && param.RefKind == RefKind.Out)
+                                    {
+                                        LeaveParameter(param, elementAccess.Expression.Syntax, paramExpr.Syntax.Location);
+                                    }
+
+                                    if (written) NoteWrite(paramExpr, null, read);
+                                    break;
+                                }
+
+                            case BoundKind.ThisReference:
+                            case BoundKind.FieldAccess:
+                                {
+                                    var expression = (BoundExpression)elementAccess.Expression;
+                                    if (written) NoteWrite(expression, null, read);
+                                    break;
+                                }
+                        }
+
+                        break;
+                    }
+
                 case BoundKind.Parameter:
                     {
                         var paramExpr = (BoundParameter)node;

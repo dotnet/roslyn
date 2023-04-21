@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName = "ThrowSwitchExpressionExceptionParameterless";
         internal const string SynthesizedThrowInvalidOperationExceptionFunctionName = "ThrowInvalidOperationException";
 
+        internal const string SynthesizedInlineArrayAsSpanName = "InlineArrayAsSpan";
+        internal const string SynthesizedInlineArrayAsReadOnlySpanName = "InlineArrayAsReadOnlySpan";
+
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs

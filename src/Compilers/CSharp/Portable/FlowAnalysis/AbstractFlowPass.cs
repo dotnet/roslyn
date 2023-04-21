@@ -2189,6 +2189,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            VisitRvalue(node.Expression);
+            VisitRvalue(node.Argument);
+
+            if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // exposing ref is a potential write
+                // PROTOTYPE(InlineArrays): Revisit. This is likely to mark the entire buffer assigned, which we don't really want.
+                //                          What we really want is to suppress "never written to" warning.
+                WriteArgument(node.Expression, RefKind.Ref, method: null);
+            }
+
+            return null;
+        }
+
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
             if (node.OperatorKind.IsLogical())

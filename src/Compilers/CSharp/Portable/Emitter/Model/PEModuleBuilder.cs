@@ -1924,6 +1924,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor)).GetCciAdapter());
             return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName)!.GetInternalSymbol()!;
         }
+
+        internal MethodSymbol EnsureInlineArrayAsSpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName);
+            if (inlineArrayAsSpanAdapter is not null)
+            {
+                return (MethodSymbol)inlineArrayAsSpanAdapter.GetInternalSymbol()!;
+            }
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayAsSpanMethod(
+                SourceModule,
+                privateImplClass,
+                PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
+                spanType,
+                intType).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName)!.GetInternalSymbol()!;
+        }
+
+        internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName);
+            if (inlineArrayAsSpanAdapter is not null)
+            {
+                return (MethodSymbol)inlineArrayAsSpanAdapter.GetInternalSymbol()!;
+            }
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayAsReadOnlySpanMethod(
+                SourceModule,
+                privateImplClass,
+                PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
+                spanType,
+                intType).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName)!.GetInternalSymbol()!;
+        }
+
 #nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)

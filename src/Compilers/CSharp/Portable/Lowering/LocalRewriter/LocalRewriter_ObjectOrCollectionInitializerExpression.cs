@@ -410,6 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                // PROTOTYPE(InlineArrays): case BoundKind.InlineArrayAccess:
+
                 case BoundKind.PointerElementAccess:
                     {
                         // Remember we haven't lowered this node yet.

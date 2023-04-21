@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
+        System_Runtime_InteropServices_MemoryMarshal,
 
         System_Text_StringBuilder,
 
@@ -329,6 +330,7 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+        System_Runtime_CompilerServices_Unsafe,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -635,6 +637,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NativeIntegerAttribute",
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
+            "System.Runtime.InteropServices.MemoryMarshal",
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
@@ -649,6 +652,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.Unsafe",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
