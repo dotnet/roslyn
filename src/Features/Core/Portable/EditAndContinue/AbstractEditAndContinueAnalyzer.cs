@@ -5245,7 +5245,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         if ((IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda)) &&
                             !capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod))
                         {
-                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime,  GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
                         }
                     }
                 }
