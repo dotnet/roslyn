@@ -935,10 +935,11 @@ End Namespace",
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-namespace N;
-
-public class [|C|]
+namespace N
 {{
+    public class [|C|]
+    {{
+    }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -952,10 +953,11 @@ public class [|C|]
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-namespace N;
-
-public class [|C|]
+namespace N
 {{
+    public class [|C|]
+    {{
+    }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
