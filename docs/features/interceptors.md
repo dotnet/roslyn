@@ -110,6 +110,32 @@ Interception can only occur for calls to ordinary member methods--not constructo
 
 Interceptors cannot have type parameters or be declared in generic types at any level of nesting.
 
+This limitation prevents interceptors from matching the signature of an interceptable call in cases where the interceptable call uses type parameters which are not in scope at the interceptor declaration. We can consider adjusting the rules to alleviate this limitation if compelling scenarios arise for it in the future.
+
+```cs
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [Interceptable]
+    public static void InterceptableMethod<T1>(T1 t) => throw null!;
+}
+
+static class Program
+{
+    public static void M<T2>(T2 t)
+    {
+        C.InterceptableMethod(t);
+    }
+}
+
+static class D
+{
+    [InterceptsLocation("Program.cs", 13, 11)]
+    public static void Interceptor1(object s) => throw null!;
+}
+```
+
 ### Signature matching
 
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:

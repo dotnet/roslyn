@@ -1441,6 +1441,50 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableGeneric_04()
+    {
+        // No interceptor can satisfy a signature like `void InterceptableMethod<T2>(T2 t2)` where `T2` is a method type argument.
+        // We would need to re-examine arity limitations and devise method type argument inference rules for interceptors to make this work.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                [Interceptable]
+                public static void InterceptableMethod<T1>(T1 t) => throw null!;
+            }
+
+            static class Program
+            {
+                public static void M<T2>(T2 t)
+                {
+                    C.InterceptableMethod(t);
+                    C.InterceptableMethod<T2>(t);
+                    C.InterceptableMethod<object>(t);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 14, 11)] // 1
+                [InterceptsLocation("Program.cs", 15, 11)] // 2
+                [InterceptsLocation("Program.cs", 16, 11)]
+                public static void Interceptor1(object s) { Console.Write(s); }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS27007: Cannot intercept method 'C.InterceptableMethod<T2>(T2)' with interceptor 'D.Interceptor1(object)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 14, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 14, 11)").WithArguments("C.InterceptableMethod<T2>(T2)", "D.Interceptor1(object)").WithLocation(22, 6),
+            // Program.cs(23,6): error CS27007: Cannot intercept method 'C.InterceptableMethod<T2>(T2)' with interceptor 'D.Interceptor1(object)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 15, 11)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod<T2>(T2)", "D.Interceptor1(object)").WithLocation(23, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptsLocationBadAttributeArguments_01()
     {
         var source = """
