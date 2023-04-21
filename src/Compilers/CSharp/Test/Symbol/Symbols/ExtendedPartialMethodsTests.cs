@@ -2441,7 +2441,7 @@ public partial class D : C
 				01 00 00 00
 			)
 		// Method begins at RVA 0x2067
-		// Code size 9 (0x9)
+		// Code size: 9 (0x9)
 		.maxstack 8
 
 		IL_0000: ldarg.1
@@ -2455,7 +2455,7 @@ public partial class D : C
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x2071
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 
 		IL_0000: ldarg.0

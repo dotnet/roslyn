@@ -1774,20 +1774,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                foreach (var loc in symbol.Locations)
+                if (symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
                 {
-                    if (loc.IsInSource && loc.SourceTree == this.SyntaxTree && declarationSpan.Contains(loc.SourceSpan))
-                    {
-                        if (loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start)
-                        {
-                            // exclude decls created via syntax recovery
-                            zeroWidthMatch = symbol;
-                        }
-                        else
-                        {
-                            return symbol;
-                        }
-                    }
+                    if (!wasZeroWidthMatch)
+                        return symbol;
+
+                    // exclude decls created via syntax recovery
+                    zeroWidthMatch = symbol;
                 }
 
                 // Handle the case of the implementation of a partial method.

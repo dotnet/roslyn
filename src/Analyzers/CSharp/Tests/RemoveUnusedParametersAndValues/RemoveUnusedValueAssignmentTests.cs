@@ -9135,13 +9135,12 @@ class C
                 }
                 """;
 
-            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
             var fixedSource = """
                 class C
                 {
                     void M(string[] ss)
                     {
-                        if (ss is [ []])
+                        if (ss is [[]])
                         {
 
                         }
@@ -9178,13 +9177,12 @@ class C
                 }
                 """;
 
-            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
             var fixedSource = """
                 class C
                 {
                     void M(string[] ss)
                     {
-                        if (ss is [ []])
+                        if (ss is [[]])
                         {
 
                         }
