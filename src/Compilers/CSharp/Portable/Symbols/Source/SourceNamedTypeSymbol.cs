@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
-                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, tpl, tpl.LessThanToken.GetLocation());
+                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, tpl.LessThanToken);
 
                 bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            MessageID.IDS_FeatureTypeVariance.CheckFeatureAvailability(diagnostics, tp, tp.VarianceKeyword.GetLocation());
+                            MessageID.IDS_FeatureTypeVariance.CheckFeatureAvailability(diagnostics, tp.VarianceKeyword);
                         }
                     }
 
@@ -527,7 +527,7 @@ next:;
                 if (report)
                 {
                     // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, GetFirstLocation(), this, typeParameters[i]);
                 }
 
                 if (mergedConstraintTypes != null)
@@ -821,7 +821,7 @@ next:;
 
                     case TypeKind.Struct:
                     case TypeKind.Class:
-                        return AttributeLocation.Type;
+                        return AttributeLocation.Type | (HasPrimaryConstructor ? AttributeLocation.Method : 0);
 
                     default:
                         return AttributeLocation.None;
@@ -1488,7 +1488,7 @@ next:;
                     if ((object)baseType != null && baseType.SpecialType != SpecialType.System_Object)
                     {
                         // CS0424: '{0}': a class with the ComImport attribute cannot specify a base class
-                        diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.Locations[0], this.Name);
+                        diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.GetFirstLocation(), this.Name);
                     }
 
                     var initializers = this.StaticInitializers;
@@ -1700,7 +1700,7 @@ next:;
                 if (member.ObsoleteKind != ObsoleteAttributeKind.None)
                 {
                     // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.Locations[0], member);
+                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
                 }
             }
         }

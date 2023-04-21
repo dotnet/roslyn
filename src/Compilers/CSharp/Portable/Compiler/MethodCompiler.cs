@@ -1183,7 +1183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
+                                _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
                     }
                     finally
@@ -1624,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localVariables.Length > 0xFFFE)
                 {
-                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.Locations.First());
+                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.GetFirstLocation());
                 }
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
@@ -1667,7 +1668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineAwaiterSlots,
                     StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                     moveNextBodyDebugInfoOpt,
-                    codeCoverageSpans);
+                    codeCoverageSpans,
+                    isPrimaryConstructor: method is SynthesizedPrimaryConstructor);
             }
             finally
             {

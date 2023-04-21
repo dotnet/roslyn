@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         }
         #region Document
 
-        [Fact]
-        public async Task TestNoDocumentResultsForClosedFiles()
+        [Theory, CombinatorialData]
+        public async Task TestNoDocumentResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             Assert.Empty(results);
         }
 
-        [Fact]
-        public async Task TestDocumentResultsForOpenFiles()
+        [Theory, CombinatorialData]
+        public async Task TestDocumentResultsForOpenFiles(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             var testDocument = testLspServer.TestWorkspace.Documents.Single();
@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             });
         }
 
-        [Fact]
-        public async Task TestDocumentResultsForRemovedDocument()
+        [Theory, CombinatorialData]
+        public async Task TestDocumentResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var workspace = testLspServer.TestWorkspace;
 
             // Calling GetTextBuffer will effectively open the file.
@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             Assert.Null(results.Single().ResultId);
         }
 
-        [Fact]
-        public async Task TestNoChangeIfDocumentResultsCalledTwice()
+        [Theory, CombinatorialData]
+        public async Task TestNoChangeIfDocumentResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             Assert.Equal(resultId, results.Single().ResultId);
         }
 
-        [Fact]
-        public async Task TestDocumentResultChangedAfterEntityAdded()
+        [Theory, CombinatorialData]
+        public async Task TestDocumentResultChangedAfterEntityAdded(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 }
 
 ";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -192,14 +192,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             });
         }
 
-        [Fact]
-        public async Task TestDocumentResultIdChangesAfterEdit()
+        [Theory, CombinatorialData]
+        public async Task TestDocumentResultIdChangesAfterEdit(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -232,15 +232,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             });
         }
 
-        [Fact]
-        public async Task TestDocumentResultsAreNotMapped()
+        [Theory, CombinatorialData]
+        public async Task TestDocumentResultsAreNotMapped(bool mutatingLspWorkspace)
         {
             var markup =
 @"#line 4 ""test.txt""
 class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -260,14 +260,14 @@ class {|Identifier:A|}
             });
         }
 
-        [Fact]
-        public async Task TestStreamingDocumentDiagnostics()
+        [Theory, CombinatorialData]
+        public async Task TestStreamingDocumentDiagnostics(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|Identifier:A|}
 {
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -291,15 +291,15 @@ class {|Identifier:A|}
 
         #region Workspace Diagnostics
 
-        [Fact]
-        public async Task TestWorkspaceResultsForClosedFiles()
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -316,8 +316,8 @@ class {|Identifier:A|}
             Assert.Empty(results[1].Ranges);
         }
 
-        [Fact]
-        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage()
+        [Theory, CombinatorialData]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage(bool mutatingLspWorkspace)
         {
             var csharpMarkup =
 @"class A {";
@@ -333,7 +333,7 @@ class {|Identifier:A|}
             </Project>
         </Workspace>";
 
-            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -364,15 +364,15 @@ class {|Identifier:A|}
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        [Fact]
-        public async Task TestWorkspaceResultsForRemovedDocument()
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -402,15 +402,15 @@ class {|Identifier:A|}
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
-        [Fact]
-        public async Task TestNoChangeIfWorkspaceResultsCalledTwice()
+        [Theory, CombinatorialData]
+        public async Task TestNoChangeIfWorkspaceResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -436,8 +436,8 @@ class {|Identifier:A|}
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
-        [Fact]
-        public async Task TestWorkspaceResultUpdatedAfterEdit()
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceResultUpdatedAfterEdit(bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class {|Identifier:A|}
@@ -446,7 +446,7 @@ class {|Identifier:A|}
 
 ";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -491,15 +491,15 @@ class {|Identifier:A|}
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
-        [Fact]
-        public async Task TestStreamingWorkspaceResults()
+        [Theory, CombinatorialData]
+        public async Task TestStreamingWorkspaceResults(bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 

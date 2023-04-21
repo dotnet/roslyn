@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var docTrivia = SyntaxFactory.DocumentationCommentTrivia(
                 SyntaxKind.MultiLineDocumentationCommentTrivia,
-                SyntaxFactory.List(nodes),
+                (SyntaxList<XmlNodeSyntax>)SyntaxFactory.List(nodes),
                 SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
 
             docTrivia = docTrivia.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
             {
-                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
+                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), (SyntaxList<XmlNodeSyntax>)SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
             }
 
             return null;
@@ -670,6 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : accessor;
 
         private protected override SyntaxNode ClassDeclaration(
+            bool isRecord,
             string name,
             IEnumerable<SyntaxNode>? typeParameters,
             Accessibility accessibility,
@@ -678,35 +679,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? interfaceTypes,
             IEnumerable<SyntaxNode>? members)
         {
-            List<BaseTypeSyntax>? baseTypes = null;
+            using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseTypes);
             if (baseType != null || interfaceTypes != null)
             {
-                baseTypes = new List<BaseTypeSyntax>();
-
                 if (baseType != null)
-                {
                     baseTypes.Add(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType));
-                }
 
                 if (interfaceTypes != null)
-                {
                     baseTypes.AddRange(interfaceTypes.Select(i => SyntaxFactory.SimpleBaseType((TypeSyntax)i)));
-                }
-
-                if (baseTypes.Count == 0)
-                {
-                    baseTypes = null;
-                }
             }
 
-            return SyntaxFactory.ClassDeclaration(
-                default,
-                AsModifierList(accessibility, modifiers, SyntaxKind.ClassDeclaration),
-                name.ToIdentifierToken(),
-                AsTypeParameterList(typeParameters),
-                baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null,
-                default,
-                this.AsClassMembers(name, members));
+            var kind = isRecord ? SyntaxKind.RecordDeclaration : SyntaxKind.ClassDeclaration;
+            var modifierList = AsModifierList(accessibility, modifiers, kind);
+            var nameToken = name.ToIdentifierToken();
+            var typeParameterList = AsTypeParameterList(typeParameters);
+            var baseTypeList = baseTypes.Count > 0 ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null;
+            var typeMembers = this.AsClassMembers(name, members);
+
+            return isRecord
+                ? SyntaxFactory.RecordDeclaration(default, modifierList, SyntaxFactory.Token(SyntaxKind.RecordKeyword), nameToken, typeParameterList, null, baseTypeList, default, typeMembers)
+                : SyntaxFactory.ClassDeclaration(default, modifierList, nameToken, typeParameterList, baseTypeList, default, typeMembers);
         }
 
         private SyntaxList<MemberDeclarationSyntax> AsClassMembers(string className, IEnumerable<SyntaxNode>? members)
@@ -734,6 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private protected override SyntaxNode StructDeclaration(
+            bool isRecord,
             string name,
             IEnumerable<SyntaxNode>? typeParameters,
             Accessibility accessibility,
@@ -742,19 +735,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? members)
         {
             var itypes = interfaceTypes?.Select(i => (BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)i)).ToList();
-            if (itypes?.Count == 0)
-            {
-                itypes = null;
-            }
 
-            return SyntaxFactory.StructDeclaration(
-                default,
-                AsModifierList(accessibility, modifiers, SyntaxKind.StructDeclaration),
-                name.ToIdentifierToken(),
-                AsTypeParameterList(typeParameters),
-                itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
-                default,
-                this.AsClassMembers(name, members));
+            var kind = isRecord ? SyntaxKind.RecordStructDeclaration : SyntaxKind.StructDeclaration;
+            var modifierList = AsModifierList(accessibility, modifiers, kind);
+            var nameToken = name.ToIdentifierToken();
+            var typeParameterList = AsTypeParameterList(typeParameters);
+            var baseTypeList = itypes?.Count > 0 ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null;
+            var structMembers = this.AsClassMembers(name, members);
+
+            return isRecord
+                ? SyntaxFactory.RecordDeclaration(default, modifierList, SyntaxFactory.Token(SyntaxKind.RecordKeyword), nameToken, typeParameterList, null, baseTypeList, default, structMembers).WithClassOrStructKeyword(SyntaxFactory.Token(SyntaxKind.StructKeyword))
+                : SyntaxFactory.StructDeclaration(default, modifierList, nameToken, typeParameterList, baseTypeList, default, structMembers);
         }
 
         private protected override SyntaxNode InterfaceDeclaration(
@@ -3181,7 +3172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementBindingExpression(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments)));
+                SyntaxFactory.BracketedArgumentList((SeparatedSyntaxList<ArgumentSyntax>)SyntaxFactory.SeparatedList(arguments)));
 
         /// <summary>
         /// Parenthesize the left hand size of a member access, invocation or element access expression
@@ -3226,7 +3217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ObjectCreationExpression(SyntaxNode type, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen)
             => SyntaxFactory.ObjectCreationExpression(
                 (TypeSyntax)type,
-                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                SyntaxFactory.ArgumentList(openParen, (SeparatedSyntaxList<ArgumentSyntax>)arguments, closeParen),
                 initializer: null);
 
         private static ArgumentListSyntax CreateArgumentList(IEnumerable<SyntaxNode> arguments)

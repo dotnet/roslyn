@@ -99,13 +99,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
         /// and used for the <see cref="SymbolTreeInfo"/>.</param>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum? checksum,
             CancellationToken cancellationToken)
         {
-            checksum ??= GetMetadataChecksum(solution.Services, reference, cancellationToken);
+            return GetInfoForMetadataReferenceAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                reference,
+                checksum,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
+        /// Note:  will never return null;
+        /// </summary>
+        /// <param name="checksum">Optional checksum for the <paramref name="reference"/> (produced by <see
+        /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
+        /// and used for the <see cref="SymbolTreeInfo"/>.</param>
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            SolutionServices solutionServices,
+            SolutionKey solutionKey,
+            PortableExecutableReference reference,
+            Checksum? checksum,
+            CancellationToken cancellationToken)
+        {
+            checksum ??= GetMetadataChecksum(solutionServices, reference, cancellationToken);
 
             if (s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
             {
@@ -115,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, cancellationToken).ConfigureAwait(false);
+                solutionServices, solutionKey, reference, checksum, cancellationToken).ConfigureAwait(false);
 
             static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
                 SolutionServices services,
@@ -135,9 +158,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // CreateMetadataSymbolTreeInfoAsync
                 var asyncLazy = s_peReferenceToInfo.GetValue(
                     reference,
-                    id => new AsyncLazy<SymbolTreeInfo>(
-                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
-                        cacheResult: true));
+                    id => AsyncLazy.Create(
+                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c)));
 
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -155,15 +177,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
                     metadataId,
-                    metadataId => new AsyncLazy<SymbolTreeInfo>(
+                    metadataId => AsyncLazy.Create(
                         cancellationToken => LoadOrCreateAsync(
                             services,
                             solutionKey,
                             checksum,
                             createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(reference)).Create()),
                             keySuffix: GetMetadataKeySuffix(reference),
-                            cancellationToken),
-                        cacheResult: true));
+                            cancellationToken)));
 
                 var metadataIdSymbolTreeInfo = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 

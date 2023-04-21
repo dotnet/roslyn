@@ -64,6 +64,11 @@
         <target state="translated">Funkce Upravit a pokračovat nemůže obnovit pozastavený iterátor, protože odpovídající příkaz yield return byl odstraněn.</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generátor</target>
@@ -81,12 +86,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidSegment">
         <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <target state="translated">HintName {0} obsahuje neplatný segment {1} na pozici {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameNotWithinCurrentDirectory">
         <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <target state="translated">HintName {0} není v aktuálním adresáři.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
@@ -106,7 +111,7 @@
       </trans-unit>
       <trans-unit id="InvalidInstrumentationKind">
         <source>Invalid instrumentation kind: {0}</source>
-        <target state="new">Invalid instrumentation kind: {0}</target>
+        <target state="translated">Neplatný typ instrumentace: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -126,7 +131,7 @@
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
-        <target state="new">Method symbol expected</target>
+        <target state="translated">Byl očekáván symbol metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -504,11 +509,6 @@
         <target state="translated">'Začátek musí být záporný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Konec musí být míň než začátek.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Neplatný typ obsahu</target>
@@ -691,18 +691,18 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">Chyba analyzátoru</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <target state="needs-review-translation">Chyba analyzátoru</target>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="translated">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
+        <target state="needs-review-translation">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

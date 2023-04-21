@@ -5873,9 +5873,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                // (5,18): error CS0150: A constant value is expected
+                // (5,18): error CS9133: A constant value of type 'int' is expected
                 //         if (a is a is > 0 and < 500) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a").WithArguments("int").WithLocation(5, 18),
                 // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (a is a is > 0 and < 500) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
@@ -5891,7 +5891,7 @@ class C
                 // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (true is 0) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
-                );
+            );
         }
 
         [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]

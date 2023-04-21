@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (modifiers.Count > 0)
-                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, syntax, modifiers[0].GetLocation());
+                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, modifiers[0]);
         }
 #nullable disable
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (IsInitOnly)
                 {
                     var isInitOnlyType = Binder.GetWellKnownType(this.DeclaringCompilation,
-                        WellKnownType.System_Runtime_CompilerServices_IsExternalInit, diagnostics, this.locations[0]);
+                        WellKnownType.System_Runtime_CompilerServices_IsExternalInit, diagnostics, _location);
 
                     var modifiers = ImmutableArray.Create<CustomModifier>(
                         CSharpCustomModifier.CreateRequired(isInitOnlyType));

@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
                 => GetExecutableCodeActions(ref _lazyOperationBlockActions, AnalyzerActions.OperationBlockActions, _analyzer, _analyzerActionsNeedFiltering);
 
+            public bool HasCodeBlockStartActions => !CodeBlockStartActions.IsEmpty;
+            public bool HasOperationBlockStartActions => !OperationBlockStartActions.IsEmpty;
+
             private static ImmutableArray<ActionType> GetExecutableCodeActions<ActionType>(
                 ref ImmutableArray<ActionType> lazyCodeBlockActions,
                 ImmutableArray<ActionType> codeBlockActions,

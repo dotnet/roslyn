@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations,
+            Location location,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
             bool isNullableAnalysisEnabled)
-            : base(@event.containingType, syntaxReference, locations, isIterator)
+            : base(@event.containingType, syntaxReference, location, isIterator)
         {
             _event = @event;
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 

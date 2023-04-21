@@ -2619,12 +2619,12 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'C' is expected
                 //             case new():
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(8, 18),
-                // (9,19): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new()").WithArguments("C").WithLocation(8, 18),
+                // (9,19): error CS9135: A constant value of type 'C' is expected
                 //             case (new()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new()").WithArguments("C").WithLocation(9, 19)
                 );
         }
 
@@ -3717,9 +3717,9 @@ class C
                 // (8,19): error CS8754: There is no target type for 'new()'
                 //         bool v3 = new() is new();
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(8, 19),
-                // (10,27): error CS0150: A constant value is expected
+                // (10,27): error CS9135: A constant value of type 'C' is expected
                 //         bool v5 = this is new();
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(10, 27)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new()").WithArguments("C").WithLocation(10, 27)
                 );
         }
 
@@ -4858,7 +4858,7 @@ class C
                 // (13,18): error CS0150: A constant value is expected
                 //         if (t is new T()) { } // 4
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
-                );
+            );
         }
 
         [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]

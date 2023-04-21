@@ -2307,6 +2307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadRefInUsingAlias:
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_BadStaticAfterUnsafe:
+                case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_ConstantValueOfTypeExpected:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralElementNotImplemented:
