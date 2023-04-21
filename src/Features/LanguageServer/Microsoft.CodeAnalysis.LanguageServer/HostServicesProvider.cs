@@ -21,6 +21,6 @@ internal class HostServicesProvider
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostServicesProvider(ExportProvider exportProvider)
     {
-        HostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
+        HostServices = VisualStudioMefHostServices.Create(exportProvider);
     }
 }
