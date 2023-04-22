@@ -109,6 +109,9 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
+        protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
+            => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
+
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
         /// </summary>

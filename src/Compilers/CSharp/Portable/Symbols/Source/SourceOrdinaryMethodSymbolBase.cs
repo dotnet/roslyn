@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, locations[0], diagnostics);
+            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, _location, diagnostics);
         }
 #nullable disable
 
@@ -174,14 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return _typeParameters; }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
-            }
         }
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
