@@ -34,6 +34,7 @@ jobs:
 - job: Asset_Registry_Publish
 
   dependsOn: ${{ parameters.dependsOn }}
+  timeoutInMinutes: 150
 
   ${{ if eq(parameters.publishAssetsImmediately, 'true') }}:
     displayName: Publish Assets
