@@ -16,7 +16,8 @@ internal static class WorkspaceConfigurationOptionsStorage
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
-            DeferCreatingRecoverableText: globalOptions.GetOption(DeferCreatingRecoverableText));
+            DeferCreatingRecoverableText: globalOptions.GetOption(DeferCreatingRecoverableText),
+            DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
