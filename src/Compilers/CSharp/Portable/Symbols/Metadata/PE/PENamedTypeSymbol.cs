@@ -2060,13 +2060,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            AssemblySymbol primaryDependency = PrimaryDependency;
             if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                AssemblySymbol primaryDependency = PrimaryDependency;
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
             }
 
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
