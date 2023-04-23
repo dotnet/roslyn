@@ -152,12 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' TODO(cyrusn): The C# and VB impls differ here.  C# reports errors here and VB does not.
             ' Is that what we want?
 
-            Return CreateNameToMembersMap(builder)
-        End Function
-
-        Public Shared Function CreateNameToMembersMap(dictionary As Dictionary(Of String, Object)) As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-            Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(dictionary.Count, IdentifierComparison.Comparer)
-            ImmutableArrayExtensions.CreateNameToMembersMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(dictionary, result)
+            Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(builder.Count, IdentifierComparison.Comparer)
+            ImmutableArrayExtensions.CreateNameToMembersMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(builder, result)
             Return result
         End Function
 

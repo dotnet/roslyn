@@ -249,19 +249,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-                Interlocked.CompareExchange(ref _nameToTypeMembersMap, GetTypesFromMemberMap(GetNameToMembersMap()), null);
+                Interlocked.CompareExchange(ref _nameToTypeMembersMap, getTypesFromMemberMap(GetNameToMembersMap()), null);
             }
 
             return _nameToTypeMembersMap;
-        }
 
-        private static Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
-        {
+            static Dictionary<string, ImmutableArray<NamedTypeSymbol>> getTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
+            {
 #if DEBUG
-            return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(map, StringOrdinalComparer.Instance);
+                return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(map, StringOrdinalComparer.Instance);
 #else
-            return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(map, StringOrdinalComparer.Instance);
+                return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(map, StringOrdinalComparer.Instance);
 #endif
+            }
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
@@ -282,7 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol);
             }
 
-            var result = CreateNameToMembersMap(builder);
+            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count);
+            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
             builder.Free();
 
             CheckMembers(this, result, diagnostics);
@@ -475,13 +476,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        private static Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateNameToMembersMap(Dictionary<string, object> dictionary)
-        {
-            var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
-            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(dictionary, result);
-            return result;
         }
     }
 }
