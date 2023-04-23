@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis
 
                     members = hasNamespaces
                         ? builder.ToImmutable()
-                        : StaticCast<TNamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
 
                     builder.Free();
                 }
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis
                     TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
                     members = symbol is TNamespaceSymbol
                         ? ImmutableArray.Create<TNamespaceOrTypeSymbol>(symbol)
-                        : StaticCast<TNamespaceOrTypeSymbol>.From(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
                 }
 
                 result.Add(kvp.Key, members);
