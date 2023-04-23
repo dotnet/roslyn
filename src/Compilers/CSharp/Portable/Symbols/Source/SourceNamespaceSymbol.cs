@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var symbol in members)
                 {
-                    if (symbol.Kind == SymbolKind.NamedType)
+                    if (symbol is NamedTypeSymbol)
                     {
                         hasType = true;
                         if (hasNamespace)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        Debug.Assert(symbol.Kind == SymbolKind.Namespace);
+                        Debug.Assert(symbol is NamespaceSymbol);
                         hasNamespace = true;
                         if (hasType)
                         {
@@ -532,7 +532,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool hasNamespaces = false;
                     for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
                     {
-                        hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
+                        if (builder[i] is NamespaceSymbol)
+                        {
+                            hasNamespaces = true;
+                            break;
+                        }
                     }
 
                     members = hasNamespaces
@@ -544,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                    members = symbol.Kind == SymbolKind.Namespace
+                    members = symbol is NamespaceSymbol
                         ? ImmutableArray.Create<NamespaceOrTypeSymbol>(symbol)
                         : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)symbol));
                 }
