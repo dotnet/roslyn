@@ -3982,21 +3982,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
-                // System_Collections_Generic_List_T__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Collections_Generic_List_T, // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-
-                // System_Collections_Generic_List_T__Add
-                (byte)MemberFlags.Method,                                                            // Flags
-                (byte)WellKnownType.System_Collections_Generic_List_T, // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
                 // System_Collections_Generic_List_T__ToArray
                 (byte)MemberFlags.Method,                                                            // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T, // DeclaringTypeId
@@ -4498,8 +4483,6 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
-                ".ctor",                                    // System_Collections_Generic_List_T__ctor
-                "Add",                                      // System_Collections_Generic_List_T__Add
                 "ToArray",                                  // System_Collections_Generic_List_T__ToArray
             };
 

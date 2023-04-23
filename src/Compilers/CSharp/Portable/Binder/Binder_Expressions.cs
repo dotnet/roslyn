@@ -4634,7 +4634,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (hasErrors)
                 {
                     GenerateImplicitConversionError(diagnostics, syntax, conversion, expression, collectionType);
-                    // PROTOTYPE: Suppress further errors?
+                    // PROTOTYPE:
+                    //// Suppress any additional diagnostics
+                    //diagnostics = BindingDiagnosticBag.Discarded;
                 }
 
                 expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
@@ -4655,7 +4657,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol? InferCollectionLiteralType(ImmutableArray<BoundExpression> initializers)
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Include use-site diagnostics.
-            var expressions = getCandidateExpressions(initializers);
+            // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
+            var expressions = initializers.Any(i => i is BoundCollectionLiteralSpreadElement)
+                ? initializers.SelectAsArray(i => i is BoundCollectionLiteralSpreadElement s ? s.ElementPlaceholder : i)
+                : initializers;
             var bestType = BestTypeInferrer.InferBestType(expressions, Conversions, ref useSiteInfo, inferredFromFunctionType: out _);
 
             if (bestType is { } && !bestType.IsVoidType())
@@ -4677,14 +4682,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-
-            static ImmutableArray<BoundExpression> getCandidateExpressions(ImmutableArray<BoundExpression> initializers)
-            {
-                // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
-                return initializers.Any(i => i is BoundCollectionLiteralSpreadElement)
-                    ? initializers.SelectAsArray(i => i is BoundCollectionLiteralSpreadElement s ? s.ElementPlaceholder : i)
-                    : initializers;
-            }
         }
 #nullable disable
 
@@ -5780,18 +5777,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundCollectionLiteralSpreadElement BindCollectionInitializerSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionLiteralSpreadElement element,
-            // PROTOTYPE: This is supposed to be the element type, but what if the element type is not known
-            // (e.g. a collection initializer type with multiple Add() overloads with distinct argument types)?
-            TypeSymbol targetType,
             Binder collectionInitializerAddMethodBinder,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics)
         {
             var enumeratorInfo = element.EnumeratorInfo;
-            // PROTOTYPE:
-            //var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            //var conversion = Conversions.ClassifyConversionFromType(enumeratorInfo.ElementType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
-            //var elementConversion = CreateConversion(syntax.Expression, element.ElementPlaceholder, conversion, isCast: false /*PROTOTYPE: Why false when forCast: true above? */, conversionGroupOpt: null, targetType, diagnostics);
             Debug.Assert(enumeratorInfo.ElementType is { });
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(

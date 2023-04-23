@@ -1876,26 +1876,18 @@
     <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundCollectionLiteralExpression" Base="BoundExpression">
+  <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <!-- An expression placeholder value representing the initialized collection. -->
-    <!-- PROTOTYPE: Are we using this for BoundArrayOrSpanCollectionLiteralExpression? If not, move to BoundCollectionInitializerCollectionLiteralExpression. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" SkipInVisitor="true"/>
+    <!-- Constructor call to create the empty collection type. -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Collection literal elements. -->
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-  </AbstractNode>
-
-  <Node Name="BoundArrayOrSpanCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
-    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundCollectionInitializerCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
-    <!-- Constructor call to create the empty collection type. -->
-    <Field Name="CollectionCreation" Type="BoundExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundCollectionLiteralSpreadElement" Base="BoundExpression">

@@ -3553,56 +3553,165 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // For now, skip cases where the spread is IEnumerable and the collection type is strongly-typed.
             if (spreadType == "IEnumerable" && collectionType != "IEnumerable") return;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: "[1, 2, 3], ");
 
             // Verify some of the cases.
             // PROTOTYPE: Verify more cases.
             string expectedIL = (spreadType, collectionType) switch
             {
-                ("IEnumerable", "IEnumerable") =>
+                ("IEnumerable<int>", "IEnumerable<int>") =>
                     """
                     {
-                      // Code size       58 (0x3a)
+                      // Code size       51 (0x33)
                       .maxstack  2
-                      .locals init (System.Collections.Generic.List<object> V_0,
-                                    System.Collections.IEnumerator V_1,
-                                    object V_2,
-                                    System.IDisposable V_3)
-                      IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                      .locals init (System.Collections.Generic.List<int> V_0,
+                                    System.Collections.Generic.IEnumerator<int> V_1,
+                                    int V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
                       IL_0005:  stloc.0
                       IL_0006:  ldarg.0
-                      IL_0007:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                      IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
                       IL_000c:  stloc.1
                       .try
                       {
                         IL_000d:  br.s       IL_001d
                         IL_000f:  ldloc.1
-                        IL_0010:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                        IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
                         IL_0015:  stloc.2
                         IL_0016:  ldloc.0
                         IL_0017:  ldloc.2
-                        IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                        IL_0018:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
                         IL_001d:  ldloc.1
                         IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
                         IL_0023:  brtrue.s   IL_000f
-                        IL_0025:  leave.s    IL_0038
+                        IL_0025:  leave.s    IL_0031
                       }
                       finally
                       {
                         IL_0027:  ldloc.1
-                        IL_0028:  isinst     "System.IDisposable"
-                        IL_002d:  stloc.3
-                        IL_002e:  ldloc.3
-                        IL_002f:  brfalse.s  IL_0037
-                        IL_0031:  ldloc.3
-                        IL_0032:  callvirt   "void System.IDisposable.Dispose()"
-                        IL_0037:  endfinally
+                        IL_0028:  brfalse.s  IL_0030
+                        IL_002a:  ldloc.1
+                        IL_002b:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0030:  endfinally
                       }
-                      IL_0038:  ldloc.0
-                      IL_0039:  ret
+                      IL_0031:  ldloc.0
+                      IL_0032:  ret
                     }
                     """,
-                ("int[]", "int[]") => "...", // PROTOTYPE: Shouldn't require an intermediate List<int>.
+                ("IEnumerable<int>", "int[]") =>
+                    """
+                    {
+                      // Code size       56 (0x38)
+                      .maxstack  2
+                      .locals init (System.Collections.Generic.List<int> V_0,
+                                    System.Collections.Generic.IEnumerator<int> V_1,
+                                    int V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_001d
+                        IL_000f:  ldloc.1
+                        IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.0
+                        IL_0017:  ldloc.2
+                        IL_0018:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                        IL_001d:  ldloc.1
+                        IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_0023:  brtrue.s   IL_000f
+                        IL_0025:  leave.s    IL_0031
+                      }
+                      finally
+                      {
+                        IL_0027:  ldloc.1
+                        IL_0028:  brfalse.s  IL_0030
+                        IL_002a:  ldloc.1
+                        IL_002b:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0030:  endfinally
+                      }
+                      IL_0031:  ldloc.0
+                      IL_0032:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_0037:  ret
+                    }
+                    """,
+                ("int[]", "int[]") =>
+                    // PROTOTYPE: Shouldn't require an intermediate List<int> since the compiler can use e.Length directly.
+                    """
+                    {
+                      // Code size       40 (0x28)
+                      .maxstack  2
+                      .locals init (System.Collections.Generic.List<int> V_0,
+                                    int[] V_1,
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  stloc.1
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stloc.2
+                      IL_000a:  br.s       IL_001b
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldloc.2
+                      IL_000e:  ldelem.i4
+                      IL_000f:  stloc.3
+                      IL_0010:  ldloc.0
+                      IL_0011:  ldloc.3
+                      IL_0012:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_0017:  ldloc.2
+                      IL_0018:  ldc.i4.1
+                      IL_0019:  add
+                      IL_001a:  stloc.2
+                      IL_001b:  ldloc.2
+                      IL_001c:  ldloc.1
+                      IL_001d:  ldlen
+                      IL_001e:  conv.i4
+                      IL_001f:  blt.s      IL_000c
+                      IL_0021:  ldloc.0
+                      IL_0022:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_0027:  ret
+                    }
+                    """,
+                ("ReadOnlySpan<int>", "ReadOnlySpan<int>") =>
+                    // PROTOTYPE: Shouldn't require an intermediate List<int> since the compiler can use e.Length directly.
+                    """
+                    {
+                      // Code size       53 (0x35)
+                      .maxstack  2
+                      .locals init (System.Collections.Generic.List<int> V_0,
+                                    System.ReadOnlySpan<int>.Enumerator V_1,
+                                    int V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarga.s   V_0
+                      IL_0008:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
+                      IL_000d:  stloc.1
+                      IL_000e:  br.s       IL_0020
+                      IL_0010:  ldloca.s   V_1
+                      IL_0012:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                      IL_0017:  ldind.i4
+                      IL_0018:  stloc.2
+                      IL_0019:  ldloc.0
+                      IL_001a:  ldloc.2
+                      IL_001b:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_0020:  ldloca.s   V_1
+                      IL_0022:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                      IL_0027:  brtrue.s   IL_0010
+                      IL_0029:  ldloc.0
+                      IL_002a:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_002f:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                      IL_0034:  ret
+                    }
+                    """,
                 _ => null
             };
             if (expectedIL is { })
@@ -3625,18 +3734,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         {{collectionType}} c;
                         c = [];
-                        c = [..c, ..[1, 2]];
+                        c = Append(c);
+                        c.Report();
+                    }
+                    static {{collectionType}} Append({{collectionType}} c)
+                    {
+                        return [..c, ..[1, 2]];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
-                //         c = [..c, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..c").WithLocation(7, 14),
-                // (7,19): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
-                //         c = [..c, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..[1, 2]").WithLocation(7, 19));
+
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: "[1, 2], ");
+
+            if (collectionType == "System.ReadOnlySpan<int>")
+            {
+                verifier.VerifyIL("Program.Append",
+                    """
+                    {
+                      // Code size      120 (0x78)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.List<int> V_0,
+                                    System.ReadOnlySpan<int>.Enumerator V_1,
+                                    int V_2,
+                                    System.Collections.Generic.List<int>.Enumerator V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarga.s   V_0
+                      IL_0008:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
+                      IL_000d:  stloc.1
+                      IL_000e:  br.s       IL_0020
+                      IL_0010:  ldloca.s   V_1
+                      IL_0012:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                      IL_0017:  ldind.i4
+                      IL_0018:  stloc.2
+                      IL_0019:  ldloc.0
+                      IL_001a:  ldloc.2
+                      IL_001b:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_0020:  ldloca.s   V_1
+                      IL_0022:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                      IL_0027:  brtrue.s   IL_0010
+                      IL_0029:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_002e:  dup
+                      IL_002f:  ldc.i4.1
+                      IL_0030:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_0035:  dup
+                      IL_0036:  ldc.i4.2
+                      IL_0037:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_003c:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
+                      IL_0041:  stloc.3
+                      .try
+                      {
+                        IL_0042:  br.s       IL_0053
+                        IL_0044:  ldloca.s   V_3
+                        IL_0046:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                        IL_004b:  stloc.2
+                        IL_004c:  ldloc.0
+                        IL_004d:  ldloc.2
+                        IL_004e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                        IL_0053:  ldloca.s   V_3
+                        IL_0055:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                        IL_005a:  brtrue.s   IL_0044
+                        IL_005c:  leave.s    IL_006c
+                      }
+                      finally
+                      {
+                        IL_005e:  ldloca.s   V_3
+                        IL_0060:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                        IL_0066:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_006b:  endfinally
+                      }
+                      IL_006c:  ldloc.0
+                      IL_006d:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_0072:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                      IL_0077:  ret
+                    }
+                    """);
+            }
         }
 
         [Fact]
@@ -3644,11 +3822,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections;
-                struct S<T> : IEnumerable
+                using System.Collections.Generic;
+                struct S<T> : IEnumerable<T>
                 {
-                    public void Add(T t) { }
-                    public T this[int index] => default;
-                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    private List<T> _list;
+                    public void Add(T t)
+                    {
+                        _list ??= new List<T>();
+                        _list.Add(t);
+                    }
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        _list ??= new List<T>();
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
                 }
                 class Program
                 {
@@ -3656,22 +3847,95 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         S<int> s;
                         s = [];
-                        s = [..s, ..[1, 2]];
+                        s = Append(s);
+                        s.Report();
+                    }
+                    static S<int> Append(S<int> s)
+                    {
+                        return [..s, ..[1, 2]];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (14,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
-                //         s = [..s, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..s").WithLocation(14, 14),
-                // (14,19): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
-                //         s = [..s, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..[1, 2]").WithLocation(14, 19));
+
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "[1, 2], ");
+
+            verifier.VerifyIL("Program.Append",
+                """
+                {
+                  // Code size      123 (0x7b)
+                  .maxstack  3
+                  .locals init (S<int> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2,
+                                System.Collections.Generic.List<int>.Enumerator V_3)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S<int>"
+                  IL_0008:  ldarga.s   V_0
+                  IL_000a:  call       "System.Collections.Generic.IEnumerator<int> S<int>.GetEnumerator()"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  br.s       IL_0021
+                    IL_0012:  ldloc.1
+                    IL_0013:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0018:  stloc.2
+                    IL_0019:  ldloca.s   V_0
+                    IL_001b:  ldloc.2
+                    IL_001c:  call       "void S<int>.Add(int)"
+                    IL_0021:  ldloc.1
+                    IL_0022:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0027:  brtrue.s   IL_0012
+                    IL_0029:  leave.s    IL_0035
+                  }
+                  finally
+                  {
+                    IL_002b:  ldloc.1
+                    IL_002c:  brfalse.s  IL_0034
+                    IL_002e:  ldloc.1
+                    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0034:  endfinally
+                  }
+                  IL_0035:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_003a:  dup
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0041:  dup
+                  IL_0042:  ldc.i4.2
+                  IL_0043:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0048:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
+                  IL_004d:  stloc.3
+                  .try
+                  {
+                    IL_004e:  br.s       IL_0060
+                    IL_0050:  ldloca.s   V_3
+                    IL_0052:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                    IL_0057:  stloc.2
+                    IL_0058:  ldloca.s   V_0
+                    IL_005a:  ldloc.2
+                    IL_005b:  call       "void S<int>.Add(int)"
+                    IL_0060:  ldloca.s   V_3
+                    IL_0062:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                    IL_0067:  brtrue.s   IL_0050
+                    IL_0069:  leave.s    IL_0079
+                  }
+                  finally
+                  {
+                    IL_006b:  ldloca.s   V_3
+                    IL_006d:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                    IL_0073:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0078:  endfinally
+                  }
+                  IL_0079:  ldloc.0
+                  IL_007a:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void SpreadElement_NaturalType_01()
+        public void SpreadElement_04()
         {
             string source = """
                 using System;
@@ -3710,32 +3974,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
-            var verifier = CompileAndVerify(comp, expectedOutput: "[], [1, 2], [], [3, 4], ");
+            CompileAndVerify(comp, expectedOutput: "[1], [2], [3], [4], ");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(12, collections.Length);
-            VerifyTypes(model, collections[0], null, "System.Int32[]", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[1], null, "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[2], null, "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[3], null, "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
-
-            verifier.VerifyIL("Program.F1", "..."); // PROTOTYPE: Verify all methods.
+            Assert.Equal(4, collections.Length);
+            VerifyTypes(model, collections[0], "System.Collections.Generic.List<System.Object>", "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
+            VerifyTypes(model, collections[1], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
+            VerifyTypes(model, collections[2], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
+            VerifyTypes(model, collections[3], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
         }
 
-        // PROTOTYPE: Test all combinations of collection types for spread and container.
+        [Fact]
+        public void SpreadElement_05()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Append(int[] a)
+                    {
+                        return [..a, ..[]];
+                    }
+                }
+                """;
+            // PROTOTYPE: Should we infer List<int> for [] rather than reporting an error?
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,24): error CS9503: No best type found for implicitly-typed collection literal.
+                //         return [..a, ..[]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(5, 24));
+        }
+
         // PROTOTYPE: Test natural type with spread type collection initializer type, foreachable pattern.
-        // PROTOTYPE: Test above with/without other types.
         // PROTOTYPE: Test spread where the collection item is dynamic (where BoundDynamicCollectionElementInitializer
         // would be used for a collection initializer), with array target, list target, custom collection initializer target.
         // PROTOTYPE: Test spread where the collection is dynamic, with array target, list target, custom collection initializer target.
         // PROTOTYPE: Test missing List<T> constructor for array and span collections with/without spread operator.
         // PROTOTYPE: Test missing List<T>.Add() method for array and span collections with/without spread operator.
         // PROTOTYPE: Test [..e] where the source and/or target have ref struct elements. (Should be an error unless both are ref struct collections.)
-        // PROTOTYPE: [await e]
-        // PROTOTYPE: [.. await e]
-        // PROTOTYPE: Test array with spread element _and_ with dynamic element, where the array element type is object or int.
+        // PROTOTYPE: Test [.. await e]
+        // PROTOTYPE: Test array with spread element and additional dynamic element, where the array element type is object or int.
         // PROTOTYPE: Test array with spread element with dynamic element type, where the array element type is object or int.
 
         [Fact]
@@ -4931,6 +5210,139 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ");
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Append(int[] a)
+                    {
+                        return /*<bind>*/[..a, ..[3, 4]]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+                """
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a, ..[3, 4]]')
+                  Dimension Sizes(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                  Initializer:
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                      Element Values(2):
+                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                            Children(1):
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '..[3, 4]')
+                            Children(1):
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                    IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[3, 4]')
+                                      Arguments(0)
+                                      Initializer:
+                                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                                          Initializers(2):
+                                              IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
+                                                Instance Receiver:
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                                                Arguments(1):
+                                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '4')
+                                                Instance Receiver:
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                                                Arguments(1):
+                                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '4')
+                                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Append");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0] [1] [2]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (5)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                              Value:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '..a')
+                              Value:
+                                IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                  Children(1):
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                          (ImplicitReference)
+                                        Operand:
+                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[3, 4]')
+                              Value:
+                                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[3, 4]')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '4')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '4')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Next (Return) Block[B2]
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionLiteral)
+                              Operand:
+                                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a, ..[3, 4]]')
+                                  Dimension Sizes(1):
+                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                                  Initializer:
+                                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                                      Element Values(2):
+                                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '..[3, 4]')
+                                            Children(1):
+                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                                                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                    (Identity)
+                                                  Operand:
+                                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]

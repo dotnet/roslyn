@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
-                case BoundKind.CollectionInitializerCollectionLiteralExpression:
-                    return CreateBoundCollectionInitializerCollectionLiteralExpression((BoundCollectionInitializerCollectionLiteralExpression)boundNode);
-                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
-                    return CreateBoundArrayOrSpanCollectionLiteralExpression((BoundArrayOrSpanCollectionLiteralExpression)boundNode);
+                case BoundKind.CollectionLiteralExpression:
+                    return CreateBoundCollectionLiteralExpression((BoundCollectionLiteralExpression)boundNode);
                 case BoundKind.UnconvertedCollectionLiteralExpression:
                     return CreateBoundUnconvertedCollectionLiteralExpression((BoundUnconvertedCollectionLiteralExpression)boundNode);
+                case BoundKind.CollectionLiteralSpreadElement:
+                    return CreateBoundCollectionLiteralSpreadElement((BoundCollectionLiteralSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1220,11 +1220,31 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
+        private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType((CSharpCompilation)_semanticModel.Compilation, boundCollectionLiteralExpression.Type, out var elementType);
+            switch (collectionTypeKind)
+            {
+                case ConversionsBase.ConstructibleCollectionTypeKind.None:
+                case ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer:
+                    return CreateBoundCollectionInitializerCollectionLiteralExpression(boundCollectionLiteralExpression);
+                case ConversionsBase.ConstructibleCollectionTypeKind.Array:
+                case ConversionsBase.ConstructibleCollectionTypeKind.Span:
+                case ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan:
+                    Debug.Assert(elementType is { });
+                    return CreateBoundArrayOrSpanCollectionLiteralExpression(boundCollectionLiteralExpression);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+            }
+        }
+
         // PROTOTYPE: Decide public API shape.
-        private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression boundCollectionLiteralExpression)
+        private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
         {
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            Debug.Assert(collectionType is { });
+
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             var initializer = new ArrayInitializerOperation(
                 CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
@@ -1237,6 +1257,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
                 ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
                 isImplicit: true));
+
             if (collectionType.TypeKind == TypeKind.Array)
             {
                 return new ArrayCreationOperation(
@@ -1281,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation CreateBoundCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression boundCollectionLiteralExpression)
+        private IOperation CreateBoundCollectionInitializerCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
         {
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
@@ -1321,6 +1342,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             var children = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
             return new InvalidOperation(children, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
+        }
+
+        private IOperation CreateBoundCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement boundSpreadExpression)
+        {
+            SyntaxNode syntax = boundSpreadExpression.Syntax;
+            ITypeSymbol? type = boundSpreadExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
+            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
+            // PROTOTYPE: Implement:
+            return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)

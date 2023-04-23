@@ -3835,8 +3835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
-                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
-                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                case BoundKind.CollectionLiteralExpression:
                     // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return CallingMethodScope;
 
@@ -4322,8 +4321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
-                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
-                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                case BoundKind.CollectionLiteralExpression:
                     // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return true;
 
