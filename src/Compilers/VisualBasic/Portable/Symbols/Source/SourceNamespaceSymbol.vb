@@ -157,43 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared Function CreateNameToMembersMap(dictionary As Dictionary(Of String, Object)) As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
             Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(dictionary.Count, IdentifierComparison.Comparer)
-
-            For Each kvp In dictionary
-
-                Dim value As Object = kvp.Value
-                Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
-
-                Dim builder = TryCast(value, ArrayBuilder(Of NamespaceOrTypeSymbol))
-                If builder IsNot Nothing Then
-                    Debug.Assert(builder.Count > 1)
-                    Dim hasNamespaces As Boolean = False
-
-                    For i = 0 To builder.Count - 1
-                        If builder(i).Kind = SymbolKind.Namespace Then
-                            hasNamespaces = True
-                            Exit For
-                        End If
-                    Next
-
-                    If hasNamespaces Then
-                        members = builder.ToImmutable()
-                    Else
-                        members = StaticCast(Of NamespaceOrTypeSymbol).From(builder.ToDowncastedImmutable(Of NamedTypeSymbol)())
-                    End If
-
-                    builder.Free()
-                Else
-                    Dim symbol = DirectCast(value, NamespaceOrTypeSymbol)
-                    If symbol.Kind = SymbolKind.Namespace Then
-                        members = ImmutableArray.Create(Of NamespaceOrTypeSymbol)(symbol)
-                    Else
-                        members = StaticCast(Of NamespaceOrTypeSymbol).From(ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(symbol, NamedTypeSymbol)))
-                    End If
-                End If
-
-                result.Add(kvp.Key, members)
-            Next
-
+            ImmutableArrayExtensions.CreateNameToMembersMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(dictionary, result)
             Return result
         End Function
 
@@ -227,39 +191,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
 
-                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(CaseInsensitiveComparison.Comparer)
-
+                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
                 Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = Me.GetNameToMembersMap()
-                For Each kvp In map
-                    Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = kvp.Value
 
-                    Dim hasType As Boolean = False
-                    Dim hasNamespace As Boolean = False
-
-                    For Each symbol In members
-                        If symbol.Kind = SymbolKind.NamedType Then
-                            hasType = True
-                            If hasNamespace Then
-                                Exit For
-                            End If
-
-                        Else
-                            Debug.Assert(symbol.Kind = SymbolKind.Namespace)
-                            hasNamespace = True
-                            If hasType Then
-                                Exit For
-                            End If
-                        End If
-                    Next
-
-                    If hasType Then
-                        If hasNamespace Then
-                            dictionary.Add(kvp.Key, members.OfType(Of NamedTypeSymbol).AsImmutable())
-                        Else
-                            dictionary.Add(kvp.Key, members.As(Of NamedTypeSymbol))
-                        End If
-                    End If
-                Next
+#If DEBUG Then
+                dictionary = ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(map, CaseInsensitiveComparison.Comparer)
+#Else
+                dictionary = ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol)(map, CaseInsensitiveComparison.Comparer)
+#End If
 
                 Interlocked.CompareExchange(_nameToTypeMembersMap, dictionary, Nothing)
             End If

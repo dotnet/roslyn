@@ -905,6 +905,111 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static void CreateNameToMembersMap
+            <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
+            (Dictionary<string, object> dictionary, Dictionary<String, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
+        {
+            foreach (var kvp in dictionary)
+            {
+                object value = kvp.Value;
+                ImmutableArray<TNamespaceOrTypeSymbol> members;
+
+                var builder = value as ArrayBuilder<TNamespaceOrTypeSymbol>;
+                if (builder != null)
+                {
+                    Debug.Assert(builder.Count > 1);
+                    bool hasNamespaces = false;
+                    for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
+                    {
+                        if (builder[i] is TNamespaceSymbol)
+                        {
+                            hasNamespaces = true;
+                            break;
+                        }
+                    }
+
+                    members = hasNamespaces
+                        ? builder.ToImmutable()
+                        : StaticCast<TNamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
+
+                    builder.Free();
+                }
+                else
+                {
+                    TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
+                    members = symbol is TNamespaceSymbol
+                        ? ImmutableArray.Create<TNamespaceOrTypeSymbol>(symbol)
+                        : StaticCast<TNamespaceOrTypeSymbol>.From(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
+                }
+
+                result.Add(kvp.Key, members);
+            }
+        }
+
+        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap
+            <TNamespaceOrTypeSymbol, TNamedTypeSymbol
+#if DEBUG
+             , TNamespaceSymbol
+#endif
+            >
+            (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+#if DEBUG
+            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
+#endif
+        {
+            var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
+
+            foreach (var kvp in map)
+            {
+                ImmutableArray<TNamespaceOrTypeSymbol> members = kvp.Value;
+
+                bool hasType = false;
+                bool hasNamespace = false;
+
+                foreach (var symbol in members)
+                {
+                    if (symbol is TNamedTypeSymbol)
+                    {
+                        hasType = true;
+                        if (hasNamespace)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+#if DEBUG
+                        Debug.Assert(symbol is TNamespaceSymbol);
+#endif
+                        hasNamespace = true;
+                        if (hasType)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (hasType)
+                {
+                    if (hasNamespace)
+                    {
+                        dictionary.Add(kvp.Key, members.OfType<TNamedTypeSymbol>().AsImmutable());
+                    }
+                    else
+                    {
+                        dictionary.Add(kvp.Key, members.As<TNamedTypeSymbol>());
+                    }
+                }
+            }
+
+            return dictionary;
+        }
+
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
         {
             // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we

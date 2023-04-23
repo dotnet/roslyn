@@ -255,73 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _nameToTypeMembersMap;
         }
 
-        private static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol
-#if DEBUG
-             , TNamespaceSymbol
-#endif
-            >
-            (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
-            where TNamespaceOrTypeSymbol : class
-            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
-#if DEBUG
-            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
-#endif
-        {
-            var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
-
-            foreach (var kvp in map)
-            {
-                ImmutableArray<TNamespaceOrTypeSymbol> members = kvp.Value;
-
-                bool hasType = false;
-                bool hasNamespace = false;
-
-                foreach (var symbol in members)
-                {
-                    if (symbol is TNamedTypeSymbol)
-                    {
-                        hasType = true;
-                        if (hasNamespace)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-#if DEBUG
-                        Debug.Assert(symbol is TNamespaceSymbol);
-#endif
-                        hasNamespace = true;
-                        if (hasType)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (hasType)
-                {
-                    if (hasNamespace)
-                    {
-                        dictionary.Add(kvp.Key, members.OfType<TNamedTypeSymbol>().AsImmutable());
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, members.As<TNamedTypeSymbol>());
-                    }
-                }
-            }
-
-            return dictionary;
-        }
-
         private static Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
         {
 #if DEBUG
-            return GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(map, StringOrdinalComparer.Instance);
+            return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(map, StringOrdinalComparer.Instance);
 #else
-            return GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(map, StringOrdinalComparer.Instance);
+            return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(map, StringOrdinalComparer.Instance);
 #endif
         }
 
@@ -538,54 +477,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public static void CreateNameToMembersMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
-            (Dictionary<string, object> dictionary, Dictionary<String, ImmutableArray<TNamespaceOrTypeSymbol>> result)
-            where TNamespaceOrTypeSymbol : class
-            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
-            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
-        {
-            foreach (var kvp in dictionary)
-            {
-                object value = kvp.Value;
-                ImmutableArray<TNamespaceOrTypeSymbol> members;
-
-                var builder = value as ArrayBuilder<TNamespaceOrTypeSymbol>;
-                if (builder != null)
-                {
-                    Debug.Assert(builder.Count > 1);
-                    bool hasNamespaces = false;
-                    for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                    {
-                        if (builder[i] is TNamespaceSymbol)
-                        {
-                            hasNamespaces = true;
-                            break;
-                        }
-                    }
-
-                    members = hasNamespaces
-                        ? builder.ToImmutable()
-                        : StaticCast<TNamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
-
-                    builder.Free();
-                }
-                else
-                {
-                    TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
-                    members = symbol is TNamespaceSymbol
-                        ? ImmutableArray.Create<TNamespaceOrTypeSymbol>(symbol)
-                        : StaticCast<TNamespaceOrTypeSymbol>.From(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
-                }
-
-                result.Add(kvp.Key, members);
-            }
-        }
-
         private static Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateNameToMembersMap(Dictionary<string, object> dictionary)
         {
             var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(dictionary.Count);
-            CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(dictionary, result);
+            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(dictionary, result);
             return result;
         }
     }
