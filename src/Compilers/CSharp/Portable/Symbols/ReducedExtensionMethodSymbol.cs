@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (useSiteInfo.Diagnostics != null)
+            if (!discardUseSiteInfo && useSiteInfo.Diagnostics != null)
             {
                 foreach (var diag in useSiteInfo.Diagnostics)
                 {
