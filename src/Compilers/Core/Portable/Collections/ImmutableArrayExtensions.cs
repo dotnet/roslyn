@@ -887,16 +887,16 @@ namespace Microsoft.CodeAnalysis
                 if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
                 {
                     // Already a builder in the accumulator, just add to that.
-                    arrayBuilder.Add(item);
                 }
                 else
                 {
                     // Just a single value in the accumulator so far.  Convert to using a builder.
                     arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
                     arrayBuilder.Add((T)existingValueOrArray);
-                    arrayBuilder.Add(item);
                     accumulator[key] = arrayBuilder;
                 }
+
+                arrayBuilder.Add(item);
             }
             else
             {
