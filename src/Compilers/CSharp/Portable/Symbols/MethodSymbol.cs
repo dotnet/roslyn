@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation">The compilation in which constraints should be checked.
         /// Should not be null, but if it is null we treat constraints as we would in the latest
         /// language version.</param>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation, bool discardUseSiteInfo = false)
         {
             if ((object)receiverType == null)
             {
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation, discardUseSiteInfo);
         }
 
         /// <summary>

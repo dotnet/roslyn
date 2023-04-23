@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol containingType = (TypeSymbol)container;
                     foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
+                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation, discardUseSiteInfo: true);
                         if ((object)reduced != null)
                         {
                             results.Add(reduced.GetPublicSymbol());

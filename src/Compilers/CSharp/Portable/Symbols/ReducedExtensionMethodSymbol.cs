@@ -34,13 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.
         /// The latest language version is assumed if this is null.</param>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation)
+        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation, bool discardUseSiteInfo = false)
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
             Debug.Assert((object)receiverType != null);
 
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+            var useSiteInfo = discardUseSiteInfo
+                ? CompoundUseSiteInfo<AssemblySymbol>.Discarded
+                : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 
             method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteInfo);
             if ((object)method == null)
