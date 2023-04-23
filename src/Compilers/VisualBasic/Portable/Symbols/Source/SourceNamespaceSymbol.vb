@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyEmbeddedKind = EmbeddedSymbolKind.Unset Then
                     Dim value As Integer = EmbeddedSymbolKind.None
-                    For Each location In _declaration.NameLocations
+                    For Each location In SymbolLocations
                         Debug.Assert(location IsNot Nothing)
                         If location.Kind = LocationKind.None Then
                             Dim embeddedLocation = TryCast(location, EmbeddedTreeLocation)
@@ -376,9 +376,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return StaticCast(Of Location).From(_declaration.NameLocations)
+                Return _declaration.NameLocations
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return _declaration.NameLocationsCount
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return _declaration.GetCurrentNameLocation(slot, index)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return _declaration.MoveNextNameLocation(previousSlot, previousIndex)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return _declaration.MoveNextNameLocationReversed(previousSlot, previousIndex)
+        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

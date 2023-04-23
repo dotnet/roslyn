@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -68,6 +69,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return NoLocations
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(NoLocations)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, NoLocations)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, NoLocations)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, NoLocations)
+        End Function
 
         Friend Function ToBoundExpression(
             meParameter As BoundExpression,

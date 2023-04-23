@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaSymbol.DeclaringCompilation,
                     member,
                     diagnostics,
-                    lambdaParameter.TryGetFirstLocation() ?? lambdaSymbol.SyntaxNode.Location);
+                    lambdaParameter.SymbolLocations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
             }
         }
 

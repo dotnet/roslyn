@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -136,6 +137,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType.Locations;
             }
         }
+
+        public override int LocationsCount => IsTupleType ? SymbolLocationHelper.Many.LocationsCount(TupleData.Locations) : _underlyingType.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => IsTupleType ? SymbolLocationHelper.Many.GetCurrentLocation(slot, index, TupleData.Locations) : _underlyingType.GetCurrentLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => IsTupleType ? SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, TupleData.Locations) : _underlyingType.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => IsTupleType ? SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, TupleData.Locations) : _underlyingType.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -144,6 +145,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
             }
         }
+
+        public sealed override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(Locations);
+
+        public sealed override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, Locations);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, Locations);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, Locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

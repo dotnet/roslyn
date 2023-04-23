@@ -2373,7 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
 
-            if (symbol.TryGetFirstLocation() is not Location location)
+            if (symbol.SymbolLocations.FirstOrDefault() is not Location location)
             {
                 return symbol;
             }

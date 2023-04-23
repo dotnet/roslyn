@@ -2275,6 +2275,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
+        public override int LocationsCount => throw new NotImplementedException();
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => throw new NotImplementedException();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => throw new NotImplementedException();
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => throw new NotImplementedException();
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get { throw new NotImplementedException(); }

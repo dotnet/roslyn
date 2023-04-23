@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var firstLocation = this.TryGetFirstLocation();
+            var firstLocation = this.SymbolLocations.FirstOrDefault();
             if (firstLocation is null)
                 return LexicalSortKey.NotInSource;
 
@@ -336,18 +336,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        public virtual Location? TryGetFirstLocation()
-        {
-            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
-            var locations = this.Locations;
-            return locations.IsEmpty ? null : locations[0];
-        }
+        public ISymbol.LocationList SymbolLocations => new ISymbol.LocationList(this);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Count"/>.
+        /// </summary>
+        public abstract int LocationsCount { get; }
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator.Current"/>.
+        /// </summary>
+        public abstract Location GetCurrentLocation(int slot, int index);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <c>-1</c> means start at the beginning.
+        /// </remarks>
+        public abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex);
+
+        /// <summary>
+        /// Provides the supporting implementation for <see cref="ISymbol.LocationList.Reversed.Enumerator"/>.
+        /// </summary>
+        /// <remarks>
+        /// A slot of <see cref="int.MaxValue"/> means start from the end.
+        /// </remarks>
+        public abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex);
 
         public Location GetFirstLocation()
-            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+            => SymbolLocations.FirstOrDefault() ?? throw new InvalidOperationException("Symbol has no locations");
 
         public Location GetFirstLocationOrNone()
-            => TryGetFirstLocation() ?? Location.None;
+            => SymbolLocations.FirstOrDefault() ?? Location.None;
 
         /// <summary>
         /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref

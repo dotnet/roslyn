@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -201,15 +202,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                If _locations.IsDefault Then
-                    ImmutableInterlocked.InterlockedInitialize(
-                        _locations,
-                        DeclaringCompilation.MergedRootDeclaration.Declarations.SelectAsArray(Function(d) d.Location))
-                End If
-
-                Return _locations
+                Return InterlockedOperations.InterlockedInitialize(
+                    _locations,
+                    Function(self)
+                        Return self.DeclaringCompilation.MergedRootDeclaration.Declarations.SelectAsArray(Function(d) d.Location)
+                    End Function,
+                    Me)
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(DeclaringCompilation.MergedRootDeclaration.Declarations)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, DeclaringCompilation.MergedRootDeclaration.Declarations, Function(decl) decl.Location)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, DeclaringCompilation.MergedRootDeclaration.Declarations)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, DeclaringCompilation.MergedRootDeclaration.Declarations)
+        End Function
 
         Friend ReadOnly Property SyntaxTrees As IEnumerable(Of SyntaxTree)
             Get

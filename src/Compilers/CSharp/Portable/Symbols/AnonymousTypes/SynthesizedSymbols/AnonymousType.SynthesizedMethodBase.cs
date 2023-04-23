@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -55,6 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return ImmutableArray<Location>.Empty; }
             }
+
+            public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
+
+            public override Location GetCurrentLocation(int slot, int index)
+                => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
+
+            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
+
+            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
             public sealed override Accessibility DeclaredAccessibility
             {

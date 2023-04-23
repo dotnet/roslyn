@@ -111,6 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable();
 
+        public sealed override int LocationsCount => throw ExceptionUtilities.Unreachable();
+
+        public sealed override Location GetCurrentLocation(int slot, int index) => throw ExceptionUtilities.Unreachable();
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw ExceptionUtilities.Unreachable();
 
         public override Accessibility DeclaredAccessibility => throw ExceptionUtilities.Unreachable();

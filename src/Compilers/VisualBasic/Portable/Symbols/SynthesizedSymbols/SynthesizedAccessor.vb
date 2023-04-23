@@ -125,6 +125,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return m_propertyOrEvent.LocationsCount
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return m_propertyOrEvent.GetCurrentLocation(slot, index)
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return m_propertyOrEvent.MoveNextLocation(previousSlot, previousIndex)
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return m_propertyOrEvent.MoveNextLocationReversed(previousSlot, previousIndex)
+        End Function
+
         Friend NotOverridable Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
             Get
                 Return m_propertyOrEvent

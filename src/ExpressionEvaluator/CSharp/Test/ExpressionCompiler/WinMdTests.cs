@@ -110,6 +110,48 @@ class C
             });
         }
 
+        /// <summary>
+        /// This modification of the previous test covers the case where MergedNamspaceSymbol is required to flatten its
+        /// input namespaces.
+        /// </summary>
+        [ConditionalFact(typeof(OSVersionWin8))]
+        public void Win8RuntimeAssemblies_ExternAlias2()
+        {
+            var source =
+@"extern alias X;
+class C
+{
+    static void M(X::Windows.Storage.StorageFolder f)
+    {
+    }
+}";
+            var compilation0 = CreateEmptyCompilation(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
+                references: WinRtRefs.Select(r => r.Display is "Windows" ? r.WithAliases(new[] { "X" }) : r).Select(r => r.Display is "mscorlib" ? r.WithAliases(new[] { "global", "X" }) : r));
+
+            var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
+            Assert.True(runtimeAssemblies.Length >= 1);
+
+            // no reference to Windows.winmd
+            WithRuntimeInstance(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("X::Windows.Storage.FileProperties.PhotoOrientation.Unspecified", out error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}");
+            });
+        }
+
         [Fact]
         public void Win8OnWin8()
         {

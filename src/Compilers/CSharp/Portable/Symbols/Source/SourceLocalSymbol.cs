@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 #if DEBUG
 using System.Runtime.CompilerServices;
@@ -403,9 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Location TryGetFirstLocation()
-            => _identifierToken.GetLocation();
-
         /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
@@ -413,6 +411,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public override ImmutableArray<Location> Locations
             => ImmutableArray.Create(GetFirstLocation());
+
+        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _identifierToken);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {

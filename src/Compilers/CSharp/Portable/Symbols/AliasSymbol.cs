@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -122,6 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _locations;
             }
         }
+
+        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -255,12 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AliasSymbol? other = obj as AliasSymbol;
 
             return (object?)other != null &&
-                Equals(this.TryGetFirstLocation(), other.TryGetFirstLocation()) &&
+                Equals(this.SymbolLocations.FirstOrDefault(), other.SymbolLocations.FirstOrDefault()) &&
                 Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
-            => this.TryGetFirstLocation()?.GetHashCode() ?? Name.GetHashCode();
+            => this.SymbolLocations.FirstOrDefault()?.GetHashCode() ?? Name.GetHashCode();
 
         internal abstract override bool RequiresCompletion
         {

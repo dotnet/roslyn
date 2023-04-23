@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -83,6 +85,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation()!);
             }
         }
+
+        public sealed override int LocationsCount => _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
+            ? SymbolLocationHelper.Empty.LocationsCount
+            : SymbolLocationHelper.Single.LocationsCount;
+
+        public sealed override Location GetCurrentLocation(int slot, int index)
+            => _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
+            ? SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
+            : SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _identifierNodeOrToken);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
+            ? SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
+            : SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
+            ? SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
+            : SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
