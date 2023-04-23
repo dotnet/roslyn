@@ -828,6 +828,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
         {
+            if (!futureDestination.AccumulatesDiagnostics)
+            {
+                return CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            }
+
             return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
         }
 
