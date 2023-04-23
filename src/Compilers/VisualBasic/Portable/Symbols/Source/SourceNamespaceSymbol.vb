@@ -143,85 +143,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' NOTE: a name maps into values collection containing types only instead of allocating another 
             ' NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray(Of NamedTypeSymbol)
 
-            Dim builder As New NameToSymbolMapBuilder(_declaration.Children.Length)
+            Dim builder As New Dictionary(Of String, Object)(_declaration.Children.Length, IdentifierComparison.Comparer)
             For Each declaration In _declaration.Children
-                builder.Add(BuildSymbol(declaration))
+                Dim symbol As NamespaceOrTypeSymbol = BuildSymbol(declaration)
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol)
             Next
 
             ' TODO(cyrusn): The C# and VB impls differ here.  C# reports errors here and VB does not.
             ' Is that what we want?
 
-            Return builder.CreateMap()
+            Return CreateNameToMembersMap(builder)
         End Function
 
-        Private Structure NameToSymbolMapBuilder
-            Private ReadOnly _dictionary As Dictionary(Of String, Object)
+        Public Shared Function CreateNameToMembersMap(dictionary As Dictionary(Of String, Object)) As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
+            Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(dictionary.Count, IdentifierComparison.Comparer)
 
-            Public Sub New(capacity As Integer)
-                _dictionary = New Dictionary(Of String, Object)(capacity, IdentifierComparison.Comparer)
-            End Sub
+            For Each kvp In dictionary
 
-            Public Sub Add(symbol As NamespaceOrTypeSymbol)
-                Dim name As String = symbol.Name
-                Dim item As Object = Nothing
+                Dim value As Object = kvp.Value
+                Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
 
-                If Me._dictionary.TryGetValue(name, item) Then
-                    Dim builder = TryCast(item, ArrayBuilder(Of NamespaceOrTypeSymbol))
-                    If builder Is Nothing Then
-                        builder = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
-                        builder.Add(DirectCast(item, NamespaceOrTypeSymbol))
-                        Me._dictionary(name) = builder
+                Dim builder = TryCast(value, ArrayBuilder(Of NamespaceOrTypeSymbol))
+                If builder IsNot Nothing Then
+                    Debug.Assert(builder.Count > 1)
+                    Dim hasNamespaces As Boolean = False
+
+                    For i = 0 To builder.Count - 1
+                        If builder(i).Kind = SymbolKind.Namespace Then
+                            hasNamespaces = True
+                            Exit For
+                        End If
+                    Next
+
+                    If hasNamespaces Then
+                        members = builder.ToImmutable()
+                    Else
+                        members = StaticCast(Of NamespaceOrTypeSymbol).From(builder.ToDowncastedImmutable(Of NamedTypeSymbol)())
                     End If
-                    builder.Add(symbol)
 
+                    builder.Free()
                 Else
-                    Me._dictionary(name) = symbol
+                    Dim symbol = DirectCast(value, NamespaceOrTypeSymbol)
+                    If symbol.Kind = SymbolKind.Namespace Then
+                        members = ImmutableArray.Create(Of NamespaceOrTypeSymbol)(symbol)
+                    Else
+                        members = StaticCast(Of NamespaceOrTypeSymbol).From(ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(symbol, NamedTypeSymbol)))
+                    End If
                 End If
 
-            End Sub
+                result.Add(kvp.Key, members)
+            Next
 
-            Public Function CreateMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(Me._dictionary.Count, IdentifierComparison.Comparer)
-
-                For Each kvp In Me._dictionary
-
-                    Dim value As Object = kvp.Value
-                    Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
-
-                    Dim builder = TryCast(value, ArrayBuilder(Of NamespaceOrTypeSymbol))
-                    If builder IsNot Nothing Then
-                        Debug.Assert(builder.Count > 1)
-                        Dim hasNamespaces As Boolean = False
-
-                        For i = 0 To builder.Count - 1
-                            If builder(i).Kind = SymbolKind.Namespace Then
-                                hasNamespaces = True
-                                Exit For
-                            End If
-                        Next
-
-                        If hasNamespaces Then
-                            members = builder.ToImmutable()
-                        Else
-                            members = StaticCast(Of NamespaceOrTypeSymbol).From(builder.ToDowncastedImmutable(Of NamedTypeSymbol)())
-                        End If
-
-                        builder.Free()
-                    Else
-                        Dim symbol = DirectCast(value, NamespaceOrTypeSymbol)
-                        If symbol.Kind = SymbolKind.Namespace Then
-                            members = ImmutableArray.Create(Of NamespaceOrTypeSymbol)(symbol)
-                        Else
-                            members = StaticCast(Of NamespaceOrTypeSymbol).From(ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(symbol, NamedTypeSymbol)))
-                        End If
-                    End If
-
-                    result.Add(kvp.Key, members)
-                Next
-
-                Return result
-            End Function
-        End Structure
+            Return result
+        End Function
 
         Private Function BuildSymbol(decl As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
             Dim namespaceDecl = TryCast(decl, MergedNamespaceDeclaration)

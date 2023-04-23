@@ -860,27 +860,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var item in items)
             {
                 var key = keySelector(item);
-                if (accumulator.TryGetValue(key, out var existingValueOrArray))
-                {
-                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
-                    {
-                        // Already a builder in the accumulator, just add to that.
-                        arrayBuilder.Add(item);
-                    }
-                    else
-                    {
-                        // Just a single value in the accumulator so far.  Convert to using a builder.
-                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
-                        arrayBuilder.Add((T)existingValueOrArray);
-                        arrayBuilder.Add(item);
-                        accumulator[key] = arrayBuilder;
-                    }
-                }
-                else
-                {
-                    // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, item);
-                }
+                AddToMultiValueDictionaryBuilder(accumulator, key, item);
             }
 
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
@@ -896,6 +876,33 @@ namespace Microsoft.CodeAnalysis
             accumulator.Free();
 
             return dictionary;
+        }
+
+        internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
+            where K : notnull
+            where T : notnull
+        {
+            if (accumulator.TryGetValue(key, out var existingValueOrArray))
+            {
+                if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
+                {
+                    // Already a builder in the accumulator, just add to that.
+                    arrayBuilder.Add(item);
+                }
+                else
+                {
+                    // Just a single value in the accumulator so far.  Convert to using a builder.
+                    arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                    arrayBuilder.Add((T)existingValueOrArray);
+                    arrayBuilder.Add(item);
+                    accumulator[key] = arrayBuilder;
+                }
+            }
+            else
+            {
+                // Nothing in the dictionary so far.  Add the item directly.
+                accumulator.Add(key, item);
+            }
         }
 
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
