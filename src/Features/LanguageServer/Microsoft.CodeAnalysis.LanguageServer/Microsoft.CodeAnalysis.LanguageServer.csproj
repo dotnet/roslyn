@@ -67,6 +67,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+        <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests" />
     </ItemGroup>
 
     <ItemGroup>

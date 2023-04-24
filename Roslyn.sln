@@ -533,13 +533,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Too
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LanguageServer", "LanguageServer", "{D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Internal", "src\VisualStudio\Microsoft.CodeAnalysis.LanguageServer.Internal\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj", "{9B7AC5C2-293D-438D-B9A2-1EDDC2C6BF00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Internal", "src\VisualStudio\LanguageServer\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj", "{9B7AC5C2-293D-438D-B9A2-1EDDC2C6BF00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Features.UnitTests", "src\Features\CSharpTest\Microsoft.CodeAnalysis.CSharp.Features.UnitTests.csproj", "{E645B517-5766-46FB-AA4A-D4D30C9E3BE6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Features.UnitTests", "src\Features\Test\Microsoft.CodeAnalysis.Features.UnitTests.csproj", "{9296F799-5DE4-4E12-A68E-AAC39B0EB90A}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests", "src\Features\VisualBasicTest\Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests.vbproj", "{57B7C0AA-E14A-41F6-AD06-FB3937F66FC2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests", "src\VisualStudio\LanguageServer\Tests\Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests.csproj", "{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1327,6 +1329,10 @@ Global
 		{57B7C0AA-E14A-41F6-AD06-FB3937F66FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57B7C0AA-E14A-41F6-AD06-FB3937F66FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57B7C0AA-E14A-41F6-AD06-FB3937F66FC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1573,6 +1579,7 @@ Global
 		{E645B517-5766-46FB-AA4A-D4D30C9E3BE6} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{9296F799-5DE4-4E12-A68E-AAC39B0EB90A} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{57B7C0AA-E14A-41F6-AD06-FB3937F66FC2} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{D1CA3BE4-4E3F-4AEC-BFDB-739D9418CCCE} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

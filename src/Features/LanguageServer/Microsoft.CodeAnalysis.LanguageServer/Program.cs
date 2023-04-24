@@ -23,7 +23,7 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, string? telemetryLevel, CancellationToken cancellationToken)
+static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, string? telemetryLevel, string? telemetryPath, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -75,14 +75,7 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     }
 
     // Initialize the fault handler if it's available
-    if (telemetryLevel is not null)
-    {
-        try
-        {
-            exportProvider.GetExportedValue<ILspFaultLogger?>()?.Initialize(telemetryLevel);
-        }
-        catch (CompositionFailedException) { }
-    }
+    RoslynLogger.Initialize(telemetryLevel, telemetryPath);
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -164,10 +157,15 @@ static Parser CreateCommandLineParser()
         Description = "The file name to use for the project.razor.json file (for Razor projects).",
         IsRequired = false,
     };
-    var telemetryLevelOption = new Option<string?>("--telemetryLevel", getDefaultValue: () => null)
+    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
     {
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
+    };
+    var telemetryPathOption = new Option<string?>("--telemetryComponentPath")
+    {
+        Description = "The location of the telemetry component (if one exists).",
+        IsRequired = false
     };
 
     var rootCommand = new RootCommand()
@@ -188,8 +186,9 @@ static Parser CreateCommandLineParser()
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
+        var telemetryPath = context.ParseResult.GetValueForOption(telemetryPathOption);
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, telemetryPath, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
