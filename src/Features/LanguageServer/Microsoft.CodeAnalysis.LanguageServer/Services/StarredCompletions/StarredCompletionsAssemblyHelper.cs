@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -35,9 +36,13 @@ internal static class StarredCompletionAssemblyHelper
         var logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
         try
         {
-            var starredCompletionsALC = new AssemblyLoadContext(ALCName);
-            var starredCompletionsAssembly = LoadSuggestionsAssemblyAndDependencies(starredCompletionsALC, completionsAssemblyLocation);
-            var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
+            var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, completionsAssemblyLocation, logger);
+            if (alc is null)
+            {
+                return;
+            }
+
+            var createCompletionProviderMethodInfo = alc.GetMethodInfo(CompletionsDllName, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
             _completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
                     createCompletionProviderMethodInfo,
                     serviceBroker,
@@ -59,40 +64,6 @@ internal static class StarredCompletionAssemblyHelper
         }
 
         return null;
-    }
-
-    private static Assembly LoadSuggestionsAssemblyAndDependencies(AssemblyLoadContext alc, string assemblyLocation)
-    {
-        Assembly? starredSuggestionsAssembly = null;
-        var directory = new DirectoryInfo(assemblyLocation);
-        foreach (var file in directory.EnumerateFiles("*.dll"))
-        {
-            var assembly = alc.LoadFromAssemblyPath(file.FullName);
-            if (file.Name == CompletionsDllName)
-            {
-                starredSuggestionsAssembly = assembly;
-            }
-        }
-        if (starredSuggestionsAssembly == null)
-        {
-            throw new FileNotFoundException($"Required assembly {CompletionsDllName} could not be found");
-        }
-        return starredSuggestionsAssembly;
-    }
-
-    private static MethodInfo GetMethodInfo(Assembly assembly, string className, string methodName)
-    {
-        var completionHelperType = assembly.GetType(className);
-        if (completionHelperType == null)
-        {
-            throw new ArgumentException($"{assembly.FullName} assembly did not contain {className} class");
-        }
-        var createCompletionProviderMethodInto = completionHelperType?.GetMethod(methodName);
-        if (createCompletionProviderMethodInto == null)
-        {
-            throw new ArgumentException($"{className} from {assembly.FullName} assembly did not contain {methodName} method");
-        }
-        return createCompletionProviderMethodInto;
     }
 
     private static async Task<CompletionProvider> CreateCompletionProviderAsync(MethodInfo createCompletionProviderMethodInfo, IServiceBroker serviceBroker, string modelBasePath, ILogger logger)
