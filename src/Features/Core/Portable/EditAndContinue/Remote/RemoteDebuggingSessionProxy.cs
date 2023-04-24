@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var results = await GetLocalService().EmitSolutionUpdateAsync(_sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     moduleUpdates = results.ModuleUpdates;
-                    diagnosticData = results.GetDiagnosticData(solution);
+                    diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
                     rudeEdits = results.RudeEdits;
                     syntaxError = results.GetSyntaxErrorData(solution);
                 }
@@ -146,14 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                var diagnostic = Diagnostic.Create(
-                    descriptor,
-                    Location.None,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+                diagnosticData = GetInternalErrorDiagnosticData(solution, e);
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                 syntaxError = null;
@@ -169,6 +162,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
 
             return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
+
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
+
+            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
