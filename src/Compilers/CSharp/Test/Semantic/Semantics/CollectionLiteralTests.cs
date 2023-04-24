@@ -1473,6 +1473,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void BestCommonType_01()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = new int[0];
+                        var b = new[] { a, [1, 2, 3] };
+                        b.Report(includeType: true);
+                    }
+                }
+                """;
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "System.Collections.Generic.List<System.Int32[]>[[1, 2, 3]], "
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,17): error CS0826: No best type found for implicitly-typed array
+                //         var b = new[] { a, [1, 2, 3] };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { a, [1, 2, 3] }").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void BestCommonType_02()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        byte[] a = new byte[0];
+                        var b = new[] { a, [1, 2, 3] };
+                        b.Report(includeType: true);
+                    }
+                }
+                """;
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "System.Collections.Generic.List<System.Byte[]>[[1, 2, 3]], "
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,17): error CS0826: No best type found for implicitly-typed array
+                //         var b = new[] { a, [1, 2, 3] };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { a, [1, 2, 3] }").WithLocation(6, 17));
+        }
+
+        [Fact]
         public void TypeInference_01()
         {
             string source = """
@@ -1492,6 +1536,102 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.String>[str], System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>[[], [1, 2]], ");
+        }
+
+        [Fact]
+        public void TypeInference_02()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] AsArray<T>(T[] args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = AsArray([1, 2, 3]);
+                        a.Report();
+                    }
+                }
+                """;
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], ")
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.AsArray<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a = AsArray([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(T[])").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void TypeInference_03()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] AsArray<T>(params T[] args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = AsArray([1, 2, 3]);
+                        a.Report();
+                    }
+                }
+                """;
+            // PROTOTYPE: expectedOutput: "[1, 2, 3], "
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[1, 2, 3]], ");
+        }
+
+        [Fact]
+        public void TypeInference_04()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] AsArray<T>(params T[] args)
+                    {
+                        return args;
+                    }
+                    static void F(bool b, int x, int y)
+                    {
+                        var a = AsArray([.. b ? [x] : [y]]);
+                        a.Report();
+                    }
+                    static void Main()
+                    {
+                        F(false, 1, 2);
+                    }
+                }
+                """;
+            // PROTOTYPE: expectedOutput: "[2], "
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[2]], ");
+        }
+
+        [Fact]
+        public void TypeInference_05()
+        {
+            string source = """
+                static class Program
+                {
+                    static T[] AsArray<T>(this T[] args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = [1, 2, 3].AsArray();
+                        a.Report();
+                    }
+                }
+                """;
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,27): error CS1061: 'List<int>' does not contain a definition for 'AsArray' and no accessible extension method 'AsArray' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         var a = [1, 2, 3].AsArray();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "AsArray").WithArguments("System.Collections.Generic.List<int>", "AsArray").WithLocation(9, 27));
         }
 
         [Fact]
@@ -3992,30 +4132,148 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class Program
                 {
-                    static int[] Append(int[] a)
+                    static void Main()
                     {
-                        return [..a, ..[]];
+                        var a = [1, 2, ..[]];
                     }
                 }
                 """;
             // PROTOTYPE: Should we infer List<int> for [] rather than reporting an error?
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,24): error CS9503: No best type found for implicitly-typed collection literal.
-                //         return [..a, ..[]];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(5, 24));
+                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
+                //         var a = [1, 2, ..[]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[1, 2, ..[]]").WithLocation(5, 17),
+                // (5,26): error CS9503: No best type found for implicitly-typed collection literal.
+                //         var a = [1, 2, ..[]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(5, 26));
         }
 
-        // PROTOTYPE: Test natural type with spread type collection initializer type, foreachable pattern.
-        // PROTOTYPE: Test spread where the collection item is dynamic (where BoundDynamicCollectionElementInitializer
-        // would be used for a collection initializer), with array target, list target, custom collection initializer target.
-        // PROTOTYPE: Test spread where the collection is dynamic, with array target, list target, custom collection initializer target.
-        // PROTOTYPE: Test missing List<T> constructor for array and span collections with/without spread operator.
-        // PROTOTYPE: Test missing List<T>.Add() method for array and span collections with/without spread operator.
-        // PROTOTYPE: Test [..e] where the source and/or target have ref struct elements. (Should be an error unless both are ref struct collections.)
-        // PROTOTYPE: Test [.. await e]
-        // PROTOTYPE: Test array with spread element and additional dynamic element, where the array element type is object or int.
-        // PROTOTYPE: Test array with spread element with dynamic element type, where the array element type is object or int.
+        [Fact]
+        public void SpreadElement_06()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = [1, 2];
+                        a = [..a, ..[]];
+                    }
+                }
+                """;
+            // PROTOTYPE: Should we infer List<int> for [] rather than reporting an error?
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,21): error CS9503: No best type found for implicitly-typed collection literal.
+                //         a = [..a, ..[]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(6, 21));
+        }
+
+        [Fact]
+        public void SpreadElement_07()
+        {
+            string source = """
+                class Program
+                {
+                    static string[] Append(string a, string b, bool c)
+                    {
+                        return [a, b, .. c ? [null] : []];
+                    }
+                }
+                """;
+            // PROTOTYPE: Should we infer List<string> rather than reporting an error?
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
+                //         return [a, b, .. c ? [null] : []];
+                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection literals", "collection literals").WithLocation(5, 26));
+        }
+
+        [Theory(Skip = "PROTOTYPE: RuntimeBinderException : Cannot implicitly convert type 'void' to 'object'")]
+        [InlineData("object[]")]
+        [InlineData("List<object>")]
+        [InlineData("int[]")]
+        [InlineData("List<int>")]
+        public void SpreadElement_Dynamic_01(string resultType)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{resultType}} F(List<dynamic> e)
+                    {
+                        return [..e];
+                    }
+                    static void Main()
+                    {
+                        var a = F([1, 2, 3]);
+                        a.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Theory]
+        [InlineData("object[]")]
+        [InlineData("List<object>")]
+        public void SpreadElement_Dynamic_02(string resultType)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{resultType}} F(dynamic d)
+                    {
+                        return [..d];
+                    }
+                    static void Main()
+                    {
+                        var a = F([1, 2, 3]);
+                        a.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Fact]
+        public void SpreadElement_MissingList()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = [1, 2];
+                        IEnumerable<int> e = a;
+                        int[] b;
+                        b = [..a];
+                        b = [..e];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
+            // PROTOTYPE: Should report missing List<T>, and only report for [..e] case only, not [..a].
+            //comp.VerifyEmitDiagnostics(
+            //    // error CS7038: Failed to emit module '95210788-147c-448a-b756-d2b1a2fb1f6d': Unable to determine specific cause of the failure.
+            //    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("95210788-147c-448a-b756-d2b1a2fb1f6d", "Unable to determine specific cause of the failure.").WithLocation(1, 1));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ToArray);
+            // PROTOTYPE: Should report missing List<T>.ToArray() for [..e] case only, not [..a].
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(9, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13));
+        }
 
         [Fact]
         public void Nullable_01()
@@ -5346,7 +5604,7 @@ Block[B4] - Exit
         }
 
         [Fact]
-        public void Async()
+        public void Async_01()
         {
             string source = """
                 using System.Collections.Generic;
@@ -5368,54 +5626,70 @@ Block[B4] - Exit
                     }
                     static async Task<int> F(int i)
                     {
-                        Task.Yield();
+                        await Task.Yield();
                         return i;
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], [3, 4], ");
-            verifier.VerifyIL("Program.CreateArray", """
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], [3, 4], ");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE: CFG failure.
+        public void Async_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
                 {
-                  // Code size       47 (0x2f)
-                  .maxstack  2
-                  .locals init (Program.<CreateArray>d__1 V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]>.Create()"
-                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]> Program.<CreateArray>d__1.<>t__builder"
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  ldc.i4.m1
-                  IL_000f:  stfld      "int Program.<CreateArray>d__1.<>1__state"
-                  IL_0014:  ldloca.s   V_0
-                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]> Program.<CreateArray>d__1.<>t__builder"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]>.Start<Program.<CreateArray>d__1>(ref Program.<CreateArray>d__1)"
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]> Program.<CreateArray>d__1.<>t__builder"
-                  IL_0029:  call       "System.Threading.Tasks.Task<int[]> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int[]>.Task.get"
-                  IL_002e:  ret
+                    static async Task Main()
+                    {
+                        (await F2(F1())).Report();
+                    }
+                    static async Task<int[]> F1()
+                    {
+                        return [await F(1), await F(2)];
+                    }
+                    static async Task<int[]> F2(Task<int[]> e)
+                    {
+                        return [3, .. await e, 4];
+                    }
+                    static async Task<T> F<T>(T t)
+                    {
+                        await Task.Yield();
+                        return t;
+                    }
                 }
-                """);
-            verifier.VerifyIL("Program.CreateList", """
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[3, 1, 2, 4], ");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE: 'IAsyncEnumerable<int>' does not contain a definition for 'GetAwaiter'")]
+        public void Async_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
                 {
-                  // Code size       47 (0x2f)
-                  .maxstack  2
-                  .locals init (Program.<CreateList>d__2 V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Create()"
-                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<CreateList>d__2.<>t__builder"
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  ldc.i4.m1
-                  IL_000f:  stfld      "int Program.<CreateList>d__2.<>1__state"
-                  IL_0014:  ldloca.s   V_0
-                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<CreateList>d__2.<>t__builder"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Start<Program.<CreateList>d__2>(ref Program.<CreateList>d__2)"
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<CreateList>d__2.<>t__builder"
-                  IL_0029:  call       "System.Threading.Tasks.Task<System.Collections.Generic.List<int>> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Task.get"
-                  IL_002e:  ret
+                    static async Task Main()
+                    {
+                        (await F2(F1())).Report();
+                    }
+                    static async IAsyncEnumerable<int> F1()
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                        await Task.Yield();
+                        yield return 2;
+                    }
+                    static async Task<int[]> F2(IAsyncEnumerable<int> e)
+                    {
+                        return [3, .. await e, 4];
+                    }
                 }
-                """);
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70, expectedOutput: "[3, 1, 2, 4], ");
         }
     }
 }
