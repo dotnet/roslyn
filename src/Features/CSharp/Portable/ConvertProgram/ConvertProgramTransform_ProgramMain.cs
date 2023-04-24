@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var programType = compilation.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0).FirstOrDefault();
+                var programType = compilation.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0).FirstOrDefault(INamedTypeSymbolExtensions.IsValidTopLevelStatementsType);
                 if (programType != null)
                 {
                     if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)

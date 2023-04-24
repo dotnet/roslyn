@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 
             // resiliency check for later on.  This shouldn't happen but we don't want to crash if we are in a weird
             // state where we have top level statements but no 'Program' type.
-            var programType = compilation.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0).FirstOrDefault();
+            var programType = compilation.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0).FirstOrDefault(INamedTypeSymbolExtensions.IsValidTopLevelStatementsType);
             if (programType == null)
                 return false;
 
