@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A representation of a property symbol that is intended only to be used for comparison purposes
     /// (esp in PropertySignatureComparer).
     /// </summary>
-    internal sealed class SignatureOnlyPropertySymbol : PropertySymbol
+    internal sealed partial class SignatureOnlyPropertySymbol : PropertySymbol
     {
         private readonly string _name;
         private readonly TypeSymbol _containingType;
@@ -71,15 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override Cci.CallingConvention CallingConvention { get { throw ExceptionUtilities.Unreachable(); } }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
-
-        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
-
-        public override Location GetCurrentLocation(int slot, int index) => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }
 

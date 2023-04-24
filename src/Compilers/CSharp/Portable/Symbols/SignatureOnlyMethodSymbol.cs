@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A representation of a method symbol that is intended only to be used for comparison purposes
     /// (esp in MethodSignatureComparer).
     /// </summary>
-    internal sealed class SignatureOnlyMethodSymbol : MethodSymbol
+    internal sealed partial class SignatureOnlyMethodSymbol : MethodSymbol
     {
         private readonly string _name;
         private readonly TypeSymbol _containingType;
@@ -128,15 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HidesBaseMethodsByName { get { throw ExceptionUtilities.Unreachable(); } }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
-
-        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
-
-        public override Location GetCurrentLocation(int slot, int index) => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// A simple type parameter with no constraints.
     /// </summary>
-    internal sealed class SimpleTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class SimpleTypeParameterSymbol : TypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly int _ordinal;
@@ -97,21 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable(); }
         }
-
-        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
     }
 
-    internal sealed class DummyLocal : LocalSymbol
+    internal sealed partial class DummyLocal : LocalSymbol
     {
         internal override bool IsImportedFromMetadata
         {
@@ -2270,21 +2270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw new NotImplementedException(); }
         }
-
-        public override int LocationsCount => throw new NotImplementedException();
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => throw new NotImplementedException();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => throw new NotImplementedException();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => throw new NotImplementedException();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

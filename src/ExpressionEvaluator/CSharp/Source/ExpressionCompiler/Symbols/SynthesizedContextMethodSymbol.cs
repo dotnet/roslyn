@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// expressions outside of a method - specifically, binding
     /// DebuggerDisplayAttribute expressions.
     /// </summary>
-    internal sealed class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _container;
 
@@ -102,21 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable(); }
         }
-
-        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => throw ExceptionUtilities.Unreachable();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => throw ExceptionUtilities.Unreachable();
 
         public override MethodKind MethodKind
         {

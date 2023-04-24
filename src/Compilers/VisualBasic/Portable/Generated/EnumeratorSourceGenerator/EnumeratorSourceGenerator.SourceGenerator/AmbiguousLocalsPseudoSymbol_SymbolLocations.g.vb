@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Symbols
+Imports Roslyn.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic
 Partial Class DataFlowPass

@@ -2,8 +2,10 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 

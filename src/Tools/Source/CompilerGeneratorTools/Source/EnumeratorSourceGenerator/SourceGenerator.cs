@@ -70,11 +70,26 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                 if (operation is IBlockOperation { ChildOperations: { } blockChildren })
                 {
                     IReturnOperation? unconditionalReturn = null;
+                    IThrowOperation? unconditionalThrow = null;
                     foreach (var child in blockChildren)
                     {
                         if (child is IReturnOperation returnOperation)
                         {
-                            unconditionalReturn = returnOperation;
+                            if (returnOperation is { IsImplicit: true, ReturnedValue: IConversionOperation { IsImplicit: true, Operand: IThrowOperation throwOperation } })
+                            {
+                                // Locations => throw exception;
+                                unconditionalThrow = throwOperation;
+                            }
+                            else
+                            {
+                                unconditionalReturn = returnOperation;
+                            }
+
+                            break;
+                        }
+                        else if (child is IThrowOperation throwOperation)
+                        {
+                            unconditionalThrow = throwOperation;
                             break;
                         }
                         else if (child is IVariableDeclarationGroupOperation)
@@ -144,6 +159,12 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         recognizedPattern = RecognizedPattern.Delegating;
                         expression = instance.Syntax.ToString();
                     }
+                    else if (unconditionalThrow is { Exception: { } exception })
+                    {
+                        // throw <expression>
+                        recognizedPattern = RecognizedPattern.Throw;
+                        expression = exception.Syntax.ToString();
+                    }
                 }
 
                 if (recognizedPattern is RecognizedPattern.None)
@@ -188,8 +209,10 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                         #nullable enable
 
+                        using System;
                         using Microsoft.CodeAnalysis;
                         using Microsoft.CodeAnalysis.Symbols;
+                        using Roslyn.Utilities;
 
                         namespace {{linkedSymbolInformation.NamespaceName}};
                         {{containingTypeStart}}
@@ -232,6 +255,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                             """;
                     }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Throw)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                public {{sealedText}}override int LocationsCount => throw {{linkedSymbolInformation.Expression}};
+
+                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                                    => throw {{linkedSymbolInformation.Expression}};
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                                    => throw {{linkedSymbolInformation.Expression}};
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                                    => throw {{linkedSymbolInformation.Expression}};
+
+                            """;
+                    }
                     else
                     {
                         throw new InvalidOperationException();
@@ -256,6 +296,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                         Imports Microsoft.CodeAnalysis
                         Imports Microsoft.CodeAnalysis.Symbols
+                        Imports Roslyn.Utilities
 
                         Namespace Global.{{linkedSymbolInformation.NamespaceName}}
                         {{containingTypeStart}}
@@ -312,6 +353,30 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                             """;
                     }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Throw)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                                        Get
+                                            Throw {{linkedSymbolInformation.Expression}}
+                                        End Get
+                                    End Property
+
+                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                                        Throw {{linkedSymbolInformation.Expression}}
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Throw {{linkedSymbolInformation.Expression}}
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Throw {{linkedSymbolInformation.Expression}}
+                                    End Function
+
+                            """;
+                    }
                     else
                     {
                         throw new InvalidOperationException();
@@ -349,6 +414,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
         None,
         Empty,
         Delegating,
+        Throw,
     }
 
     private record class LinkedSymbolInformation(string Language, string NamespaceName, string? ContainingTypeName, string TypeName, bool IsSealed, RecognizedPattern Pattern, string? Expression);

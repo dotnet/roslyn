@@ -7,13 +7,14 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a label in method body
     /// </summary>
-    internal abstract class LabelSymbol : Symbol
+    internal abstract partial class LabelSymbol : Symbol
     {
         /// <summary>
         /// Returns false because label can't be defined externally.
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// metadata. Some symbols (for example, partial classes) may be defined in more than one
         /// location.
         /// </summary>
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -113,14 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new NotSupportedException();
             }
         }
-
-        public override int LocationsCount => throw new NotSupportedException();
-
-        public override Location GetCurrentLocation(int slot, int index) => throw new NotSupportedException();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => throw new NotSupportedException();
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => throw new NotSupportedException();
 
         internal virtual SyntaxNodeOrToken IdentifierNodeOrToken
         {
