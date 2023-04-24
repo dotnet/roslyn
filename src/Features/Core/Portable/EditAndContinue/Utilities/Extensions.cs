@@ -146,5 +146,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         ManagedHotReloadDiagnosticSeverity.Warning,
                 fileSpan.Path ?? "",
                 fileSpan.Span.ToSourceSpan());
-        }    }
+        }
+    }
 }
