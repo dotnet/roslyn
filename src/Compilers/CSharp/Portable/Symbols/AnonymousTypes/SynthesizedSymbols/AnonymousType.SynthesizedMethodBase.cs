@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents a base implementation for anonymous type synthesized methods.
         /// </summary>
-        private abstract class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
+        private abstract partial class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly string _name;
@@ -52,21 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }
             }
-
-            public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-            public override Location GetCurrentLocation(int slot, int index)
-                => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
             public sealed override Accessibility DeclaredAccessibility
             {

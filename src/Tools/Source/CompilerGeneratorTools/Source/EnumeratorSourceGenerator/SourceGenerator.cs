@@ -13,7 +13,7 @@ namespace EnumeratorSourceGenerator;
 internal sealed class SourceGenerator : IIncrementalGenerator
 {
     private static readonly DiagnosticDescriptor s_invalidTarget = new(EnumDiagnosticIds.InvalidAttributeTarget, "Invalid attribute target", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to this property", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor s_noNestedTypes = new(EnumDiagnosticIds.NoNestedTypes, "Cannot generate code for a nested type", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to a property within a nested type", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor s_noMultiplyNestedTypes = new(EnumDiagnosticIds.NoMultiplyNestedTypes, "Cannot generate code for a multiply-nested type", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to a property within a multiply-nested type", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor s_unknownPattern = new(EnumDiagnosticIds.UnknownPattern, "The implementation pattern for this property was not recognized", "Attribute 'GenerateLinkedMembersAttribute' can only be applied to a property with a recognized implementation pattern", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -32,11 +32,11 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     return (null, diagnostics);
                 }
 
-                if (symbol.ContainingType.ContainingType is not null)
+                if (symbol.ContainingType.ContainingType?.ContainingType is not null)
                 {
-                    // Nested types are currently not supported
+                    // Multiply-nested types are currently not supported
                     var invalidAttributeApplication = context.Attributes.First().ApplicationSyntaxReference!;
-                    diagnostics = diagnostics.Add(Diagnostic.Create(s_noNestedTypes, Location.Create(invalidAttributeApplication.SyntaxTree, invalidAttributeApplication.Span)));
+                    diagnostics = diagnostics.Add(Diagnostic.Create(s_noMultiplyNestedTypes, Location.Create(invalidAttributeApplication.SyntaxTree, invalidAttributeApplication.Span)));
                     return (null, diagnostics);
                 }
 
@@ -54,7 +54,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     operation = methodBodyOperation.BlockBody;
                 }
 
-                RecognizedPattern? recognizedPatternOpt = null;
+                var recognizedPattern = RecognizedPattern.None;
                 if (operation is IBlockOperation { ChildOperations: { } blockChildren })
                 {
                     IReturnOperation? unconditionalReturn = null;
@@ -123,21 +123,22 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         })
                     {
                         // return ImmutableArray<Location>.Empty
-                        recognizedPatternOpt = RecognizedPattern.Empty;
+                        recognizedPattern = RecognizedPattern.Empty;
                     }
                 }
 
-                if (recognizedPatternOpt is not { } recognizedPattern)
+                if (recognizedPattern is RecognizedPattern.None)
                 {
-                    // Nested types are currently not supported
+                    // Unknown pattern
                     var invalidAttributeApplication = context.Attributes.First().ApplicationSyntaxReference!;
                     diagnostics = diagnostics.Add(Diagnostic.Create(s_unknownPattern, Location.Create(invalidAttributeApplication.SyntaxTree, invalidAttributeApplication.Span)));
                     return (null, diagnostics);
                 }
 
                 var namespaceName = symbol.ContainingNamespace.ToDisplayString();
+                var containingTypeName = symbol.ContainingType.ContainingType?.Name;
                 var typeName = symbol.ContainingType.Name;
-                return (symbolInformation: new LinkedSymbolInformation(language, namespaceName, typeName, symbol.IsSealed, recognizedPattern), diagnostics);
+                return (symbolInformation: new LinkedSymbolInformation(language, namespaceName, containingTypeName, typeName, symbol.IsSealed, recognizedPattern), diagnostics);
             });
 
         context.RegisterSourceOutput(
@@ -148,7 +149,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
             });
 
         context.RegisterSourceOutput(
-            syntaxAndDiagnostic.SelectMany((pair, cancellationToken) => pair.Item1 is null ? ImmutableArray<LinkedSymbolInformation>.Empty : ImmutableArray.Create(pair.Item1)),
+            syntaxAndDiagnostic.SelectMany((pair, cancellationToken) => pair.symbolInformation is null ? ImmutableArray<LinkedSymbolInformation>.Empty : ImmutableArray.Create(pair.symbolInformation)),
             (context, linkedSymbolInformation) =>
             {
                 string extension;
@@ -156,6 +157,8 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                 if (linkedSymbolInformation.Language == LanguageNames.CSharp)
                 {
                     var sealedText = linkedSymbolInformation.IsSealed ? "sealed " : "";
+                    var containingTypeStart = linkedSymbolInformation.ContainingTypeName is not null ? $"partial class {linkedSymbolInformation.ContainingTypeName} {{" : "";
+                    var containingTypeEnd = linkedSymbolInformation.ContainingTypeName is not null ? "}\r\n" : "";
 
                     extension = "cs";
                     sourceText =
@@ -168,7 +171,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         using Microsoft.CodeAnalysis.Symbols;
 
                         namespace {{linkedSymbolInformation.NamespaceName}};
-
+                        {{containingTypeStart}}
                         partial class {{linkedSymbolInformation.TypeName}}
                         {
                             public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
@@ -182,12 +185,14 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                             public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
                                 => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
                         }
-
+                        {{containingTypeEnd}}
                         """;
                 }
                 else
                 {
                     var sealedText = linkedSymbolInformation.IsSealed ? "NotOverridable " : "";
+                    var containingTypeStart = linkedSymbolInformation.ContainingTypeName is not null ? $"Partial Class {linkedSymbolInformation.ContainingTypeName}" : "";
+                    var containingTypeEnd = linkedSymbolInformation.ContainingTypeName is not null ? "End Class" : "";
 
                     extension = "vb";
                     sourceText =
@@ -198,7 +203,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         Imports Microsoft.CodeAnalysis.Symbols
 
                         Namespace Global.{{linkedSymbolInformation.NamespaceName}}
-
+                        {{containingTypeStart}}
                             Partial Class {{linkedSymbolInformation.TypeName}}
 
                                 Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
@@ -220,7 +225,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                                 End Function
 
                             End Class
-
+                        {{containingTypeEnd}}
                         End Namespace
 
                         """;
@@ -231,8 +236,9 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
     private enum RecognizedPattern
     {
+        None,
         Empty,
     }
 
-    private record class LinkedSymbolInformation(string Language, string NamespaceName, string TypeName, bool IsSealed, RecognizedPattern Pattern);
+    private record class LinkedSymbolInformation(string Language, string NamespaceName, string? ContainingTypeName, string TypeName, bool IsSealed, RecognizedPattern Pattern);
 }

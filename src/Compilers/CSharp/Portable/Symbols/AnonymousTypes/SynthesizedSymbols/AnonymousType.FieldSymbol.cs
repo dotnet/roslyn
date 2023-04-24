@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents a baking field for an anonymous type template property symbol.
         /// </summary>
-        private sealed class AnonymousTypeFieldSymbol : FieldSymbol
+        private sealed partial class AnonymousTypeFieldSymbol : FieldSymbol
         {
             private readonly PropertySymbol _property;
 
@@ -116,21 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }
             }
-
-            public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-
-            public override Location GetCurrentLocation(int slot, int index)
-                => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {

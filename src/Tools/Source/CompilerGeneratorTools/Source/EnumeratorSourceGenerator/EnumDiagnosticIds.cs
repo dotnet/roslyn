@@ -8,6 +8,6 @@ internal static class EnumDiagnosticIds
 {
     public const string MissingImplementation = "ENUM01";
     public const string InvalidAttributeTarget = "ENUM02";
-    public const string NoNestedTypes = "ENUM03";
+    public const string NoMultiplyNestedTypes = "ENUM03";
     public const string UnknownPattern = "ENUM04";
 }

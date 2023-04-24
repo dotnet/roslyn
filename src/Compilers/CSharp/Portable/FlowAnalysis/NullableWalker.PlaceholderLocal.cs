@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="BoundObjectCreationExpression"/>, or the input expression of a pattern-matching operation.
         /// It is used to track the state of an expression, such as members being initialized.
         /// </summary>
-        private sealed class PlaceholderLocal : LocalSymbol
+        private sealed partial class PlaceholderLocal : LocalSymbol
         {
             private readonly Symbol _containingSymbol;
             private readonly TypeWithAnnotations _type;
@@ -49,11 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override SyntaxNode ScopeDesignatorOpt => null;
             public override Symbol ContainingSymbol => _containingSymbol;
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
-            public override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
-            public override Location GetCurrentLocation(int slot, int index) => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
             public override TypeWithAnnotations TypeWithAnnotations => _type;
             internal override LocalDeclarationKind DeclarationKind => LocalDeclarationKind.None;
             internal override SyntaxToken IdentifierToken => throw ExceptionUtilities.Unreachable();
