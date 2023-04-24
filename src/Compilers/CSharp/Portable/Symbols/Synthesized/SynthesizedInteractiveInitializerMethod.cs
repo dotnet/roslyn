@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedInteractiveInitializerMethod : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedInteractiveInitializerMethod : SynthesizedInstanceMethodSymbol
     {
         internal const string InitializerName = "<Initialize>";
 
@@ -121,21 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _containingType.Locations; }
         }
-
-        public override int LocationsCount => _containingType.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _containingType.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _containingType.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _containingType.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override MethodKind MethodKind
         {

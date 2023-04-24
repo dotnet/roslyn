@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -180,17 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return _underlyingModule.Locations;
             }
         }
-
-        public override int LocationsCount => _underlyingModule.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _underlyingModule.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _underlyingModule.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _underlyingModule.MoveNextLocationReversed(previousSlot, previousIndex);
 
         /// <summary>
         /// A helper method for ReferenceManager to set AssemblySymbols for assemblies 

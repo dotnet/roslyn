@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated backing field for a primary constructor parameter.
     /// </summary>
-    internal sealed class SynthesizedPrimaryConstructorParameterBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
+    internal sealed partial class SynthesizedPrimaryConstructorParameterBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         public readonly ParameterSymbol ParameterSymbol;
 
@@ -39,19 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol? AssociatedSymbol
             => null;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
             => ParameterSymbol.Locations;
-
-        public override int LocationsCount => ParameterSymbol.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => ParameterSymbol.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => ParameterSymbol.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => ParameterSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override RefKind RefKind => RefKind.None;
 

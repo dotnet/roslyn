@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     ///   used as is.
     /// - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     /// </summary>
-    internal sealed class RetargetingAssemblySymbol : NonMissingAssemblySymbol
+    internal sealed partial class RetargetingAssemblySymbol : NonMissingAssemblySymbol
     {
         /// <summary>
         /// The underlying AssemblySymbol, it leaks symbols that should be retargeted.
@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -187,17 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return _underlyingAssembly.Locations;
             }
         }
-
-        public override int LocationsCount => _underlyingAssembly.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _underlyingAssembly.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _underlyingAssembly.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _underlyingAssembly.MoveNextLocationReversed(previousSlot, previousIndex);
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {

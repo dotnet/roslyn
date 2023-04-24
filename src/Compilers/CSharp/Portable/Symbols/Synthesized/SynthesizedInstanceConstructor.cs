@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
+    internal partial class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
 
@@ -141,21 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return LexicalSortKey.SynthesizedCtor;
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get { return ContainingType.Locations; }
         }
-
-        public override int LocationsCount => ContainingType.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => ContainingType.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => ContainingType.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => ContainingType.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override RefKind RefKind
         {

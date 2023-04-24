@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class UpdatedContainingSymbolAndNullableAnnotationLocal : LocalSymbol
+    internal sealed partial class UpdatedContainingSymbolAndNullableAnnotationLocal : LocalSymbol
     {
         /// <summary>
         /// Creates a new <see cref="UpdatedContainingSymbolAndNullableAnnotationLocal"/> for testing purposes,
@@ -77,11 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwards
         public override RefKind RefKind => _underlyingLocal.RefKind;
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => _underlyingLocal.Locations;
-        public override int LocationsCount => _underlyingLocal.LocationsCount;
-        public override Location GetCurrentLocation(int slot, int index) => _underlyingLocal.GetCurrentLocation(slot, index);
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex) => _underlyingLocal.MoveNextLocation(previousSlot, previousIndex);
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex) => _underlyingLocal.MoveNextLocationReversed(previousSlot, previousIndex);
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _underlyingLocal.DeclaringSyntaxReferences;
         public override string Name => _underlyingLocal.Name;
         public override bool IsImplicitlyDeclared => _underlyingLocal.IsImplicitlyDeclared;

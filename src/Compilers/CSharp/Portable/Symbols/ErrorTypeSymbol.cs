@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
+    internal abstract partial class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
     {
         private readonly ErrorTypeSymbol _originalDefinition;
         private int _hashCode;
@@ -597,21 +597,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.Name; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _originalDefinition.Locations; }
         }
-
-        public override int LocationsCount => _originalDefinition.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _originalDefinition.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _originalDefinition.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _originalDefinition.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<Symbol> CandidateSymbols
         {

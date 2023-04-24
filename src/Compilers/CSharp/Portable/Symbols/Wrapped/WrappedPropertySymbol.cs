@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrappedPropertySymbol : PropertySymbol
+    internal abstract partial class WrappedPropertySymbol : PropertySymbol
     {
         /// <summary>
         /// The underlying PropertySymbol.
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -96,17 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingProperty.Locations;
             }
         }
-
-        public override int LocationsCount => _underlyingProperty.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _underlyingProperty.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _underlyingProperty.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _underlyingProperty.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

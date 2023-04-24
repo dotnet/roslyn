@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class TypeSubstitutedLocalSymbol : LocalSymbol
+    internal sealed partial class TypeSubstitutedLocalSymbol : LocalSymbol
     {
         private readonly LocalSymbol _originalVariable;
         private readonly TypeWithAnnotations _type;
@@ -72,21 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasSourceLocation
             => _originalVariable.HasSourceLocation;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _originalVariable.Locations; }
         }
-
-        public override int LocationsCount => _originalVariable.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _originalVariable.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _originalVariable.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _originalVariable.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override TypeWithAnnotations TypeWithAnnotations
         {

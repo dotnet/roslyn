@@ -586,29 +586,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _curriedFromMethod.Locations
             End Get
         End Property
-
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return _curriedFromMethod.LocationsCount
-            End Get
-        End Property
-
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return _curriedFromMethod.GetCurrentLocation(slot, index)
-        End Function
-
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _curriedFromMethod.MoveNextLocation(previousSlot, previousIndex)
-        End Function
-
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _curriedFromMethod.MoveNextLocationReversed(previousSlot, previousIndex)
-        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
@@ -767,29 +750,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            <GenerateLinkedMembers>
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
                     Return _curriedFromTypeParameter.Locations
                 End Get
             End Property
-
-            Public Overrides ReadOnly Property LocationsCount As Integer
-                Get
-                    Return _curriedFromTypeParameter.LocationsCount
-                End Get
-            End Property
-
-            Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                Return _curriedFromTypeParameter.GetCurrentLocation(slot, index)
-            End Function
-
-            Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                Return _curriedFromTypeParameter.MoveNextLocation(previousSlot, previousIndex)
-            End Function
-
-            Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                Return _curriedFromTypeParameter.MoveNextLocationReversed(previousSlot, previousIndex)
-            End Function
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
@@ -994,29 +960,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return m_CurriedFromParameter.Locations
             End Get
         End Property
-
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return m_CurriedFromParameter.LocationsCount
-            End Get
-        End Property
-
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return m_CurriedFromParameter.GetCurrentLocation(slot, index)
-        End Function
-
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return m_CurriedFromParameter.MoveNextLocation(previousSlot, previousIndex)
-        End Function
-
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return m_CurriedFromParameter.MoveNextLocationReversed(previousSlot, previousIndex)
-        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrappedFieldSymbol : FieldSymbol
+    internal abstract partial class WrappedFieldSymbol : FieldSymbol
     {
         /// <summary>
         /// The underlying FieldSymbol.
@@ -181,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -188,17 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.Locations;
             }
         }
-
-        public override int LocationsCount => _underlyingField.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _underlyingField.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _underlyingField.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _underlyingField.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

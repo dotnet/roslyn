@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get
@@ -91,17 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ContainingSymbol.Locations;
                 }
             }
-
-            public override int LocationsCount => ContainingSymbol.LocationsCount;
-
-            public override Location GetCurrentLocation(int slot, int index)
-                => ContainingSymbol.GetCurrentLocation(slot, index);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                => ContainingSymbol.MoveNextLocation(previousSlot, previousIndex);
-
-            public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                => ContainingSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
         }
     }
 }

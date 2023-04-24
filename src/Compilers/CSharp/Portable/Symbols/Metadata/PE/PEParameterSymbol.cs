@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// <summary>
     /// The class to represent all method parameters imported from a PE/module.
     /// </summary>
-    internal class PEParameterSymbol : ParameterSymbol
+    internal partial class PEParameterSymbol : ParameterSymbol
     {
         [Flags]
         private enum WellKnownAttributeFlags
@@ -987,6 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -994,17 +995,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _containingSymbol.Locations;
             }
         }
-
-        public override int LocationsCount => _containingSymbol.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => _containingSymbol.GetCurrentLocation(slot, index);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => _containingSymbol.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => _containingSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
