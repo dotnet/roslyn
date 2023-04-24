@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
@@ -348,6 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 var underlyingBaseInterfaces = _underlyingType.GetDeclaredInterfaces(basesBeingResolved);
                 var result = this.RetargetingTranslator.Retarget(underlyingBaseInterfaces);
+                // We should check that the type is an interface
+                // Tracked by https://github.com/dotnet/roslyn/issues/67946
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
 
@@ -448,10 +451,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 var extendedType = _underlyingType.GetDeclaredExtensionUnderlyingType();
                 var declaredExtendedType = extendedType is null ? null : this.RetargetingTranslator.Retarget(extendedType, RetargetOptions.RetargetPrimitiveTypesByName);
+                if (declaredExtendedType is not null)
+                {
+                    if (SourceExtensionTypeSymbol.AreStaticIncompatible(extendedType: declaredExtendedType, extensionType: this)
+                        || SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(declaredExtendedType))
+                    {
+                        declaredExtendedType = MakeErrorType(declaredExtendedType);
+                    }
+                }
+
                 Interlocked.CompareExchange(ref _lazyDeclaredExtendedType, declaredExtendedType, ErrorTypeSymbol.UnknownResultType);
             }
 
             return _lazyDeclaredExtendedType;
+        }
+
+        private static NamedTypeSymbol MakeErrorType(TypeSymbol declaredExtendedType)
+        {
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, declaredExtendedType.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
+            return new ExtendedErrorTypeSymbol(declaredExtendedType, LookupResultKind.NotReferencable, info, unreported: true);
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
@@ -463,10 +481,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 var underlyingBaseExtensions = _underlyingType.GetDeclaredBaseExtensions();
                 var result = this.RetargetingTranslator.Retarget(underlyingBaseExtensions);
+
+                if (result.Any(b => isBadBaseExtension(b)))
+                {
+                    result = result.SelectAsArray(b => isBadBaseExtension(b) ? MakeErrorType(b) : b);
+                }
+
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredBaseExtensions, result, comparand: default);
             }
 
             return _lazyDeclaredBaseExtensions;
+
+            bool isBadBaseExtension(NamedTypeSymbol baseExtension)
+            {
+                return !baseExtension.IsExtension
+                    || SourceExtensionTypeSymbol.AreExtendedTypesIncompatible(
+                        this.ExtendedTypeNoUseSiteDiagnostics,
+                        baseExtension.ExtendedTypeNoUseSiteDiagnostics);
+            }
         }
 #nullable disable
 

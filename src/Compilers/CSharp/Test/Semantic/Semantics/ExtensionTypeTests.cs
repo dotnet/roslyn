@@ -2288,6 +2288,174 @@ explicit extension R for UnderlyingClass
     }
 
     [Fact]
+    public void UnderlyingType_StaticType_InstanceExtension_PE()
+    {
+        var ilSource = """
+.class public auto ansi abstract sealed beforefieldinit C
+    extends [mscorlib]System.Object
+{
+}
+
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
+    .method private hidebysig static void '<ExplicitExtension>$'(class C '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+public explicit extension R3 for C : R1 { }
+public static explicit extension R4 for C : R1 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE: should report use-site diagnostics for R1 instead
+        comp.VerifyDiagnostics(
+            // (1,27): error CS9216: Extension 'R3' has underlying type 'C' but a base extension has underlying type 'C'.
+            // public explicit extension R3 for C : R1 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C", "C").WithLocation(1, 27),
+            // (1,34): error CS9206: Instance extension 'R3' cannot extend type 'C' because it is static.
+            // public explicit extension R3 for C : R1 { }
+            Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("R3", "C").WithLocation(1, 34),
+            // (2,34): error CS9216: Extension 'R4' has underlying type 'C' but a base extension has underlying type 'C'.
+            // public static explicit extension R4 for C : R1 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "C").WithLocation(2, 34)
+            );
+
+        var r1 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R1");
+        var r1ExtendedType = r1.ExtendedTypeNoUseSiteDiagnostics;
+        Assert.Equal("C", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void UnderlyingType_StaticType_InstanceExtension_Retargeting()
+    {
+        var src1 = """
+public class C { }
+""";
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70,
+            assemblyName: "first");
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+public explicit extension E1 for C { }
+""";
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var src1Updated = """
+public static class C { }
+""";
+        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70,
+            assemblyName: "first");
+        comp1Updated.VerifyDiagnostics();
+
+        var src = """
+public explicit extension E2 for C : E1 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+            references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,27): error CS9216: Extension 'E2' has underlying type 'C' but a base extension has underlying type 'C'.
+            // public explicit extension E2 for C : E1 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E2").WithArguments("E2", "C", "C").WithLocation(1, 27),
+            // (1,34): error CS9206: Instance extension 'E2' cannot extend type 'C' because it is static.
+            // public explicit extension E2 for C : E1 { }
+            Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("E2", "C").WithLocation(1, 34)
+            );
+
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        var e1 = (RetargetingNamedTypeSymbol)e2.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("E1", e1.Name);
+        AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            ((ErrorTypeSymbol)e1.ExtendedTypeNoUseSiteDiagnostics).ErrorInfo.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public void UnderlyingType_Extension(bool isExplicit)
+    {
+        var keyword = isExplicit ? "explicit" : "implicit";
+
+        var text = $$"""
+public explicit extension E0 for object { }
+
+public {{keyword}} extension E1 for E0
+{
+}
+""";
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (3,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // public explicit extension E1 for E0
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "E0").WithLocation(3, 34)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void UnderlyingType_Extension_Retargeting(bool isExplicit)
+    {
+        var src1 = $$"""
+public class E0 { }
+public {{(isExplicit ? "explicit" : "implicit")}} extension E1 for E0 { }
+""";
+        var comp1 = CreateCompilation(src1, assemblyName: "first",
+            targetFramework: TargetFramework.Net70);
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+public explicit extension E2 for E0 : E1 { }
+""";
+
+        var comp2 = CreateCompilation(src2, references: new[] { comp1.ToMetadataReference() },
+            targetFramework: TargetFramework.Net70);
+        comp2.VerifyDiagnostics();
+
+        var src1Updated = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E0 for E1 { }
+public class E1 { }
+""";
+        var comp1Updated = CreateCompilation(src1Updated, assemblyName: "first",
+            targetFramework: TargetFramework.Net70);
+        comp1Updated.VerifyDiagnostics();
+
+        var src = """
+public explicit extension E3 for E1 : E2 { }
+public explicit extension E4 for E0 : E2 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+            references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
+        // PROTOTYPE missing use-site diagnostics
+        comp.VerifyDiagnostics(
+            // (1,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // public explicit extension E3 for E1 : E2 { }
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E3").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 27),
+            // (1,27): error CS9216: Extension 'E3' has underlying type 'E1' but a base extension has underlying type 'E0'.
+            // public explicit extension E3 for E1 : E2 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E3").WithArguments("E3", "E1", "E0").WithLocation(1, 27),
+            // (2,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // public explicit extension E4 for E0 : E2 { }
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 27),
+            // (2,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // public explicit extension E4 for E0 : E2 { }
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "E0").WithLocation(2, 34)
+            );
+
+        var e2 = (RetargetingNamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("E2");
+
+        AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            ((ErrorTypeSymbol)e2.ExtendedTypeNoUseSiteDiagnostics).ErrorInfo.ToString());
+
+        AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            ((ErrorTypeSymbol)e2.BaseExtensionsNoUseSiteDiagnostics.Single()).ErrorInfo.ToString());
+    }
+
+    [Fact]
     public void UnderlyingType_SealedType()
     {
         var src = """
@@ -3879,7 +4047,8 @@ public explicit extension R1 for R2 { }
         VerifyExtension<RetargetingNamedTypeSymbol>(r1, isExplicit: true);
         r2FromR1 = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
         Assert.True(r2FromR1.IsErrorType());
-        AssertEx.Equal("error CS0268: Imported type 'R2' is invalid. It contains a circular base type dependency.", r2FromR1.ErrorInfo.ToString());
+        AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'second, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            r2FromR1.ErrorInfo.ToString());
     }
 
     [Fact]
@@ -4902,6 +5071,120 @@ explicit extension R4<U> for C<U> : R3<U> { }
         var r4 = comp.GlobalNamespace.GetTypeMember("R4");
         Assert.Equal("C<U>", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal("C<U>", r4.BaseExtensionsNoUseSiteDiagnostics.Single().ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void BaseExtension_UnderlyingTypeMismatch_PE()
+    {
+        var ilSource = """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
+    .method private hidebysig static void '<ExplicitExtension>$'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit R2
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
+    .method private hidebysig static void '<ExplicitExtension>$'(class C '', valuetype R1 '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+public explicit extension R3 for object : R2 { }
+public explicit extension R4 for C : R2 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,27): error CS9222: Extension marker method on type 'R2' is malformed.
+            // public explicit extension R3 for object : R2 { }
+            Diagnostic(ErrorCode.ERR_MalformedExtensionInMetadata, "R3").WithArguments("R2").WithLocation(1, 27),
+            // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'C'.
+            // public explicit extension R3 for object : R2 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "C").WithLocation(1, 27),
+            // (2,27): error CS9222: Extension marker method on type 'R2' is malformed.
+            // public explicit extension R4 for C : R2 { }
+            Diagnostic(ErrorCode.ERR_MalformedExtensionInMetadata, "R4").WithArguments("R2").WithLocation(2, 27)
+            );
+
+        var r2 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R2");
+        var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("R1", r2BaseExtension.ToTestDisplayString());
+
+        AssertEx.Equal("error CS9222: Extension marker method on type 'R2' is malformed.",
+            ((ErrorTypeSymbol)r2BaseExtension).ErrorInfo.ToString());
+    }
+
+    [Fact]
+    public void BaseExtension_UnderlyingTypeMismatch_Retargeting()
+    {
+        var src1 = """
+public class C { }
+public explicit extension E1 for C { }
+""";
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70,
+            assemblyName: "first");
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+public explicit extension E2 for C : E1 { }
+""";
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var src1Updated = """
+public class C { }
+public explicit extension E1 for object { }
+""";
+        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70,
+            assemblyName: "first");
+        comp1Updated.VerifyDiagnostics();
+
+        var src = """
+explicit extension E3 for C : E2 { }
+explicit extension E4 for object : E2 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1Updated.EmitToImageReference(), comp2.ToMetadataReference() });
+        comp.VerifyDiagnostics(
+            // (1,20): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // explicit extension E3 for C : E2 { }
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E3").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 20),
+            // (2,20): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // explicit extension E4 for object : E2 { }
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
+            // (2,20): error CS9216: Extension 'E4' has underlying type 'object' but a base extension has underlying type 'C'.
+            // explicit extension E4 for object : E2 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E4").WithArguments("E4", "object", "C").WithLocation(2, 20)
+            );
+
+        var e2 = (RetargetingNamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("E2");
+        var e2BaseExtension = e2.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("E1", e2BaseExtension.ToTestDisplayString());
+
+        AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            ((ErrorTypeSymbol)e2BaseExtension).ErrorInfo.ToString());
     }
 
     [Fact]

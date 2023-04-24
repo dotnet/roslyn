@@ -630,6 +630,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasPrimaryConstructor;
             }
 
+            if (node is ExtensionDeclarationSyntax extension &&
+                extension.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword))
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.IsExplicitExtension;
+            }
+
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
 

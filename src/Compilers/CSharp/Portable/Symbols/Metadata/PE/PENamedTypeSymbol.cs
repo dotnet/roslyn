@@ -590,6 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
                         typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
 
+                        // We should check that the type is an interface
+                        // Tracked by https://github.com/dotnet/roslyn/issues/67946
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);
                     }
@@ -664,7 +666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // No cycles are possible because the extended type cannot be an extension type.
+                // Cycles are handled in `DecodeExtensionType` (where a bad extended type,
+                // such as one that is an extension type, would be replaced with an error type)
                 return GetDeclaredExtensionUnderlyingType();
             }
         }
@@ -2059,7 +2062,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else if (i == 1)
                     {
-                        if (SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(type))
+                        if (SourceExtensionTypeSymbol.AreStaticIncompatible(extendedType: type, extensionType: this)
+                            || SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(type))
                         {
                             var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
                             underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
@@ -2071,8 +2075,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
+                        // PROTOTYPE what if the base extension is nullable-annotated?
                         NamedTypeSymbol baseExtension;
-                        if (type is NamedTypeSymbol { IsExtension: true } namedType)
+                        if (type is NamedTypeSymbol { IsExtension: true } namedType
+                            && !SourceExtensionTypeSymbol.AreExtendedTypesIncompatible(underlyingType, namedType.ExtendedTypeNoUseSiteDiagnostics))
                         {
                             baseExtension = namedType;
                         }

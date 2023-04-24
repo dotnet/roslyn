@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasRequiredMembers = 1 << 10,
 
             HasPrimaryConstructor = 1 << 11,
+
+            IsExplicitExtension = 1 << 12,
         }
 
         internal SingleTypeDeclaration(
@@ -196,6 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
 
         public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
+
+        public bool IsExplicitExtension => (_flags & TypeDeclarationFlags.IsExplicitExtension) != 0;
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {

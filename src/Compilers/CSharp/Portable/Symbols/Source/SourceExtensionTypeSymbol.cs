@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExtension => true;
 
         internal override bool IsExplicitExtension
-            => ((ExtensionDeclarationSyntax)this.declaration.Declarations[0].SyntaxReference.GetSyntax()).ImplicitOrExplicitKeyword
-                .IsKind(SyntaxKind.ExplicitKeyword);
+            => this.declaration.Declarations[0].IsExplicitExtension;
 
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {
@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Validation in this method should be in sync with:
+        /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
+        /// </summary>
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
         {
             // PROTOTYPE confirm and test this once extensions can be loaded from metadata
@@ -93,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // PROTOTYPE confirm what we allow in terms of variation between various underlying types
                     var baseUnderlyingType = baseExtension.ExtendedTypeNoUseSiteDiagnostics;
-                    if (baseUnderlyingType?.Equals(underlyingType, TypeCompareKind.ConsiderEverything) == false)
+                    if (AreExtendedTypesIncompatible(underlyingType, baseUnderlyingType))
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType!, baseUnderlyingType);
+                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType, baseUnderlyingType);
                     }
 
                     if (!ReferenceEquals(referenceBaseExtension, baseExtension))
@@ -438,7 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ExtensionInfo(underlyingType, baseExtensions);
         }
 
-        /// <summary> Bind the base extensions for one part of a partial extension.</summary>
+        /// <summary>
+        /// Bind the base extensions for one part of a partial extension.
+        /// Validation in this method should be in sync with:
+        /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredExtensionUnderlyingType"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
+        /// </summary>
         private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
         {
@@ -453,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingTypeWithAnnotations = underlyingTypeBinder.BindType(underlyingTypeSyntax, diagnostics, basesBeingResolved);
 
                 TypeSymbol underlyingType = underlyingTypeWithAnnotations.Type;
-                if (underlyingType.IsStatic && !this.IsStatic)
+                // PROTOTYPE are nullable annotations allowed on extended types?
+                if (AreStaticIncompatible(extendedType: underlyingType, extensionType: this))
                 {
                     diagnostics.Add(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, location, this, underlyingType);
                 }
@@ -526,6 +538,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 baseBinder = baseBinder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
                 return baseBinder;
             }
+        }
+
+        internal static bool AreStaticIncompatible(TypeSymbol extendedType, NamedTypeSymbol extensionType)
+        {
+            return extendedType.IsStatic && !extensionType.IsStatic;
+        }
+
+        internal static bool AreExtendedTypesIncompatible([NotNullWhen(true)] TypeSymbol? underlyingType, [NotNullWhen(true)] TypeSymbol? baseUnderlyingType)
+        {
+            return underlyingType is not null &&
+                baseUnderlyingType?.Equals(underlyingType, TypeCompareKind.ConsiderEverything) == false;
         }
 
         internal static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)
