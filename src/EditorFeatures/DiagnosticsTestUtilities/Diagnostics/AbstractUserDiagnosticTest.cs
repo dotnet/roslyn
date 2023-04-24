@@ -25,6 +25,11 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using System;
+using FixAllState = Microsoft.CodeAnalysis.CodeFixes.FixAllState;
+using FixAllProvider = Microsoft.CodeAnalysis.CodeFixes.FixAllProvider;
+using FixAllContext = Microsoft.CodeAnalysis.CodeFixes.FixAllContext;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -84,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return dxs;
         }
+
+        internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
+            => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
         protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
         {
