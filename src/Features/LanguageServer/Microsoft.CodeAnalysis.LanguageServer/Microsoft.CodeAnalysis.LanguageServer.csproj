@@ -4,7 +4,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
+      
+        <ServerGarbageCollection>true</ServerGarbageCollection>
         <!--
             Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just contains
             the server executables that we need to ship inside the extension vsix.  The extension will download this and extract the
