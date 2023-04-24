@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
+    internal abstract partial class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
         protected const string DefaultIndexerName = "Item";
 
@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -454,17 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create(Location);
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, Location);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

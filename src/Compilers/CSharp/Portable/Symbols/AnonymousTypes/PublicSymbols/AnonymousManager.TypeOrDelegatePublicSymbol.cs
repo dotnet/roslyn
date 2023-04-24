@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class AnonymousTypeManager
     {
-        internal abstract class AnonymousTypeOrDelegatePublicSymbol : NamedTypeSymbol
+        internal abstract partial class AnonymousTypeOrDelegatePublicSymbol : NamedTypeSymbol
         {
             /// <summary> Anonymous type manager owning this template </summary>
             internal readonly AnonymousTypeManager Manager;
@@ -167,21 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            [GenerateLinkedMembers]
             public sealed override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray.Create<Location>(this.TypeDescriptor.Location); }
             }
-
-            public sealed override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-            public sealed override Location GetCurrentLocation(int slot, int index)
-                => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, TypeDescriptor.Location);
-
-            public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-            public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
             public abstract override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {

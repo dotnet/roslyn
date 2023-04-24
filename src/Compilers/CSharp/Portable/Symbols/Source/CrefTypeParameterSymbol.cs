@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 
     /// This class represents such an implicitly declared type parameter.  The declaring syntax is expected to be
     /// an IdentifierNameSyntax in the type argument list of a QualifiedNameSyntax.
-    internal sealed class CrefTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class CrefTypeParameterSymbol : TypeParameterSymbol
     {
         private readonly string _name;
         private readonly int _ordinal;
@@ -170,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -177,17 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create<Location>(_declaringSyntax.GetLocation());
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _declaringSyntax.GetLocation());
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

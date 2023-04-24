@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic.Symbols

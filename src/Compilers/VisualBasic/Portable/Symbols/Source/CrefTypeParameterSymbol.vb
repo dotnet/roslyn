@@ -96,29 +96,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return ImmutableArray.Create(Of Location)(Me._syntaxReference.GetLocation())
             End Get
         End Property
-
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return SymbolLocationHelper.Single.LocationsCount
-            End Get
-        End Property
-
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _syntaxReference)
-        End Function
-
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex)
-        End Function
-
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex)
-        End Function
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get

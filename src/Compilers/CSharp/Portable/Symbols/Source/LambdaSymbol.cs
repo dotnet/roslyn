@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
+    internal sealed partial class LambdaSymbol : SourceMethodSymbolWithAttributes
     {
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Private; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -221,17 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create<Location>(_syntax.Location);
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _syntax.Location);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         /// <summary>
         /// GetFirstLocation() on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.

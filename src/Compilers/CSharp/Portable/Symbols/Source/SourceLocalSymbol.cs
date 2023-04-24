@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a local variable in a method body.
     /// </summary>
-    internal class SourceLocalSymbol : LocalSymbol
+    internal partial class SourceLocalSymbol : LocalSymbol
     {
         private readonly Binder _scopeBinder;
 
@@ -409,19 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
         /// </summary>
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
-            => ImmutableArray.Create(GetFirstLocation());
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _identifierToken);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
+            => ImmutableArray.Create(_identifierToken.GetLocation());
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {

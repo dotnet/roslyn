@@ -152,6 +152,63 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         // return ImmutableArray<Location>.Empty
                         recognizedPattern = RecognizedPattern.Empty;
                     }
+                    else if (unconditionalReturn is
+                    {
+                        ReturnedValue: IInvocationOperation
+                        {
+                            TargetMethod:
+                            {
+                                Name: nameof(ImmutableArray.Create),
+                                Arity: 1,
+                                TypeArguments:
+                                [
+                                    {
+                                        Name: nameof(Location),
+                                        ContainingType: null,
+                                        ContainingNamespace:
+                                        {
+                                            Name: nameof(Microsoft.CodeAnalysis),
+                                            ContainingNamespace:
+                                            {
+                                                Name: nameof(Microsoft),
+                                                ContainingNamespace.IsGlobalNamespace: true,
+                                            },
+                                        },
+                                    }
+                                ],
+                                ContainingType:
+                                {
+                                    Name: nameof(ImmutableArray),
+                                    Arity: 0,
+                                    ContainingType: null,
+                                },
+                                ContainingNamespace:
+                                {
+                                    Name: nameof(System.Collections.Immutable),
+                                    ContainingNamespace:
+                                    {
+                                        Name: nameof(System.Collections),
+                                        ContainingNamespace:
+                                        {
+                                            Name: nameof(System),
+                                            ContainingNamespace.IsGlobalNamespace: true,
+                                        },
+                                    },
+                                },
+                            },
+                            Arguments:
+                            [
+                                {
+                                    Value: { } singleLocation
+                                }
+                            ],
+                        },
+                    })
+                    {
+                        // return ImmutableArray.Create<Location>(location)
+                        recognizedPattern = RecognizedPattern.Single;
+                        expression = singleLocation.Syntax.ToString();
+                    }
                     else if (unconditionalReturn is { ReturnedValue: IFieldReferenceOperation fieldReference })
                     {
                         // return _locations
@@ -244,6 +301,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                             """;
                     }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Single)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+
+                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                                    => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                                    => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                                    => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
+
+                            """;
+                    }
                     else if (linkedSymbolInformation.Pattern == RecognizedPattern.Many)
                     {
                         sourceTextBody =
@@ -319,6 +393,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                         Imports Microsoft.CodeAnalysis
                         Imports Microsoft.CodeAnalysis.Symbols
+                        Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
                         Imports Roslyn.Utilities
 
                         Namespace Global.{{linkedSymbolInformation.NamespaceName}}
@@ -348,6 +423,30 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                                     Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
                                         Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
+                                    End Function
+
+                            """;
+                    }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Single)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                                        Get
+                                            Return SymbolLocationHelper.Single.LocationsCount
+                                        End Get
+                                    End Property
+
+                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                                        Return SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Return SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex)
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Return SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex)
                                     End Function
 
                             """;
@@ -460,6 +559,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
     {
         None,
         Empty,
+        Single,
         Many,
         Delegating,
         Throw,

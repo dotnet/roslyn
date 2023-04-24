@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsRequired => (Modifiers & DeclarationModifiers.Required) != 0;
     }
 
-    internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
+    internal abstract partial class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
     {
         private readonly string _name;
         private readonly TextSpan _locationSpan;
@@ -214,19 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override LexicalSortKey GetLexicalSortKey()
             => new LexicalSortKey(_syntaxReference, this.DeclaringCompilation);
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
-            => ImmutableArray.Create(GetFirstLocation());
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _syntaxReference.SyntaxTree, _locationSpan);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
+            => ImmutableArray.Create(SyntaxTree.GetLocation(_locationSpan));
 
         internal sealed override Location ErrorLocation
             => GetFirstLocation();

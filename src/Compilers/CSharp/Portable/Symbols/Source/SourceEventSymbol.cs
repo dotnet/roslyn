@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// field-like (see <see cref="SourceFieldLikeEventSymbol"/>) or property-like (see
     /// <see cref="SourceCustomEventSymbol"/>).
     /// </summary>
-    internal abstract class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
     {
         private readonly Location _location;
         private readonly SyntaxReference _syntaxRef;
@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(_location, this.DeclaringCompilation);
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get
@@ -117,17 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create(_location);
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, _location);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
