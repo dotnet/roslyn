@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ExplicitSizeTypes))]
         public void ExplicitSizesAreCorrect(Type type)
         {
-            var unsafeSizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf)).MakeGenericMethod(type);
-            var size = (int)unsafeSizeOfMethod.Invoke(null, null);
-            Assert.Equal(int.Parse(type.Name[4..]), size);
+            Assert.Equal(int.Parse(type.Name[4..]), InvokeUnsafeSizeOf(type));
         }
 
         [Theory]
@@ -74,18 +72,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void GetSegmentSize(Type type)
         {
             var getSegmentSizeMethod = typeof(SegmentedArrayHelper).GetMethod(nameof(SegmentedArrayHelper.GetSegmentSize), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-            var unsafeSizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf)).MakeGenericMethod(type);
-            Assert.Equal(SegmentedArrayHelper.TestAccessor.CalculateSegmentSize((int)unsafeSizeOfMethod.Invoke(null, null)), (int)getSegmentSizeMethod.Invoke(null, null));
+            Assert.Equal(SegmentedArrayHelper.TestAccessor.CalculateSegmentSize(InvokeUnsafeSizeOf(type)), (int)getSegmentSizeMethod.Invoke(null, null));
         }
 
         [Theory]
         [MemberData(nameof(ExplicitSizeTypes))]
         public void GetSegmentShift(Type type)
         {
-            var getSegmentSizeMethod = typeof(SegmentedArrayHelper).GetMethod(nameof(SegmentedArrayHelper.GetSegmentSize), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
             var getSegmentShiftMethod = typeof(SegmentedArrayHelper).GetMethod(nameof(SegmentedArrayHelper.GetSegmentShift), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-            var unsafeSizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf)).MakeGenericMethod(type);
-            var segmentSize = SegmentedArrayHelper.TestAccessor.CalculateSegmentSize((int)unsafeSizeOfMethod.Invoke(null, null));
+            var segmentSize = SegmentedArrayHelper.TestAccessor.CalculateSegmentSize(InvokeUnsafeSizeOf(type));
             Assert.Equal(SegmentedArrayHelper.TestAccessor.CalculateSegmentShift(segmentSize), (int)getSegmentShiftMethod.Invoke(null, null));
         }
 
@@ -93,11 +88,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ExplicitSizeTypes))]
         public void GetOffsetMask(Type type)
         {
-            var getSegmentSizeMethod = typeof(SegmentedArrayHelper).GetMethod(nameof(SegmentedArrayHelper.GetSegmentSize), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
             var getOffsetMaskMethod = typeof(SegmentedArrayHelper).GetMethod(nameof(SegmentedArrayHelper.GetOffsetMask), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-            var unsafeSizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf)).MakeGenericMethod(type);
-            var segmentSize = SegmentedArrayHelper.TestAccessor.CalculateSegmentSize((int)unsafeSizeOfMethod.Invoke(null, null));
+            var segmentSize = SegmentedArrayHelper.TestAccessor.CalculateSegmentSize(InvokeUnsafeSizeOf(type));
             Assert.Equal(SegmentedArrayHelper.TestAccessor.CalculateOffsetMask(segmentSize), (int)getOffsetMaskMethod.Invoke(null, null));
+        }
+
+        private static int InvokeUnsafeSizeOf(Type type)
+        {
+            var unsafeSizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf)).MakeGenericMethod(type);
+            return (int)unsafeSizeOfMethod.Invoke(null, null);
         }
 
         [Theory]
