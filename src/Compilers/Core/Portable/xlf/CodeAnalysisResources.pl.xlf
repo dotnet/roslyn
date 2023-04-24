@@ -64,6 +64,11 @@
         <target state="translated">Funkcja Edytuj i kontynuuj nie może wznowić wstrzymanego iteratora, ponieważ odpowiadająca jej instrukcja yield return została usunięta</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generator</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'Element „start” nie może być wartością ujemną</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">

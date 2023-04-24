@@ -64,6 +64,11 @@
         <target state="translated">"Bearbeiten und Fortfahren" kann den angehaltenen Iterator nicht fortsetzen, da die entsprechende yield return-Anweisung gelöscht wurde</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generator</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'Start' darf nicht negativ sein</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Ende' darf nicht kleiner sein als 'Start'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
