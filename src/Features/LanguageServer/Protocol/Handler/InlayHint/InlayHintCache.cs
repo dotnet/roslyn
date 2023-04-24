@@ -9,7 +9,7 @@ using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint.InlayHintCa
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 
-internal sealed class InlayHintCache : ResolveCache<InlayHintCacheEntry, string>
+internal sealed class InlayHintCache : ResolveCache<InlayHintCacheEntry>
 {
     public InlayHintCache() : base(maxCacheSize: 3)
     {
