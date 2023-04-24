@@ -52,7 +52,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         };
 
         // If the request is for an older version of the document, return a request with '- references'
-        if (resolveData.SyntaxVersion != currentDocumentSyntaxVersion)
+        if (resolveData.SyntaxVersion != currentDocumentSyntaxVersion.ToString())
         {
             context.TraceInformation($"Requested syntax version {resolveData.SyntaxVersion} does not match current version {currentDocumentSyntaxVersion}");
             return request;

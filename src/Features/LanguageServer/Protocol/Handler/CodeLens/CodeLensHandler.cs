@@ -58,7 +58,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             {
                 Range = range,
                 Command = null,
-                Data = new CodeLensResolveData(syntaxVersion, i, request.TextDocument)
+                Data = new CodeLensResolveData(syntaxVersion.ToString(), i, request.TextDocument)
             };
 
             codeLenses.Add(codeLens);
