@@ -326,7 +326,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                         """;
                 }
-                context.AddSource($"{linkedSymbolInformation.NamespaceName}.{linkedSymbolInformation.TypeName}_SymbolLocations.g.{extension}", sourceTextStart + sourceTextBody + sourceTextEnd);
+                context.AddSource($"{linkedSymbolInformation.TypeName}_SymbolLocations.g.{extension}", sourceTextStart + sourceTextBody + sourceTextEnd);
             });
     }
 
