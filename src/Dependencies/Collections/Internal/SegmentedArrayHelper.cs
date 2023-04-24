@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             return Unsafe.SizeOf<T>() switch
             {
-                // Hard code common values since not all versions of .NET support constant-folding the calculation.
-                // Values are validated against the reference implementation in CalculateSegmentSize in unit tests.
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
                 4 => 16384,
                 8 => 8192,
                 12 => 4096,
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 #if NETCOREAPP3_0_OR_NEWER
                 _ => InlineCalculateSegmentSize(Unsafe.SizeOf<T>()),
 #else
-                _ => ValueTypeSegmentHelper<T>.SegmentSize,
+                _ => FallbackSegmentHelper<T>.SegmentSize,
 #endif
             };
         }
@@ -44,8 +45,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             return Unsafe.SizeOf<T>() switch
             {
-                // Hard code common values since not all versions of .NET support constant-folding the calculation.
-                // Values are validated against the reference implementation in CalculateSegmentShift in unit tests.
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
                 4 => 14,
                 8 => 13,
                 12 => 12,
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 #if NETCOREAPP3_0_OR_NEWER
                 _ => InlineCalculateSegmentShift(Unsafe.SizeOf<T>()),
 #else
-                _ => ValueTypeSegmentHelper<T>.SegmentShift,
+                _ => FallbackSegmentHelper<T>.SegmentShift,
 #endif
             };
         }
@@ -67,8 +69,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             return Unsafe.SizeOf<T>() switch
             {
-                // Hard code common values since not all versions of .NET support constant-folding the calculation.
-                // Values are validated against the reference implementation in CalculateOffsetMask in unit tests.
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
                 4 => 16383,
                 8 => 8191,
                 12 => 4095,
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 #if NETCOREAPP3_0_OR_NEWER
                 _ => InlineCalculateOffsetMask(Unsafe.SizeOf<T>()),
 #else
-                _ => ValueTypeSegmentHelper<T>.OffsetMask,
+                _ => FallbackSegmentHelper<T>.OffsetMask,
 #endif
             };
         }
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         }
 
 #if !NETCOREAPP3_0_OR_NEWER
-        private static class ValueTypeSegmentHelper<T>
+        private static class FallbackSegmentHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());
             public static readonly int SegmentShift = CalculateSegmentShift(SegmentSize);
