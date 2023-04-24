@@ -10,4 +10,5 @@ internal static class EnumDiagnosticIds
     public const string InvalidAttributeTarget = "ENUM02";
     public const string NoMultiplyNestedTypes = "ENUM03";
     public const string UnknownPattern = "ENUM04";
+    public const string NoGenericTypes = "ENUM05";
 }

@@ -17,6 +17,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor s_invalidTarget = new(EnumDiagnosticIds.InvalidAttributeTarget, "Invalid attribute target", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to this property", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor s_noMultiplyNestedTypes = new(EnumDiagnosticIds.NoMultiplyNestedTypes, "Cannot generate code for a multiply-nested type", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to a property within a multiply-nested type", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor s_unknownPattern = new(EnumDiagnosticIds.UnknownPattern, "The implementation pattern for this property was not recognized", "Attribute 'GenerateLinkedMembersAttribute' can only be applied to a property with a recognized implementation pattern", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor s_noGenericTypes = new(EnumDiagnosticIds.NoGenericTypes, "Cannot generate code for a generic type", "Attribute 'GenerateLinkedMembersAttribute' cannot be applied to a property within a generic type", "Correctness", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -39,6 +40,14 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     // Multiply-nested types are currently not supported
                     var invalidAttributeApplication = context.Attributes.First().ApplicationSyntaxReference!;
                     diagnostics = diagnostics.Add(Diagnostic.Create(s_noMultiplyNestedTypes, Location.Create(invalidAttributeApplication.SyntaxTree, invalidAttributeApplication.Span)));
+                    return (null, diagnostics);
+                }
+
+                if (symbol.ContainingType.IsGenericType || symbol.ContainingType.ContainingType?.IsGenericType == true)
+                {
+                    // Generic types are currently not supported
+                    var invalidAttributeApplication = context.Attributes.First().ApplicationSyntaxReference!;
+                    diagnostics = diagnostics.Add(Diagnostic.Create(s_noGenericTypes, Location.Create(invalidAttributeApplication.SyntaxTree, invalidAttributeApplication.Span)));
                     return (null, diagnostics);
                 }
 
