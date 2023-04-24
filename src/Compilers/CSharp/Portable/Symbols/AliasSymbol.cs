@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///     IList&lt;Symbol&gt; SemanticModel.LookupSymbols(CSharpSyntaxNode location, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, LookupOptions options = LookupOptions.Default, List&lt;Symbol> results = null);
     /// </pre>
     /// </summary>
-    internal abstract class AliasSymbol : Symbol
+    internal abstract partial class AliasSymbol : Symbol
     {
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
         private readonly string _aliasName;
@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -123,17 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _locations;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

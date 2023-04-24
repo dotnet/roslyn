@@ -152,6 +152,12 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         // return ImmutableArray<Location>.Empty
                         recognizedPattern = RecognizedPattern.Empty;
                     }
+                    else if (unconditionalReturn is { ReturnedValue: IFieldReferenceOperation fieldReference })
+                    {
+                        // return _locations
+                        recognizedPattern = RecognizedPattern.Many;
+                        expression = fieldReference.Syntax.ToString();
+                    }
                     else if (unconditionalReturn is { ReturnedValue: IPropertyReferenceOperation { Property: { Name: nameof(ISymbol.Locations) } property, Instance: { } instance } }
                         && IsSameProperty(symbol, property))
                     {
@@ -235,6 +241,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                                 public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
                                     => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
+
+                            """;
+                    }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Many)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}});
+
+                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                                    => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                                    => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
+
+                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                                    => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
 
                             """;
                     }
@@ -329,6 +352,30 @@ internal sealed class SourceGenerator : IIncrementalGenerator
 
                             """;
                     }
+                    else if (linkedSymbolInformation.Pattern == RecognizedPattern.Many)
+                    {
+                        sourceTextBody =
+                            $$"""
+                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                                        Get
+                                            Return SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}})
+                                        End Get
+                                    End Property
+
+                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                                        Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
+                                    End Function
+
+                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                                        Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
+                                    End Function
+
+                            """;
+                    }
                     else if (linkedSymbolInformation.Pattern == RecognizedPattern.Delegating)
                     {
                         sourceTextBody =
@@ -413,6 +460,7 @@ internal sealed class SourceGenerator : IIncrementalGenerator
     {
         None,
         Empty,
+        Many,
         Delegating,
         Throw,
     }

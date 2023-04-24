@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// A display class field representing a local, exposed
     /// as a local on the original method.
     /// </summary>
-    internal sealed class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
+    internal sealed partial class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
     {
         private readonly DisplayClassVariable _variable;
 
@@ -78,21 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return NoLocations; }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(NoLocations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, NoLocations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, NoLocations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, NoLocations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

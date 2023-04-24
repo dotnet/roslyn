@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// Synthesized expression evaluation method.
     /// </summary>
-    internal sealed class EEMethodSymbol : MethodSymbol
+    internal sealed partial class EEMethodSymbol : MethodSymbol
     {
         // We only create a single EE method (per EE type) that represents an arbitrary expression,
         // whose lowering may produce synthesized members (lambdas, dynamic sites, etc).
@@ -403,21 +403,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _locations; }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

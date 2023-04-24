@@ -116,29 +116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the locations where this symbol was originally defined.
         ''' </summary>
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _aliasLocations
             End Get
         End Property
-
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return SymbolLocationHelper.Many.LocationsCount(_aliasLocations)
-            End Get
-        End Property
-
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _aliasLocations)
-        End Function
-
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _aliasLocations)
-        End Function
-
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _aliasLocations)
-        End Function
 
         ''' <summary>
         ''' Get the syntax node(s) where this symbol was declared in source.

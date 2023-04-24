@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EELocalSymbol : EELocalSymbolBase
+    internal sealed partial class EELocalSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
         private readonly TypeWithAnnotations _type;
@@ -107,21 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<SyntaxReference>.Empty; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _locations; }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override Symbol ContainingSymbol
         {

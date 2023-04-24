@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// that doesn't have a corresponding backing field within the tuple underlying type.
     /// Created in response to an error condition.
     /// </summary>
-    internal sealed class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
+    internal sealed partial class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
     {
         private readonly TypeWithAnnotations _type;
 
@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -120,17 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _locations;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

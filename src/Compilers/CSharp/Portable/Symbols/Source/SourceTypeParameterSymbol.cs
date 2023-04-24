@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Base class for type and method type parameters.
     /// </summary>
-    internal abstract class SourceTypeParameterSymbolBase : TypeParameterSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceTypeParameterSymbolBase : TypeParameterSymbol, IAttributeTargetSymbol
     {
         private readonly ImmutableArray<SyntaxReference> _syntaxRefs;
         private readonly ImmutableArray<Location> _locations;
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRefs = syntaxRefs;
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -48,17 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _locations;
             }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

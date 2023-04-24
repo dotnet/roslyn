@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EELocalConstantSymbol : EELocalSymbolBase
+    internal sealed partial class EELocalConstantSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
@@ -100,21 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return NoLocations; }
         }
-
-        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(NoLocations);
-
-        public override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, NoLocations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, NoLocations);
-
-        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, NoLocations);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

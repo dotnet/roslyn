@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///
     /// Note that original tuple fields (like 'System.ValueTuple`2.Item1') do not get wrapped.
     /// </summary>
-    internal class TupleElementFieldSymbol : WrappedFieldSymbol
+    internal partial class TupleElementFieldSymbol : WrappedFieldSymbol
     {
         /// <summary>
         /// If this field represents a tuple element with index X
@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol.Equals(_containingTuple, other._containingTuple, compareKind);
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get
@@ -179,17 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _locations;
             }
         }
-
-        public sealed override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(_locations);
-
-        public sealed override Location GetCurrentLocation(int slot, int index)
-            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _locations);
-
-        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _locations);
-
-        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _locations);
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
