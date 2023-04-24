@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool AccumulatesDependencies => DependenciesBag is object;
 
-        internal void Free()
+        internal virtual void Free()
         {
             DiagnosticBag?.Free();
             ((PooledHashSet<TAssemblySymbol>?)DependenciesBag)?.Free();

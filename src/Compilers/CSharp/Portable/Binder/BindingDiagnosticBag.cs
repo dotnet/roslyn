@@ -14,14 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BindingDiagnosticBag : BindingDiagnosticBag<AssemblySymbol>
     {
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithBoth = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithBoth!, new DiagnosticBag(), new HashSet<AssemblySymbol>()));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDiagnosticsOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDiagnosticsOnly!, new DiagnosticBag(), dependenciesBag: null));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDependenciesOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDependenciesOnly!, diagnosticBag: null, new HashSet<AssemblySymbol>()));
+
         public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
 
-        public BindingDiagnosticBag()
-            : this(usePool: false)
-        { }
+        private readonly ObjectPool<BindingDiagnosticBag>? _pool;
 
-        private BindingDiagnosticBag(bool usePool)
-            : base(usePool)
+        public BindingDiagnosticBag()
+            : base(usePool: false)
         { }
 
         public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
@@ -34,9 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        private BindingDiagnosticBag(ObjectPool<BindingDiagnosticBag> pool, DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
+            : base(diagnosticBag, dependenciesBag)
+        {
+            _pool = pool;
+        }
+
         internal static BindingDiagnosticBag GetInstance()
         {
-            return new BindingDiagnosticBag(usePool: true);
+            return s_poolWithBoth.Allocate();
         }
 
         internal static BindingDiagnosticBag GetInstance(bool withDiagnostics, bool withDependencies)
@@ -48,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInstance();
                 }
 
-                return new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                return s_poolWithDiagnosticsOnly.Allocate();
             }
             else if (withDependencies)
             {
-                return new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                return s_poolWithDependenciesOnly.Allocate();
             }
             else
             {
@@ -83,6 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return Discarded;
+            }
+        }
+
+        internal override void Free()
+        {
+            if (_pool is { } pool)
+            {
+                Clear();
+                pool.Free(this);
+            }
+            else
+            {
+                base.Free();
             }
         }
 
