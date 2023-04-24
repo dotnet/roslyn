@@ -117,19 +117,19 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                                         ContainingType: null,
                                         TypeArguments:
                                         [
+                                        {
+                                            Name: nameof(Location),
+                                            ContainingType: null,
+                                            ContainingNamespace:
                                             {
-                                                Name: nameof(Location),
-                                                ContainingType: null,
+                                                Name: nameof(Microsoft.CodeAnalysis),
                                                 ContainingNamespace:
                                                 {
-                                                    Name: nameof(Microsoft.CodeAnalysis),
-                                                    ContainingNamespace:
-                                                    {
-                                                        Name: nameof(Microsoft),
-                                                        ContainingNamespace.IsGlobalNamespace: true,
-                                                    },
+                                                    Name: nameof(Microsoft),
+                                                    ContainingNamespace.IsGlobalNamespace: true,
                                                 },
-                                            }
+                                            },
+                                        }
                                         ],
                                     },
                                     ContainingNamespace:
