@@ -240,11 +240,37 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return false;
                     }
 
+                    foreach (var currentNamespace in GetContainingNamespaces(type))
+                    {
+                        if (IsBannedSymbol(currentNamespace, out entry))
+                        {
+                            reportDiagnostic(
+                                syntaxNode.CreateDiagnostic(
+                                    SymbolIsBannedRule,
+                                    currentNamespace.ToDisplayString(),
+                                    string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                            return false;
+                        }
+                    }
+
                     type = type.ContainingType;
                 }
                 while (!(type is null));
 
                 return true;
+
+                static IEnumerable<INamespaceSymbol> GetContainingNamespaces(ISymbol symbol)
+                {
+                    INamespaceSymbol? currentNamespace = symbol.ContainingNamespace;
+
+                    while (currentNamespace is { IsGlobalNamespace: false })
+                    {
+                        foreach (var constituent in currentNamespace.ConstituentNamespaces)
+                            yield return constituent;
+
+                        currentNamespace = currentNamespace.ContainingNamespace;
+                    }
+                }
             }
 
             bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode, out ITypeSymbol? originalDefinition)
@@ -366,7 +392,20 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 Path = path;
 
                 _lazySymbols = new Lazy<ImmutableArray<ISymbol>>(
-                    () => DocumentationCommentId.GetSymbolsForDeclarationId(DeclarationId, compilation));
+                    () => DocumentationCommentId.GetSymbolsForDeclarationId(DeclarationId, compilation)
+                        .SelectMany(ExpandConstituentNamespaces).ToImmutableArray());
+
+                static IEnumerable<ISymbol> ExpandConstituentNamespaces(ISymbol symbol)
+                {
+                    if (symbol is not INamespaceSymbol namespaceSymbol)
+                    {
+                        yield return symbol;
+                        yield break;
+                    }
+
+                    foreach (var constituent in namespaceSymbol.ConstituentNamespaces)
+                        yield return constituent;
+                }
             }
 
             public Location Location => Location.Create(Path, Span, SourceText.Lines.GetLinePositionSpan(Span));
