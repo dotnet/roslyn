@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -531,6 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_CallNotInterceptable:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                     return 1;
                 default:
                     return 0;
@@ -584,6 +589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
                 case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                 case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                case ErrorCode.ERR_DuplicateInterceptor:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorNotAccessible:
+                case ErrorCode.ERR_InterceptorScopedMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2326,6 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorFilePathCannotBeNull:
                 case ErrorCode.ERR_InterceptorNameNotInvoked:
                 case ErrorCode.ERR_InterceptorNonUniquePath:
+                case ErrorCode.ERR_InterceptorLineCharacterMustBePositive:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                     return false;

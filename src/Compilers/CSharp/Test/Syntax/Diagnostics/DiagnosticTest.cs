@@ -305,6 +305,9 @@ class X
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                         case ErrorCode.WRN_CallNotInterceptable:
+                        case ErrorCode.WRN_InterceptorSignatureMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -2942,6 +2945,12 @@ class Program
                     case ErrorCode.ERR_InterceptorSignatureMismatch:
                     case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                     case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                    case ErrorCode.ERR_DuplicateInterceptor:
+                    case ErrorCode.WRN_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorNotAccessible:
+                    case ErrorCode.ERR_InterceptorScopedMismatch:
+                    case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                    case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -129,20 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
-        /// This instance is used to determine if an interceptor can be applied to an interceptable method.
-        /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
-        /// </summary>
-        public static readonly MemberSignatureComparer InterceptorsComparer = new MemberSignatureComparer(
-            considerName: false,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerCallingConvention: false,
-            considerRefKindDifferences: true,
-            considerArity: false,
-            typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
-
-        /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition,
         /// including differences ignored by the runtime.
         /// </summary>
@@ -154,6 +140,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
+
+        /// <summary>
+        /// Determines if an interceptor has a compatible signature with an interceptable method.
+        /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
+        /// </summary>
+        public static readonly MemberSignatureComparer InterceptorsComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            considerArity: false,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
+        /// Determines if an interceptor has a compatible signature with an interceptable method.
+        /// If methods are considered equal by <see cref="InterceptorsComparer"/>, but not equal by this comparer, a warning is reported.
+        /// NB: when a classic extension method is intercepting an instance method call, a normalization to 'ReducedExtensionMethodSymbol' must be performed first.
+        /// </summary>
+        public static readonly MemberSignatureComparer InterceptorsStrictComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            considerArity: false,
+            typeComparison: TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.

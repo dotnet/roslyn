@@ -7523,14 +7523,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorCharacterOutOfRange" xml:space="preserve">
     <value>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</value>
   </data>
+  <data name="ERR_InterceptorLineCharacterMustBePositive" xml:space="preserve">
+    <value>Line and character numbers provided to InterceptsLocationAttribute must be positive.</value>
+  </data>
   <data name="ERR_InterceptorPositionBadToken" xml:space="preserve">
     <value>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</value>
   </data>
   <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
-    <value>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</value>
+    <value>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</value>
   </data>
   <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
     <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch_Title" xml:space="preserve">
+    <value>Signatures of interceptable and interceptor methods do not match.</value>
   </data>
   <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
     <value>An interceptable method must be an ordinary member method.</value>
@@ -7553,10 +7562,31 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorNonUniquePath" xml:space="preserve">
     <value>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</value>
   </data>
+  <data name="ERR_DuplicateInterceptor" xml:space="preserve">
+    <value>The indicated call is intercepted multiple times.</value>
+  </data>
+  <data name="ERR_InterceptorNotAccessible" xml:space="preserve">
+    <value>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorScopedMismatch" xml:space="preserve">
+    <value>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</value>
+  </data>
   <data name="ERR_ConstantValueOfTypeExpected" xml:space="preserve">
     <value>A constant value of type '{0}' is expected</value>
   </data>
   <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny" xml:space="preserve">
     <value>Cannot use primary constructor parameter of type '{0}' inside an instance member</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match interceptable method.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method.</value>
   </data>
 </root>

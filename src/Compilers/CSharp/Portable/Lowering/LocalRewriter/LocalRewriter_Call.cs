@@ -138,45 +138,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
-            ref bool invokedAsExtensionMethod,
+            bool invokedAsExtensionMethod,
             Location? interceptableLocation)
         {
             // PROTOTYPE(ic):
             // Add assertions for the possible shapes of calls which could come through this method.
             // When the BoundCall shape changes in the future, force developer to decide what to do here.
 
-            // PROTOTYPE: perhaps a 'TryGet' pattern is more suitable here.
-            if (this._compilation.GetInterceptor(interceptableLocation) is not var (interceptsLocationAttributeData, interceptor))
+            if (this._compilation.TryGetInterceptor(interceptableLocation, _diagnostics) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
             Debug.Assert(interceptableLocation != null);
+            Debug.Assert(interceptor.Arity == 0);
+
             if (!method.IsInterceptable)
             {
-                // PROTOTYPE(ic): it was speculated that we could avoid work if we know the current method is not interceptable.
-                // i.e. use this as an early out before even calling Compilation.GetInterceptor.
-                // But by calling 'GetInterceptor' before this, we don't really avoid that work. Is that fine?
-                // PROTOTYPE(ic): eventually we probably want this to be an error but for now it's convenient to just warn
-                // so we can experiment with intercepting APIs that haven't yet been marked.
-                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, interceptsLocationAttributeData.AttributeLocation, method);
+                // PROTOTYPE(ic): Eventually we may want this to be an error.
+                // For now it's convenient to just warn so we can experiment with intercepting APIs that haven't yet been marked.
+                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, attributeLocation, method);
             }
 
-            Debug.Assert(interceptor.Arity == 0);
+            var containingMethod = this._factory.CurrentFunction;
+            Debug.Assert(containingMethod is not null);
+
+            var useSiteInfo = this.GetNewCompoundUseSiteInfo();
+            var isAccessible = AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref useSiteInfo);
+            this._diagnostics.Add(attributeLocation, useSiteInfo);
+            if (!isAccessible)
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorNotAccessible, attributeLocation, interceptor, containingMethod);
+                return;
+            }
 
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
             var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
             var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
-            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare)) // PROTOTYPE(ic): also checked for 'scoped'/'[UnscopedRef]' differences
+
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
-                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, interceptableLocation, method, interceptor);
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
                 return;
             }
 
-            // PROTOTYPE(ic): should we also reduce both methods if 'method' is being called as an extension method?
+            _ = SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                _compilation,
+                method,
+                symbolForCompare,
+                _diagnostics,
+                static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, attributeLocation, method);
+                },
+                static (diagnostics, method, interceptor, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, attributeLocation, new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat), method);
+                },
+                extraArgument: attributeLocation);
+
+            if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
+            {
+                this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
+            }
 
             method.TryGetThisParameter(out var methodThisParameter);
             symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
@@ -185,13 +212,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case (not null, null):
                 case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
                         || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind: // PROTOTYPE(ic): and ref custom modifiers are equal?
-                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, interceptsLocationAttributeData.AttributeLocation, methodThisParameter, method);
-                    break;
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
+                    return;
                 case (null, not null):
-                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, interceptsLocationAttributeData.AttributeLocation, method);
-                    break;
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, attributeLocation, method);
+                    return;
                 default:
                     break;
+            }
+
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
+            {
+                // Special case when intercepting an extension method call in reduced form with a non-extension.
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
+                // PROTOYPE(ic): use a symbol display format which includes the 'this' modifier?
+                //this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, new FormattedSymbol(method.Parameters[0], SymbolDisplayFormat.CSharpErrorMessageFormat), method);
+                return;
+            }
+
+            if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                method,
+                symbolForCompare,
+                this._diagnostics,
+                static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorScopedMismatch, attributeLocation, method, symbolForCompare);
+                },
+                extraArgument: attributeLocation,
+                allowVariance: true,
+                // Since we've already reduced 'symbolForCompare', we compare as though it is not an extension.
+                invokedAsExtensionMethod: false))
+            {
+                return;
             }
 
             if (needToReduce)
@@ -211,9 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
                 }
-
-                // PROTOTYPE(ic): search for a scenario where propagating this value matters
-                invokedAsExtensionMethod = true;
             }
 
             method = interceptor;
@@ -248,16 +297,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Syntax,
                 rewrittenArguments,
                 method,
-                node.Expanded, // PROTOTYPE(ic): params differences shouldn't matter--maybe even make it an error--but we need to test
+                node.Expanded,
                 argsToParamsOpt,
                 ref argRefKindsOpt,
                 ref temps,
                 invokedAsExtensionMethod);
 
-            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref invokedAsExtensionMethod, node.InterceptableLocation);
-
-            // PROTOTYPE(ic): intercept with object.ReferenceEquals?
-            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, invokedAsExtensionMethod, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
             if (Instrument)
             {
@@ -291,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod);
 
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps.ToImmutableAndFree());
+            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, resultKind, type, temps.ToImmutableAndFree());
         }
 
         private BoundExpression MakeCall(
@@ -301,7 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
-            bool invokedAsExtensionMethod,
             LookupResultKind resultKind,
             TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
@@ -337,11 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     isDelegateCall: false,
                     expanded: false,
-                    invokedAsExtensionMethod: invokedAsExtensionMethod,
+                    invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
@@ -353,13 +399,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     node.IsDelegateCall,
-                    false,
-                    node.InvokedAsExtensionMethod,
-                    default(ImmutableArray<int>),
-                    default(BitVector),
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArguments: default(BitVector),
                     node.ResultKind,
                     node.Type);
             }
@@ -386,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: method,
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
-                invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type,
                 temps: default);

@@ -2247,42 +2247,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
-        private ConcurrentSet<(InterceptsLocationAttributeData, MethodSymbol)>? _interceptions;
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
 
-        internal void AddInterception(InterceptsLocationAttributeData location, MethodSymbol interceptor)
+        internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
-            LazyInitializer.EnsureInitialized(ref _interceptions).Add((location, interceptor));
+
+            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
+            dictionary.AddOrUpdate((filePath, line, character),
+                addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
+                updateValueFactory: static (key, existingValues, newValue) =>
+                {
+                    // AddInterception can be called when attributes are decoded on a symbol, which can happen for the same symbol concurrently.
+                    // If something else has already added the interceptor denoted by a given `[InterceptsLocation]`, we want to drop it.
+                    // Since the collection is almost always length 1, a simple foreach is adequate for detecting this.
+                    foreach (var (attributeLocation, interceptor) in existingValues)
+                    {
+                        if (attributeLocation == newValue.AttributeLocation && interceptor.Equals(newValue.Interceptor, TypeCompareKind.ConsiderEverything))
+                        {
+                            return existingValues;
+                        }
+                    }
+                    return existingValues.Add(newValue);
+                },
+                // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
+                factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
 
-        internal (InterceptsLocationAttributeData data, MethodSymbol interceptor)? GetInterceptor(Location? callLocation)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation, BindingDiagnosticBag diagnostics)
         {
             if (_interceptions is null || callLocation is null)
             {
                 return null;
             }
 
-            var sourceTree = callLocation.SourceTree;
-            Debug.Assert(sourceTree is not null);
             var callLineColumn = callLocation.GetLineSpan().Span.Start;
-            foreach (var (interceptsLocation, interceptor) in _interceptions)
+            Debug.Assert(callLocation.SourceTree is not null);
+            var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
+
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
             {
-                if (interceptsLocation.FilePath == sourceTree.FilePath
-                    && interceptsLocation.Line == callLineColumn.Line
-                    && interceptsLocation.Character == callLineColumn.Character)
+                if (interceptionsAtAGivenLocation is [var oneInterception])
                 {
-                    return (interceptsLocation, interceptor);
+                    return oneInterception;
                 }
+
+                // We don't normally reach this branch in batch compilation, because we would have already reported an error after the declaration phase.
+                // One scenario where we may reach this is when validating used assemblies, which performs lowering of method bodies even if declaration errors would be reported.
+                // See 'CSharpCompilation.GetCompleteSetOfUsedAssemblies'.
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, callLocation, this.SourceModule.Name, new LocalizableResourceString(nameof(CSharpResources.ERR_DuplicateInterceptor), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
             return null;
-        }
-
-        private void BuildInterceptionsMap()
-        {
-            // PROTOTYPE(ic): build a map where we can quickly lookup with a location and get a symbol.
-            // At this time, should report any duplicate interception diagnostics.
-            // NB: the attribute which appears lexically first wins a tie. Subsequent attributes referring to same location result in errors.
         }
 
         #endregion
@@ -3244,6 +3261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
+            hasDeclarationErrors |= CheckDuplicateInterceptions(diagnostics);
+
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
@@ -3274,8 +3293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
-
-                BuildInterceptionsMap();
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
                 // behavior as when calling GetDiagnostics()
@@ -3379,10 +3396,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <returns><see langword="true"/> if file types are present in files with duplicate file paths. Otherwise, <see langword="false" />.</returns>
         private bool CheckDuplicateFilePaths(DiagnosticBag diagnostics)
         {
             var visitor = new DuplicateFilePathsVisitor(diagnostics);
             return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
+        }
+
+        /// <returns><see langword="true"/> if duplicate interceptors are present in the compilation. Otherwise, <see langword="false" />.</returns>
+        private bool CheckDuplicateInterceptions(DiagnosticBag diagnostics)
+        {
+            if (_interceptions is null)
+            {
+                return false;
+            }
+
+            bool anyDuplicates = false;
+            foreach ((_, OneOrMany<(Location, MethodSymbol)> interceptionsOfAGivenLocation) in _interceptions)
+            {
+                Debug.Assert(interceptionsOfAGivenLocation.Count != 0);
+                if (interceptionsOfAGivenLocation.Count == 1)
+                {
+                    continue;
+                }
+
+                anyDuplicates = true;
+                foreach (var (attributeLocation, _) in interceptionsOfAGivenLocation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateInterceptor, attributeLocation);
+                }
+            }
+
+            return anyDuplicates;
         }
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)

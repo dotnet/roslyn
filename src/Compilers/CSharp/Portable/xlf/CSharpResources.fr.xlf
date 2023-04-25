@@ -487,6 +487,11 @@
         <target state="translated">'{0}' est implémenté explicitement plusieurs fois.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="new">The indicated call is intercepted multiple times.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}' est déjà listé dans la liste d'interfaces du type '{2}' en tant que '{1}'.</target>
@@ -862,6 +867,11 @@
         <target state="new">Interceptor cannot have a 'null' file path.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="new">Line and character numbers provided to InterceptsLocationAttribute must be positive.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineOutOfRange">
         <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
         <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
@@ -883,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
-        <source>The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</source>
-        <target state="new">The provided character number does not refer to the start of method name token '{0}'. Consider using character number '{1}' instead.</target>
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="new">The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorNameNotInvoked">
@@ -895,6 +905,11 @@
       <trans-unit id="ERR_InterceptorNonUniquePath">
         <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
         <target state="new">Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="new">Cannot intercept call with '{0}' because it is not accessible within '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorPathNotInCompilation">
@@ -910,6 +925,11 @@
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="new">The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="new">Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorSignatureMismatch">
@@ -2307,6 +2327,16 @@
         <target state="translated">Utiliser la variable dans ce contexte peut exposer des variables de référence en dehors de leur étendue de déclaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="new">Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="new">Signatures of interceptable and interceptor methods do not match.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">InterpolatedStringHandlerArgument n’a aucun effet lorsqu’il est appliqué aux paramètres lambda et qu’il est ignoré sur le site d’appel.</target>
@@ -2355,6 +2385,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Les branches d'un opérateur conditionnel ref font référence à des variables ayant des étendues de déclaration incompatibles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match interceptable method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">

@@ -316,6 +316,9 @@
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_CallNotInterceptable:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                     return true;
                 default:
                     return false;
