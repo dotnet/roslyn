@@ -64,6 +64,11 @@
         <target state="translated">対応する yield return ステートメントが削除されているため、エディット コンティニュは中断された反復子を再開できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">ジェネレーター</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'start' は負の値であってはなりません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end' は、'start' より小さい値であってはなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
