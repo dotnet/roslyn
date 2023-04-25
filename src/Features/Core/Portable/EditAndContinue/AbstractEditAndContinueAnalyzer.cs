@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static TraceLog Log
-            => EditAndContinueWorkspaceService.AnalysisLog;
+            => EditAndContinueService.AnalysisLog;
 
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 

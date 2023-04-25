@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _callback = callback;
         }
 
-        private IEditAndContinueWorkspaceService GetService()
-            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetService()
+            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         private ActiveStatementSpanProvider CreateActiveStatementSpanProvider(RemoteServiceCallbackId callbackId)
             => new((documentId, filePath, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetSpansAsync(callbackId, documentId, filePath, cancellationToken), cancellationToken));

@@ -50,7 +50,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
+                localComposition = localComposition
+                    .AddExcludedPartTypes(typeof(EditAndContinueService))
+                    .AddParts(typeof(MockEditAndContinueWorkspaceService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -63,16 +65,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Null(clientProvider);
 
-                mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+                mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.GetService<IEditAndContinueService>();
             }
             else
             {
                 Assert.NotNull(clientProvider);
                 clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
+                clientProvider!.ExcludedRemoteParts = new[] { typeof(EditAndContinueService) };
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
-                mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+                mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
             }
 
             var projectId = ProjectId.CreateNewId();

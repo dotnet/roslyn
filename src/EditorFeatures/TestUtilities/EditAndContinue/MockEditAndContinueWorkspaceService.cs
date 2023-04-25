@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal delegate void ActionOut<TArg1>(out TArg1 arg);
     internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
 
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
-    internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    [Export(typeof(IEditAndContinueService)), Shared]
+    internal class MockEditAndContinueWorkspaceService : IEditAndContinueService
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
         public Func<Solution, ActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
