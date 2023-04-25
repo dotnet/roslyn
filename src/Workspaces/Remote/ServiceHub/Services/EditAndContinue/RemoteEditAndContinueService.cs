@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return new EmitSolutionUpdateResults.Data()
                     {
-                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ModuleUpdate>.Empty),
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ManagedHotReloadUpdate>.Empty),
                         Diagnostics = GetUnexpectedUpdateError(solution, e),
                         RudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
                         SyntaxError = null,

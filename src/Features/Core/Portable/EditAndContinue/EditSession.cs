@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
-                using var _1 = ArrayBuilder<ModuleUpdate>.GetInstance(out var deltas);
+                using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
                 using var _4 = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var diagnostics);
@@ -1034,17 +1034,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-                            var delta = new ModuleUpdate(
+                            var delta = new ManagedHotReloadUpdate(
                                 mvid,
+                                newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
                                 pdbStream.ToImmutableArray(),
-                                projectChanges.LineChanges,
-                                updatedMethodTokens,
                                 changedTypeTokens,
+                                projectChanges.RequiredCapabilities.ToStringArray(),
+                                updatedMethodTokens,
+                                projectChanges.LineChanges,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates,
-                                projectChanges.RequiredCapabilities);
+                                exceptionRegionUpdates);
 
                             deltas.Add(delta);
 
@@ -1105,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async ValueTask LogDeltaFilesAsync(TraceLog.FileLogger log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        private async ValueTask LogDeltaFilesAsync(TraceLog.FileLogger log, ManagedHotReloadUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
         {
             var sessionId = DebuggingSession.Id;
 
