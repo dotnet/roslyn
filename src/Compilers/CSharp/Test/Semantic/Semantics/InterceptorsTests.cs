@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -593,6 +594,66 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(14,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 3, 3)]
             Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 3, 3)").WithLocation(14, 6));
+    }
+
+    [Fact]
+    public void EmitMetadataOnly_01()
+    {
+        // We can emit a ref assembly even though there are duplicate interceptions.
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() { }
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M1() { }
+
+                [InterceptsLocation("Program.cs", 3, 3)]
+                public static void M2() { }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true));
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EmitMetadataOnly_02()
+    {
+        // We can't emit a ref assembly when a problem is found with an InterceptsLocationAttribute in the declaration phase.
+        // Strictly, we should perhaps allow this emit anyway, but it doesn't feel urgent to do so.
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            C.M();
+
+            class C
+            {
+                [Interceptable]
+                public static void M() { }
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 3, 4)]
+                public static void M1() { }
+
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true),
+            // Program.cs(13,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '('.
+            //     [InterceptsLocation("Program.cs", 3, 4)]
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 3, 4)").WithArguments("(").WithLocation(13, 6));
     }
 
     [Fact]
