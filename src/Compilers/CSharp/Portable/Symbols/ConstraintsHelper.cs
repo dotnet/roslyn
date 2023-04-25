@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void Free()
             {
+                this.Args = default;
                 s_checkConstraintsArgsBoxedPool.Free(this);
             }
         }
