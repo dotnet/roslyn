@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -298,7 +297,7 @@ class A {
 
         [Theory, CombinatorialData]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
-        public async Task TestDocumentDiagnosticsWhenEnCVersionChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        public async Task TestDocumentDiagnosticsWhenGlobalStateChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup =
 @"class A {";
@@ -317,10 +316,9 @@ class A {
 
             var resultId = results.Single().ResultId;
 
-            // Create a fake diagnostic to trigger a change in edit and continue, without a document change
-            var encDiagnosticsSource = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<EditAndContinueDiagnosticUpdateSource>();
-            var rudeEdits = ImmutableArray.Create((document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Update, default))));
-            encDiagnosticsSource.ReportDiagnostics(testLspServer.TestWorkspace, testLspServer.TestWorkspace.CurrentSolution, ImmutableArray<DiagnosticData>.Empty, rudeEdits);
+            // Trigger refresh due to a change to global state that affects diagnostics.
+            var refresher = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IDiagnosticsRefresher>();
+            refresher.RequestWorkspaceRefresh();
 
             results = await RunGetDocumentPullDiagnosticsAsync(
                 testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: resultId);
