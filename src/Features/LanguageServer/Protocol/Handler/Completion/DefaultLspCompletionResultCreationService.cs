@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -38,7 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
-            var lspItem = new LSP.CompletionItem();
+            var lspItem = new LSP.CompletionItem() { Label = item.GetEntireDisplayText() };
+
             if (item.IsComplexTextEdit)
             {
                 // For complex change, we'd insert a placeholder edit as part of completion
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             }
             else
             {
-                await LspCompletionUtilities.PopulateTextEditAsync(
+                await LspCompletionUtilities.PopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
@@ -66,33 +66,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         }
 
         public async Task<LSP.CompletionItem> ResolveAsync(
-            LSP.CompletionItem completionItem,
-            CompletionItem selectedItem,
+            LSP.CompletionItem lspItem,
+            CompletionItem roslynItem,
             LSP.TextDocumentIdentifier textDocumentIdentifier,
             Document document,
-            LSP.ClientCapabilities clientCapabilities,
+            CompletionCapabilityHelper capabilityHelper,
             CompletionService completionService,
             CompletionOptions completionOptions,
             SymbolDescriptionOptions symbolDescriptionOptions,
             CancellationToken cancellationToken)
         {
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
+            var description = await completionService.GetDescriptionAsync(document, roslynItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
-                var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
-                completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+                lspItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, capabilityHelper.SupportsMarkdownDocumentation);
             }
 
-            if (selectedItem.IsComplexTextEdit)
+            if (roslynItem.IsComplexTextEdit)
             {
-                var snippetsSupported = clientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-
                 var (textEdit, isSnippetString, newPosition) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, insertNewPositionPlaceholder: false, cancellationToken).ConfigureAwait(false);
+                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: false, cancellationToken).ConfigureAwait(false);
 
                 var lspOffset = newPosition is null ? -1 : newPosition.Value;
 
-                completionItem.Command = new LSP.Command()
+                lspItem.Command = new LSP.Command()
                 {
                     CommandIdentifier = CompleteComplexEditCommand,
                     Title = nameof(CompleteComplexEditCommand),
@@ -100,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 };
             }
 
-            return completionItem;
+            return lspItem;
         }
     }
 }

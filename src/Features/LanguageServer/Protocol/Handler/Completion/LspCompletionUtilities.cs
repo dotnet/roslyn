@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
     internal static class LspCompletionUtilities
     {
-        public static async Task PopulateTextEditAsync(
+        public static async Task PopulateSimpleTextEditAsync(
             Document document,
             SourceText documentText,
             bool itemDefaultsSupported,
@@ -25,20 +26,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(item.IsComplexTextEdit);
+            Contract.ThrowIfNull(lspItem.Label);
+
             var completionChange = await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
-            var newText = completionChange.TextChange.NewText;
-            Contract.ThrowIfNull(newText);
+            var newText = completionChange.TextChange.NewText ?? string.Empty;
+
+            // If the change's span is different from default, then the item should be mark as IsComplexTextEdit.
+            // But since we don't have a way to enforce this, we'll just check for it here.
+            Debug.Assert(completionChangeSpan == defaultSpan);
 
             if (itemDefaultsSupported && completionChangeSpan == defaultSpan)
             {
-                // The span is the same as the default, we just need to store the new text as
-                // the text edit text so the client can create the text edit from it and the default range.
-                lspItem.TextEditText = newText;
+                // We only need to store the new text as the text edit text when it differs from Label.
+                if (!lspItem.Label.Equals(newText, StringComparison.Ordinal))
+                    lspItem.TextEditText = newText;
             }
             else
             {
-                Debug.Assert(completionChangeSpan == defaultSpan || item.IsComplexTextEdit);
                 lspItem.TextEdit = new LSP.TextEdit()
                 {
                     NewText = newText,

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var lspItem = new LSP.VSInternalCompletionItem
             {
+                Label = item.GetEntireDisplayText(),
                 Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId())
             };
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else
             {
-                await LspCompletionUtilities.PopulateTextEditAsync(
+                await LspCompletionUtilities.PopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
@@ -71,30 +72,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public async Task<LSP.CompletionItem> ResolveAsync(
-            LSP.CompletionItem completionItem,
-            CompletionItem selectedItem,
+            LSP.CompletionItem lspItem,
+            CompletionItem roslynItem,
             LSP.TextDocumentIdentifier textDocumentIdentifier,
             Document document,
-            LSP.ClientCapabilities clientCapabilities,
+            CompletionCapabilityHelper capabilityHelper,
             CompletionService completionService,
             CompletionOptions completionOptions,
             SymbolDescriptionOptions symbolDescriptionOptions,
             CancellationToken cancellationToken)
         {
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
+            var description = await completionService.GetDescriptionAsync(document, roslynItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
-                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
-                if (supportsVSExtensions)
+                if (capabilityHelper.SupportVSInternalClientCapabilities)
                 {
-                    var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
+                    var vsCompletionItem = (LSP.VSInternalCompletionItem)lspItem;
                     vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                         .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
                 }
                 else
                 {
-                    var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
-                    completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+                    lspItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, capabilityHelper.SupportsMarkdownDocumentation);
                 }
             }
 
@@ -103,20 +102,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // the LSP spec, but is currently supported by the VS client anyway. Once the VS client
             // adheres to the spec, this logic will need to change and VS will need to provide
             // official support for TextEdit resolution in some form.
-            if (selectedItem.IsComplexTextEdit)
+            if (roslynItem.IsComplexTextEdit)
             {
-                Contract.ThrowIfTrue(completionItem.InsertText != null);
-                Contract.ThrowIfTrue(completionItem.TextEdit != null);
+                Contract.ThrowIfTrue(lspItem.InsertText != null);
+                Contract.ThrowIfTrue(lspItem.TextEdit != null);
 
-                var snippetsSupported = clientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (edit, _, _) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
+                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
 
-                completionItem.TextEdit = edit;
+                lspItem.TextEdit = edit;
             }
 
-            return completionItem;
+            return lspItem;
         }
     }
 }

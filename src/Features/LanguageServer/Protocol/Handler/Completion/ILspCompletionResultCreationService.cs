@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionItem roslynItem,
             LSP.TextDocumentIdentifier textDocumentIdentifier,
             Document document,
-            LSP.ClientCapabilities clientCapabilities,
+            CompletionCapabilityHelper capabilityHelper,
             CompletionService completionService,
             CompletionOptions completionOptions,
             SymbolDescriptionOptions symbolDescriptionOptions,

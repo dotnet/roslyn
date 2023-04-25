@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.GetRequiredDocument();
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-
-            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
-
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)
             {
@@ -55,6 +50,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
+
+            var document = context.GetRequiredDocument();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             // Find the matching completion item in the completion list
             var selectedItem = cacheEntry.CompletionList.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     selectedItem,
                     cacheEntry.TextDocument,
                     document,
-                    clientCapabilities,
+                    new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
                     completionService,
                     completionOptions,
                     symbolDescriptionOptions,

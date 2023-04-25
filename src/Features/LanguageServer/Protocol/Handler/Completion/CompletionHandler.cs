@@ -29,26 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentCompletionName)]
     internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
-
         private readonly IGlobalOptionService _globalOptions;
-        private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
-        private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler(
-            IGlobalOptionService globalOptions,
-            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
+        public CompletionHandler(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-
-            _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
-                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
-            _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
-                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
         }
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
@@ -56,60 +46,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionList?> HandleRequestAsync(
             LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(context.Document);
             Contract.ThrowIfNull(context.Solution);
-            var clientCapabilities = context.GetRequiredClientCapabilities();
 
-            // C# and VB share the same LSP language server, and thus share the same default trigger characters.
-            // We need to ensure the trigger character is valid in the document's language. For example, the '{'
-            // character, while a trigger character in VB, is not a trigger character in C#.
-            if (request.Context != null &&
-                request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter &&
-                !char.TryParse(request.Context.TriggerCharacter, out var triggerCharacter) &&
-                !char.IsLetterOrDigit(triggerCharacter) &&
-                !IsValidTriggerCharacterForDocument(document, triggerCharacter))
+            var document = context.Document;
+            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
+
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
+            var completionOptions = GetCompletionOptions(document, capabilityHelper);
+            var completionService = document.GetRequiredLanguageService<CompletionService>();
+
+            // Let CompletionService decide if we should trigger completion, unless the request is for incomplete results, in which case we always trigger. 
+            if (request.Context?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions
+                && !completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, documentText, position, completionTrigger, completionOptions, document.Project.Solution.Options, roles: null))
             {
                 return null;
             }
-
-            var completionOptions = GetCompletionOptions(document);
-            if (!clientCapabilities.HasVisualStudioLspCapability())
-            {
-                completionOptions = completionOptions with
-                {
-                    TriggerInArgumentLists = false,
-                    ShowNewSnippetExperienceUserOption = false,
-                };
-            }
-
-            var completionService = document.GetRequiredLanguageService<CompletionService>();
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var completionListResult = await GetFilteredCompletionListAsync(request, context, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
             if (completionListResult == null)
                 return null;
 
             var (list, isIncomplete, resultId) = completionListResult.Value;
-            return await ConvertToLspCompletionListAsync(document, clientCapabilities, list, isIncomplete, resultId, cancellationToken)
+            return await ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
                 .ConfigureAwait(false);
-
-            // Local function
-            bool IsValidTriggerCharacterForDocument(Document document, char triggerCharacter)
-            {
-                if (document.Project.Language == LanguageNames.CSharp)
-                {
-                    return _csharpTriggerCharacters.Contains(triggerCharacter);
-                }
-                else if (document.Project.Language == LanguageNames.VisualBasic)
-                {
-                    return _vbTriggerCharacters.Contains(triggerCharacter);
-                }
-
-                // Typescript still calls into this for completion.
-                // Since we don't know what their trigger characters are, just return true.
-                return true;
-            }
         }
 
         private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
@@ -182,7 +144,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionTrigger completionTrigger,
             SourceText sourceText)
         {
+            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
+                return (completionList, false);
+
             var filterText = sourceText.GetSubText(completionList.Span).ToString();
+            var filterReason = GetFilterReason(completionTrigger);
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
             using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
@@ -193,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (helper.TryCreateMatchResult(
                     item,
                     completionTrigger.Kind,
-                    GetFilterReason(completionTrigger),
+                    filterReason,
                     recentItemIndex: -1,
                     includeMatchSpans: false,
                     index,
@@ -213,7 +179,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.CompletionItem)))
                 .Select(matchResult => matchResult.CompletionItem)
                 .ToImmutableArray();
-            var newCompletionList = completionList.WithItems(filteredList);
+            var newCompletionList = completionList.WithItemsList(filteredList);
 
             // Per the LSP spec, the completion list should be marked with isIncomplete = false when further insertions will
             // not generate any more completion items.  This means that we should be checking if the matchedResults is larger
@@ -250,7 +216,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
         }
 
-        internal CompletionOptions GetCompletionOptions(Document document)
+        private CompletionOptions GetCompletionOptions(Document document, CompletionCapabilityHelper capabilityHelper)
         {
             // Filter out unimported types for now as there are two issues with providing them:
             // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
@@ -261,12 +227,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //
             // Also don't trigger completion in argument list automatically, since LSP currently has no concept of soft selection.
             // We want to avoid committing selected item with commit chars like `"` and `)`.
-            return _globalOptions.GetCompletionOptions(document.Project.Language) with
+            var option = _globalOptions.GetCompletionOptions(document.Project.Language) with
             {
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
                 UpdateImportCompletionCacheInBackground = false,
             };
+
+            if (!capabilityHelper.SupportVSInternalClientCapabilities)
+            {
+                option = option with
+                {
+                    TriggerInArgumentLists = false,
+                    ShowNewSnippetExperienceUserOption = false,
+                };
+            }
+
+            return option;
         }
     }
 }
