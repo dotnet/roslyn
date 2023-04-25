@@ -2076,9 +2076,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     else
                     {
                         // PROTOTYPE what if the base extension is nullable-annotated?
+                        // TODO2 stack overflow when getting ExtendedTypeNoUseSiteDiagnostics
+                        // PROTOTYPE we should check that the extended type is compatible
+                        // with the base extension's (but that causes a cycle)
                         NamedTypeSymbol baseExtension;
-                        if (type is NamedTypeSymbol { IsExtension: true } namedType
-                            && !SourceExtensionTypeSymbol.AreExtendedTypesIncompatible(underlyingType, namedType.ExtendedTypeNoUseSiteDiagnostics))
+                        if (type is NamedTypeSymbol { IsExtension: true } namedType)
                         {
                             baseExtension = namedType;
                         }

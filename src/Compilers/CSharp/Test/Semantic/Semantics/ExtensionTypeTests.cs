@@ -5115,24 +5115,18 @@ public explicit extension R4 for C : R2 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should check that the extended type is compatible
+        // with the base extension's
         comp.VerifyDiagnostics(
-            // (1,27): error CS9222: Extension marker method on type 'R2' is malformed.
-            // public explicit extension R3 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_MalformedExtensionInMetadata, "R3").WithArguments("R2").WithLocation(1, 27),
             // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'C'.
             // public explicit extension R3 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "C").WithLocation(1, 27),
-            // (2,27): error CS9222: Extension marker method on type 'R2' is malformed.
-            // public explicit extension R4 for C : R2 { }
-            Diagnostic(ErrorCode.ERR_MalformedExtensionInMetadata, "R4").WithArguments("R2").WithLocation(2, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "C").WithLocation(1, 27)
             );
 
         var r2 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R2");
         var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R1", r2BaseExtension.ToTestDisplayString());
-
-        AssertEx.Equal("error CS9222: Extension marker method on type 'R2' is malformed.",
-            ((ErrorTypeSymbol)r2BaseExtension).ErrorInfo.ToString());
+        Assert.False(r2BaseExtension.IsErrorType()); // PROTOTYPE
     }
 
     [Fact]
