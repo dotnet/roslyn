@@ -6,27 +6,32 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic
-Partial Class ReducedExtensionPropertySymbol
-    Partial Class ReducedExtensionAccessorSymbol
 
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return _originalDefinition.LocationsCount
-            End Get
-        End Property
+    Partial Class ReducedExtensionPropertySymbol
 
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return _originalDefinition.GetCurrentLocation(slot, index)
-        End Function
+        Partial Class ReducedExtensionAccessorSymbol
 
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _originalDefinition.MoveNextLocation(previousSlot, previousIndex)
-        End Function
+            Public Overrides ReadOnly Property LocationsCount As Integer
+                Get
+                    Return _originalDefinition.LocationsCount
+                End Get
+            End Property
 
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _originalDefinition.MoveNextLocationReversed(previousSlot, previousIndex)
-        End Function
+            Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                Return _originalDefinition.GetCurrentLocation(slot, index)
+            End Function
+
+            Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Return _originalDefinition.MoveNextLocation(previousSlot, previousIndex)
+            End Function
+
+            Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Return _originalDefinition.MoveNextLocationReversed(previousSlot, previousIndex)
+            End Function
+
+        End Class
+
 
     End Class
-End Class
+
 End Namespace

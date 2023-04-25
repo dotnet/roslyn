@@ -8,18 +8,20 @@ using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-partial class DisplayClassVariable {
-partial class EEDisplayClassFieldSymbol
+
+partial class DisplayClassVariable
 {
-    public override int LocationsCount => throw ExceptionUtilities.Unreachable();
+    partial class EEDisplayClassFieldSymbol
+    {
+        public override int LocationsCount => throw ExceptionUtilities.Unreachable();
 
-    public override Location GetCurrentLocation(int slot, int index)
-        => throw ExceptionUtilities.Unreachable();
+        public override Location GetCurrentLocation(int slot, int index)
+            => throw ExceptionUtilities.Unreachable();
 
-    public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-        => throw ExceptionUtilities.Unreachable();
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => throw ExceptionUtilities.Unreachable();
 
-    public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-        => throw ExceptionUtilities.Unreachable();
-}
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => throw ExceptionUtilities.Unreachable();
+    }
 }

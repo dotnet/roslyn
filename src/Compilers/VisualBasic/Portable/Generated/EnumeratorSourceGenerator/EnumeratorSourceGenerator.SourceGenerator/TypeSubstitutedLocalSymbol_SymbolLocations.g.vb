@@ -6,27 +6,32 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic.Symbols
-Partial Class LocalSymbol
-    Partial Class TypeSubstitutedLocalSymbol
 
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
-                Return _originalVariable.LocationsCount
-            End Get
-        End Property
+    Partial Class LocalSymbol
 
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Return _originalVariable.GetCurrentLocation(slot, index)
-        End Function
+        Partial Class TypeSubstitutedLocalSymbol
 
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _originalVariable.MoveNextLocation(previousSlot, previousIndex)
-        End Function
+            Public Overrides ReadOnly Property LocationsCount As Integer
+                Get
+                    Return _originalVariable.LocationsCount
+                End Get
+            End Property
 
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Return _originalVariable.MoveNextLocationReversed(previousSlot, previousIndex)
-        End Function
+            Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                Return _originalVariable.GetCurrentLocation(slot, index)
+            End Function
+
+            Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Return _originalVariable.MoveNextLocation(previousSlot, previousIndex)
+            End Function
+
+            Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Return _originalVariable.MoveNextLocationReversed(previousSlot, previousIndex)
+            End Function
+
+        End Class
+
 
     End Class
-End Class
+
 End Namespace

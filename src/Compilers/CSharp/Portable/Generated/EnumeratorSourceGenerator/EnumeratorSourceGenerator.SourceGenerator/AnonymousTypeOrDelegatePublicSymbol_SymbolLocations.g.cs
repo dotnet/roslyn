@@ -8,18 +8,20 @@ using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-partial class AnonymousTypeManager {
-partial class AnonymousTypeOrDelegatePublicSymbol
+
+partial class AnonymousTypeManager
 {
-    public sealed override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+    partial class AnonymousTypeOrDelegatePublicSymbol
+    {
+        public sealed override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
 
-    public sealed override Location GetCurrentLocation(int slot, int index)
-        => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, this.TypeDescriptor.Location);
+        public sealed override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, this.TypeDescriptor.Location);
 
-    public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-        => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
 
-    public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-        => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
-}
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
+    }
 }

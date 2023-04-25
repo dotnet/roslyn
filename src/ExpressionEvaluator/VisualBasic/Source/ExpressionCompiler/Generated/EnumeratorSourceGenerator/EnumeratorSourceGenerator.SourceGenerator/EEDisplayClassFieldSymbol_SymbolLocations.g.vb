@@ -6,27 +6,32 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
-Partial Class DisplayClassVariable
-    Partial Class EEDisplayClassFieldSymbol
 
-        Public Overrides ReadOnly Property LocationsCount As Integer
-            Get
+    Partial Class DisplayClassVariable
+
+        Partial Class EEDisplayClassFieldSymbol
+
+            Public Overrides ReadOnly Property LocationsCount As Integer
+                Get
+                    Throw ExceptionUtilities.Unreachable
+                End Get
+            End Property
+
+            Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
                 Throw ExceptionUtilities.Unreachable
-            End Get
-        End Property
+            End Function
 
-        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-            Throw ExceptionUtilities.Unreachable
-        End Function
+            Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Throw ExceptionUtilities.Unreachable
+            End Function
 
-        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Throw ExceptionUtilities.Unreachable
-        End Function
+            Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                Throw ExceptionUtilities.Unreachable
+            End Function
 
-        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-            Throw ExceptionUtilities.Unreachable
-        End Function
+        End Class
+
 
     End Class
-End Class
+
 End Namespace

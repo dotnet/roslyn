@@ -278,26 +278,47 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         using Roslyn.Utilities;
 
                         namespace {{linkedSymbolInformation.NamespaceName}};
-                        {{containingTypeStart}}
-                        partial class {{linkedSymbolInformation.TypeName}}
-                        {
+
 
                         """;
+
+                    var indent = "";
+
+                    if (linkedSymbolInformation.ContainingTypeName is not null)
+                    {
+                        sourceTextStart +=
+                            $$"""
+                            {{indent}}partial class {{linkedSymbolInformation.ContainingTypeName}}
+                            {{indent}}{
+
+                            """;
+
+                        indent += "    ";
+                    }
+
+                    sourceTextStart +=
+                        $$"""
+                        {{indent}}partial class {{linkedSymbolInformation.TypeName}}
+                        {{indent}}{
+
+                        """;
+
+                    indent += "    ";
 
                     if (linkedSymbolInformation.Pattern == RecognizedPattern.Empty)
                     {
                         sourceTextBody =
                             $$"""
-                                public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
+                            {{indent}}public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Empty.LocationsCount;
 
-                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
-                                    => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
+                            {{indent}}public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                            {{indent}}    => SymbolLocationHelper.Empty.GetCurrentLocation(slot, index);
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex);
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex);
 
                             """;
                     }
@@ -305,16 +326,16 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
+                            {{indent}}public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Single.LocationsCount;
 
-                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
-                                    => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
+                            {{indent}}public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                            {{indent}}    => SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex);
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex);
 
                             """;
                     }
@@ -322,16 +343,16 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}});
+                            {{indent}}public {{sealedText}}override int LocationsCount => SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}});
 
-                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
-                                    => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
+                            {{indent}}public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                            {{indent}}    => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}});
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                                    => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                            {{indent}}    => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}});
 
                             """;
                     }
@@ -339,16 +360,16 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                public {{sealedText}}override int LocationsCount => {{linkedSymbolInformation.Expression}}.LocationsCount;
+                            {{indent}}public {{sealedText}}override int LocationsCount => {{linkedSymbolInformation.Expression}}.LocationsCount;
 
-                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
-                                    => {{linkedSymbolInformation.Expression}}.GetCurrentLocation(slot, index);
+                            {{indent}}public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                            {{indent}}    => {{linkedSymbolInformation.Expression}}.GetCurrentLocation(slot, index);
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                                    => {{linkedSymbolInformation.Expression}}.MoveNextLocation(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                            {{indent}}    => {{linkedSymbolInformation.Expression}}.MoveNextLocation(previousSlot, previousIndex);
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                                    => {{linkedSymbolInformation.Expression}}.MoveNextLocationReversed(previousSlot, previousIndex);
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                            {{indent}}    => {{linkedSymbolInformation.Expression}}.MoveNextLocationReversed(previousSlot, previousIndex);
 
                             """;
                     }
@@ -356,16 +377,16 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                public {{sealedText}}override int LocationsCount => throw {{linkedSymbolInformation.Expression}};
+                            {{indent}}public {{sealedText}}override int LocationsCount => throw {{linkedSymbolInformation.Expression}};
 
-                                public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
-                                    => throw {{linkedSymbolInformation.Expression}};
+                            {{indent}}public {{sealedText}}override Location GetCurrentLocation(int slot, int index)
+                            {{indent}}    => throw {{linkedSymbolInformation.Expression}};
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-                                    => throw {{linkedSymbolInformation.Expression}};
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+                            {{indent}}    => throw {{linkedSymbolInformation.Expression}};
 
-                                public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-                                    => throw {{linkedSymbolInformation.Expression}};
+                            {{indent}}public {{sealedText}}override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+                            {{indent}}    => throw {{linkedSymbolInformation.Expression}};
 
                             """;
                     }
@@ -374,17 +395,30 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         throw new InvalidOperationException();
                     }
 
+                    // Outdent by 1
+                    indent = indent[4..];
+
                     sourceTextEnd =
                         $$"""
-                        }
-                        {{containingTypeEnd}}
+                        {{indent}}}
+
                         """;
+
+                    if (linkedSymbolInformation.ContainingTypeName is not null)
+                    {
+                        // Outdent by 1
+                        indent = indent[4..];
+
+                        sourceTextEnd +=
+                            $$"""
+                            {{indent}}}
+
+                            """;
+                    }
                 }
                 else
                 {
                     var sealedText = linkedSymbolInformation.IsSealed ? "NotOverridable " : "";
-                    var containingTypeStart = linkedSymbolInformation.ContainingTypeName is not null ? $"Partial Class {linkedSymbolInformation.ContainingTypeName}" : "";
-                    var containingTypeEnd = linkedSymbolInformation.ContainingTypeName is not null ? "End Class" : "";
 
                     extension = "vb";
                     sourceTextStart =
@@ -397,33 +431,54 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         Imports Roslyn.Utilities
 
                         Namespace Global.{{linkedSymbolInformation.NamespaceName}}
-                        {{containingTypeStart}}
-                            Partial Class {{linkedSymbolInformation.TypeName}}
 
 
                         """;
+
+                    var indent = "    ";
+
+                    if (linkedSymbolInformation.ContainingTypeName is not null)
+                    {
+                        sourceTextStart +=
+                            $"""
+                            {indent}Partial Class {linkedSymbolInformation.ContainingTypeName}
+
+
+                            """;
+
+                        indent += "    ";
+                    }
+
+                    sourceTextStart +=
+                        $"""
+                        {indent}Partial Class {linkedSymbolInformation.TypeName}
+
+
+                        """;
+
+                    indent += "    ";
 
                     if (linkedSymbolInformation.Pattern == RecognizedPattern.Empty)
                     {
                         sourceTextBody =
                             $$"""
-                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
-                                        Get
-                                            Return SymbolLocationHelper.Empty.LocationsCount
-                                        End Get
-                                    End Property
+                            {{indent}}Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                            {{indent}}    Get
+                            {{indent}}        Return SymbolLocationHelper.Empty.LocationsCount
+                            {{indent}}    End Get
+                            {{indent}}End Property
 
-                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                                        Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                            {{indent}}    Return SymbolLocationHelper.Empty.GetCurrentLocation(slot, index)
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Empty.MoveNextLocation(previousSlot, previousIndex)
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Empty.MoveNextLocationReversed(previousSlot, previousIndex)
+                            {{indent}}End Function
 
                             """;
                     }
@@ -431,23 +486,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
-                                        Get
-                                            Return SymbolLocationHelper.Single.LocationsCount
-                                        End Get
-                                    End Property
+                            {{indent}}Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                            {{indent}}    Get
+                            {{indent}}        Return SymbolLocationHelper.Single.LocationsCount
+                            {{indent}}    End Get
+                            {{indent}}End Property
 
-                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                                        Return SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                            {{indent}}    Return SymbolLocationHelper.Single.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Single.MoveNextLocation(previousSlot, previousIndex)
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Single.MoveNextLocationReversed(previousSlot, previousIndex)
+                            {{indent}}End Function
 
                             """;
                     }
@@ -455,23 +510,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
-                                        Get
-                                            Return SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}})
-                                        End Get
-                                    End Property
+                            {{indent}}Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                            {{indent}}    Get
+                            {{indent}}        Return SymbolLocationHelper.Many.LocationsCount({{linkedSymbolInformation.Expression}})
+                            {{indent}}    End Get
+                            {{indent}}End Property
 
-                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                                        Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                            {{indent}}    Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, {{linkedSymbolInformation.Expression}})
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, {{linkedSymbolInformation.Expression}})
+                            {{indent}}End Function
 
                             """;
                     }
@@ -479,23 +534,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
-                                        Get
-                                            Return {{linkedSymbolInformation.Expression}}.LocationsCount
-                                        End Get
-                                    End Property
+                            {{indent}}Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                            {{indent}}    Get
+                            {{indent}}        Return {{linkedSymbolInformation.Expression}}.LocationsCount
+                            {{indent}}    End Get
+                            {{indent}}End Property
 
-                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                                        Return {{linkedSymbolInformation.Expression}}.GetCurrentLocation(slot, index)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                            {{indent}}    Return {{linkedSymbolInformation.Expression}}.GetCurrentLocation(slot, index)
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return {{linkedSymbolInformation.Expression}}.MoveNextLocation(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return {{linkedSymbolInformation.Expression}}.MoveNextLocation(previousSlot, previousIndex)
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Return {{linkedSymbolInformation.Expression}}.MoveNextLocationReversed(previousSlot, previousIndex)
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Return {{linkedSymbolInformation.Expression}}.MoveNextLocationReversed(previousSlot, previousIndex)
+                            {{indent}}End Function
 
                             """;
                     }
@@ -503,23 +558,23 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                     {
                         sourceTextBody =
                             $$"""
-                                    Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
-                                        Get
-                                            Throw {{linkedSymbolInformation.Expression}}
-                                        End Get
-                                    End Property
+                            {{indent}}Public {{sealedText}}Overrides ReadOnly Property LocationsCount As Integer
+                            {{indent}}    Get
+                            {{indent}}        Throw {{linkedSymbolInformation.Expression}}
+                            {{indent}}    End Get
+                            {{indent}}End Property
 
-                                    Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
-                                        Throw {{linkedSymbolInformation.Expression}}
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+                            {{indent}}    Throw {{linkedSymbolInformation.Expression}}
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Throw {{linkedSymbolInformation.Expression}}
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Throw {{linkedSymbolInformation.Expression}}
+                            {{indent}}End Function
 
-                                    Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
-                                        Throw {{linkedSymbolInformation.Expression}}
-                                    End Function
+                            {{indent}}Public {{sealedText}}Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+                            {{indent}}    Throw {{linkedSymbolInformation.Expression}}
+                            {{indent}}End Function
 
                             """;
                     }
@@ -528,11 +583,33 @@ internal sealed class SourceGenerator : IIncrementalGenerator
                         throw new InvalidOperationException();
                     }
 
+                    // Outdent by 1
+                    indent = indent[4..];
+
                     sourceTextEnd =
                         $$"""
 
-                            End Class
-                        {{containingTypeEnd}}
+                        {{indent}}End Class
+
+
+                        """;
+
+                    if (linkedSymbolInformation.ContainingTypeName is not null)
+                    {
+                        // Outdent by 1
+                        indent = indent[4..];
+
+                        sourceTextEnd +=
+                            $$"""
+
+                            {{indent}}End Class
+
+
+                            """;
+                    }
+
+                    sourceTextEnd +=
+                        """
                         End Namespace
 
                         """;

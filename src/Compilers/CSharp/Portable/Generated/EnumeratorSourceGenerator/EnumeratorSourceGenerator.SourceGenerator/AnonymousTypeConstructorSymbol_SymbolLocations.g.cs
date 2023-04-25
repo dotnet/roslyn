@@ -8,18 +8,20 @@ using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-partial class AnonymousTypeManager {
-partial class AnonymousTypeConstructorSymbol
+
+partial class AnonymousTypeManager
 {
-    public override int LocationsCount => this.ContainingSymbol.LocationsCount;
+    partial class AnonymousTypeConstructorSymbol
+    {
+        public override int LocationsCount => this.ContainingSymbol.LocationsCount;
 
-    public override Location GetCurrentLocation(int slot, int index)
-        => this.ContainingSymbol.GetCurrentLocation(slot, index);
+        public override Location GetCurrentLocation(int slot, int index)
+            => this.ContainingSymbol.GetCurrentLocation(slot, index);
 
-    public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
-        => this.ContainingSymbol.MoveNextLocation(previousSlot, previousIndex);
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => this.ContainingSymbol.MoveNextLocation(previousSlot, previousIndex);
 
-    public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
-        => this.ContainingSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
-}
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => this.ContainingSymbol.MoveNextLocationReversed(previousSlot, previousIndex);
+    }
 }
