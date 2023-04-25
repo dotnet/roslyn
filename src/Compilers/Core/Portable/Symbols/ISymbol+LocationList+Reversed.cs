@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis;
 
 public partial interface ISymbol
 {
-    internal readonly partial struct LocationList
+    public readonly partial struct LocationList
     {
         /// <summary>
         /// Implements a reverse-order struct-based collection of <see cref="Location"/> nodes.
         /// This collection is ordered, but random access into the collection is not provided.
         /// </summary>
         [NonDefaultable]
-        public readonly struct Reversed : IReadOnlyCollection<Location>
+        internal readonly struct Reversed : IReadOnlyCollection<Location>
         {
             private readonly ISymbolInternal _symbol;
 

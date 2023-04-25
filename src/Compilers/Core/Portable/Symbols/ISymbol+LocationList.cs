@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis;
 public partial interface ISymbol
 {
     [NonDefaultable]
-    internal readonly partial struct LocationList : IReadOnlyCollection<Location>
+    public readonly partial struct LocationList : IReadOnlyCollection<Location>
     {
         private readonly ISymbolInternal _symbol;
 
@@ -59,6 +59,9 @@ public partial interface ISymbol
         }
 
         public Location First()
+            => FirstOrDefault() ?? throw new InvalidOperationException();
+
+        public Location? FirstOrDefault()
         {
             var enumerator = GetEnumerator();
             if (enumerator.MoveNext())
@@ -66,10 +69,10 @@ public partial interface ISymbol
                 return enumerator.Current;
             }
 
-            throw new InvalidOperationException();
+            return null;
         }
 
-        public Reversed Reverse() => new Reversed(_symbol);
+        internal Reversed Reverse() => new Reversed(_symbol);
 
         public Location Last()
         {

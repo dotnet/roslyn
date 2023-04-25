@@ -9,6 +9,21 @@ Microsoft.CodeAnalysis.Emit.SemanticEdit.Instrumentation.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables) -> void
 *REMOVED*Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false) -> void
+Microsoft.CodeAnalysis.ISymbol.LocationList
+Microsoft.CodeAnalysis.ISymbol.LocationList.Any() -> bool
+Microsoft.CodeAnalysis.ISymbol.LocationList.Count.get -> int
+Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator
+Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.Location!
+Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.ISymbol.LocationList.First() -> Microsoft.CodeAnalysis.Location!
+Microsoft.CodeAnalysis.ISymbol.LocationList.FirstOrDefault() -> Microsoft.CodeAnalysis.Location?
+Microsoft.CodeAnalysis.ISymbol.LocationList.GetEnumerator() -> Microsoft.CodeAnalysis.ISymbol.LocationList.Enumerator
+Microsoft.CodeAnalysis.ISymbol.LocationList.Last() -> Microsoft.CodeAnalysis.Location!
+Microsoft.CodeAnalysis.ISymbol.LocationList.LocationList() -> void
+Microsoft.CodeAnalysis.ISymbol.LocationList.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location!>
+Microsoft.CodeAnalysis.ISymbol.SymbolLocations.get -> Microsoft.CodeAnalysis.ISymbol.LocationList
 Microsoft.CodeAnalysis.OperationKind.Attribute = 125 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IAttributeOperation
 Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!

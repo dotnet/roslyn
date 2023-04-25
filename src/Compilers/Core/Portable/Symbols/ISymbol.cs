@@ -172,6 +172,13 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<Location> Locations { get; }
 
         /// <summary>
+        /// Gets the locations where the symbol was originally defined, either in source or
+        /// metadata. Some symbols (for example, partial classes) may be defined in more than one
+        /// location.
+        /// </summary>
+        LocationList SymbolLocations { get; }
+
+        /// <summary>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,
         /// partial classes) may be defined in more than one location. This property should return
         /// one or more syntax nodes only if the symbol was declared in source code and also was

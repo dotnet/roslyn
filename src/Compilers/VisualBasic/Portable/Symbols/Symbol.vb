@@ -1251,7 +1251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbolInternal_SymbolLocations As ISymbol.LocationList Implements ISymbolInternal.SymbolLocations
+        Private ReadOnly Property ISymbolInternal_SymbolLocations As ISymbol.LocationList Implements ISymbol.SymbolLocations, ISymbolInternal.SymbolLocations
             Get
                 Return SymbolLocations
             End Get

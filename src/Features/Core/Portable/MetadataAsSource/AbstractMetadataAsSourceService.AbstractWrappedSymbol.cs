@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<Location> Locations => _symbol.Locations;
 
+            public ISymbol.LocationList SymbolLocations => _symbol.SymbolLocations;
+
             public string MetadataName => _symbol.MetadataName;
 
             public int MetadataToken => _symbol.MetadataToken;

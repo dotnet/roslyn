@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ImmutableArray<Location> ISymbol.Locations => ImmutableArray<Location>.Empty;
 
+        ISymbol.LocationList ISymbol.SymbolLocations => throw new NotSupportedException();
+
         ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
         ImmutableArray<AttributeData> ISymbol.GetAttributes() => ImmutableArray<AttributeData>.Empty;
