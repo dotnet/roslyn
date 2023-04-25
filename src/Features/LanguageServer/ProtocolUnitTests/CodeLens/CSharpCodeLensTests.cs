@@ -229,6 +229,6 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
 
         // Assert that we don't crash when sending an old request to a new document
         var firstDocumentResult2 = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None);
-        Assert.NotNull(firstDocumentResult2.Command.Title);
+        Assert.NotNull(firstDocumentResult2?.Command?.Title);
     }
 }
