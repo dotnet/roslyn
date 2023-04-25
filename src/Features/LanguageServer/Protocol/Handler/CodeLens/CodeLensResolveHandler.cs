@@ -11,7 +11,6 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
