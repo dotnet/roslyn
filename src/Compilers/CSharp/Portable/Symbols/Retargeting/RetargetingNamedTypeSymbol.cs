@@ -466,10 +466,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyDeclaredExtendedType;
         }
 
-        private static NamedTypeSymbol MakeErrorType(TypeSymbol declaredExtendedType)
+        private static NamedTypeSymbol MakeErrorType(TypeSymbol type)
         {
-            var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, declaredExtendedType.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
-            return new ExtendedErrorTypeSymbol(declaredExtendedType, LookupResultKind.NotReferencable, info, unreported: true);
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, type.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
+            return new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()

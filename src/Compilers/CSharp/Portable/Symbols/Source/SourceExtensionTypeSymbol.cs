@@ -545,10 +545,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return extendedType.IsStatic && !extensionType.IsStatic;
         }
 
-        internal static bool AreExtendedTypesIncompatible([NotNullWhen(true)] TypeSymbol? underlyingType, [NotNullWhen(true)] TypeSymbol? baseUnderlyingType)
+        internal static bool AreExtendedTypesIncompatible([NotNullWhen(true)] TypeSymbol? extendedType, [NotNullWhen(true)] TypeSymbol? baseExtendedType)
         {
-            return underlyingType is not null &&
-                baseUnderlyingType?.Equals(underlyingType, TypeCompareKind.ConsiderEverything) == false;
+            return extendedType is not null &&
+                baseExtendedType?.Equals(extendedType, TypeCompareKind.ConsiderEverything) == false;
         }
 
         internal static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)
