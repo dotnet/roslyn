@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns syntax diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
+        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
         /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
         /// can be absent.
         /// </summary>
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
+        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
         /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
         /// can be absent.
         /// </summary>
