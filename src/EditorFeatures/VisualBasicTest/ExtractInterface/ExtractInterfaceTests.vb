@@ -1013,7 +1013,7 @@ Class$$ Program(Of T As U, U)
     Public Sub Goo(t As T, u As U)
     End Sub
 End Class</text>.NormalizedValue()
-            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
+            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -1058,7 +1058,7 @@ $$Class Program(Of T As U, U)
     Public Sub Goo(t As T, u As U)
     End Sub
 End Class</text>.NormalizedValue()
-            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
+            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -1088,7 +1088,7 @@ Class$$ Program(Of T As U, U)
     Public Sub Goo(t As T, u As U)
     End Sub
 End Class</text>.NormalizedValue()
-            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
+            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -1103,7 +1103,7 @@ Class Program(Of T As U, U) $$
     Public Sub Goo(t As T, u As U)
     End Sub
 End Class</text>.NormalizedValue()
-            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
+            Await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>

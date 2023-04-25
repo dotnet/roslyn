@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -27,23 +28,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             typeDiscoveryRule As TypeDiscoveryRule,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
-            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = root.FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
-            Dim typeDeclaration = token.GetAncestor(Of TypeBlockSyntax)()
+            Dim span = New TextSpan(position, 0)
+            Dim typeBlock = Await document.TryGetRelevantNodeAsync(Of TypeBlockSyntax)(span, cancellationToken).ConfigureAwait(False)
 
-            If typeDeclaration Is Nothing OrElse
-               typeDeclaration.Kind = SyntaxKind.ModuleStatement Then
-                Return Nothing
-            ElseIf typeDiscoveryRule = TypeDiscoveryRule.TypeDeclaration Then
-                Return typeDeclaration
+            ' If TypeDiscoverRule is set to TypeDeclaration, a position anywhere inside of the
+            ' type block is valid. In this case check to see if there is a type block ancestor
+            ' of the focused node.
+            If typeBlock Is Nothing And typeDiscoveryRule = TypeDiscoveryRule.TypeDeclaration Then
+                Dim relevantNode = Await document.TryGetRelevantNodeAsync(Of SyntaxNode)(span, cancellationToken).ConfigureAwait(False)
+                Return relevantNode.GetAncestor(Of TypeBlockSyntax)
             End If
 
-            Dim spanStart = typeDeclaration.BlockStatement.Identifier.SpanStart
-            Dim spanEnd = If(typeDeclaration.BlockStatement.TypeParameterList IsNot Nothing, typeDeclaration.BlockStatement.TypeParameterList.Span.End, typeDeclaration.BlockStatement.Identifier.Span.End)
-            Dim span = New TextSpan(spanStart, spanEnd - spanStart)
-
-            Return If(span.IntersectsWith(position), typeDeclaration, Nothing)
+            Return typeBlock
         End Function
 
         Friend Overrides Function GetContainingNamespaceDisplay(typeSymbol As INamedTypeSymbol, compilationOptions As CompilationOptions) As String
