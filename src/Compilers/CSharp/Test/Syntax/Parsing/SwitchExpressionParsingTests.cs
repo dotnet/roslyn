@@ -2413,4 +2413,106 @@ public class SwitchExpressionParsingTests : ParsingTests
         }
         EOF();
     }
+
+    [Fact]
+    public void TestIncompleteSwitchExpression()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                { Prop: 1, { Prop: 2 }
+            """,
+            // (3,27): error CS1513: } expected
+            //     { Prop: 1, { Prop: 2 }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 27),
+            // (3,27): error CS1003: Syntax error, '=>' expected
+            //     { Prop: 1, { Prop: 2 }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(3, 27),
+            // (3,27): error CS1733: Expected expression
+            //     { Prop: 1, { Prop: 2 }
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 27),
+            // (3,27): error CS1003: Syntax error, ',' expected
+            //     { Prop: 1, { Prop: 2 }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 27),
+            // (3,27): error CS1513: } expected
+            //     { Prop: 1, { Prop: 2 }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 27));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.Subpattern);
+                                    {
+                                        N(SyntaxKind.NameColon);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Prop");
+                                            }
+                                            N(SyntaxKind.ColonToken);
+                                        }
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "2");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            M(SyntaxKind.CommaToken);
+            M(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
 }
