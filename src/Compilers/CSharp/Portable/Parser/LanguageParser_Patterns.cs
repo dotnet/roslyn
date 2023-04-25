@@ -546,11 +546,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
-            // This is pretty much the same as above, but for switch expressions and `=>` token.
-            // The reason why we cannot use single flag for both cases is because we only want `:` to be "exit" token for switch statements and `=>` for switch expressions.
+            // This is pretty much the same as above, but for switch expressions and `=>` and `:` tokens.
+            // The reason why we cannot use single flag for both cases is because we want `=>` to be the "exit" token only for switch expressions.
             // Consider the following example: `case (() => 0):`. Normally `=>` is treated as bad separator, so we parse this basically the same as `case ((), 1):`, which is syntactically valid.
             // However, if we treated `=>` as "exit" token, parsing wouldn't consume full case label properly and would produce a lot of noise errors.
-            if (@this._termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm) && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken)
+            // We can afford `:` to be the exit token for switch expressions because error recovery is already good enough and treats `:` as bad `=>`,
+            // meaning that switch expression arm `{ : 1` can be recovered to `{ } => 1` where the closing `}` is missing and instead of `=>` we have `:`.
+            if (@this._termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm) && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
