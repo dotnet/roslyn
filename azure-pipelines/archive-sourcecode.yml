@@ -34,6 +34,10 @@ steps:
   fetchDepth: 0
 - powershell: tools/Install-DotNetSdk.ps1
   displayName: ⚙ Install .NET SDK
+- task: NuGetAuthenticate@1
+  displayName: 🔏 Authenticate NuGet feeds
+  inputs:
+    forceReinstallCredentialProvider: true
 - script: dotnet tool restore
   displayName: Restore CLI tools
 - powershell: azure-pipelines/variables/_pipelines.ps1
