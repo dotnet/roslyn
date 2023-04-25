@@ -72,15 +72,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static IMethodSymbol? GetTopLevelStatementsMethod(this Compilation compilation)
         {
-            foreach (var candidateTopLevelType in compilation.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0))
+            foreach (var candidateTopLevelType in compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0))
             {
                 foreach (var candidateMember in candidateTopLevelType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName))
                 {
-                    if (candidateMember is IMethodSymbol method &&
-                        ReferenceEquals(method.ContainingAssembly, compilation.Assembly))
-                    {
+                    if (candidateMember is IMethodSymbol method)
                         return method;
-                    }
                 }
             }
 
