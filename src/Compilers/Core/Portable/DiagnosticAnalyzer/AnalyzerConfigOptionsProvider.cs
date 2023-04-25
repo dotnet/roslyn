@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -23,5 +25,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get options for a given <see cref="AdditionalText"/>
         /// </summary>
         public abstract AnalyzerConfigOptions GetOptions(AdditionalText textFile);
+
+        public virtual bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+        {
+            optionKeys = null;
+            return false;
+        }
     }
 }

@@ -317,6 +317,12 @@ namespace Microsoft.CodeAnalysis
                 return GetOptionsForSourcePath(cache, tree.FilePath);
             }
 
+            public override bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+            {
+                optionKeys = _projectState._lazyAnalyzerConfigOptions.GetValue(cancellationToken).AnalyzerConfigSet.OptionKeys;
+                return true;
+            }
+
             internal async ValueTask<StructuredAnalyzerConfigOptions> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
             {
                 var cache = await _projectState._lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -465,6 +471,12 @@ namespace Microsoft.CodeAnalysis
                 return options.TreeOptions.TryGetValue(diagnosticId, out severity);
             }
 
+            public override bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+            {
+                optionKeys = _lazyAnalyzerConfigSet.GetValue(cancellationToken).AnalyzerConfigSet.OptionKeys;
+                return true;
+            }
+
             public override bool Equals(object? obj)
             {
                 return obj is ProjectSyntaxTreeOptionsProvider other
@@ -501,9 +513,12 @@ namespace Microsoft.CodeAnalysis
 
             public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
             {
+                AnalyzerConfigSet = configSet;
                 _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
                 _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
             }
+
+            public AnalyzerConfigSet AnalyzerConfigSet { get; }
 
             public AnalyzerConfigData GlobalConfigOptions
                 => _global.Value;

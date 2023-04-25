@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis
             TouchedFileLogger? touchedFilesLogger,
             ErrorLogger? errorLoggerOpt,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
-            AnalyzerConfigOptionsResult globalConfigOptions);
+            AnalyzerConfigOptionsResult globalConfigOptions,
+            AnalyzerConfigSet? analyzerConfigSet);
 
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
@@ -852,7 +853,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
+            Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions, analyzerConfigSet);
             if (compilation == null)
             {
                 return Failed;
@@ -930,10 +931,10 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AnalyzerConfigOptionsResult> additionalFileOptions = default)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigOptions>();
+            var optionKeysBuilder = ImmutableHashSet.CreateBuilder<string>(AnalyzerConfig.Section.PropertiesKeyComparer);
             int i = 0;
             foreach (var syntaxTree in syntaxTrees)
             {
-
                 var options = sourceFileAnalyzerConfigOptions[i].AnalyzerOptions;
 
                 // Optimization: don't create a bunch of entries pointing to a no-op
@@ -941,6 +942,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(existing.GetOptions(syntaxTree) == DictionaryAnalyzerConfigOptions.Empty);
                     builder.Add(syntaxTree, new DictionaryAnalyzerConfigOptions(options));
+                    optionKeysBuilder.AddAll(options.Keys);
                 }
                 i++;
             }
@@ -956,11 +958,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(existing.GetOptions(additionalFiles[i]) == DictionaryAnalyzerConfigOptions.Empty);
                         builder.Add(additionalFiles[i], new DictionaryAnalyzerConfigOptions(options));
+                        optionKeysBuilder.AddAll(options.Keys);
                     }
                 }
             }
 
-            return existing.WithAdditionalTreeOptions(builder.ToImmutable());
+            return existing.WithAdditionalTreeOptions(builder.ToImmutable(), optionKeysBuilder);
         }
 
         /// <summary>
@@ -1002,7 +1005,8 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
                     Debug.Assert(analyzerConfigSet is object);
-                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+                    var options = analyzerConfigSet.GetOptionsForSourcePath(string.Empty);
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(options.AnalyzerOptions), options.AnalyzerOptions.Keys);
 
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.

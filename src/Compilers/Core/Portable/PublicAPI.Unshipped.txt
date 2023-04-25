@@ -1,5 +1,10 @@
 *REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys
+Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys.AnalyzerConfigOptionKeys() -> void
+Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys.AnalyzerOptionKeys.get -> System.Collections.Immutable.ImmutableHashSet<string!>!
+Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys.ConfiguredDiagnosticIds.get -> System.Collections.Immutable.ImmutableHashSet<string!>!
+Microsoft.CodeAnalysis.AnalyzerConfigSet.OptionKeys.get -> Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys
 Microsoft.CodeAnalysis.Compilation.SupportsRuntimeCapability(Microsoft.CodeAnalysis.RuntimeCapability capability) -> bool
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>
@@ -29,5 +34,7 @@ static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.explicit operator Micro
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.TryGetAnalyzerConfigOptionKeys(System.Threading.CancellationToken cancellationToken, out Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys? optionKeys) -> bool
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetAnalyzerConfigOptionKeys(System.Threading.CancellationToken cancellationToken, out Microsoft.CodeAnalysis.AnalyzerConfigOptionKeys? optionKeys) -> bool

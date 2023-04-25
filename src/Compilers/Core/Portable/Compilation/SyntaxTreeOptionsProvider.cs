@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis
         /// Get diagnostic severity set globally for a given diagnostic identifier
         /// </summary>
         public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+
+        public virtual bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+        {
+            optionKeys = null;
+            return false;
+        }
     }
 
     internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -51,11 +57,13 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<SyntaxTree, Options> _options;
 
         private readonly AnalyzerConfigOptionsResult _globalOptions;
+        private readonly AnalyzerConfigSet? _analyzerConfigSet;
 
         public CompilerSyntaxTreeOptionsProvider(
             SyntaxTree?[] trees,
             ImmutableArray<AnalyzerConfigOptionsResult> results,
-            AnalyzerConfigOptionsResult globalResults)
+            AnalyzerConfigOptionsResult globalResults,
+            AnalyzerConfigSet? analyzerConfigSet)
         {
             var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Options>();
             for (int i = 0; i < trees.Length; i++)
@@ -69,6 +77,7 @@ namespace Microsoft.CodeAnalysis
             }
             _options = builder.ToImmutableDictionary();
             _globalOptions = globalResults;
+            _analyzerConfigSet = analyzerConfigSet;
         }
 
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
@@ -92,6 +101,12 @@ namespace Microsoft.CodeAnalysis
             }
             severity = ReportDiagnostic.Default;
             return false;
+        }
+
+        public override bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+        {
+            optionKeys = _analyzerConfigSet?.OptionKeys;
+            return optionKeys != null;
         }
     }
 }

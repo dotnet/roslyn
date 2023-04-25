@@ -498,7 +498,8 @@ class C
             var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
-                DictionaryAnalyzerConfigOptions.Empty);
+                DictionaryAnalyzerConfigOptions.Empty,
+                analyzerConfigSet: null);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
             compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions);
             analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
@@ -544,7 +545,7 @@ class C
                     var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
                     var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                         ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
-                        DictionaryAnalyzerConfigOptions.Empty);
+                        DictionaryAnalyzerConfigOptions.Empty, analyzerConfigSet: null);
                     analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
                 }
                 else

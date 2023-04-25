@@ -383,6 +383,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
+                    Debug.Assert(analyzerOptions != null);
+
+                    // PERF: Fast check for whether the descriptor is never configured in any config file for the entire compilation.
+                    if (isNeverConfiguredInEditorConfig(descriptor, treeOptions, analyzerOptions.AnalyzerConfigOptionsProvider, cancellationToken))
+                        return false;
+
+                    // Slow check to walk the config files corresponding to each tree in the analysis scope and determine if the descriptor
+                    // is enabled for any tree in the scope.
                     var trees = analysisScope?.SyntaxTrees ?? compilation.SyntaxTrees;
                     foreach (var tree in trees)
                     {
@@ -399,6 +407,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return false;
+            }
+
+            static bool isNeverConfiguredInEditorConfig(
+                DiagnosticDescriptor descriptor,
+                SyntaxTreeOptionsProvider treeOptionsProvider,
+                AnalyzerConfigOptionsProvider configOptionsProvider,
+                CancellationToken cancellationToken)
+            {
+                if (!treeOptionsProvider.TryGetAnalyzerConfigOptionKeys(cancellationToken, out var optionKeys) ||
+                    !optionKeys.HasValue)
+                {
+                    return false;
+                }
+
+                if (optionKeys.GetValueOrDefault().ConfiguredDiagnosticIds.Contains(descriptor.Id))
+                {
+                    return false;
+                }
+
+                if (!configOptionsProvider.TryGetAnalyzerConfigOptionKeys(cancellationToken, out optionKeys) ||
+                    !optionKeys.HasValue)
+                {
+                    return false;
+                }
+
+                if (AnalyzerOptionsExtensions.HasSeverityBulkConfigurationEntry(optionKeys.GetValueOrDefault().AnalyzerOptionKeys, descriptor.Category))
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 

@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TouchedFileLogger? touchedFilesLogger,
             ErrorLogger? errorLogger,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
-            AnalyzerConfigOptionsResult globalConfigOptions)
+            AnalyzerConfigOptionsResult globalConfigOptions,
+            AnalyzerConfigSet? analyzerConfigSet)
         {
             var parseOptions = Arguments.ParseOptions;
 
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
-            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions);
+            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions, analyzerConfigSet);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,

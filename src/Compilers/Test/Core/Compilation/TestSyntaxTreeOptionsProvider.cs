@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -15,6 +16,8 @@ namespace Roslyn.Utilities
         private readonly Dictionary<SyntaxTree, Dictionary<string, ReportDiagnostic>>? _options;
         private readonly Dictionary<SyntaxTree, GeneratedKind>? _isGenerated;
         private readonly Dictionary<string, ReportDiagnostic>? _globalOptions;
+        private readonly AnalyzerConfigOptionKeys _analyzerConfigOptionKeys;
+
         public TestSyntaxTreeOptionsProvider(
             IEqualityComparer<string> comparer,
             (string? key, ReportDiagnostic diagnostic) globalOption,
@@ -27,11 +30,18 @@ namespace Roslyn.Utilities
                     x => x.Item2,
                     comparer)
             );
+
+            var keys = ImmutableHashSet.CreateBuilder<string>(comparer);
+            keys.AddAll(options.SelectMany(option => option.Item2.Select(kvp => kvp.Item1)));
+
             if (globalOption.key is object)
             {
                 _globalOptions = new Dictionary<string, ReportDiagnostic>(Section.PropertiesKeyComparer) { { globalOption.key, globalOption.diagnostic } };
+                keys.Add(globalOption.key);
             }
             _isGenerated = null;
+
+            _analyzerConfigOptionKeys = new AnalyzerConfigOptionKeys(keys.ToImmutable(), ImmutableHashSet<string>.Empty);
         }
 
         public TestSyntaxTreeOptionsProvider(
@@ -89,6 +99,12 @@ namespace Roslyn.Utilities
             }
             severity = ReportDiagnostic.Default;
             return false;
+        }
+
+        public override bool TryGetAnalyzerConfigOptionKeys(CancellationToken cancellationToken, out AnalyzerConfigOptionKeys? optionKeys)
+        {
+            optionKeys = _analyzerConfigOptionKeys;
+            return true;
         }
     }
 }
