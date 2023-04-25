@@ -6,22 +6,43 @@ using System.Runtime.Serialization;
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+namespace Microsoft.CodeAnalysis.Debugging.Contracts.HotReload;
 
 [DataContract]
 internal readonly struct ManagedHotReloadUpdate
 {
-    [DataMember(Order = 0)] public Guid Module { get; }
-    [DataMember(Order = 1)] public string ModuleName { get; }
-    [DataMember(Order = 2)] public ImmutableArray<byte> ILDelta { get; }
-    [DataMember(Order = 3)] public ImmutableArray<byte> MetadataDelta { get; }
-    [DataMember(Order = 4)] public ImmutableArray<byte> PdbDelta { get; }
-    [DataMember(Order = 5)] public ImmutableArray<SequencePointUpdates> SequencePoints { get; }
-    [DataMember(Order = 6)] public ImmutableArray<int> UpdatedMethods { get; }
-    [DataMember(Order = 7)] public ImmutableArray<int> UpdatedTypes { get; }
-    [DataMember(Order = 8)] public ImmutableArray<ManagedActiveStatementUpdate> ActiveStatements { get; }
-    [DataMember(Order = 9)] public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; }
-    [DataMember(Order = 10)] public ImmutableArray<string> RequiredCapabilities { get; }
+    [DataMember(Name = "module")]
+    public Guid Module { get; }
+
+    [DataMember(Name = "moduleName")]
+    public string ModuleName { get; }
+
+    [DataMember(Name = "ilDelta")]
+    public ImmutableArray<byte> ILDelta { get; }
+
+    [DataMember(Name = "metadataDelta")]
+    public ImmutableArray<byte> MetadataDelta { get; }
+
+    [DataMember(Name = "pdbDelta")]
+    public ImmutableArray<byte> PdbDelta { get; }
+
+    [DataMember(Name = "updatedTypes")]
+    public ImmutableArray<int> UpdatedTypes { get; }
+
+    [DataMember(Name = "requiredCapabilities")]
+    public ImmutableArray<string> RequiredCapabilities { get; }
+
+    [DataMember(Name = "updatedMethods")]
+    public ImmutableArray<int> UpdatedMethods { get; }
+
+    [DataMember(Name = "sequencePoints")]
+    public ImmutableArray<SequencePointUpdates> SequencePoints { get; }
+
+    [DataMember(Name = "activeStatements")]
+    public ImmutableArray<ManagedActiveStatementUpdate> ActiveStatements { get; }
+
+    [DataMember(Name = "exceptionRegions")]
+    public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; }
     
     public ManagedHotReloadUpdate(
         Guid module,
