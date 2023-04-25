@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Classification
             // The latest data about the document being classified that we've cached.  objects can 
             // be accessed from both threads, and must be obtained when this lock is held. 
             //
-            // _lastProcessedData.lastRoot is optional and is held onto for languages that support syntax.
+            // SyntaxNode is the preferred storage here because it doesn't GC-root a Solution instance.
+            // For languages that do not support syntax, this field offers fallback storage for a Document.
             // it allows computing the root, and changed-spans, in the background so that we can
             // report a smaller change range, and have the data ready for classifying with GetTags
             // get called.
@@ -289,11 +290,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (currentDocument == null)
                     return;
 
-                SumType<SyntaxNode, Document>? previousDocumentOrRoot = null;
-                if (GetLastProcessedData() is { } data)
-                {
-                    previousDocumentOrRoot = data.lastDocumentOrRoot;
-                }
+                var previousDocumentOrRoot = GetLastProcessedData()?.lastDocumentOrRoot;
 
                 // Optionally pre-calculate the root of the doc so that it is ready to classify
                 // once GetTags is called.  Also, attempt to determine a smaller change range span
@@ -336,15 +333,22 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 ValueTask<TextChangeRange?> ComputeChangedRangeAsync()
                 {
-                    // If we have syntax available fast path the change computation without async or blocking.
-                    if ((previousDocumentOrRoot?.TryGetFirst(out var previousRoot) ?? false) && currentRoot != null)
-                        return new(classificationService.ComputeSyntacticChangeRange(solutionServices, previousRoot, currentRoot, _diffTimeout, cancellationToken));
+                    if (previousDocumentOrRoot is null)
+                        return ValueTaskFactory.FromResult<TextChangeRange?>(null);
 
-                    // Otherwise, fall back to the language to compute the difference based on the document contents.
-                    if (previousDocumentOrRoot?.TryGetSecond(out var previousDocument) ?? false)
-                        return classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, _diffTimeout, cancellationToken);
-
-                    return new ValueTask<TextChangeRange?>();
+                    if (previousDocumentOrRoot.Value.TryGetFirst(out var previousRoot))
+                    {
+                        // If we have syntax available fast path the change computation without async or blocking.
+                        if (currentRoot is not null)
+                            return new(classificationService.ComputeSyntacticChangeRange(solutionServices, previousRoot, currentRoot, _diffTimeout, cancellationToken));
+                        else
+                            return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+                    }
+                    else
+                    {
+                        // Otherwise, fall back to the language to compute the difference based on the document contents.
+                        return classificationService.ComputeSyntacticChangeRangeAsync(previousDocumentOrRoot.Value.Second, currentDocument, _diffTimeout, cancellationToken);
+                    }
                 }
             }
 
