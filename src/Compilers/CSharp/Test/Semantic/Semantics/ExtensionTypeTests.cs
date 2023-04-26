@@ -2290,6 +2290,8 @@ explicit extension R for UnderlyingClass
     [Fact]
     public void UnderlyingType_StaticType_InstanceExtension_PE()
     {
+        // static class C { }
+        // explicit extension R for C { }
         var ilSource = """
 .class public auto ansi abstract sealed beforefieldinit C
     extends [mscorlib]System.Object
@@ -2359,6 +2361,7 @@ public static class C { }
         var src = """
 public explicit extension E2 for C : E1 { }
 """;
+        // PROTOTYPE : should report use-site diagnostics for using E1
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         comp.VerifyDiagnostics(
@@ -2430,7 +2433,7 @@ public explicit extension E4 for E0 : E2 { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
-        // PROTOTYPE missing use-site diagnostics
+        // PROTOTYPE The diagnostic for using E2 should mention the faulty type
         comp.VerifyDiagnostics(
             // (1,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // public explicit extension E3 for E1 : E2 { }
@@ -4039,9 +4042,29 @@ public explicit extension R1 for R2 { }
         Assert.Equal("R2", r2FromR1.ToTestDisplayString());
         AssertEx.Equal("error CS9222: Extension marker method on type 'R1' is malformed.", r2FromR1.ErrorInfo.ToString());
 
-        var comp6 = CreateCompilation("", references: new[] { comp2.ToMetadataReference(), comp4.ToMetadataReference() },
+        var src6 = """
+public explicit extension R6 for object : R1 { }
+public explicit extension R7 for object : R2 { }
+public explicit extension R8 for R1 { }
+public explicit extension R9 for R2 { }
+""";
+        var comp6 = CreateCompilation(src6, references: new[] { comp2.ToMetadataReference(), comp4.ToMetadataReference() },
             targetFramework: TargetFramework.Net70);
-        comp6.VerifyDiagnostics();
+        // PROTOTYPE we should report use-site errors for the uses of R1 and R2
+        comp6.VerifyDiagnostics(
+            // (1,27): error CS9216: Extension 'R6' has underlying type 'object' but a base extension has underlying type 'R2'.
+            // public explicit extension R6 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "object", "R2").WithLocation(1, 27),
+            // (2,27): error CS9216: Extension 'R7' has underlying type 'object' but a base extension has underlying type 'R1'.
+            // public explicit extension R7 for object : R2 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R7").WithArguments("R7", "object", "R1").WithLocation(2, 27),
+            // (3,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // public explicit extension R8 for R1 { }
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R1").WithLocation(3, 34),
+            // (4,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // public explicit extension R9 for R2 { }
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R2").WithLocation(4, 34)
+            );
 
         r1 = comp6.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<RetargetingNamedTypeSymbol>(r1, isExplicit: true);
@@ -5076,6 +5099,9 @@ explicit extension R4<U> for C<U> : R3<U> { }
     [Fact]
     public void BaseExtension_UnderlyingTypeMismatch_PE()
     {
+        // class C { }
+        // explicit extension R1 for object { }
+        // explicit extension R2 for C : R1 { }
         var ilSource = """
 .class public auto ansi beforefieldinit C
     extends [mscorlib]System.Object
@@ -6889,6 +6915,7 @@ public explicit extension R2 for object : R1 { }
     [Theory, CombinatorialData]
     public void ExtensionMarkerMethod_Overloaded(bool isExplicit)
     {
+        // A mix between `extension R1 for object { }` and `extension R1 for string { }`
         var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType

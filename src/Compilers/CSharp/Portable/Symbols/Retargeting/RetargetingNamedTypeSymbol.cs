@@ -411,13 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (ReferenceEquals(_lazyExtendedType, ErrorTypeSymbol.UnknownResultType))
                 {
-                    TypeSymbol? acyclicExtendedType = GetDeclaredExtensionUnderlyingType();
-                    if (acyclicExtendedType is not null && BaseTypeAnalysis.TypeDependsOn(acyclicExtendedType, this))
-                    {
-                        acyclicExtendedType = CyclicInheritanceError(acyclicExtendedType);
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyExtendedType, acyclicExtendedType, ErrorTypeSymbol.UnknownResultType);
+                    // Cycles are handled in `GetDeclaredExtensionUnderlyingType` (where a bad extended type,
+                    // such as one that is an extension type, would be replaced with an error type)
+                    TypeSymbol? extendedType = GetDeclaredExtensionUnderlyingType();
+                    Interlocked.CompareExchange(ref _lazyExtendedType, extendedType, ErrorTypeSymbol.UnknownResultType);
                 }
 
                 return _lazyExtendedType;
@@ -468,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private static NamedTypeSymbol MakeErrorType(TypeSymbol type)
         {
+            // PROTOTYPE consider using a more specific diagnosticA. Maybe ERR_MalformedExtensionInMetadata or "Extension type declaration is malformed"
             var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, type.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
             return new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
         }
