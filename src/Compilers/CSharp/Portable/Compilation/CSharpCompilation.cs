@@ -2288,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
 
-        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation, BindingDiagnosticBag diagnostics)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {
             if (_interceptions is null || callLocation is null)
             {
@@ -2306,6 +2306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return oneInterception;
                 }
 
+                // Duplicate interceptors is an error in the declaration phase.
+                // This method is only expected to be called if no such errors are present.
                 throw ExceptionUtilities.Unreachable();
             }
 

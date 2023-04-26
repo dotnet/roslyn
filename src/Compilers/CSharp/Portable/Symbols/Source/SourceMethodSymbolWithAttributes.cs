@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-            SyntaxTree matchingTree = null;
+            SyntaxTree? matchingTree = null;
             foreach (var tree in syntaxTrees)
             {
                 if (tree.FilePath == filePath)
