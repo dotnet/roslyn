@@ -646,11 +646,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             finally
             {
-                if (_lazyPrimaryTask == null)
-                {
-                    // Set primaryTask to be a cancelled task.
-                    _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
-                }
+                // Set primaryTask to be a cancelled task.
+                _lazyPrimaryTask ??= Task.FromCanceled(new CancellationToken(canceled: true));
             }
         }
 
@@ -2062,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // PERF: For containing symbols, we want to cache the computed actions.
             // For member symbols, we do not want to cache as we will not reach this path again.
-            if (!(symbol is INamespaceOrTypeSymbol namespaceOrType))
+            if (symbol is not INamespaceOrTypeSymbol namespaceOrType)
             {
                 return await getAllActionsAsync(this, symbol, analyzer, cancellationToken).ConfigureAwait(false);
             }
@@ -2443,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private DeclarationAnalysisData ComputeDeclarationAnalysisData(
+        private static DeclarationAnalysisData ComputeDeclarationAnalysisData(
             ISymbol symbol,
             SyntaxReference declaration,
             SemanticModel semanticModel,
@@ -2459,8 +2456,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, cancellationToken);
-            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
+            var data = new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, isPartialDeclAnalysis);
+            AddSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, data.DescendantNodesToAnalyze, cancellationToken);
+            return data;
         }
 
         private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
@@ -2496,16 +2494,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
             var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
-            if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
+            if (analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {
-                return;
+                // Execute stateless syntax node actions.
+                executeNodeActions();
+
+                // Execute actions in executable code: code block actions, operation actions and operation block actions.
+                executeExecutableCodeActions();
             }
 
-            // Execute stateless syntax node actions.
-            executeNodeActions();
-
-            // Execute actions in executable code: code block actions, operation actions and operation block actions.
-            executeExecutableCodeActions();
+            declarationAnalysisData.Free();
 
             return;
 
@@ -2514,12 +2512,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (shouldExecuteSyntaxNodeActions)
                 {
                     var nodesToAnalyze = declarationAnalysisData.DescendantNodesToAnalyze;
-                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, coreActions, arePerSymbolActions: false);
-                    executeNodeActionsByKind(analysisScope, nodesToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
+                    executeNodeActionsByKind(nodesToAnalyze, coreActions, arePerSymbolActions: false);
+                    executeNodeActionsByKind(nodesToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
                 }
             }
 
-            void executeNodeActionsByKind(AnalysisScope analysisScope, ImmutableArray<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
+            void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
@@ -2534,11 +2532,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // and additionally the analyzer has not registered any code block start actions. In case
                     // the analyzer has registered code block start actions, we need to make callbacks for all nodes
                     // in the code block to ensure the analyzer can correctly report code block end diagnostics.
-                    var filteredNodesToAnalyze = declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions
-                        ? nodesToAnalyze.WhereAsArray(analysisScope.ShouldAnalyze)
-                        : nodesToAnalyze;
+                    if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
+                    {
+                        var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyze.Count);
+                        foreach (var node in nodesToAnalyze)
+                        {
+                            if (analysisScope.ShouldAnalyze(node))
+                                filteredNodesToAnalyze.Add(node);
+                        }
 
-                    AnalyzerExecutor.ExecuteSyntaxNodeActions(filteredNodesToAnalyze, nodeActionsByKind,
+                        executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, filteredNodesToAnalyze);
+                        filteredNodesToAnalyze.Free();
+                    }
+                    else
+                    {
+                        executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
+                    }
+                }
+
+                void executeSyntaxNodeActions(
+                    DiagnosticAnalyzer analyzer,
+                    GroupedAnalyzerActionsForAnalyzer groupedActionsForAnalyzer,
+                    ArrayBuilder<SyntaxNode> filteredNodesToAnalyze)
+                {
+                    AnalyzerExecutor.ExecuteSyntaxNodeActions(
+                        filteredNodesToAnalyze, groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
                         analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions,
                         cancellationToken);
@@ -2623,12 +2641,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (shouldExecuteOperationActions)
                 {
-                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, coreActions, arePerSymbolActions: false);
-                    executeOperationsActionsByKind(analysisScope, operationsToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
+                    executeOperationsActionsByKind(operationsToAnalyze, coreActions, arePerSymbolActions: false);
+                    executeOperationsActionsByKind(operationsToAnalyze, additionalPerSymbolActions, arePerSymbolActions: true);
                 }
             }
 
-            void executeOperationsActionsByKind(AnalysisScope analysisScope, ImmutableArray<IOperation> operationsToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
+            void executeOperationsActionsByKind(ImmutableArray<IOperation> operationsToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
@@ -2726,11 +2744,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static ImmutableArray<SyntaxNode> GetSyntaxNodesToAnalyze(
+        private static void AddSyntaxNodesToAnalyze(
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<DeclarationInfo> declarationsInNode,
             SemanticModel semanticModel,
+            ArrayBuilder<SyntaxNode> nodesToAnalyze,
             CancellationToken cancellationToken)
         {
             // Eliminate descendant member declarations within declarations.
@@ -2755,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
                         }
 
-                        return ImmutableArray<SyntaxNode>.Empty;
+                        return;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.
@@ -2775,17 +2794,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
-            var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
                     !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol))
                 {
-                    nodeBuilder.Add(node);
+                    nodesToAnalyze.Add(node);
                 }
             }
-
-            return nodeBuilder.ToImmutableAndFree();
         }
 
         private static bool IsEquivalentSymbol(ISymbol declaredSymbol, ISymbol? otherSymbol)
