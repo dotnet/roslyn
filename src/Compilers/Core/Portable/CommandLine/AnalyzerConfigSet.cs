@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a set of <see cref="AnalyzerConfig"/>, and can compute the effective analyzer options for a given source file. This is used to
     /// collect all the <see cref="AnalyzerConfig"/> files for that would apply to a compilation.
     /// </summary>
-    public sealed class AnalyzerConfigSet
+    public sealed partial class AnalyzerConfigSet
     {
         /// <summary>
         /// The list of <see cref="AnalyzerConfig" />s in this set. This list has been sorted per <see cref="AnalyzerConfig.DirectoryLengthComparer"/>.
@@ -58,6 +57,7 @@ namespace Microsoft.CodeAnalysis
             new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(Section.PropertiesKeyComparer));
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
+        private readonly Lazy<OptionKeys> _lazyOptionKeys;
 
         private StrongBox<AnalyzerConfigOptionsResult>? _lazyConfigOptions;
 
@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis
         {
             _analyzerConfigs = analyzerConfigs;
             _globalConfig = globalConfig;
+            _lazyOptionKeys = new Lazy<OptionKeys>(ComputeOptionKeys);
 
             var allMatchers = ArrayBuilder<ImmutableArray<SectionNameMatcher?>>.GetInstance(_analyzerConfigs.Length);
 
@@ -159,8 +160,48 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(allMatchers.Count == _analyzerConfigs.Length);
 
             _analyzerMatchers = allMatchers.ToImmutableAndFree();
-
         }
+
+        private OptionKeys ComputeOptionKeys()
+        {
+            var diagIdsBuilder = ImmutableHashSet.CreateBuilder<string>(Section.PropertiesKeyComparer);
+            var optionKeysBuilder = ImmutableHashSet.CreateBuilder<string>(Section.PropertiesKeyComparer);
+
+            foreach (var config in _analyzerConfigs)
+            {
+                addKeys(config.GlobalSection, diagIdsBuilder, optionKeysBuilder, _diagnosticIdCache);
+                foreach (var section in config.NamedSections)
+                    addKeys(section, diagIdsBuilder, optionKeysBuilder, _diagnosticIdCache);
+            }
+
+            addKeys(_globalConfig.GlobalSection, diagIdsBuilder, optionKeysBuilder, _diagnosticIdCache);
+            foreach (var section in _globalConfig.NamedSections)
+                addKeys(section, diagIdsBuilder, optionKeysBuilder, _diagnosticIdCache);
+
+            return new OptionKeys(diagIdsBuilder.ToImmutable(), optionKeysBuilder.ToImmutable());
+
+            static void addKeys(
+                Section section,
+                ImmutableHashSet<string>.Builder diagIdsBuilder,
+                ImmutableHashSet<string>.Builder optionKeysBuilder,
+                ConcurrentDictionary<ReadOnlyMemory<char>, string> diagnosticIdCache)
+            {
+                foreach (var (key, value) in section.Properties)
+                {
+                    if (TryParseDiagnosticId(key, diagnosticIdCache, out var diagId) && TryParseSeverity(value, out _))
+                    {
+                        diagIdsBuilder.Add(diagId);
+                    }
+                    else
+                    {
+                        optionKeysBuilder.Add(key);
+                    }
+                }
+            }
+        }
+
+        internal bool HasSeverityConfigurationEntry(DiagnosticDescriptor descriptor)
+            => _lazyOptionKeys.Value.HasSeverityConfigurationKey(descriptor);
 
         /// <summary>
         /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globally
@@ -404,37 +445,51 @@ namespace Microsoft.CodeAnalysis
             return options;
         }
 
-        private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
+        private static bool TryParseDiagnosticId(
+            string key,
+            ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache,
+            [NotNullWhen(true)] out string? diagId)
         {
             const string diagnosticOptionPrefix = "dotnet_diagnostic.";
             const string diagnosticOptionSuffix = ".severity";
 
-            foreach (var (key, value) in section.Properties)
+            // Keys are lowercased in editorconfig parsing
+            int diagIdLength = -1;
+            if (key.StartsWith(diagnosticOptionPrefix, StringComparison.Ordinal) &&
+                key.EndsWith(diagnosticOptionSuffix, StringComparison.Ordinal))
             {
-                // Keys are lowercased in editorconfig parsing
-                int diagIdLength = -1;
-                if (key.StartsWith(diagnosticOptionPrefix, StringComparison.Ordinal) &&
-                    key.EndsWith(diagnosticOptionSuffix, StringComparison.Ordinal))
+                diagIdLength = key.Length - (diagnosticOptionPrefix.Length + diagnosticOptionSuffix.Length);
+            }
+
+            if (diagIdLength >= 0)
+            {
+                ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(diagnosticOptionPrefix.Length, diagIdLength);
+                // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
+                // lets us avoid an allocation if the id has already been added
+                if (!diagIdCache.TryGetValue(idSlice, out diagId))
                 {
-                    diagIdLength = key.Length - (diagnosticOptionPrefix.Length + diagnosticOptionSuffix.Length);
+                    // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                    // dictionary, but the actual keys stored in the dictionary are trimmed
+                    // to avoid holding GC references to larger strings than necessary. The
+                    // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                    // and insertion, so we separate the operations here in code.
+                    diagId = idSlice.ToString();
+                    diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
                 }
 
-                if (diagIdLength >= 0)
-                {
-                    ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(diagnosticOptionPrefix.Length, diagIdLength);
-                    // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
-                    // lets us avoid an allocation if the id has already been added
-                    if (!diagIdCache.TryGetValue(idSlice, out var diagId))
-                    {
-                        // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
-                        // dictionary, but the actual keys stored in the dictionary are trimmed
-                        // to avoid holding GC references to larger strings than necessary. The
-                        // GetOrAdd APIs do not allow the key to be manipulated between lookup
-                        // and insertion, so we separate the operations here in code.
-                        diagId = idSlice.ToString();
-                        diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
-                    }
+                return true;
+            }
 
+            diagId = null;
+            return false;
+        }
+
+        private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
+        {
+            foreach (var (key, value) in section.Properties)
+            {
+                if (TryParseDiagnosticId(key, diagIdCache, out var diagId))
+                {
                     if (TryParseSeverity(value, out ReportDiagnostic severity))
                     {
                         treeBuilder[diagId] = severity;

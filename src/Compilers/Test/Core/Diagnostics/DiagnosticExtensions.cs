@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException,
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, analyzerConfigSet: null, onAnalyzerException,
                 analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, trackSuppressedDiagnosticIds: false,
                 out var newCompilation, cancellationToken);
             Debug.Assert(newCompilation.SemanticModelProvider != null);

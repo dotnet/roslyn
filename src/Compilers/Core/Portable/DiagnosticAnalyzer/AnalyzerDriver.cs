@@ -359,6 +359,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private AnalyzerConfigSet? _lazyAnalyzerConfigSet;
+
         /// <summary>
         /// Create an analyzer driver.
         /// </summary>
@@ -391,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticQueue diagnosticQueue,
             CompilationData compilationData,
             AnalysisScope analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             ConcurrentSet<string>? suppressedDiagnosticIds,
             CancellationToken cancellationToken)
         {
@@ -401,16 +404,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazyAnalyzerExecutor = analyzerExecutor;
                 _lazyCurrentCompilationData = compilationData;
                 _lazyDiagnosticQueue = diagnosticQueue;
+                _lazyAnalyzerConfigSet = analyzerConfigSet;
                 _lazySuppressedDiagnosticIdsForUnsuppressedAnalyzers = suppressedDiagnosticIds;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
                 _lazyInitializeTask = Task.Run(async () =>
                 {
-                    (_lazyAnalyzerActions, _lazyUnsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
-                    _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
+                    (_lazyAnalyzerActions, _lazyUnsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor, analysisScope, _lazyAnalyzerConfigSet, _severityFilter, cancellationToken).ConfigureAwait(false);
+                    _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _lazyAnalyzerConfigSet, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyNonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
                     _lazySymbolStartAnalyzers = ComputeSymbolStartAnalyzers(UnsuppressedAnalyzers);
-                    _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
+                    _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _lazyAnalyzerConfigSet, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
                     _lazyDoNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap, TreatAllCodeAsNonGeneratedCode);
                     _lazyGeneratedCodeFilesMap = new ConcurrentDictionary<SyntaxTree, bool>();
@@ -511,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 getSemanticModel: GetOrCreateSemanticModel,
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic, s => _programmaticSuppressions!.Add(s));
 
-            Initialize(analyzerExecutor, diagnosticQueue, compilationData, analysisScope, suppressedDiagnosticIds, cancellationToken);
+            Initialize(analyzerExecutor, diagnosticQueue, compilationData, analysisScope, analysisOptions.AnalyzerConfigSet, suppressedDiagnosticIds, cancellationToken);
         }
 
         private SemaphoreSlim? GetAnalyzerGate(DiagnosticAnalyzer analyzer)
@@ -629,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="eventQueue">Compilation events to analyze.</param>
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, AnalysisScope, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, AnalysisScope, AnalyzerConfigSet?, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal async Task AttachQueueAndProcessAllEventsAsync(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             try
@@ -658,7 +662,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="usingPrePopulatedEventQueue">Boolean flag indicating whether we should only process the already populated events or wait for <see cref="CompilationCompletedEvent"/>.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, AnalysisScope, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, AnalysisScope, AnalyzerConfigSet?, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, bool usingPrePopulatedEventQueue, CancellationToken cancellationToken)
         {
             try
@@ -812,6 +816,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
+            AnalyzerConfigSet? analyzerConfigSet,
             Action<Diagnostic> addExceptionDiagnostic,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
@@ -823,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
             Func<Exception, bool>? nullFilter = null;
-            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, trackSuppressedDiagnosticIds, out newCompilation, cancellationToken: cancellationToken);
+            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, analyzerConfigSet, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, trackSuppressedDiagnosticIds, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -832,6 +837,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
+            AnalyzerConfigSet? analyzerConfigSet,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             bool reportAnalyzer,
@@ -846,7 +852,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;
-            var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
+            var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter,
+                concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false, analyzerConfigSet: analyzerConfigSet);
             var analysisScope = AnalysisScope.CreateForBatchCompile(newCompilation, options, analyzers);
             analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), analysisScope, categorizeDiagnostics, trackSuppressedDiagnosticIds, cancellationToken);
 
@@ -1935,6 +1942,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             AnalysisScope analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
@@ -1942,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             foreach (var analyzer in analyzers)
             {
-                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, analyzerConfigSet, severityFilter, cancellationToken))
                 {
                     unsuppressedAnalyzersBuilder.Add(analyzer);
 
@@ -2134,13 +2142,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             AnalysisScope analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
             foreach (var analyzer in analyzers)
             {
-                Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken));
+                Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, analyzerConfigSet, severityFilter, cancellationToken));
 
                 var isConcurrent = await analyzerManager.IsConcurrentAnalyzerAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                 if (!isConcurrent)
@@ -2159,13 +2168,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             AnalysisScope analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
             foreach (var analyzer in analyzers)
             {
-                Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken));
+                Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, analyzerConfigSet, severityFilter, cancellationToken));
 
                 var generatedCodeAnalysisFlags = await analyzerManager.GetGeneratedCodeAnalysisFlagsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                 builder.Add(analyzer, generatedCodeAnalysisFlags);
@@ -2265,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            if (IsDiagnosticAnalyzerSuppressed(analyzer, compilationOptions, AnalyzerManager, AnalyzerExecutor, analysisScope, _severityFilter, cancellationToken))
+            if (IsDiagnosticAnalyzerSuppressed(analyzer, compilationOptions, AnalyzerManager, AnalyzerExecutor, analysisScope, _lazyAnalyzerConfigSet, _severityFilter, cancellationToken))
             {
                 return AnalyzerActionCounts.Empty;
             }
@@ -2288,10 +2298,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             AnalysisScope? analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
-            return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, s_IsCompilerAnalyzerFunc, analyzerExecutor, analysisScope, severityFilter, cancellationToken);
+            return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, s_IsCompilerAnalyzerFunc, analyzerExecutor, analysisScope, analyzerConfigSet, severityFilter, cancellationToken);
         }
 
         private static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer) => analyzer is CompilerDiagnosticAnalyzer;

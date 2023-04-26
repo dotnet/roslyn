@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerExecutor analyzerExecutor,
             AnalysisScope? analysisScope,
+            AnalyzerConfigSet? analyzerConfigSet,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analysisScope, cancellationToken))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analysisScope, analyzerConfigSet, cancellationToken))
                 {
                     isSuppressed = false;
                 }
@@ -379,10 +380,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Compilation? compilation,
                 AnalyzerOptions? analyzerOptions,
                 AnalysisScope? analysisScope,
+                AnalyzerConfigSet? analyzerConfigSet,
                 CancellationToken cancellationToken)
             {
                 if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
+                    Debug.Assert(analyzerOptions != null);
+
+                    // PERF: Fast check for whether the descriptor is never configured in any config file for the entire compilation.
+                    if (analyzerConfigSet != null && !analyzerConfigSet.HasSeverityConfigurationEntry(descriptor))
+                        return false;
+
+                    // Slow check to walk the config files corresponding to each tree in the analysis scope and determine if the descriptor
+                    // is enabled for any tree in the scope.
                     var trees = analysisScope?.SyntaxTrees ?? compilation.SyntaxTrees;
                     foreach (var tree in trees)
                     {

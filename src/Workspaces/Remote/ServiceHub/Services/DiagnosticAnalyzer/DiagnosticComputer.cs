@@ -541,6 +541,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // faster
             compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(concurrentAnalysis));
 
+            var analyzerConfigSet = await _project.State.GetAnalyzerConfigSetAsync(cancellationToken).ConfigureAwait(false);
+
             // Run analyzers concurrently, with performance logging and reporting suppressed diagnostics.
             // This allows all client requests with or without performance data and/or suppressed diagnostics to be satisfied.
             // TODO: can we support analyzerExceptionFilter in remote host? 
@@ -551,7 +553,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true);
+                reportSuppressedDiagnostics: true,
+                analyzerConfigSet: analyzerConfigSet);
 
             return compilation.WithAnalyzers(analyzers, analyzerOptions);
         }

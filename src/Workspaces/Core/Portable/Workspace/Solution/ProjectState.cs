@@ -249,6 +249,12 @@ namespace Microsoft.CodeAnalysis
                 additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
+        public async Task<AnalyzerConfigSet> GetAnalyzerConfigSetAsync(CancellationToken cancellationToken)
+        {
+            var cache = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return cache.AnalyzerConfigSet;
+        }
+
         public async Task<AnalyzerConfigData> GetAnalyzerOptionsForPathAsync(string path, CancellationToken cancellationToken)
         {
             var cache = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -501,9 +507,12 @@ namespace Microsoft.CodeAnalysis
 
             public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
             {
+                AnalyzerConfigSet = configSet;
                 _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
                 _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
             }
+
+            public AnalyzerConfigSet AnalyzerConfigSet { get; }
 
             public AnalyzerConfigData GlobalConfigOptions
                 => _global.Value;

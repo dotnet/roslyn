@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Contract.ThrowIfFalse(project.SupportsCompilation);
             AssertCompilation(project, compilation);
 
+            var analyzerConfigSet = await project.State.GetAnalyzerConfigSetAsync(cancellationToken).ConfigureAwait(false);
+
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
@@ -162,7 +164,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                reportSuppressedDiagnostics: includeSuppressedDiagnostics,
+                analyzerConfigSet: analyzerConfigSet);
 
             // Create driver that holds onto compilation and associated analyzers
             return compilation.WithAnalyzers(filteredAnalyzers, analyzerOptions);

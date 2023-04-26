@@ -1108,6 +1108,7 @@ namespace Microsoft.CodeAnalysis
                         analyzers,
                         analyzerOptions,
                         new AnalyzerManager(analyzers),
+                        analyzerConfigSet,
                         analyzerExceptionDiagnostics.Add,
                         Arguments.ReportAnalyzer,
                         severityFilter,
