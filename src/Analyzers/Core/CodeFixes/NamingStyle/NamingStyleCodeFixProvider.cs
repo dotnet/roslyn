@@ -163,12 +163,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-                return new CodeActionOperation[]
+
+                using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
+
+                operations.Add(codeAction);
+                var factory = _startingSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                if (factory is not null)
                 {
-                    codeAction,
-                    factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                };
+                    operations.Add(factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution));
+                }
+
+                return operations.ToImmutable();
 #endif
             }
 
