@@ -846,7 +846,7 @@ class C
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
-            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")), analyzerConfigSet: null);
 
             AnalyzerConfigOptionsProvider? passedIn = null;
             var testGenerator = new CallbackGenerator(
@@ -2378,7 +2378,7 @@ class C { }
 
             var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
             builder.Add("test", "value1");
-            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(builder.ToImmutable()), analyzerConfigSet: null);
 
             // run the generator once, and check it was passed the configs
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
@@ -2415,7 +2415,7 @@ class C { }
             // now update the config
             builder.Clear();
             builder.Add("test", "value2");
-            var newOptionsProvider = optionsProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
+            var newOptionsProvider = optionsProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()), builder.Keys);
             driver = driver.WithUpdatedAnalyzerConfigOptions(newOptionsProvider);
 
             // check we ran
