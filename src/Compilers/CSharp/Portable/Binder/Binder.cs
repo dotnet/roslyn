@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
@@ -747,13 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
                 // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
                 // binding cycle.
+                Debug.Assert(syntax.GetLocation() != null);
                 diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
-                                    ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
+                                    ? new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
                                     : new CSDiagnosticInfo(isDelegateConversion
                                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
                                                                : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
                                                            symbol),
-                                location);
+                                syntax.GetLocation()!);
             }
         }
 

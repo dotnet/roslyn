@@ -8,10 +8,13 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
 
         private readonly SyntaxToken _identifierToken;
-        private readonly ImmutableArray<Location> _locations;
         private readonly TypeSyntax _typeSyntax;
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
@@ -69,9 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : isScoped ? ScopedKind.ScopedValue : ScopedKind.None;
 
             this._declarationKind = declarationKind;
-
-            // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create(identifierToken.GetLocation());
         }
 
         /// <summary>
@@ -404,23 +403,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Location TryGetFirstLocation()
+            => _identifierToken.GetLocation();
+
         /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
         /// </summary>
         public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations;
-            }
-        }
+            => ImmutableArray.Create(GetFirstLocation());
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {
             return _identifierToken.Parent;
         }
+
+        internal override bool HasSourceLocation => true;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

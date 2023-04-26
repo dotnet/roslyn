@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Compilation.SourceModule != method.ContainingModule)
                     {
-                        CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
 
                         if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                         {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (SyntaxFacts.IsCheckedOperator(method.Name) &&
                     Compilation.SourceModule != method.ContainingModule)
                 {
-                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics, syntax.GetLocation()!);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                 }
             }
         }
@@ -836,14 +836,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
                         {
                             // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
-                            Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                            Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.GetFirstLocation(), p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
                         }
                     }
 
                     if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
                     {
                         // Parameter {0} has params modifier in lambda but not in target delegate type.
-                        Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                        Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.GetFirstLocation(), p + 1);
                     }
                 }
             }
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaSymbol.DeclaringCompilation,
                     member,
                     diagnostics,
-                    lambdaParameter.Locations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
+                    lambdaParameter.TryGetFirstLocation() ?? lambdaSymbol.SyntaxNode.Location);
             }
         }
 
@@ -1477,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 

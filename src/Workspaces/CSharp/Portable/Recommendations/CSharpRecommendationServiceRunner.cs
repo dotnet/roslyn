@@ -192,9 +192,7 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()
         {
-            var syntaxTree = _context.SyntaxTree;
-            var position = _context.Position;
-            var token = _context.LeftToken;
+            var token = _context.TargetToken;
 
             // The following code is a hack to get around a binding problem when asking binding
             // questions immediately after a using directive. This is special-cased in the binder
@@ -205,16 +203,8 @@ internal partial class CSharpRecommendationService
             // using System;
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
-                token.Parent.IsKind(SyntaxKind.UsingDirective) &&
-                position >= token.Span.End)
-            {
-                var compUnit = (CompilationUnitSyntax)syntaxTree.GetRoot(_cancellationToken);
-                if (compUnit.Usings.Count > 0 && compUnit.Usings.Last().SemicolonToken == token)
-                {
-                    token = token.GetNextToken(includeZeroWidth: true);
-                }
-            }
+            if (_context.IsRightAfterUsingOrImportDirective)
+                token = token.GetNextToken(includeZeroWidth: true);
 
             var symbols = _context.SemanticModel.LookupSymbols(token.SpanStart);
 

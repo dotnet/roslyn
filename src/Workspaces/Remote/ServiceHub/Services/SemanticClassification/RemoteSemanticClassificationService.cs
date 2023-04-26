@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     document = document.WithFrozenPartialSemantics(cancellationToken);
                 }
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+                using var _ = Classifier.GetPooledList(out var temp);
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
                     document, span, type, options, temp, cancellationToken).ConfigureAwait(false);
 
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _workQueue.AddWork((document, type, options));
                 }
 
-                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
+                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
             }, cancellationToken);
         }
     }

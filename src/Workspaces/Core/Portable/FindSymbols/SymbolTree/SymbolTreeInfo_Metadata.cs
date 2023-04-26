@@ -158,9 +158,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // CreateMetadataSymbolTreeInfoAsync
                 var asyncLazy = s_peReferenceToInfo.GetValue(
                     reference,
-                    id => new AsyncLazy<SymbolTreeInfo>(
-                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
-                        cacheResult: true));
+                    id => AsyncLazy.Create(
+                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c)));
 
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -178,15 +177,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
                     metadataId,
-                    metadataId => new AsyncLazy<SymbolTreeInfo>(
+                    metadataId => AsyncLazy.Create(
                         cancellationToken => LoadOrCreateAsync(
                             services,
                             solutionKey,
                             checksum,
                             createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(reference)).Create()),
                             keySuffix: GetMetadataKeySuffix(reference),
-                            cancellationToken),
-                        cacheResult: true));
+                            cancellationToken)));
 
                 var metadataIdSymbolTreeInfo = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
