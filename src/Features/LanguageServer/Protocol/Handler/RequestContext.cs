@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -45,21 +46,30 @@ internal readonly struct RequestContext
     private readonly ILspServices _lspServices;
 
     /// <summary>
+    /// Provides backing storage for the LSP workspace used by this RequestContext instance, allowing it to be cleared
+    /// on demand from all copies that may exist of this value type.
+    /// </summary>
+    /// <remarks>
+    /// This field is only initialized for handlers that request solution context.
+    /// </remarks>
+    private readonly StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>? _lspSolution;
+
+    /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
     /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
     /// </summary>
-    public readonly Workspace? Workspace;
+    public Workspace? Workspace => _lspSolution?.Value.Workspace;
 
     /// <summary>
     /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
     /// </summary>
-    public readonly Solution? Solution;
+    public Solution? Solution => _lspSolution?.Value.Solution;
 
     /// <summary>
     /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
     /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    public readonly Document? Document;
+    public Document? Document => _lspSolution?.Value.Document;
 
     /// <summary>
     /// The LSP server handling the request.
@@ -97,9 +107,18 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
-        Workspace = workspace;
-        Document = document;
-        Solution = solution;
+        if (workspace is not null)
+        {
+            RoslynDebug.Assert(solution is not null);
+            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>((workspace, solution, document));
+        }
+        else
+        {
+            RoslynDebug.Assert(solution is null);
+            RoslynDebug.Assert(document is null);
+            _lspSolution = null;
+        }
+
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
@@ -227,6 +246,14 @@ internal readonly struct RequestContext
 
     public bool IsTracking(Uri documentUri)
         => _trackedDocuments.ContainsKey(documentUri);
+
+    public void ClearSolutionContext()
+    {
+        if (_lspSolution is null)
+            return;
+
+        _lspSolution.Value = default;
+    }
 
     /// <summary>
     /// Logs an informational message.
