@@ -603,26 +603,38 @@ public class InterceptorsTests : CSharpTestBase
         var source = """
             using System.Runtime.CompilerServices;
 
-            C.M();
-
             class C
             {
+                public static void Main()
+                {
+                    C.M();
+                }
+
                 [Interceptable]
                 public static void M() { }
             }
 
             class D
             {
-                [InterceptsLocation("Program.cs", 3, 3)]
+                [InterceptsLocation("Program.cs", 7, 11)]
                 public static void M1() { }
 
-                [InterceptsLocation("Program.cs", 3, 3)]
+                [InterceptsLocation("Program.cs", 7, 11)]
                 public static void M2() { }
             }
             """;
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true));
         verifier.VerifyDiagnostics();
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 7, 11)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 7, 11)").WithLocation(16, 6),
+            // Program.cs(19,6): error CS27016: The indicated call is intercepted multiple times.
+            //     [InterceptsLocation("Program.cs", 7, 11)]
+            Diagnostic(ErrorCode.ERR_DuplicateInterceptor, @"InterceptsLocation(""Program.cs"", 7, 11)").WithLocation(19, 6));
     }
 
     [Fact]
