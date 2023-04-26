@@ -284,8 +284,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 switch ((__FRAMESHOW)fShow)
                 {
-                    case __FRAMESHOW.FRAMESHOW_WinShown:
-                        return TryInitializeTextBuffer();
+                    case __FRAMESHOW.FRAMESHOW_WinShown when TextBuffer is null:
+                        TryInitializeTextBuffer();
+                        if (TextBuffer is not null)
+                        {
+                            // The current TextBuffer was initialized in the OnShow instead of being initialized in the
+                            // constructor. For consumers, treat this the same way as when the active document changes.
+                            _documentTracker.DocumentsChanged?.Invoke(_documentTracker, EventArgs.Empty);
+                        }
+
+                        return VSConstants.S_OK;
 
                     case __FRAMESHOW.FRAMESHOW_WinClosed:
                     case __FRAMESHOW.FRAMESHOW_WinHidden:
@@ -302,12 +310,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             int IVsWindowFrameNotify2.OnClose(ref uint pgrfSaveOptions)
                 => Disconnect();
 
-            private int TryInitializeTextBuffer()
+            private void TryInitializeTextBuffer()
             {
-                _documentTracker.AssertIsForeground();
+                RoslynDebug.Assert(TextBuffer is null);
 
-                if (TextBuffer is not null)
-                    return VSConstants.S_OK;
+                _documentTracker.AssertIsForeground();
 
                 if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)) && boxedDocCookie is uint docCookie)
                 {
@@ -315,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if ((flags & (_VSRDTFLAGS)_VSRDTFLAGS4.RDT_PendingInitialization) != 0)
                     {
                         // This document is not yet initialized. Defer initialization to the next OnShow event.
-                        return VSConstants.S_OK;
+                        return;
                     }
                 }
 
@@ -332,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                return VSConstants.S_OK;
+                return;
             }
 
             private int Disconnect()
