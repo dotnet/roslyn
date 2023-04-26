@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(builder.Count > 1);
                     bool hasNamespaces = false;
-                    for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
+                    for (int i = 0; i < builder.Count; i++)
                     {
                         if (builder[i] is TNamespaceSymbol)
                         {
