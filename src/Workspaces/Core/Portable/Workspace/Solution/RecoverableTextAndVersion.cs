@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis
         {
 #pragma warning disable CA2012 // Use ValueTasks correctly
             var valueTask = GetRecoverableTextAsync(useAsync: false, options, cancellationToken);
-#pragma warning restore CA2012 // Use ValueTasks correctly
             var recoverableText = valueTask.VerifyCompleted("GetRecoverableTextAsync should have completed synchronously since we passed 'useAsync: false'");
 
             return recoverableText.ToTextAndVersion(recoverableText.GetValue(cancellationToken));
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)

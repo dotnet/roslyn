@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis
                 onBeforeUpdate,
                 onAfterUpdate,
                 CancellationToken.None);
-#pragma warning restore CA2012 // Use ValueTasks correctly
 
             return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         internal async ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
@@ -366,9 +366,9 @@ namespace Microsoft.CodeAnalysis
                 onBeforeUpdate,
                 onAfterUpdate,
                 CancellationToken.None);
-#pragma warning restore CA2012 // Use ValueTasks correctly
 
             return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
