@@ -145,9 +145,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
 
-        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
-            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
-
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open
 

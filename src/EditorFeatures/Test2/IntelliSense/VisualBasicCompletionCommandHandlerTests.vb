@@ -1097,7 +1097,7 @@ End Class
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544471")>
         <WpfFact>
-        Public Async Function TestDontCrashOnEmptyParameterList() As Task
+        Public Async Function TestDoNotCrashOnEmptyParameterList() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
 &lt;Obsolete()$$&gt;

@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _connection?.Dispose();
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask BreakStateOrCapabilitiesChangedAsync(IDiagnosticAnalyzerService diagnosticService, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, bool? inBreakState, CancellationToken cancellationToken)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 compileTimeSolution, documentsToReanalyze, designTimeSolution: _workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: designTimeDocumentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: rudeEdits.Select(d => d.DocumentId), highPriority: false);
 
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
         }
 
         public async ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken)

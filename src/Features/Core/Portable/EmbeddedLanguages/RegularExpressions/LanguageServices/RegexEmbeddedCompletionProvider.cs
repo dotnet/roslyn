@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
-                    rules: s_rules));
+                    rules: s_rules,
+                    isComplexTextEdit: context.CompletionListSpan != textChange.Span));
             }
 
             context.IsExclusive = true;

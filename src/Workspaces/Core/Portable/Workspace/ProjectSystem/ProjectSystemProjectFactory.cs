@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                         solutionChanges = new SolutionChangeAccumulator(oldSolution);
                         mutation(solutionChanges);
 
-                        // If the accumulator showed no changes, return the old solution.  This will ensure that
+                        // Note: If the accumulator showed no changes it will return oldSolution.  This ensures that
                         // SetCurrentSolutionAsync bails out immediately and no further work is done.
-                        return solutionChanges.HasChange ? solutionChanges.Solution : oldSolution;
+                        return solutionChanges.Solution;
                     },
                     changeKind: (_, _) => (solutionChanges.WorkspaceChangeKind, solutionChanges.WorkspaceChangeProjectId, solutionChanges.WorkspaceChangeDocumentId),
                     onBeforeUpdate: (_, _) =>

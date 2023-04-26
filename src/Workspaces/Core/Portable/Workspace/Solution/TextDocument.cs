@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the document's top level signature.
         /// </summary>
-        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
+        internal ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
             => State.GetTopLevelChangeTextVersionAsync(cancellationToken);
 
         /// <summary>

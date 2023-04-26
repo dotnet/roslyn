@@ -73,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isPossibleTupleContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
             isPreProcessorExpressionContext As Boolean,
+            isRightAfterUsingOrImportDirective As Boolean,
             isRightOfNameSeparator As Boolean,
             isRightSideOfNumericType As Boolean,
             isStatementContext As Boolean,
@@ -105,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isPreProcessorDirectiveContext:=isPreProcessorDirectiveContext,
                 isPreProcessorExpressionContext:=isPreProcessorExpressionContext,
+                isRightAfterUsingOrImportDirective:=isRightAfterUsingOrImportDirective,
                 isRightOfNameSeparator:=isRightOfNameSeparator,
                 isRightSideOfNumericType:=isRightSideOfNumericType,
                 isStatementContext:=isStatementContext,
@@ -187,6 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
+                isRightAfterUsingOrImportDirective:=ComputeIsRightAfterUsingOrImportDirective(targetToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isRightSideOfNumericType:=False,
                 isStatementContext:=isStatementContext,
@@ -283,6 +286,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return enumDeclaration IsNot Nothing AndAlso
                enumDeclaration.UnderlyingType IsNot Nothing AndAlso
                targetToken = enumDeclaration.UnderlyingType.AsKeyword
+        End Function
+
+        Private Shared Function ComputeIsRightAfterUsingOrImportDirective(targetToken As SyntaxToken) As Boolean
+            Dim importStatement = targetToken.GetAncestor(Function(n) n.IsKind(SyntaxKind.ImportsStatement))
+            Dim lastToken = importStatement?.GetLastToken()
+            Return lastToken.HasValue AndAlso lastToken.Value = targetToken
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean

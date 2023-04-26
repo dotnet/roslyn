@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e)
             {
-                EditAndContinueWorkspaceService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
+                EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
 
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
                 diagnostics = ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message }));
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void LogSolutionUpdate(SolutionUpdate update, UpdateId updateId)
         {
-            var log = EditAndContinueWorkspaceService.Log;
+            var log = EditAndContinueService.Log;
 
             log.Write("Solution update {0}.{1} status: {2}", updateId.SessionId.Ordinal, updateId.Ordinal, update.ModuleUpdates.Status);
 

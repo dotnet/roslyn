@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -182,7 +183,7 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
-            var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
+            var textEdit = await EditorLspCompletionResultCreationService.GenerateTextEditAsync(
                 document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()

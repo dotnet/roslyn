@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 #Region "VB tests"
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemovePropertyNameForObjectCreationInitializer() As Task
+        Public Async Function TestVisualBasic_DoNotRemovePropertyNameForObjectCreationInitializer() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">

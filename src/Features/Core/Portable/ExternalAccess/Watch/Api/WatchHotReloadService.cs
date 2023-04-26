@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private DebuggingSessionId _sessionId;
         private readonly ImmutableArray<string> _capabilities;
 
         public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
+            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>().Service, capabilities);
 
         /// <summary>
         /// Starts the watcher.

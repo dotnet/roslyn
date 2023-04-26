@@ -1,7 +1,8 @@
 {
   "feeds": {
     "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
-    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
+    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json",
+    "vs": "https://pkgs.dev.azure.com/DevDiv/_packaging/VS/nuget/v3/index.json"
   },
   "packages": {
     "default": {
@@ -145,7 +146,17 @@
       ],
       "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.6P2]"
+      "insertionTitlePrefix": "[d17.6P3]"
+    },
+    "release/dev17.7": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.7P1]"
     },
     "main": {
       "nugetKind": [
@@ -155,17 +166,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[17.6P3]"
+      "insertionTitlePrefix": "[d17.7P2]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

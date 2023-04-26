@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver);
-            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node.Location, isDelegateConversion: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
             // No use site errors, but there could be use site warnings.
             // If there are any use site warnings, they have already been reported by overload resolution.

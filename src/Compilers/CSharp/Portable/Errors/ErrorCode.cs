@@ -2189,6 +2189,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadStaticAfterUnsafe = 9133,
 
         ERR_BadCaseInSwitchArm = 9134,
+        ERR_ConstantValueOfTypeExpected = 9135,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         void reportBaseType()
                         {
-                            var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
+                            var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, GetFirstLocation(), this);
                             baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
                             baseTypeLocation = decl.NameLocation;
                             reportedPartialConflict = true;
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             interfaceLocations.Free();
 
-            diagnostics.Add(Locations[0], useSiteInfo);
+            diagnostics.Add(GetFirstLocation(), useSiteInfo);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
         }
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
                         result.Add(new ExtendedErrorTypeSymbol(t, LookupResultKind.NotReferencable,
-                            diagnostics.Add(ErrorCode.ERR_CycleInInterfaceInheritance, Locations[0], this, t)));
+                            diagnostics.Add(ErrorCode.ERR_CycleInInterfaceInheritance, GetFirstLocation(), this, t)));
                         continue;
                     }
                     else
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                diagnostics.Add(Locations[0], useSiteInfo);
+                diagnostics.Add(GetFirstLocation(), useSiteInfo);
             }
 
             return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable,
-                    diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredBase, this));
+                    diagnostics.Add(ErrorCode.ERR_CircularBase, GetFirstLocation(), declaredBase, this));
             }
 
             this.SetKnownToHaveNoDeclaredBaseCycles();
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             while ((object)current != null);
 
-            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? Locations[0]), useSiteInfo);
+            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? GetFirstLocation()), useSiteInfo);
 
             return declaredBase;
         }

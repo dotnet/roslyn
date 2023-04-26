@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             // the info has changed by DocumentState.
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
-            _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
         }
 
         public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo)
@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis
             DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
             AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-            _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
-            _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
+            _lazyLatestDocumentVersion = AsyncLazy.Create(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c));
+            _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c));
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
             // we hold onto the info so that we don't need to duplicate all information info already has in the state
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
 
-            _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
         }
 
         private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
@@ -195,11 +195,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
             {
-                return new AsyncLazy<VersionStamp>(c => ComputeTopLevelChangeTextVersionAsync(oldVersion, newDocument, c), cacheResult: true);
+                return AsyncLazy.Create(c => ComputeTopLevelChangeTextVersionAsync(oldVersion, newDocument, c));
             }
             else
             {
-                return new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true);
+                return AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c));
             }
         }
 
@@ -490,8 +490,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
                     return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
-                },
-                cacheResult: true);
+                });
         }
 
         private readonly struct AnalyzerConfigOptionsCache
@@ -953,13 +952,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             dependentDocumentVersion = recalculateDocumentVersion
-                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                ? AsyncLazy.Create(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
                 : contentChanged
-                    ? new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true)
+                    ? AsyncLazy.Create(newDocument.GetTextVersionAsync)
                     : _lazyLatestDocumentVersion;
 
             dependentSemanticVersion = recalculateSemanticVersion
-                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                ? AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
                 : contentChanged
                     ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
                     : _lazyLatestDocumentTopLevelChangeVersion;

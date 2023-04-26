@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="size">The size of the metadata block.</param>
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
-        public static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size)
+        public static ModuleMetadata CreateFromMetadata(nint metadata, int size)
             => CreateFromMetadataWorker(metadata, size, onDispose: null);
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         /// cref="Metadata.Copy"/> will not call this when they are disposed.</param>
         /// <exception cref="ArgumentNullException"><paramref name="onDispose"/> is null.</exception>
         public static unsafe ModuleMetadata CreateFromMetadata(
-            IntPtr metadata,
+            nint metadata,
             int size,
             Action onDispose)
         {
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static ModuleMetadata CreateFromMetadataWorker(
-            IntPtr metadata,
+            nint metadata,
             int size,
             Action? onDispose)
         {
-            if (metadata == IntPtr.Zero)
+            if (metadata == 0)
             {
                 throw new ArgumentNullException(nameof(metadata));
             }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="size">The size of the image pointed to by <paramref name="peImage"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
-        public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
+        public static unsafe ModuleMetadata CreateFromImage(nint peImage, int size)
             => CreateFromImage((byte*)peImage, size, onDispose: null);
 
         private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, Action? onDispose)
