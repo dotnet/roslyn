@@ -301,7 +301,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 lock (_gate)
                 {
-                    _lastProcessedData = (currentSnapshot, currentRoot is not null ? currentRoot : currentDocument);
+                    // 📝 Explicit casts added only to work around https://github.com/dotnet/roslyn/issues/67975
+                    _lastProcessedData = (currentSnapshot, currentRoot is not null ? (SumType<SyntaxNode, Document>)currentRoot : (SumType<SyntaxNode, Document>)currentDocument);
                 }
 
                 // Notify the editor now that there were changes.  Note: we do not need to go the
