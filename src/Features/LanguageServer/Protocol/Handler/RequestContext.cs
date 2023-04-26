@@ -58,18 +58,66 @@ internal readonly struct RequestContext
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
     /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
     /// </summary>
-    public Workspace? Workspace => _lspSolution?.Value.Workspace;
+    public Workspace? Workspace
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a workspace instance
+                return null;
+            }
+
+            // The workspace is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared.
+            return _lspSolution.Value.Workspace ?? throw new InvalidOperationException();
+        }
+    }
 
     /// <summary>
     /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
     /// </summary>
-    public Solution? Solution => _lspSolution?.Value.Solution;
+    public Solution? Solution
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared.
+            return _lspSolution.Value.Solution ?? throw new InvalidOperationException();
+        }
+    }
 
     /// <summary>
     /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
     /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    public Document? Document => _lspSolution?.Value.Document;
+    public Document? Document
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
+            // Document being null for this check, because it is not always provided as part of the solution context.
+            if (_lspSolution.Value.Workspace is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _lspSolution.Value.Document;
+        }
+    }
 
     /// <summary>
     /// The LSP server handling the request.
