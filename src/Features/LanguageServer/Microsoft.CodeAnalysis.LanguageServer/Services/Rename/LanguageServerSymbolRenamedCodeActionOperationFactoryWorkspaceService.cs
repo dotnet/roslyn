@@ -24,25 +24,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services.Rename
         }
 
         public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
-            => new RenameCodeActionOperation(
-                title: string.Format(WorkspacesResources.Rename_0_to_1, symbol.Name, newName),
-                updateSolution: updatedSolution);
-
-        private class RenameCodeActionOperation : CodeActionOperation
-        {
-            private readonly string _title;
-            private readonly Solution _updateSolution;
-
-            public RenameCodeActionOperation(string title, Solution updateSolution)
-            {
-                _title = title;
-                _updateSolution = updateSolution;
-            }
-
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
-                => workspace.TryApplyChanges(_updateSolution);
-
-            public override string? Title => _title;
-        }
+             => new ApplyChangesOperation(updatedSolution);
     }
 }
