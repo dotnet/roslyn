@@ -16,24 +16,27 @@ steps:
     targetArgument: $(System.DefaultWorkingDirectory)
     optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
 
-- task: BinSkim@4
-  displayName: 🔍 Run BinSkim
-  inputs:
-    InputType: Basic
-    Function: analyze
-    TargetPattern: guardianGlob
-    AnalyzeTargetGlob: $(BinSkimTargets)
-
 - task: CopyFiles@2
-  displayName: 🔍 Collect APIScan inputs
+  displayName: 📂 Collect APIScan/BinSkim inputs
   inputs:
     SourceFolder: $(Build.ArtifactStagingDirectory)/Symbols-$(Agent.JobName)
     # Exclude any patterns from the Contents (e.g. `!**/git2*`) that we have symbols for but do not need to run APIScan on.
     Contents: |
       **
       !**/arm64/**
+      !**/win-arm64/**
+      !**/linux-*/**
+      !**/osx*/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
+
+- task: BinSkim@4
+  displayName: 🔍 Run BinSkim
+  inputs:
+    InputType: Basic
+    Function: analyze
+    TargetPattern: guardianGlob
+    AnalyzeTargetGlob: $(Build.ArtifactStagingDirectory)/APIScanInputs/**/*.dll;$(Build.ArtifactStagingDirectory)/APIScanInputs/**/*.exe
 
 - task: APIScan@2
   displayName: 🔍 Run APIScan
