@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
         private readonly IManagedHotReloadService _debuggerService;
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private DebuggingSessionId _sessionId;
 
         public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
         {
-            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
             _debuggerService = debuggerService;
         }
 

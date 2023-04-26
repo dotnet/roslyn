@@ -832,52 +832,70 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector)
             where K : notnull
+            where T : notnull
         {
             if (items.Length == 1)
             {
-                var dictionary1 = new Dictionary<K, ImmutableArray<T>>(1, comparer);
                 T value = items[0];
-                dictionary1.Add(keySelector(value), ImmutableArray.Create(value));
-                return dictionary1;
+                return new Dictionary<K, ImmutableArray<T>>(1)
+                {
+                    {  keySelector(value), ImmutableArray.Create(value) },
+                };
             }
 
             if (items.Length == 0)
             {
-                return new Dictionary<K, ImmutableArray<T>>(comparer);
+                return new Dictionary<K, ImmutableArray<T>>();
             }
 
             // bucketize
             // prevent reallocation. it may not have 'count' entries, but it won't have more. 
-            var accumulator = new Dictionary<K, ArrayBuilder<T>>(items.Length, comparer);
-            for (int i = 0; i < items.Length; i++)
-            {
-                var item = items[i];
-                var key = keySelector(item);
-                if (!accumulator.TryGetValue(key, out var bucket))
-                {
-                    bucket = ArrayBuilder<T>.GetInstance();
-                    accumulator.Add(key, bucket);
-                }
+            //
+            // We store a mapping from keys to either a single item (very common in practice as this is used from
+            // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-                bucket.Add(item);
+            var accumulator = PooledDictionary<K, object>.GetInstance();
+            foreach (var item in items)
+            {
+                var key = keySelector(item);
+                if (accumulator.TryGetValue(key, out var existingValueOrArray))
+                {
+                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
+                    {
+                        // Already a builder in the accumulator, just add to that.
+                        arrayBuilder.Add(item);
+                    }
+                    else
+                    {
+                        // Just a single value in the accumulator so far.  Convert to using a builder.
+                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                        arrayBuilder.Add((T)existingValueOrArray);
+                        arrayBuilder.Add(item);
+                        accumulator[key] = arrayBuilder;
+                    }
+                }
+                else
+                {
+                    // Nothing in the dictionary so far.  Add the item directly.
+                    accumulator.Add(key, item);
+                }
             }
 
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
 
             // freeze
             foreach (var pair in accumulator)
             {
-                dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
+                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
+                    ? arrayBuilder.ToImmutableAndFree()
+                    : ImmutableArray.Create((T)pair.Value));
             }
 
-            return dictionary;
-        }
+            accumulator.Free();
 
-        internal static Location FirstOrNone(this ImmutableArray<Location> items)
-        {
-            return items.IsEmpty ? Location.None : items[0];
+            return dictionary;
         }
 
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             };
         }
 
-        private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueWorkspaceService service, Type[] additionalParts = null)
+        private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[] additionalParts = null)
         {
             var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
             solution = workspace.CurrentSolution;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return workspace;
         }
 
-        private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueWorkspaceService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
+        private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
         {
             var composition = EditorTestCompositions.EditorFeatures
                 .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
@@ -161,16 +161,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return document.Project.Solution;
         }
 
-        private EditAndContinueWorkspaceService GetEditAndContinueService(Workspace workspace)
+        private EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
         {
-            var service = (EditAndContinueWorkspaceService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
             var accessor = service.GetTestAccessor();
             accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
             return service;
         }
 
         private async Task<DebuggingSession> StartDebuggingSessionAsync(
-            EditAndContinueWorkspaceService service,
+            EditAndContinueService service,
             Solution solution,
             CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
             IPdbMatchingSourceTextProvider sourceTextProvider = null)
@@ -1617,7 +1617,7 @@ class C { int Y => 2; }
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[]
                 {
-                    "ENC0036: " + FeaturesResources.Modifying_a_generic_method_requires_restarting_the_application,
+                    "ENC0113: " + string.Format(FeaturesResources.Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime, FeaturesResources.method),
                     "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter)
                 },
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
@@ -1645,7 +1645,7 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=36|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1655,7 +1655,7 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=36|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
                 }, _telemetryLog);
             }

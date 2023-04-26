@@ -23,9 +23,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// <summary>
     /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
     /// </summary>
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
-    internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    [Export(typeof(IEditAndContinueService)), Shared]
+    internal sealed class EditAndContinueService : IEditAndContinueService
     {
+        [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
+        internal sealed class WorkspaceService : IEditAndContinueWorkspaceService
+        {
+            public IEditAndContinueService Service { get; }
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public WorkspaceService(IEditAndContinueService service)
+                => Service = service;
+        }
+
         internal static readonly TraceLog Log;
         internal static readonly TraceLog AnalysisLog;
 
@@ -39,12 +50,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueWorkspaceService()
+        public EditAndContinueService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
         }
 
-        static EditAndContinueWorkspaceService()
+        static EditAndContinueService()
         {
             Log = new(2048, "EnC", "Trace.log");
             AnalysisLog = new(1024, "EnC", "Analysis.log");
@@ -278,9 +289,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly struct TestAccessor
         {
-            private readonly EditAndContinueWorkspaceService _service;
+            private readonly EditAndContinueService _service;
 
-            public TestAccessor(EditAndContinueWorkspaceService service)
+            public TestAccessor(EditAndContinueService service)
             {
                 _service = service;
             }
