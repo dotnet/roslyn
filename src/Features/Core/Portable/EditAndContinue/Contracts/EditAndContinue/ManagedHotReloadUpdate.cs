@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Debugging.Contracts.HotReload;
+namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 [DataContract]
 internal readonly struct ManagedHotReloadUpdate
