@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invocations.Push(node);
 
                 node = nested;
-                if (receiverIsInvocation(node, out nested))
+                while (receiverIsInvocation(node, out nested))
                 {
                     invocations.Push(node);
                     node = nested;
