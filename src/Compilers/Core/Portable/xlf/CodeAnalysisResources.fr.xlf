@@ -64,6 +64,11 @@
         <target state="translated">Modifier et continuer ne peut pas reprendre l’itérateur suspendu, car l’instruction yield return correspondante a été supprimée</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Générateur</target>
@@ -504,11 +509,6 @@
         <target state="translated">'La valeur 'start' ne doit pas être négative</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'La valeur 'end' ne doit pas être inférieure à la valeur 'start'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Type de contenu non valide</target>
@@ -691,18 +691,18 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">Échec de l'analyseur</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <target state="needs-review-translation">Échec de l'analyseur</target>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="translated">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
+        <target state="needs-review-translation">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

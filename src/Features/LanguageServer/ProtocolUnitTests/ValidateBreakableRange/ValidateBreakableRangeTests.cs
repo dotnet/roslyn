@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         }
 
         [Theory, CombinatorialData]
-        public async Task DontShrinkValidMultilineBreakpoints(bool mutatingLspWorkspace)
+        public async Task DoNotShrinkValidMultilineBreakpoints(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A

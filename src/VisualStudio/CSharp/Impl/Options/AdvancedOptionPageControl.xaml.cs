@@ -100,13 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp);
             BindToOption(AddUsingsOnPaste, AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp);
 
-            // Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptionsStorage.Asynchronous, () =>
-            {
-                // If the option has not been set by the user, check if the option is disabled from experimentation.
-                return !optionStore.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag);
-            });
-
             // Highlighting
             BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, KeywordHighlightingOptionsStorage.KeywordHighlighting, LanguageNames.CSharp);
@@ -165,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme);
 
             // Extract Method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.CSharp);
 
             // Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);

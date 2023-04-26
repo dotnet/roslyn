@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             IsSimpleProgram = 1 << 9,
 
             HasRequiredMembers = 1 << 10,
+
+            HasPrimaryConstructor = 1 << 11,
         }
 
         internal SingleTypeDeclaration(
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
+            ImmutableSegmentedHashSet<string> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics,
             QuickAttributes quickAttributes)
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableSegmentedDictionary<string, VoidResult> MemberNames { get; }
+        public ImmutableSegmentedHashSet<string> MemberNames { get; }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
@@ -193,6 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
 
+        public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
+
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
             return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
@@ -241,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if ((object)thisDecl.Location.SourceTree != otherDecl.Location.SourceTree
+                if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
                     && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
                         || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
                 {

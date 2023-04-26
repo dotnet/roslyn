@@ -274,10 +274,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var service = document.GetRequiredLanguageService<IClassificationService>();
             var options = ClassificationOptions.Default;
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
             await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
-            return result.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
@@ -285,9 +285,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var results);
+            using var _ = Classifier.GetPooledList(out var results);
             service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
-            return results.ToImmutable();
+            return results.ToImmutableArray();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)

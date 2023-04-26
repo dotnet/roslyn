@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="XliffTasks" Version="1.0.0-beta.21215.1">
-      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
-      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
-    </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="7.0.0-alpha.1.22409.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23203.1">
       <Uri>https://github.com/dotnet/source-build-externals</Uri>
-      <Sha>ee790b0477953dd30ea83e0e47af909a04fd0ca3</Sha>
+      <Sha>33edde07d61cf7606d76ada765335fb81f1cbb71</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="8.0.0-alpha.1.23211.4">
+      <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
+      <Sha>01850f2b7bff23e118d1faecb941d770c8e626f2</Sha>
+      <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
@@ -17,6 +17,20 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>b12f035e893c34ec2c965d75f6e21b7a2667e98d</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23165.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
+      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
+      <Sha>b7fb98b199d0b1b6188da4f4bf4f5accddac98d4</Sha>
+      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.SourceLink.GitHub" Version="1.2.0-beta-23165-02" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
+      <Uri>https://github.com/dotnet/sourcelink</Uri>
+      <Sha>3f43bf1b2dead2cb51f20dc47f6dfd7981248820</Sha>
+      <SourceBuild RepoName="sourcelink" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.DiaSymReader" Version="1.4.0">
+      <Uri>https://github.com/dotnet/symreader</Uri>
+      <Sha>636a10b9d0aa317736c57d95f80e1c0849450715</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-5.22128.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
@@ -26,9 +40,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>b12f035e893c34ec2c965d75f6e21b7a2667e98d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23111.1">
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23221.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>5cd64de1a3319d7f15380b843352a2b963e59b57</Sha>
+      <Sha>19fb5cab215d2fe5d6c895d5f26c61dc1bdc0543</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.FunctionPointerType:
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
-                    MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, syntax, functionPointerTypeSyntax.DelegateKeyword.GetLocation());
+                    MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
                     if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeOrAliasSymbolWithAnnotations bindNullable()
             {
                 var nullableSyntax = (NullableTypeSyntax)syntax;
-                MessageID.IDS_FeatureNullable.CheckFeatureAvailability(diagnostics, nullableSyntax, nullableSyntax.QuestionToken.GetLocation());
+                MessageID.IDS_FeatureNullable.CheckFeatureAvailability(diagnostics, nullableSyntax.QuestionToken);
 
                 TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                 TypeWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
@@ -1782,7 +1782,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             UseSiteInfo<AssemblySymbol> useSiteInfo;
             Symbol memberSymbol = GetWellKnownTypeMember(compilation, member, out useSiteInfo, isOptional);
-            diagnostics.Add(useSiteInfo, location ?? syntax.Location);
+            if (syntax != null)
+                diagnostics.Add(useSiteInfo, syntax);
+            else
+                diagnostics.Add(useSiteInfo, location);
+
             return memberSymbol;
         }
 
@@ -1843,8 +1847,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int bLocationsCount = fst.Locations.Length;
                 if (aLocationsCount != bLocationsCount) return aLocationsCount - bLocationsCount;
                 if (aLocationsCount == 0 && bLocationsCount == 0) return Compare(fst.ContainingSymbol, snd.ContainingSymbol);
-                Location la = snd.Locations[0];
-                Location lb = fst.Locations[0];
+                Location la = snd.GetFirstLocation();
+                Location lb = fst.GetFirstLocation();
                 if (la.IsInSource != lb.IsInSource) return la.IsInSource ? 1 : -1;
                 int containerResult = Compare(fst.ContainingSymbol, snd.ContainingSymbol);
                 if (!la.IsInSource) return containerResult;
@@ -1929,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (best.IsFromSourceModule)
                             {
-                                arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
+                                arg0 = srcSymbol.GetFirstLocation().SourceTree.FilePath;
                             }
                             else
                             {
@@ -2083,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     if (best.IsFromSourceModule)
                                     {
-                                        arg0 = first.Locations.First().SourceTree.FilePath;
+                                        arg0 = first.GetFirstLocation().SourceTree.FilePath;
                                     }
                                     else
                                     {
@@ -2183,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         wasError = true;
 
-                        if (reportError)
+                        if (reportError && info != null)
                         {
                             diagnostics.Add(info, where.Location);
                         }
@@ -2686,32 +2690,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-        {
-            return CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
-        }
 
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-        {
-            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());
-        }
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
         internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, location ?? syntax.GetLocation());
+        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
-        {
-            return CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
-        }
+            => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
+        private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
+
+        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
+
+        private static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
+
+        private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
+            => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);
+
+        /// <param name="getLocation">Callback function that computes the location to report the diagnostics at
+        /// <em>if</em> a diagnostic should be reported.  Should always be passed a static/cached callback to prevent
+        /// allocations of the delegate.</param>
+        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation)
         {
             if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
-                diagnostics?.Add(diagInfo, location);
+                diagnostics?.Add(diagInfo, getLocation(data));
                 return false;
             }
             return true;

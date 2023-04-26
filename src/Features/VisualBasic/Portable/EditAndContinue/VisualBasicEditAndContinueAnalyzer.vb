@@ -673,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent)
         End Function
 
-        Protected Overrides Function ComputeBodyMatch(oldBody As SyntaxNode, newBody As SyntaxNode, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
+        Protected Overrides Function ComputeBodyMatchImpl(oldBody As SyntaxNode, newBody As SyntaxNode, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda:=True)
             SyntaxUtilities.AssertIsBody(newBody, allowLambda:=True)
 
@@ -979,8 +979,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Function
 
-        Protected Overrides Function AreEquivalent(left As SyntaxNode, right As SyntaxNode) As Boolean
-            Return SyntaxFactory.AreEquivalent(left, right)
+        Protected Overrides Function AreEquivalentLambdaBodies(oldLambda As SyntaxNode, oldLambdaBody As SyntaxNode, newLambda As SyntaxNode, newLambdaBody As SyntaxNode) As Boolean
+            Dim oldBodyTopMostNodes = LambdaUtilities.GetLambdaBodyExpressionsAndStatements(oldLambdaBody)
+            Dim newBodyTopMostNodes = LambdaUtilities.GetLambdaBodyExpressionsAndStatements(newLambdaBody)
+
+            Return oldBodyTopMostNodes.SequenceEqual(newBodyTopMostNodes, AddressOf SyntaxFactory.AreEquivalent)
         End Function
 
         Private Shared Function AreEquivalentIgnoringLambdaBodies(left As SyntaxNode, right As SyntaxNode) As Boolean
@@ -1412,6 +1415,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function IsLocalFunction(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsGenericLocalFunction(node As SyntaxNode) As Boolean
             Return False
         End Function
 
@@ -2375,22 +2382,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Select
             End Sub
 
-            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
-                For Each node In newDeclarationOrBody.DescendantNodesAndSelf()
-                    Select Case node.Kind
-                        Case SyntaxKind.AggregateClause,
+            Public Sub ClassifyMemberOrLambdaBodyRudeUpdates(newBody As SyntaxNode)
+                For Each topMostBodyNode In If(LambdaUtilities.IsLambdaBody(newBody), LambdaUtilities.GetLambdaBodyExpressionsAndStatements(newBody), {newBody})
+                    For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
+                        Select Case node.Kind()
+                            Case SyntaxKind.AggregateClause,
                              SyntaxKind.GroupByClause,
                              SyntaxKind.SimpleJoinClause,
                              SyntaxKind.GroupJoinClause
-                            ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
-                            Return
+                                ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
+                                Return
 
-                        Case SyntaxKind.LocalDeclarationStatement
-                            Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                            If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                ReportError(RudeEditKind.UpdateStaticLocal)
-                            End If
-                    End Select
+                            Case SyntaxKind.LocalDeclarationStatement
+                                Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                                If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                    ReportError(RudeEditKind.UpdateStaticLocal)
+                                End If
+                        End Select
+                    Next
                 Next
             End Sub
 #End Region
@@ -2431,9 +2440,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberBodyUpdateRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
-            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newMember, EditKind.Update, span:=span)
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember)
+        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As SyntaxNode, span As TextSpan?)
+            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newDeclaration, EditKind.Update, span:=span)
+            classifier.ClassifyMemberOrLambdaBodyRudeUpdates(newBody)
         End Sub
 
 #End Region
@@ -2484,6 +2493,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     If type.TypeKind = TypeKind.Module Then
                         Return RudeEditKind.Insert
                     End If
+
+                    Return RudeEditKind.None
             End Select
 
             ' All rude edits below only apply when inserting into an existing type (not when the type itself is inserted):
@@ -2491,23 +2502,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return RudeEditKind.None
             End If
 
-            If newSymbol.ContainingType.Arity > 0 AndAlso newSymbol.Kind <> SymbolKind.NamedType Then
-                Return RudeEditKind.InsertIntoGenericType
-            End If
-
             ' Inserting virtual or interface member is not allowed.
-            If (newSymbol.IsVirtual Or newSymbol.IsOverride Or newSymbol.IsAbstract) AndAlso newSymbol.Kind <> SymbolKind.NamedType Then
+            If newSymbol.IsVirtual Or newSymbol.IsOverride Or newSymbol.IsAbstract Then
                 Return RudeEditKind.InsertVirtual
             End If
 
             Select Case newSymbol.Kind
                 Case SymbolKind.Method
                     Dim method = DirectCast(newSymbol, IMethodSymbol)
-
-                    ' Inserting generic method into an existing type is not allowed.
-                    If method.Arity > 0 Then
-                        Return RudeEditKind.InsertGenericMethod
-                    End If
 
                     ' Inserting operator to an existing type is not allowed.
                     If method.MethodKind = MethodKind.Conversion OrElse method.MethodKind = MethodKind.UserDefinedOperator Then
@@ -2637,19 +2639,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKinds)
+        Friend Overrides Function GetStateMachineInfo(body As SyntaxNode) As StateMachineInfo
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
-                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
-                kind = StateMachineKinds.Async
+                Return New StateMachineInfo(IsAsync:=True, IsIterator:=False, HasSuspensionPoints:=SyntaxUtilities.GetAwaitExpressions(body).Any())
             ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
-                suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
-                kind = StateMachineKinds.Iterator
+                Return New StateMachineInfo(IsAsync:=False, IsIterator:=True, HasSuspensionPoints:=SyntaxUtilities.GetYieldStatements(body).Any())
             Else
-                suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
-                kind = StateMachineKinds.None
+                Return StateMachineInfo.None
             End If
-        End Sub
+        End Function
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
