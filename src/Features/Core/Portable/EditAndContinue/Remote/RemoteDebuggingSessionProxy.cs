@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _connection?.Dispose();
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask BreakStateOrCapabilitiesChangedAsync(IDiagnosticAnalyzerService diagnosticService, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, bool? inBreakState, CancellationToken cancellationToken)
         {

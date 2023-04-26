@@ -19,52 +19,73 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentSize<T>()
         {
+            return Unsafe.SizeOf<T>() switch
+            {
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
+                4 => 16384,
+                8 => 8192,
+                12 => 4096,
+                16 => 4096,
+                24 => 2048,
+                28 => 2048,
+                32 => 2048,
+                40 => 2048,
 #if NETCOREAPP3_0_OR_NEWER
-            return InlineCalculateSegmentSize(Unsafe.SizeOf<T>());
+                _ => InlineCalculateSegmentSize(Unsafe.SizeOf<T>()),
 #else
-            if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
-            {
-                return ReferenceTypeSegmentHelper.SegmentSize;
-            }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.SegmentSize;
-            }
+                _ => FallbackSegmentHelper<T>.SegmentSize,
 #endif
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetSegmentShift<T>()
         {
+            return Unsafe.SizeOf<T>() switch
+            {
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
+                4 => 14,
+                8 => 13,
+                12 => 12,
+                16 => 12,
+                24 => 11,
+                28 => 11,
+                32 => 11,
+                40 => 11,
 #if NETCOREAPP3_0_OR_NEWER
-            return InlineCalculateSegmentShift(Unsafe.SizeOf<T>());
+                _ => InlineCalculateSegmentShift(Unsafe.SizeOf<T>()),
 #else
-            if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
-            {
-                return ReferenceTypeSegmentHelper.SegmentShift;
-            }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.SegmentShift;
-            }
+                _ => FallbackSegmentHelper<T>.SegmentShift,
 #endif
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetOffsetMask<T>()
         {
+            return Unsafe.SizeOf<T>() switch
+            {
+                // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
+                // constant value at runtime. Values are validated against the reference implementation in
+                // CalculateSegmentSize in unit tests.
+                4 => 16383,
+                8 => 8191,
+                12 => 4095,
+                16 => 4095,
+                24 => 2047,
+                28 => 2047,
+                32 => 2047,
+                40 => 2047,
 #if NETCOREAPP3_0_OR_NEWER
-            return InlineCalculateOffsetMask(Unsafe.SizeOf<T>());
+                _ => InlineCalculateOffsetMask(Unsafe.SizeOf<T>()),
 #else
-            if (Unsafe.SizeOf<T>() == Unsafe.SizeOf<object>())
-            {
-                return ReferenceTypeSegmentHelper.OffsetMask;
-            }
-            else
-            {
-                return ValueTypeSegmentHelper<T>.OffsetMask;
-            }
+                _ => FallbackSegmentHelper<T>.OffsetMask,
 #endif
+            };
         }
 
         /// <summary>
@@ -94,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             static int ArraySize(int elementSize, int segmentSize)
             {
                 // Array object header, plus space for the elements
-                return (2 * IntPtr.Size) + (elementSize * segmentSize);
+                return (2 * IntPtr.Size + 8) + (elementSize * segmentSize);
             }
         }
 
@@ -141,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             // Default Large Object Heap size threshold
             // https://github.com/dotnet/runtime/blob/c9d69e38d0e54bea5d188593ef6c3b30139f3ab1/src/coreclr/src/gc/gc.h#L111
             const uint Threshold = 85000;
-            return System.Numerics.BitOperations.Log2((uint)((Threshold / elementSize) - (2 * Unsafe.SizeOf<object>())));
+            return System.Numerics.BitOperations.Log2((uint)((Threshold / elementSize) - (2 * Unsafe.SizeOf<object>() + 8)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -156,25 +177,20 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             public static int CalculateSegmentSize(int elementSize)
                 => SegmentedArrayHelper.CalculateSegmentSize(elementSize);
 
-            public static int CalculateSegmentShift(int elementSize)
-                => SegmentedArrayHelper.CalculateSegmentShift(elementSize);
+            public static int CalculateSegmentShift(int segmentSize)
+                => SegmentedArrayHelper.CalculateSegmentShift(segmentSize);
 
-            public static int CalculateOffsetMask(int elementSize)
-                => SegmentedArrayHelper.CalculateOffsetMask(elementSize);
+            public static int CalculateOffsetMask(int segmentSize)
+                => SegmentedArrayHelper.CalculateOffsetMask(segmentSize);
         }
 
-        private static class ReferenceTypeSegmentHelper
-        {
-            public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<object>());
-            public static readonly int SegmentShift = CalculateSegmentShift(SegmentSize);
-            public static readonly int OffsetMask = CalculateOffsetMask(SegmentSize);
-        }
-
-        private static class ValueTypeSegmentHelper<T>
+#if !NETCOREAPP3_0_OR_NEWER
+        private static class FallbackSegmentHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());
             public static readonly int SegmentShift = CalculateSegmentShift(SegmentSize);
             public static readonly int OffsetMask = CalculateOffsetMask(SegmentSize);
         }
+#endif
     }
 }
