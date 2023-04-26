@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Optional filter span for which to compute diagnostics.
         /// </summary>
-        internal TextSpan? FilterSpan { get; }
+        public TextSpan? FilterSpan { get; }
 
         /// <summary>
         /// Indicates if the underlying <see cref="SemanticModel.SyntaxTree"/> is generated code.
@@ -1362,6 +1362,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Optional filter span for analysis.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="Tree"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1375,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(tree, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), compilation: null, isGeneratedCode: false, cancellationToken)
+            : this(tree, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), compilation: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1385,6 +1390,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Compilation? compilation,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1393,6 +1399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationOpt = compilation;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }

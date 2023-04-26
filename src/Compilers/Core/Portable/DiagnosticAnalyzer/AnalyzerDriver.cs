@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Execute actions for a given analyzer sequentially.
-                    AnalyzerExecutor.ExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, file, isGeneratedCode, cancellationToken);
+                    AnalyzerExecutor.ExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, file, analysisScope.FilterSpanOpt, isGeneratedCode, cancellationToken);
                 }
             }
         }
@@ -1831,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Execute actions for a given analyzer sequentially.
-                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, analysisScope, isGeneratedCode, cancellationToken);
+                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, analysisScope.FilterSpanOpt, isGeneratedCode, cancellationToken);
             }
         }
 
