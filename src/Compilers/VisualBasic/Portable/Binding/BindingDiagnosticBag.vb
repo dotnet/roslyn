@@ -10,14 +10,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class BindingDiagnosticBag
         Inherits BindingDiagnosticBag(Of AssemblySymbol)
 
+        Private Shared ReadOnly s_poolWithBoth As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithBoth, New DiagnosticBag(), New HashSet(Of AssemblySymbol)()))
+        Private Shared ReadOnly s_poolWithDiagnosticsOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDiagnosticsOnly, New DiagnosticBag(), dependenciesBag:=Nothing))
+        Private Shared ReadOnly s_poolWithDependenciesOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDependenciesOnly, diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)()))
+
         Public Shared ReadOnly Discarded As New BindingDiagnosticBag(Nothing, Nothing)
+
+        Private ReadOnly _pool As ObjectPool(Of BindingDiagnosticBag)
 
         Public Sub New()
             MyBase.New(usePool:=False)
-        End Sub
-
-        Private Sub New(usePool As Boolean)
-            MyBase.New(usePool)
         End Sub
 
         Public Sub New(diagnosticBag As DiagnosticBag)
@@ -28,8 +30,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(diagnosticBag, dependenciesBag)
         End Sub
 
+        Private Sub New(pool As ObjectPool(Of BindingDiagnosticBag), diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
+            MyBase.New(diagnosticBag, dependenciesBag)
+            _pool = pool
+        End Sub
+
         Friend Shared Function GetInstance() As BindingDiagnosticBag
-            Return New BindingDiagnosticBag(usePool:=True)
+            Return s_poolWithBoth.Allocate()
         End Function
 
         Friend Shared Function GetInstance(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
@@ -38,10 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return GetInstance()
                 End If
 
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
+                Return s_poolWithDependenciesOnly.Allocate()
 
             ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Return s_poolWithDiagnosticsOnly.Allocate()
             Else
                 Return Discarded
             End If
@@ -75,6 +82,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return (DiagnosticBag Is Nothing OrElse DiagnosticBag.IsEmptyWithoutResolution) AndAlso DependenciesBag.IsNullOrEmpty()
             End Get
         End Property
+
+        Friend Overrides Sub Free()
+            If _pool IsNot Nothing Then
+                Clear()
+                _pool.Free(Me)
+            Else
+                MyBase.Free()
+            End If
+        End Sub
 
         Protected Overrides Function ReportUseSiteDiagnostic(diagnosticInfo As DiagnosticInfo, diagnosticBag As DiagnosticBag, location As Location) As Boolean
             Debug.Assert(diagnosticInfo.Severity = DiagnosticSeverity.Error)
