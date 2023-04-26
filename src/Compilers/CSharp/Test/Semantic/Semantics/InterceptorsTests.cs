@@ -761,10 +761,45 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
         var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        // PROTOTYPE(ic): this is syntactically an invocation but doesn't result in a BoundCall.
-        // we should produce an error here, probably during lowering.
         compilation.VerifyEmitDiagnostics(
+            // Program.cs(7,13): error CS27023: A nameof operator cannot be intercepted.
+            //         _ = nameof(Main);
+            Diagnostic(ErrorCode.ERR_InterceptorCannotInterceptNameof, "nameof").WithLocation(7, 13)
             );
+    }
+
+    [Fact]
+    public void InterceptableNameof_MethodCall()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    _ = nameof(F);
+                }
+
+                private static object F = 1;
+
+                [Interceptable]
+                public static string nameof(object param) => throw null!;
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 8, 13)]
+                public static string Interceptor1(object param)
+                {
+                    Console.Write(1);
+                    return param.ToString();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]

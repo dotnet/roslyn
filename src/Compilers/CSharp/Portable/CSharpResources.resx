@@ -7592,4 +7592,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match interceptable method.</value>
   </data>
+  <data name="ERR_InterceptorCannotInterceptNameof" xml:space="preserve">
+    <value>A nameof operator cannot be intercepted.</value>
+  </data>
 </root>

@@ -2951,6 +2951,7 @@ class Program
                     case ErrorCode.ERR_InterceptorScopedMismatch:
                     case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                     case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                    case ErrorCode.ERR_InterceptorCannotInterceptNameof:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
