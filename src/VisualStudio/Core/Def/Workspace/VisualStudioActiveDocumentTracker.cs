@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IVsRunningDocumentTable _runningDocumentTable;
 
         /// <summary>
         /// The list of tracked frames. This can only be written by the UI thread, although can be read (with care) from any thread.
@@ -48,10 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioActiveDocumentTracker(
             IThreadingContext threadingContext,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
+            [Import(typeof(SVsRunningDocumentTable))] IVsRunningDocumentTable runningDocumentTable,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(threadingContext, assertIsForeground: false)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _runningDocumentTable = runningDocumentTable;
+
             ThreadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -230,7 +234,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 ((IVsWindowFrame2)frame).Advise(this, out _frameEventsCookie);
 
-                if (ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
+                var isDocDataInitialized = false;
+                if (ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var docCookieProp)) && docCookieProp is uint docCookie)
+                {
+                    RunningDocumentInfo runningDocumentInfo = new(service._runningDocumentTable, docCookie);
+                    isDocDataInitialized = runningDocumentInfo.IsDocumentInitialized;
+                }
+
+                if (isDocDataInitialized && ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
                 {
                     if (docData is IVsTextBuffer bufferAdapter)
                     {
