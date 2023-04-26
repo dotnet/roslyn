@@ -61,6 +61,35 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
+#### PROTOTYPE(ic): Use an assembly attribute instead?
+The main reason we want something like `[Interceptable]` is so that users can better reason about *which calls might be getting intercepted or not*. We don't think there's a meaningful *security* concern which is addressed by `[Interceptable]`--if something untrusted has the ability to add source files to your build, taking away the ability for them to intercept certain calls doesn't really make a difference.
+
+It's been suggested that `[Interceptable]` on method declarations is the wrong point of control. Some SG authors will have good reason to want to intercept a call to a method from a library they don't own--for example, EF wanting to intercept calls to IQueryable extensions. It shouldn't be necessary for those authors to have to request the library authors to add an attribute before they can start doing it.
+
+One option to address this is to remove `[Interceptable]` from the design and not provide any mechanism for limiting which calls can be intercepted or not.
+
+Another option would be to expose an assembly attribute instead.
+
+```cs
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>If present, indicates the set of types whose methods can have their calls intercepted in the current compilation.</summary>
+    /// <remarks>When this attribute is not present, methods on any type can have their calls intercepted.</remarks>
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+    public sealed class AllowInterception(params Type[] types) : Attribute { }
+}
+
+[assembly: AllowInterception(typeof(EndpointRouteBuilderExtensions))]
+```
+
+In order to intercept a classic extension method call, the extension type must be provided to this attribute, not the `this` parameter type.
+
+We specify `AllowMultiple = false` here to imply that the attribute is supposed to be hand-authored by the user. It's not meant for generators to use this to *opt themselves in* to being able to intercept things--it's for the user to state once and comprehensively which things can be intercepted.
+
+In such a scheme, it's not clear how often users would actually want to go to the trouble of writing the attribute--particularly since the process of writing and maintaining it would simply be to run source generators, review the "not interceptable" errors, and add the related types to this attribute. Is that useful to users in practice?
+
+Another alternative here might be to use `AllowMultiple = true`, require in practice that generators produce these attributes (i.e. disallow intercepting in the current compilation if this attribute isn't used in it), and let users search for usages of the attribute to get a sense of which calls may be getting intercepted in their project.
+
 ### InterceptsLocationAttribute
 
 A method indicates that it is an *interceptor* by adding one or more `[InterceptsLocation]` attributes. These attributes refer to the source locations of the calls it intercepts.
@@ -177,6 +206,8 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 Although interceptors are an experimental feature, there will be no explicit opt-in step needed to use them. We won't publicize the feature (e.g. in blog posts) as something generator authors should onboard to in .NET 8.
 
 PROTOTYPE(ic): The BCL might not ship the attributes required by this feature, instead requiring them to be declared in some library brought in by a package reference, or in the user's project. But we haven't confirmed this.
+
+PROTOTYPE(ic): Feedback from Jared is that we need to have an opt-in step, even if it is only performed by generators, so that any teams adopting this understand the level of support they can expect for this. Most likely, we would do this by checking for `/features=interceptors` on the command line (`<Features>interceptors</Features>` in msbuild). Then generators that want to use interceptors would just ship a bit of msbuild logic to ensure the appropriate feature flag is being passed to the compiler.
 
 ### Implementation strategy
 
