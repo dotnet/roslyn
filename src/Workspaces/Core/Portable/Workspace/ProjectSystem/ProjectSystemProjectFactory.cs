@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                             var newSolution = w.CreateSolution(solutionInfo);
 
                             foreach (var project in solutionInfo.Projects)
-                                newSolution =  newSolution.AddProject(project);
+                                newSolution = newSolution.AddProject(project);
 
                             return newSolution;
                         }
