@@ -1825,7 +1825,6 @@ public class Example
 
         #endregion Regression cases
 
-
         private void CheckExpressionAndParent(
             string text,
             SymbolKind exprSymbolKind,
@@ -2115,6 +2114,45 @@ class M
                     "mscorlib");
 
             main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+        }
+
+        [Fact, WorkItem(61284, "https://github.com/dotnet/roslyn/issues/61284")]
+        public void PatternMatchToBaseTypeWithUseSiteWarningOnBaseType()
+        {
+            string sourceRefLib = @"
+public class Base { }
+";
+
+            var refLib = CreateEmptyCompilation(
+                sourceRefLib,
+                assemblyName: "RefLib",
+                references: new[] { TestMetadata.Net20.mscorlib });
+
+            refLib.VerifyEmitDiagnostics();
+
+            string sourceMain = @"
+public class Derived : Base { }
+class C
+{
+    void M(Derived d)
+    {
+        _ = d is Base b;
+    }
+}
+";
+
+            var main = CreateEmptyCompilation(sourceMain, assemblyName: "Main",
+                references: new MetadataReference[]
+                {
+                    new CSharpCompilationReference(refLib),
+                    TestMetadata.Net451.mscorlib
+                });
+
+            var unifyReferenceWarning =
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "RefLib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib");
+
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
         [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]

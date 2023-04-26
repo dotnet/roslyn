@@ -14,23 +14,24 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticLessAndGreaterThanCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Creation()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_TopLevel()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_TopLevel2()
         {
             using var session = CreateSession("using System;$$");
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_TypeParameter()
         {
             var code = @"class C$$";
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Method_TypeParameter()
         {
             var code = @"class C
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_TypeParameter_Delete()
         {
             var code = @"class C$$";
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckBackspace(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_TypeParameter_Tab()
         {
             var code = @"class C$$";
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckTab(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_TypeParameter_GreaterThan()
         {
             var code = @"class C$$";
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Multiple_Invalid()
         {
             var code = @"class C<$$>";
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Multiple_Nested()
         {
             var code = @"class C<T>
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void TypeArgument_Invalid()
         {
             var code = @"class C
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void TypeArgument1()
         {
             var code = @"class C
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void TypeArgument2()
         {
             var code = @"class C
@@ -163,8 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WpfFact]
         public void TypeParameterReturnType()
         {
             var code = @"class C
@@ -178,8 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WpfFact]
         public void TypeParameterInDecl()
         {
             var code = @"class C
@@ -193,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WpfFact]
         public void TypeParameterInDeclWith()
         {
             var code = @"class C
@@ -208,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
+        [WpfFact]
         public void TypeArgumentWithUsing()
         {
             var code = @"using System.Collections.Generic;
@@ -228,8 +229,8 @@ class C
             CheckOverType(session.Session);
         }
 
-        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
+        [WpfFact]
         public void TypeArgumentNoUsing()
         {
             var code = @"class C
@@ -244,8 +245,8 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void NotInLessThanComparisonOperation()
         {
             var code = @"using System.Linq;
@@ -261,8 +262,8 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
         {
             var code = @"using System.Linq;
@@ -278,8 +279,8 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionSimple()
         {
             var code = @"using System.Linq;
@@ -295,8 +296,8 @@ class C
             CheckStart(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionNested()
         {
             var code = @"class C
@@ -325,8 +326,8 @@ class Inner<V>
             CheckOverType(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
         {
             var code = @"class C
@@ -361,8 +362,8 @@ internal class Inner
             CheckStart(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
+        [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionWithLambdas()
         {
             var code = @"using System;
@@ -395,7 +396,7 @@ public class Inner
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void FunctionPointerStartSession()
         {
             var code = @"

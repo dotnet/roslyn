@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS1503 = nameof(CS1503); // error CS1503: Argument 1: cannot convert from 'double' to 'int'
         private const string CS1660 = nameof(CS1660); // error CS1660: Cannot convert lambda expression to type 'string[]' because it is not a delegate type
         private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
-        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.M(int)'
+        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(int)'
         private const string CS1955 = nameof(CS1955); // error CS1955: Non-invocable member 'Goo' cannot be used like a method.
+        private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'OnChanged' matches delegate 'NotifyCollectionChangedEventHandler'
 
         public static readonly ImmutableArray<string> FixableDiagnosticIds =
             ImmutableArray.Create(
@@ -50,11 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                 CS1660,
                 CS1739,
                 CS7036,
-                CS1955);
+                CS1955,
+                CS0123);
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateVariable)]
     internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         [ImportingConstructor]
@@ -85,13 +89,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                     return invocation.Expression.GetRightmostName();
                 case MemberBindingExpressionSyntax memberBindingExpression:
                     return memberBindingExpression.Name;
+                case AssignmentExpressionSyntax assignment:
+                    return assignment.Right;
             }
 
             return node;
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateParameterizedMemberService>();
             return service.GenerateMethodAsync(document, node, fallbackOptions, cancellationToken);

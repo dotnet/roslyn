@@ -6,9 +6,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     /// <summary>
-    /// Note: This is the new version of the language service and superceded the same named type
+    /// Note: This is the new version of the language service and superseded the same named type
     /// in the EditorFeatures layer.
     /// </summary>
     internal interface IDocumentHighlightsService : ILanguageService

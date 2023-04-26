@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                throw ExceptionUtilities.UnexpectedValue(token.Kind())
+                Throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -107,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword,
+                SyntaxKind.ThrowKeyword,
                 SyntaxKind.ToKeyword
                     Return True
                 Case Else
@@ -313,11 +315,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 
-        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim text2 = text.ToString(textSpan)
             Dim tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition:=textSpan.Start)
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)

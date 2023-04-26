@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         public PullMemberUpDialogViewModel(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
-            ImmutableArray<PullMemberUpSymbolViewModel> members,
+            ImmutableArray<MemberSymbolViewModel> members,
             BaseTypeTreeNodeViewModel destinationTreeViewModel,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {

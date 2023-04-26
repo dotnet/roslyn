@@ -94,12 +94,21 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
-        public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+        public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
 
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
-        public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+        [Obsolete($"Use {nameof(Services)} instead.")]
+#pragma warning disable CS0618 // Member is obsolete -- shouldn't be reported here https://github.com/dotnet/roslyn/issues/66409
+        public HostLanguageServices LanguageServices => _projectState.LanguageServices.HostLanguageServices;
+#pragma warning restore
+
+        /// <summary>
+        /// Immutable snapshot of language services from the host environment associated with this project's language.
+        /// Use this over <see cref="LanguageServices"/> when possible.
+        /// </summary>
+        public LanguageServices Services => _projectState.LanguageServices;
 
         /// <summary>
         /// The language associated with the project.

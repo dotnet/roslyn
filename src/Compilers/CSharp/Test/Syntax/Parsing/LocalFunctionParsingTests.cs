@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,7 +50,61 @@ class C
     {
         int? L(
     }
-}");
+}",
+                // (6,17): error CS1525: Invalid expression term '}'
+                //         await L<
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 17),
+                // (6,17): error CS1002: ; expected
+                //         await L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 17),
+                // (10,15): error CS1001: Identifier expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, '>' expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, '(' expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 15),
+                // (10,15): error CS1026: ) expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1002: ; expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 15),
+                // (14,16): error CS1001: Identifier expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(14, 16),
+                // (14,16): error CS1003: Syntax error, '>' expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(14, 16),
+                // (14,16): error CS1003: Syntax error, '(' expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(14, 16),
+                // (14,16): error CS1026: ) expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(14, 16),
+                // (14,16): error CS1002: ; expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 16),
+                // (18,17): error CS1026: ) expected
+                //         await L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(18, 17),
+                // (18,17): error CS1002: ; expected
+                //         await L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(18, 17),
+                // (22,15): error CS1026: ) expected
+                //         int L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(22, 15),
+                // (22,15): error CS1002: ; expected
+                //         int L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(22, 15),
+                // (26,16): error CS1026: ) expected
+                //         int? L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(26, 16),
+                // (26,16): error CS1002: ; expected
+                //         int? L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(26, 16));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -503,7 +557,13 @@ class C
     {
         public object local;
     }
-}", TestOptions.Regular9);
+}", TestOptions.Regular9,
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -633,13 +693,34 @@ class C
     }
 }";
 
+            CreateCompilation(code, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,21): error CS8112: Local function 'local()' must declare a body because it is not marked 'static extern'.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS0626: Method, operator, or accessor 'local()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+            CreateCompilation(code, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9),
+                // (6,21): error CS8112: Local function 'local()' must declare a body because it is not marked 'static extern'.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS0626: Method, operator, or accessor 'local()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
-                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         extern void local();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            UsingTree(code, TestOptions.Regular8);
             verifyTree();
 
             void verifyTree()
@@ -704,14 +785,28 @@ class C
         extern void local() { }
     }
 }";
+            CreateCompilation(code, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,21): error CS0179: 'local()' cannot be extern and declare a body
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+            CreateCompilation(code, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9),
+                // (6,21): error CS0179: 'local()' cannot be extern and declare a body
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
 
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
-                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         extern void local() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            UsingTree(code, TestOptions.Regular8);
             verifyTree();
 
             void verifyTree()
@@ -986,7 +1081,13 @@ class C
     {
         [A]
     }
-}");
+}",
+                // (6,12): error CS1525: Invalid expression term '}'
+                //         [A]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         [A]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1170,9 +1271,7 @@ class C
         [Fact]
         public void DiagnosticsWithoutExperimental()
         {
-            // Experimental nodes should only appear when experimental are
-            // turned on in parse options
-            var file = ParseFile(@"
+            var text = @"
 class c
 {
     void m()
@@ -1183,29 +1282,41 @@ class c
     {
         int local() { return 0; }
     }
-}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+}";
+
+            var file = ParseFile(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             Assert.NotNull(file);
-            Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
-            Assert.True(file.HasErrors);
-            file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13)
-                );
+            Assert.True(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
+            Assert.False(file.HasErrors);
+            file.SyntaxTree.GetDiagnostics().Verify();
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
             var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
             Assert.Equal(2, c.Members.Count);
             var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
             var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
-            Assert.True(s1.ContainsDiagnostics);
+            Assert.False(s1.ContainsDiagnostics);
 
             var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
             s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
-            Assert.True(s1.ContainsDiagnostics);
+            Assert.False(s1.ContainsDiagnostics);
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(2, 7),
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                //         int local() => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
+                // (6,13): warning CS8321: The local function 'local' is declared but never used
+                //         int local() => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                //         int local() { return 0; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13),
+                // (10,13): warning CS8321: The local function 'local' is declared but never used
+                //         int local() { return 0; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 13));
         }
 
         [Fact]
@@ -1268,7 +1379,28 @@ class c
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
     async void m5() { await async () => new await(); }
-}");
+}",
+                // (6,30): error CS1525: Invalid expression term ')'
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 30),
+                // (6,32): error CS1002: ; expected
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 32),
+                // (6,32): error CS1513: } expected
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 32),
+                // (6,39): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 39),
+                // (8,38): error CS1002: ; expected
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(8, 38),
+                // (8,38): error CS1513: } expected
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(8, 38),
+                // (8,45): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(8, 45));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1585,15 +1717,23 @@ class c
         static void F() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static void F() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.Regular7_3);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
@@ -1662,17 +1802,53 @@ class c
         async static void F2() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (6,15): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,15): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15)
-            };
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
@@ -1760,30 +1936,92 @@ class c
         static async static void F2() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
-                // (5,16): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,16): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
-                // (6,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
-                // (6,22): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22)
-            };
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,22): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
+                // (6,22): error CS1004: Duplicate 'static' modifier
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
+                // (6,22): error CS1004: Duplicate 'static' modifier
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8,
@@ -1872,6 +2110,356 @@ class c
             }
         }
 
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs1()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs2()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs3()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs4()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
+                // (6,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
+                // (6,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
         [Fact]
         public void ReturnTypeBeforeStatic()
         {
@@ -1883,8 +2471,7 @@ class c
         void static F() { }
     }
 }";
-            var expected = new[]
-            {
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -1894,19 +2481,58 @@ class c
                 // (5,14): error CS1002: ; expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,14): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-            };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
-            verify();
-
-            expected = new[]
-            {
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -1918,13 +2544,37 @@ class c
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-            };
-
-            UsingDeclaration(text, options: TestOptions.Regular8, expected);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
             verify();
 
-            UsingDeclaration(text, options: TestOptions.Regular9, expected);
+            UsingDeclaration(text, options: TestOptions.Regular8,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
+            verify();
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
             verify();
 
             void verify()

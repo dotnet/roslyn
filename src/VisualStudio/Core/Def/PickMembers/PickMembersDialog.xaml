@@ -11,6 +11,8 @@
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -21,12 +23,17 @@
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
              HasDialogFrame="True"
-             WindowStartupLocation="CenterOwner">
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
             <Setter Property="IsTabStop" 
                     Value="False" />
         </Style>
+
+        <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" x:Key="AutomationDelegatingListViewStyle" />
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
@@ -56,7 +63,8 @@
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"
                   Grid.Row="1"
-                  Header="{Binding ElementName=dialog, Path=PickMembersTitle}">
+                  Header="{Binding ElementName=dialog, Path=PickMembersTitle}"
+                  Foreground="{DynamicResource {x:Static vs:ThemedDialogColors.HeaderTextBrushKey}}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -74,7 +82,9 @@
                           SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                           PreviewKeyDown="OnListViewPreviewKeyDown"
                           MouseDoubleClick="OnListViewDoubleClick"
-                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}">
+                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}"
+                          Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
+                          Foreground="{DynamicResource {x:Static vs:ThemedDialogColors.ListBoxTextBrushKey}}">
                     <u:AutomationDelegatingListView.ItemTemplate x:Uid="SelectableMemberListItem">
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -97,7 +107,7 @@
 
                 <StackPanel Grid.Column="1">
 
-                    <vs:DialogButton Name="UpButton" 
+                    <Button Name="UpButton" 
                                  AutomationProperties.Name="{Binding MoveUpAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
@@ -107,10 +117,9 @@
                         <imaging:CrispImage Name="UpArrowImage" 
                                         Height="16" 
                                         Width="16" 
-                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}"
-                                        Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
-                    </vs:DialogButton>
-                    <vs:DialogButton Name="DownButton" 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}" />
+                    </Button>
+                    <Button Name="DownButton" 
                                  AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
@@ -120,10 +129,9 @@
                         <imaging:CrispImage Name="DownArrowImage" 
                                         Height="16" 
                                         Width="16" 
-                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
-                                        Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" />
 
-                    </vs:DialogButton>
+                    </Button>
 
                     <Button x:Uid="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 

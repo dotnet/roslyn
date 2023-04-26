@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetIdeOptions().ReportInvalidRegexPatterns;
+            var option = context.GetIdeAnalyzerOptions().ReportInvalidRegexPatterns;
             if (!option)
                 return;
 

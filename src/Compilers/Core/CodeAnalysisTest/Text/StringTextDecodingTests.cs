@@ -292,7 +292,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "    }\r\n" +
                 "}\r\n";
 
-
             var encodings = new Encoding[]
             {
                 new UnicodeEncoding(bigEndian: true, byteOrderMark: true),

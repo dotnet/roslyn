@@ -315,6 +315,58 @@ class Program
                             """""" );
     }
 }";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_A()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+  {
+                            world }.
+                            """""" );
+    }
+}";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_B()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+                            {
+                            world }.
+                            """""" );
+    }
+}";
         string expectedOutput = @"Hello,
 world.";
         CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -980,7 +1032,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
             //             var s = $"""X = { 1 } """;
@@ -1012,7 +1064,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
             //             var s = $"""X = { 1 } """;
@@ -1056,7 +1108,7 @@ class Program {
         }
     }
 }";
-        var comp = CreateEmptyCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         var compilation = CompileAndVerify(comp, verify: Verification.Fails);
         compilation.VerifyIL("System.Program.Main",
 @"{
@@ -1264,13 +1316,72 @@ class C
     }
 }";
 
-
         CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-            // (6,24): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,24): error CS8026: Feature 'raw string literals' is not available in C# 5. Please use language version 11.0 or greater.
             //         string other = """world""";
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""world""""""").WithArguments("raw string literals").WithLocation(6, 24),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"""""""world""""""").WithArguments("raw string literals", "11.0").WithLocation(6, 24),
             // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
             //         return $"""hello + {other}""";
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""""""hello + {other}""""""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+    }
+
+    [Fact, WorkItem(61355, "https://github.com/dotnet/roslyn/issues/61355")]
+    public void StringFormatLowering1()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        int count = 31;
+        string op = ""shl"";
+        var value = $$""""""
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {{count}}
+  IL_0003:  {{op}}
+  IL_0004:  ret
+}
+"""""";
+        Console.WriteLine(value);
+    }
+}";
+        var expectedOutput = @"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   31
+  IL_0003:  shl
+  IL_0004:  ret
+}";
+        var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (int V_0, //count
+                string V_1) //op
+  IL_0000:  ldc.i4.s   31
+  IL_0002:  stloc.0
+  IL_0003:  ldstr      ""shl""
+  IL_0008:  stloc.1
+  IL_0009:  ldstr      ""{{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {0}
+  IL_0003:  {1}
+  IL_0004:  ret
+}}""
+  IL_000e:  ldloc.0
+  IL_000f:  box        ""int""
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""string string.Format(string, object, object)""
+  IL_001a:  call       ""void System.Console.WriteLine(string)""
+  IL_001f:  ret
+}");
     }
 }

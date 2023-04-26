@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
         public virtual Task InitializeAsync()
         {
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(TestMetadata.ResourcesNet461.mscorlib));
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(TestMetadata.ResourcesNet461.System));
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(TestMetadata.ResourcesNet461.SystemCore));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.mscorlib.ImageBytes));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.System.ImageBytes));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.SystemCore.ImageBytes));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(TestResources.NetFX.ValueTuple.tuplelib));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRuntimeFacadeRef, "System.Runtime.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.SystemRuntime));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.MicrosoftVisualBasic));

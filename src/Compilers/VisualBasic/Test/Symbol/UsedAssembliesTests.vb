@@ -1701,7 +1701,6 @@ End Class
             VerifyUsedAssemblyReferences(Of PEAssemblySymbol)(source2, comp1ImageRef)
             VerifyUsedAssemblyReferences(Of SourceAssemblySymbol)(source2, comp1Ref)
 
-
             Dim source3 =
 "
 Imports C1
@@ -3480,7 +3479,6 @@ End Class
                     Dim comp3 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
                     AssertUsedAssemblyReferences(comp3, references)
                 End Sub
-
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "

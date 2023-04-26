@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class LoadingGenericTypeParameters : Inherits BasicTestBase
@@ -172,7 +171,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(T.HasReferenceTypeConstraint)
             Assert.False(T.HasValueTypeConstraint)
             Assert.Equal(VarianceKind.Out, T.Variance)
-
 
             Dim I101 = module0.GlobalNamespace.GetTypeMembers("I101").Single()
             Dim I102 = module0.GlobalNamespace.GetTypeMembers("I102").Single()

@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal struct TupleElementNamesInfo
+    internal readonly struct TupleElementNamesInfo
     {
         internal readonly ImmutableArray<string> ElementNames;
         internal readonly int SlotIndex; // Locals only

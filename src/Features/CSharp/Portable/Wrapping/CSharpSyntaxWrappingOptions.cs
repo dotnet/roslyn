@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -23,12 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         {
             NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
         }
+    }
 
-        public static CSharpSyntaxWrappingOptions Create(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
-            => new(
-                CSharpSyntaxFormattingOptions.Create(options, (CSharpSyntaxFormattingOptions?)ideOptions.CleanupOptions?.FormattingOptions),
-                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
-                wrappingColumn: ideOptions.WrappingColumn,
-                newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers));
+    internal static class CSharpSyntaxWrappingOptionsProviders
+    {
+        public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this IOptionsReader options, CodeActionOptions fallbackOptions)
+        {
+            var newLineBeforeOpenBraceDefault = ((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions).NewLines.ToNewLineBeforeOpenBracePlacement();
+
+            return new(
+                new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
+                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.OperatorPlacementWhenWrapping),
+                wrappingColumn: fallbackOptions.WrappingColumn,
+                newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, newLineBeforeOpenBraceDefault).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
+        }
     }
 }

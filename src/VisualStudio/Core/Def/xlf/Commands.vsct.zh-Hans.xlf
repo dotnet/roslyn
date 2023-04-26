@@ -7,6 +7,46 @@
         <target state="translated">对选定内容运行代码分析(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|MenuText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="translated">清除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="translated">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="translated">粘贴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="translated">PasteStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
         <target state="translated">堆栈跟踪资源管理器</target>

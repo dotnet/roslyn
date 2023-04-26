@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [MemberData(nameof(ExternalPdbFormats))]
         public void MethodExtents(DebugInformationFormat format)
         {
-            var source0 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
+            var source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
 using System;
 
 public class C
@@ -52,9 +52,9 @@ public class C
         }</N:1>;
     }
 }                              
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
-            var source1 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
+            var source1 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
 using System;
 
 public class C
@@ -83,9 +83,9 @@ public class C
 
     int E() => 1;
 }
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
-            var source2 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
+            var source2 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
 using System;
 
 public class C
@@ -116,7 +116,7 @@ public class C
 
     int B() => 4;
 }
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
             var compilation1 = compilation0.WithSource(source1.Tree);

@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 
-
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 

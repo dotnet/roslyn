@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
     {
-        internal partial struct Reversed
+        internal readonly partial struct Reversed
         {
             internal struct Enumerator
             {

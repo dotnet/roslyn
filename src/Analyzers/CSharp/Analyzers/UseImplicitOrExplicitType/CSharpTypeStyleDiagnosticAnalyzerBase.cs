@@ -14,10 +14,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
@@ -29,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
                    enforceOnBuild,
-                   ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
-                   LanguageNames.CSharp,
+                   ImmutableHashSet.Create<IOption2>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
                    title, message)
         {
         }
@@ -55,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declarationStatement = context.Node;
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
@@ -65,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
+            var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, simplifierOptions, cancellationToken);

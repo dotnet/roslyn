@@ -30,26 +30,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
-        Public Sub Encapsulate()
+        Public Async Function EncapsulateAsync() As Task
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
             Dim commandHandler = New EncapsulateFieldCommandHandler(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                 Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
                 Workspace.GlobalOptions,
                 Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
+            Dim provider = Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+            Dim waiter = DirectCast(provider.GetListener(FeatureAttribute.EncapsulateField), IAsynchronousOperationWaiter)
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
-        End Sub
+            Await waiter.ExpeditedWaitAsync()
+        End Function
 
-        Public Sub AssertEncapsulateAs(expected As String)
-            Encapsulate()
+        Public Async Function AssertEncapsulateAsAsync(expected As String) As Task
+            Await EncapsulateAsync()
             Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString())
-        End Sub
+        End Function
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            If Workspace IsNot Nothing Then
-                Workspace.Dispose()
-            End If
+            Workspace?.Dispose()
         End Sub
-
     End Class
 End Namespace

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var current = stringText;
             while (current is not "@\"\"" and not "\"\"")
             {
-                current = current.Substring(0, current.Length - 2) + "\"";
+                current = current[..^2] + "\"";
                 TryParseTree(current, options, conversionFailureOk: true,
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             {
                 if (current[0] == '@')
                 {
-                    current = "@\"" + current.Substring(3);
+                    current = "@\"" + current[3..];
                 }
                 else
                 {
-                    current = "\"" + current.Substring(2);
+                    current = "\"" + current[2..];
                 }
 
                 TryParseTree(current, options, conversionFailureOk: true,
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
-                    stringText.Substring(0, start) +
-                    stringText.Substring(start + 1, stringText.Length - (start + 1)),
+                    stringText[..start] +
+                    stringText[(start + 1)..],
                     options, conversionFailureOk: true,
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
                     // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
                     // do this in en-US as that's the only culture where we control the text exactly
-                    // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                    // and can ensure it exactly matches Regex.  We depend on localization to do a
                     // good enough job here for other languages.
                     //
                     // TODO: Messages in .NET 6 differ, and are not validated. https://github.com/dotnet/roslyn/issues/61232

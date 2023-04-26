@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -133,11 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
-        {
-            get { return default(System.Reflection.MethodImplAttributes); }
-        }
-
         public override bool ReturnsVoid
         {
             get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
@@ -226,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Locations[0] on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
+        /// GetFirstLocation() on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
         /// For better diagnostics quality, use the DiagnosticLocation instead, which points to the "delegate" or the "=>".
         /// </summary>
         internal Location DiagnosticLocation
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AnonymousMethodExpressionSyntax syntax => syntax.DelegateKeyword.GetLocation(),
                     LambdaExpressionSyntax syntax => syntax.ArrowToken.GetLocation(),
-                    _ => Locations[0]
+                    _ => GetFirstLocation()
                 };
             }
         }
@@ -283,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
-                ParameterHelpers.ReportParameterNullCheckingErrors(addTo.DiagnosticBag, parameter);
             }
 
             GetAttributes();
@@ -336,28 +331,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations type;
                 RefKind refKind;
+                ScopedKind scope;
+                ParameterSyntax? paramSyntax = null;
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
+                    scope = unboundLambda.DeclaredScope(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
-                    refKind = parameterRefKinds[p];
+                    refKind = RefKind.None;
+                    scope = ScopedKind.None;
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
+                    scope = ScopedKind.None;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
-                var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
+                var isParams = paramSyntax?.Modifiers.Any(static m => m.IsKind(SyntaxKind.ParamsKeyword)) ?? false;
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), unboundLambda.ParameterIsNullChecked(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), isParams, location);
                 builder.Add(parameter);
             }
 
@@ -407,10 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         protected override void NoteAttributesComplete(bool forReturnType)
         {

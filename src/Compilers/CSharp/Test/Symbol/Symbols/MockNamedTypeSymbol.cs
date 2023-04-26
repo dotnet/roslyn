@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -88,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
         }
+
+        internal override bool HasDeclaredRequiredMembers => throw new NotImplementedException();
 
         public override ImmutableArray<Symbol> GetMembers()
         {
@@ -224,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -320,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return AttributeUsageInfo.Null;
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 

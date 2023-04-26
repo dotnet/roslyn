@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base.Shutdown();
 
                         Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
+
+                        foreach (var analyzer in Analyzers)
+                        {
+                            analyzer.Shutdown();
+                        }
                     }
 
                     private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)

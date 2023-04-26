@@ -23,16 +23,38 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+#if !CODE_STYLE
+
+        /// <summary>
+        /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
+        /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
+        /// It's also the 8th most common fix that people use, and is picked almost all the times it is shown.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
+#endif
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+#if CODE_STYLE
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
                         nameof(AbstractFormattingCodeFixProvider)),
                     diagnostic);
+#else
+                context.RegisterCodeFix(
+                    CodeAction.DocumentChangeAction.Create(
+                        AnalyzersResources.Fix_formatting,
+                        c => FixOneAsync(context, diagnostic, c),
+                        nameof(AbstractFormattingCodeFixProvider),
+                        CodeActionPriority.High),
+                    diagnostic);
+#endif
             }
 
             return Task.CompletedTask;
@@ -40,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+            var options = await context.Document.GetCodeFixOptionsAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
             var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormatting, formattingOptions, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
@@ -48,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
             var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, formattingOptions, cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
         }

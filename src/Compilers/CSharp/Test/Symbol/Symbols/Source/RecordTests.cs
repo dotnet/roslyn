@@ -75,7 +75,7 @@ record C(int x, string y)
                 // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -104,7 +104,7 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -120,7 +120,7 @@ record C(int x, string y)
                     var p1 = ctor.Parameters[0];
                     Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
                     var p2 = ctor.Parameters[1];
-                    if (ctor is SynthesizedRecordConstructor)
+                    if (ctor is SynthesizedPrimaryConstructor)
                     {
                         Assert.Equal("x", p1.Name);
                         Assert.Equal("y", p2.Name);
@@ -1118,7 +1118,7 @@ partial record C(int X, int Y)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
@@ -1147,7 +1147,7 @@ partial record C(int X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
@@ -1213,72 +1213,60 @@ data struct S1 { }
 data struct S2(int X, int Y);";
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,14): error CS8805: Program using top-level statements must be an executable.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int X, int Y);").WithLocation(3, 14),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,6): error CS1001: Identifier expected
                 // data class C1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 6),
+                // (2,6): error CS1002: ; expected
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 6),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
-                // (3,14): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "data ").WithLocation(3, 1),
+                // (3,6): error CS1001: Identifier expected
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 14),
-                // (3,14): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(3, 6),
+                // (3,6): error CS1002: ; expected
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 14),
-                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(3, 6),
+                // (3,19): warning CS9113: Parameter 'X' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(3, 14),
-                // (3,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(3, 19),
+                // (3,26): warning CS9113: Parameter 'Y' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(3, 14),
-                // (3,15): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(3, 15),
-                // (3,15): error CS0165: Use of unassigned local variable 'X'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(3, 15),
-                // (3,22): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(3, 22),
-                // (3,22): error CS0165: Use of unassigned local variable 'Y'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(3, 26),
+                // (5,20): warning CS9113: Parameter 'X' is unread.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(5, 20),
+                // (5,27): warning CS9113: Parameter 'Y' is unread.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(5, 27),
+                // (4,6): error CS1001: Identifier expected
                 // data struct S1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
-                // (5,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(4, 6),
+                // (4,6): error CS1002: ; expected
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(4, 6),
+                // (5,6): error CS1001: Identifier expected
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(5, 1),
-                // (5,15): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(5, 6),
+                // (5,6): error CS1002: ; expected
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(5, 15),
-                // (5,15): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(5, 6),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "data ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(2, 1),
+                // (3,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(3, 1),
+                // (4,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(4, 1),
+                // (5,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(5, 15),
-                // (5,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(5, 15),
-                // (5,16): error CS8185: A declaration is not allowed in this context.
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(5, 16),
-                // (5,16): error CS0165: Use of unassigned local variable 'X'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(5, 16),
-                // (5,20): error CS0128: A local variable or function named 'X' is already defined in this scope
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "X").WithArguments("X").WithLocation(5, 20),
-                // (5,23): error CS8185: A declaration is not allowed in this context.
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(5, 23),
-                // (5,23): error CS0165: Use of unassigned local variable 'Y'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(5, 23),
-                // (5,27): error CS0128: A local variable or function named 'Y' is already defined in this scope
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(5, 1)
             );
         }
 

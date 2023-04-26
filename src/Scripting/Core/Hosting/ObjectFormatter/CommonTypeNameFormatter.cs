@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 int backtick = name.IndexOf('`');
                 if (backtick > 0)
                 {
-                    builder.Append(name.Substring(0, backtick));
+                    builder.Append(name[..backtick]);
                 }
                 else
                 {

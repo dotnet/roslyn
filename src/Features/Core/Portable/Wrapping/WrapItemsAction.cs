@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
-            => SortByMostRecentlyUsed(codeActions, s_mruTitles, a => GetSortTitle(a));
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, GetSortTitle);
 
         public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
             ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)

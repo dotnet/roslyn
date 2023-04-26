@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineTypeHintsService(IGlobalOptionService globalOptions)
-            : base(globalOptions)
+        public CSharpInlineTypeHintsService()
         {
         }
 
@@ -45,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                         return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier);
                 }
 
-                if (node is DeclarationExpressionSyntax { Type.IsVar: true } declarationExpression)
+                // We handle individual variables of ParenthesizedVariableDesignationSyntax separately.
+                // For example, in `var (x, y) = (0, "")`, we should `int` for `x` and `string` for `y`.
+                // It's redundant to show `(int, string)` for `var`
+                if (node is DeclarationExpressionSyntax { Type.IsVar: true, Designation: not ParenthesizedVariableDesignationSyntax } declarationExpression)
                 {
                     var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
                     if (IsValidType(type))

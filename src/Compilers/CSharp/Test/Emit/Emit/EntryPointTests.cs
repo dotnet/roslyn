@@ -852,7 +852,6 @@ interface I { }
                 // (2,6): error CS1556: 'C' specified for Main method must be a valid class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C"));
 
-
             compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe.WithMainTypeName("D"));
@@ -860,7 +859,6 @@ interface I { }
             compilation.VerifyDiagnostics(
                 // (3,15): error CS1556: 'D' specified for Main method must be a valid class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("D"));
-
 
             compilation = CreateCompilation(
                 source,

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var firstStringToken = stringLiterals[0].GetFirstToken();
                 isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
                 if (stringLiterals.Any(
-                        lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
+                        static (lit, arg) => arg.isVerbatimStringLiteral != arg.syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken()), (syntaxFacts, isVerbatimStringLiteral)))
                 {
                     return;
                 }

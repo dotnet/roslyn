@@ -85,7 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntax As SyntaxNode = Me.CurrentMethod.Syntax
 
-
             ' generate and register wrapper method
             Dim wrapperMethodName As String = GeneratedNames.MakeBaseMethodWrapperName(method.Name, isMyBase)
             Dim wrapperMethod As New SynthesizedWrapperMethod(DirectCast(containingType, InstanceTypeSymbol), method, wrapperMethodName, syntax)
@@ -212,8 +211,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(compilationState, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                 Dim compilation = Me.DeclaringCompilation
 

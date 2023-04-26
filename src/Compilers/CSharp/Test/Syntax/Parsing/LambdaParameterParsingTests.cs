@@ -34,7 +34,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class C {
      void Goo() {
           System.Func<int, int> f = (out 
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,41): error CS1002: ; expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 41),
+                // (4,41): error CS1513: } expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 41),
+                // (4,41): error CS1513: } expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 41));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -124,7 +142,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,43): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1513: } expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1513: } expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 43));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -222,7 +261,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,45): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -327,7 +387,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,45): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -432,7 +513,31 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c,
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,46): error CS1001: Identifier expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -670,7 +775,10 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidation()
         {
-            UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview,
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func1 = x!! => x + "1";
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -704,7 +812,6 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.ExclamationExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.AddExpression);
@@ -728,7 +835,10 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidationParams()
         {
-            UsingDeclaration("Func<int, int, bool> func1 = (x!!, y) => x == y;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, bool> func1 = (x!!, y) => x == y;", options: TestOptions.RegularPreview,
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int, bool> func1 = (x!!, y) => x == y;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -770,7 +880,6 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -801,7 +910,10 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamInParens()
         {
-            UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview,
+                // (1,26): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int> func1 = (x!!) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 26));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -838,7 +950,6 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -856,7 +967,10 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingDeclaration("Func<int, int> func1 = x!!=>x;", options: TestOptions.RegularPreview,
+                // (1,25): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int> func1 = x!!=>x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 25));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -890,7 +1004,6 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "x");
-                            N(SyntaxKind.ExclamationExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.IdentifierName);
@@ -906,7 +1019,10 @@ class C {
         [Fact]
         public void TestNullCheckedTypedSingleParamInParen()
         {
-            UsingDeclaration("Func<int, int> func1 = (int x!!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (int x!!) => x;", options: TestOptions.RegularPreview,
+                // (1,30): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int> func1 = (int x!!) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 30));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -947,7 +1063,6 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -965,7 +1080,10 @@ class C {
         [Fact]
         public void TestNullCheckedTypedManyParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y) => x;", options: TestOptions.RegularPreview,
+                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int, int> func1 = (int x!!, int y) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1011,7 +1129,6 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1038,7 +1155,13 @@ class C {
         [Fact]
         public void TestManyNullCheckedTypedParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y!!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y!!) => x;", options: TestOptions.RegularPreview,
+                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int, int> func1 = (int x!!, int y!!) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35),
+                // (1,44): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int, int> func1 = (int x!!, int y!!) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 44));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1084,7 +1207,6 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1094,7 +1216,6 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "y");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -1114,12 +1235,9 @@ class C {
         {
             UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
-                    // (1,22): error CS1525: Invalid expression term ')'
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-                    // (1,24): error CS1003: Syntax error, ',' expected
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24)
+                // (1,20): error CS1001: Identifier expected
+                // Func<int> func1 = (!!) => 42;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1144,22 +1262,18 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.LogicalNotExpression);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.ExclamationToken);
-                                    N(SyntaxKind.LogicalNotExpression);
-                                    {
-                                        N(SyntaxKind.ExclamationToken);
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "42");
+                                }
                             }
                         }
                     }
@@ -1171,7 +1285,10 @@ class C {
         [Fact]
         public void TestNullCheckedDiscard()
         {
-            UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview,
+                // (1,26): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<int, int> func1 = (_!!) => 42;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 26));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1208,7 +1325,6 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "_");
-                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -1227,9 +1343,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection0()
         {
             UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = x!=> x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1263,7 +1379,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1283,9 +1398,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection1()
         {
             UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview,
-                    // (1,32): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func1 = x !=> x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1319,7 +1434,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1339,12 +1453,12 @@ class C {
         public void TestNullCheckedSyntaxCorrection2()
         {
             UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview,
-                    // (1,32): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32),
-                    // (1,33): error CS1003: Syntax error, '=>' expected
-                    // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 33));
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func2 = x != > x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32),
+                // (1,33): error CS1003: Syntax error, '=>' expected
+                // Func<string, string> func2 = x != > x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1378,7 +1492,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1497,7 +1610,10 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection5()
         {
-            UsingDeclaration("Func<string, string> func5 = x !!=> x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func5 = x !!=> x;", options: TestOptions.RegularPreview,
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func5 = x !!=> x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1531,7 +1647,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1550,9 +1665,12 @@ class C {
         public void TestNullCheckedSyntaxCorrection6()
         {
             UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
-                    // (1,34): error CS1003: Syntax error, '=>' expected
-                    // Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 34));
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func6 = x !!= > x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32),
+                // (1,34): error CS1003: Syntax error, '=>' expected
+                // Func<string, string> func6 = x !!= > x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 34));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1586,7 +1704,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1605,7 +1722,10 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection7()
         {
-            UsingDeclaration("Func<string, string> func7 = x!! => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func7 = x!! => x;", options: TestOptions.RegularPreview,
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func7 = x!! => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1639,7 +1759,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1658,9 +1777,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection8()
         {
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func8 = x! !=> x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1694,7 +1813,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -1714,9 +1832,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection9()
         {
             UsingDeclaration("Func<string, string> func9 = x! ! => x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func9 = x! ! => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1750,7 +1868,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -2057,12 +2174,47 @@ class C {
         }
 
         [Fact]
+        public void TestDefaultValue_TypedSimpleLambda()
+        {
+            UsingDeclaration("var f = int x = 3 => x;",
+                null,
+                // (1,9): error CS1525: Invalid expression term 'int'
+                // var f = int x = 3 => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // var f = int x = 3 => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 13));
+
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "f");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestDefaultValueParenthesizedLambda1()
         {
-            UsingDeclaration("Func<string, string> func0 = (x = null) => x;", options: TestOptions.RegularPreview,
-                // (1,33): error CS1065: Default values are not valid in this context.
-                // Func<string, string> func0 = (x = null) => x;
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 33));
+            UsingDeclaration("Func<string, string> func0 = (x = null) => x;");
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2099,6 +2251,14 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2117,12 +2277,59 @@ class C {
         }
 
         [Fact]
+        public void TestImplicitDefaultValue_DelegateSyntax()
+        {
+            UsingExpression("delegate(x = 3) { return x; }",
+                // (1,12): error CS1001: Identifier expected
+                // delegate(x = 3) { return x; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 12));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestDefaultValueParenthesizedLambda2()
         {
-            UsingDeclaration("Func<string, string> func0 = (y, x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,36): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (y, x = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 36));
+            UsingDeclaration("Func<string, string> func0 = (y, x = null) => x;");
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2164,6 +2371,14 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2184,10 +2399,8 @@ class C {
         [Fact]
         public void TestDefaultValueParenthesizedLambdaWithType1()
         {
-            UsingDeclaration("Func<string, string> func0 = (string x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,40): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 40));
+            UsingDeclaration("Func<string, string> func0 = (string x = null) => x;");
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2228,6 +2441,14 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2248,10 +2469,8 @@ class C {
         [Fact]
         public void TestDefaultValueParenthesizedLambdaWithType2()
         {
-            UsingDeclaration("Func<string, string> func0 = (string y, string x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,50): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (string y, string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 50));
+            UsingDeclaration("Func<string, string> func0 = (string y, string x = null) => x;");
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2301,6 +2520,15 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2314,6 +2542,1697 @@ class C {
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueParameterNonConstantExpression()
+        {
+            string source = "(double d = x + y) => d * 2";
+            UsingExpression(source);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.DoubleKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.MultiplyExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                    N(SyntaxKind.AsteriskToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultMissingValueClause1()
+        {
+            string source = "(string a, double b = ) => double.Parse(a) + b";
+            UsingExpression(source,
+                // (1,23): error CS1525: Invalid expression term ')'
+                // (string a, double b = ) => double.Parse(a) + b
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 23));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.DoubleKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "b");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.DoubleKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Parse");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultMissingValueClauseSyntax_DelegateSyntax1()
+        {
+            UsingExpression("delegate(int x = , int y) { return x; }",
+                // (1,18): error CS1525: Invalid expression term ','
+                // delegate(int x = , int y) { return x; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultMissingValueClause2()
+        {
+            string source = "(int x = , int y) => x + y";
+            UsingExpression(source,
+                    // (1,10): error CS1525: Invalid expression term ','
+                    // (int x = , int y) => x + y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 10));
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultMissingValueClause_DelegateSyntax2()
+        {
+            UsingExpression("delegate(int x = , int y) { return x; }",
+                // (1,18): error CS1525: Invalid expression term ','
+                // delegate(int x = , int y) { return x; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda1()
+        {
+            string source = "(int x =";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax1()
+        {
+            string source = "delegate (int x =";
+            UsingExpression(source,
+                // (1,18): error CS1733: Expected expression
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18),
+                // (1,18): error CS1026: ) expected
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 18),
+                // (1,18): error CS1514: { expected
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda2()
+        {
+            string source = "(int x = 5";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax2()
+        {
+            string source = "delegate (int x = 5";
+            UsingExpression(source,
+                // (1,20): error CS1026: ) expected
+                // delegate (int x = 5
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
+                // (1,20): error CS1514: { expected
+                // delegate (int x = 5
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 20));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda3()
+        {
+            string source = "(int x = 3,";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax3()
+        {
+            string source = "delegate (int x = 3,";
+            UsingExpression(source,
+                // (1,21): error CS1031: Type expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1001: Identifier expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1026: ) expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 21));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierName);
+
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNoIdentifier()
+        {
+            string source = "(int = 3) => 4";
+            UsingExpression(source,
+                // (1,6): error CS1001: Identifier expected
+                // (int = 3) => 4
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 6));
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNoIdentifier_DelegateSyntax()
+        {
+            string source = "delegate(int = 3) { return 4; }";
+            UsingExpression(source,
+                // (1,14): error CS1001: Identifier expected
+                // delegate(int = 3) { return 4; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 14));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueDoubleEquals()
+        {
+            string source = "(int x = 3 = 3) => x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueEqualsEquals()
+        {
+            string source = "(int x == 4) => x";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueDelegateSyntax()
+        {
+            string source = "delegate(int x = 10) { return x; }";
+            UsingExpression(source);
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "10");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithAttributeOnParam()
+        {
+            string source = "([MyAttribute(3, arg1=true)] int x = -1) => x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MyAttribute");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "3");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NameEquals);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "arg1");
+                                            }
+                                            N(SyntaxKind.EqualsToken);
+                                        }
+                                        N(SyntaxKind.TrueLiteralExpression);
+                                        {
+                                            N(SyntaxKind.TrueKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.UnaryMinusExpression);
+                            {
+                                N(SyntaxKind.MinusToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithAttributeOnParam_DelegateSyntax()
+        {
+            UsingExpression("delegate ([MyAttribute(3, arg1=true)] int x = -1) { return x; }");
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MyAttribute");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "3");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NameEquals);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "arg1");
+                                            }
+                                            N(SyntaxKind.EqualsToken);
+                                        }
+                                        N(SyntaxKind.TrueLiteralExpression);
+                                        {
+                                            N(SyntaxKind.TrueKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.UnaryMinusExpression);
+                            {
+
+                                N(SyntaxKind.MinusToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithOtherModifiers()
+        {
+            string source = "(ref int a, out int b, int c = 0) => { b = a + c; }";
+            UsingExpression(source);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithComplexExpression1()
+        {
+            string source = "(int arg = y switch { < 0 => -1, 0 => 0, > 0 => 1}) => arg";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "arg");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SwitchExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.UnaryMinusExpression);
+                                    {
+                                        N(SyntaxKind.MinusToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.GreaterThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "arg");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithLambdaAsValue()
+        {
+            string source = "(int arg, Func<int, int> lam = (x) => 2 * x) => lam(arg)";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "arg");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Func");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "lam");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.MultiplyExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "lam");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "arg");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithSwitchLambdaAsValue()
+        {
+
+            string source = @"(int arg,
+                            Func<int, Color> colorFunc = (Color c = Color.Red) => c switch 
+                                                                           { 1 => Color.Green, 2 => Color.Red, 3 => Color.Blue }) =>
+            { return colorFunc(arg); }";
+            UsingExpression(source);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "arg");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Func");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Color");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "colorFunc");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Color");
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Color");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Red");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.SwitchExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                    N(SyntaxKind.SwitchKeyword);
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.SwitchExpressionArm);
+                                    {
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Color");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Green");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.SwitchExpressionArm);
+                                    {
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "2");
+                                            }
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Color");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Red");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.SwitchExpressionArm);
+                                    {
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "3");
+                                            }
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Color");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Blue");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "colorFunc");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "arg");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNestedLambdas()
+        {
+            string source = "(a = (b = (c = (d = 3) => d) => c) => b) => a";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.Parameter);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "c");
+                                                        N(SyntaxKind.EqualsValueClause);
+                                                        {
+                                                            N(SyntaxKind.EqualsToken);
+                                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                            {
+                                                                N(SyntaxKind.ParameterList);
+                                                                {
+                                                                    N(SyntaxKind.OpenParenToken);
+                                                                    N(SyntaxKind.Parameter);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "d");
+                                                                        N(SyntaxKind.EqualsValueClause);
+                                                                        {
+                                                                            N(SyntaxKind.EqualsToken);
+                                                                            N(SyntaxKind.NumericLiteralExpression);
+                                                                            {
+                                                                                N(SyntaxKind.NumericLiteralToken, "3");
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    N(SyntaxKind.CloseParenToken);
+                                                                }
+                                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                                N(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierToken, "d");
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "c");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNestedLambdaIncomplete()
+        {
+            var source = "(Func<int, int> l1 = (int a = 1) =>";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'l1'
+                // (Func<int, int> l1 = (int a = 1) =>
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(Func<int, int> ").WithArguments("l1").WithLocation(1, 1),
+                // (1,17): error CS1026: ) expected
+                // (Func<int, int> l1 = (int a = 1) =>
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "l1").WithLocation(1, 17));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.GenericName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueTypedNestedLambda()
+        {
+            var source = @"(Func<int, int> a = (int b = 5) => b) => a";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Func");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithComplexExpression2()
+        {
+            string source = "(int arg = a ? b ? w : x : c ? y : z)  => arg";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "arg");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ConditionalExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ConditionalExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "w");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.ColonToken);
+                                N(SyntaxKind.ConditionalExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "z");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "arg");
+                }
             }
             EOF();
         }
@@ -2385,9 +4304,10 @@ class C {
         public void TestNullCheckedDefaultValueParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x!! = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,35): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (x!! = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 35));
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2424,7 +4344,14 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2446,9 +4373,10 @@ class C {
         public void TestNullCheckedDefaultValueParenthesizedLambda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x!! = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,38): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (y, x!! = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 38));
+                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (y, x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35));
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2490,7 +4418,14 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2512,9 +4447,10 @@ class C {
         public void TestNullCheckedDefaultValueParenthesizedLambdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x!! = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,42): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (string x!! = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 42));
+                // (1,39): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (string x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 39));
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2555,7 +4491,14 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2577,9 +4520,10 @@ class C {
         public void TestNullCheckedDefaultValueParenthesizedLambdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x!! = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,52): error CS1065: Default values are not valid in this context.
-                    // Func<string, string> func0 = (string y, string x!! = null) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 52));
+                // (1,49): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (string y, string x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 49));
+
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2629,7 +4573,14 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2648,12 +4599,90 @@ class C {
         }
 
         [Fact]
+        public void TestGreaterThanTokenInEqualsValueClause()
+        {
+            UsingExpression("(int x = > 0) => x;",
+                // (1,1): error CS1073: Unexpected token ';'
+                // (int x = > 0) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x = > 0) => x").WithArguments(";").WithLocation(1, 1),
+                // (1,10): error CS1525: Invalid expression term '>'
+                // (int x = > 0) => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 10));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithDefaultParameterValue()
+        {
+            UsingExpression("(__arglist = null) => { }",
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (__arglist = null) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(__arglist = null)").WithArguments("=>").WithLocation(1, 1));
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.ArgListExpression);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.NullLiteralExpression);
+                    {
+                        N(SyntaxKind.NullKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestNullCheckedSpaceBetweenSimpleLambda()
         {
             UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
+                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = x! ! => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2687,7 +4716,6 @@ class C {
                                 N(SyntaxKind.Parameter);
                                 {
                                     N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.IdentifierName);
@@ -2707,9 +4735,9 @@ class C {
         public void TestNullCheckedSpaceBetweenParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
-                    // (1,32): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = (x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
+                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (x! !) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2746,7 +4774,6 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2768,9 +4795,9 @@ class C {
         public void TestNullCheckedSpaceBetweenParenthesizedLambda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview,
-                    // (1,35): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = (y, x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 35));
+                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (y, x! !) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2812,7 +4839,6 @@ class C {
                                     N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2834,9 +4860,9 @@ class C {
         public void TestNullCheckedSpaceBetweenLambdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
-                    // (1,39): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 39));
+                // (1,39): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (string x! !) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 39));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2877,7 +4903,6 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -2899,9 +4924,9 @@ class C {
         public void TestNullCheckedSpaceBetweenLambdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview,
-                    // (1,49): error CS1003: Syntax error, '!!' expected
-                    // Func<string, string> func0 = (string y, string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 49));
+                // (1,49): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Func<string, string> func0 = (string y, string x! !) => x;
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 49));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2951,7 +4976,6 @@ class C {
                                             N(SyntaxKind.StringKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "x");
-                                        N(SyntaxKind.ExclamationExclamationToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -3038,7 +5062,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_01(LanguageVersion languageVersion)
         {
@@ -3068,7 +5092,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_02(LanguageVersion languageVersion)
         {
@@ -3096,7 +5120,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_03(LanguageVersion languageVersion)
         {
@@ -3370,8 +5394,7 @@ class C {
         public void KeywordParameterName_12()
         {
             string source = "Action<object> a = public => { };";
-            var tree = UsingTree(source);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(source,
                 // (1,20): error CS1525: Invalid expression term 'public'
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 20),
@@ -3446,6 +5469,181 @@ class C {
             EOF();
         }
 
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_01()
+        {
+            string source = "scoped => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_02()
+        {
+            string source = "(scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_03()
+        {
+            string source = "(a, scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_04()
+        {
+            string source = "(int scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_05()
+        {
+            string source = "(scoped int scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06()
+        {
+            string source = "(scoped scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void MissingParameterName_01()
         {
@@ -3479,9 +5677,9 @@ class C {
                 // (1,3): error CS1001: Identifier expected
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
-                // (1,3): error CS1001: Identifier expected
+                // (1,3): error CS1003: Syntax error, ',' expected
                 // [ => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 3),
                 // (1,9): error CS1003: Syntax error, ']' expected
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 9),
@@ -3555,5 +5753,7 @@ class C {
             }
             EOF();
         }
+
     }
+
 }

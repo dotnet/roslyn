@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
@@ -38,7 +39,25 @@ End Namespace
             Iterator
         End Enum
 
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String) As String
+            Dim resource = TryGetResource(keyword)
+
+            If resource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Return String.Format(FeaturesResources.member_kind_and_name, resource, symbolDisplayName)
+        End Function
+
         Public Shared Function GetResource(keyword As String) As String
+            Dim result = TryGetResource(keyword)
+            If result Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+            Return result
+        End Function
+
+        Public Shared Function TryGetResource(keyword As String) As String
             Select Case keyword
                 Case "Enum"
                     Return FeaturesResources.enum_
@@ -52,8 +71,26 @@ End Namespace
                     Return FeaturesResources.interface_
                 Case "Delegate"
                     Return FeaturesResources.delegate_
+                Case "Lambda"
+                    Return VBFeaturesResources.Lambda
+                Case "field"
+                    Return FeaturesResources.field
+                Case "property"
+                    Return FeaturesResources.property_
+                Case "method"
+                    Return FeaturesResources.method
+                Case "constructor"
+                    Return FeaturesResources.constructor
+                Case "shared constructor"
+                    Return VBFeaturesResources.Shared_constructor
+                Case "parameter"
+                    Return FeaturesResources.parameter
+                Case "type parameter"
+                    Return FeaturesResources.type_parameter
+                Case "WithEvents field"
+                    Return VBFeaturesResources.WithEvents_field
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(keyword)
+                    Return Nothing
             End Select
         End Function
 
@@ -66,25 +103,29 @@ End Namespace
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
                                             symbolProvider As Func(Of Compilation, ISymbol),
                                             syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan)),
-                                            Optional partialType As String = Nothing) As SemanticEditDescription
+                                            Optional partialType As String = Nothing,
+                                            Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
             Return New SemanticEditDescription(
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap,
-                hasSyntaxMap:=syntaxMap IsNot Nothing)
+                hasSyntaxMap:=syntaxMap IsNot Nothing,
+                deletedSymbolContainerProvider)
         End Function
 
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
                                             symbolProvider As Func(Of Compilation, ISymbol),
                                             Optional partialType As String = Nothing,
-                                            Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
+                                            Optional preserveLocalVariables As Boolean = False,
+                                            Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
             Return New SemanticEditDescription(
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap:=Nothing,
-                hasSyntaxMap:=preserveLocalVariables)
+                hasSyntaxMap:=preserveLocalVariables,
+                deletedSymbolContainerProvider)
         End Function
 
         Friend Shared Function DeletedSymbolDisplay(kind As String, displayName As String) As String
@@ -98,11 +139,15 @@ End Namespace
             Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)
         End Function
 
+        Private Shared Function GetDocumentFilePath(documentIndex As Integer) As String
+            Return Path.Combine(TempRoot.Root, documentIndex.ToString() & ".vb")
+        End Function
+
         Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
-                path:=documentIndex.ToString())
+                path:=GetDocumentFilePath(documentIndex))
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScript(Of SyntaxNode)
@@ -132,25 +177,22 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
+            Dim analyzer = CreateAnalyzer()
+            Dim match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)())
 
-            Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
-            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
-            Dim needsSyntaxMap = oldHasStateMachineSuspensionPoint AndAlso newHasStateMachineSuspensionPoint
+            Dim stateMachineInfo1 = analyzer.GetStateMachineInfo(m1)
+            Dim stateMachineInfo2 = analyzer.GetStateMachineInfo(m2)
+            Dim needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints AndAlso stateMachineInfo2.HasSuspensionPoints
 
             Assert.Equal(methodKind <> MethodKind.Regular, needsSyntaxMap)
-
-            If methodKind = MethodKind.Regular Then
-                Assert.Empty(diagnostics)
-            End If
 
             Return match
         End Function
 
         Public Shared Function GetMethodMatches(src1 As String,
                                                 src2 As String,
-                                                Optional stateMachine As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
-            Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
+                                                Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
+            Dim methodMatch = GetMethodMatch(src1, src2, kind)
             Return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch)
         End Function
 
@@ -186,33 +228,12 @@ End Namespace
             End Select
         End Function
 
-        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing, Optional path As String = "0") As ActiveStatementsDescription
-            Return New ActiveStatementsDescription(oldSource, newSource, Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=path), flags)
+        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing, Optional documentIndex As Integer = 0) As ActiveStatementsDescription
+            Return New ActiveStatementsDescription(oldSource, newSource, Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=GetDocumentFilePath(documentIndex)), flags)
         End Function
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
             Return New SyntaxMapDescription(oldSource, newSource)
-        End Function
-
-        Friend Shared Function GetActiveStatementDebugInfos(
-            markedSources As String(),
-            Optional filePaths As String() = Nothing,
-            Optional methodRowIds As Integer() = Nothing,
-            Optional modules As Guid() = Nothing,
-            Optional methodVersions As Integer() = Nothing,
-            Optional ilOffsets As Integer() = Nothing,
-            Optional flags As ActiveStatementFlags() = Nothing) As ImmutableArray(Of ManagedActiveStatementDebugInfo)
-
-            Return ActiveStatementsDescription.GetActiveStatementDebugInfos(
-                Function(source, path) SyntaxFactory.ParseSyntaxTree(source, path:=path),
-                markedSources,
-                filePaths,
-                extension:=".vb",
-                methodRowIds,
-                modules,
-                methodVersions,
-                ilOffsets,
-                flags)
         End Function
     End Class
 End Namespace

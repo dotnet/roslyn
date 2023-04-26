@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             if (canGenerateAbstractly)
                 result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: true, generateProperty: false));
 
-            var semanticFacts = document.Project.Solution.Workspace.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
+            var semanticFacts = document.Project.Solution.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
 
             if (semanticFacts.SupportsParameterizedProperties &&
                 state.InvocationExpressionOpt != null)

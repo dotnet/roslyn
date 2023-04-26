@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -24,7 +23,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class ParentInstallPackageCodeAction : CodeAction.CodeActionWithNestedActions
         {
-            public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
+            /// <summary>
+            /// This code action only works by installing a package.  As such, it requires a non document change (and is
+            /// thus restricted in which hosts it can run).
+            /// </summary>
+            public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
             /// <summary>
             /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.

@@ -177,6 +177,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         {
             return _info.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
         }
+
+        public InlineRenameFileRenameInfo GetFileRenameInfo()
+            => InlineRenameFileRenameInfo.NotAllowed;
     }
 
 #nullable enable

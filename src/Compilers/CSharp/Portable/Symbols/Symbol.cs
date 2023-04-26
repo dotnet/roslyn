@@ -318,10 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
+            var firstLocation = this.TryGetFirstLocation();
+            if (firstLocation is null)
+                return LexicalSortKey.NotInSource;
+
             var declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
+            return new LexicalSortKey(firstLocation, declaringCompilation);
         }
 
         /// <summary>
@@ -330,6 +333,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// location.
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
+
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+
+        public Location GetFirstLocationOrNone()
+            => TryGetFirstLocation() ?? Location.None;
+
+        /// <summary>
+        /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref
+        /// name="tree"/> and is contained within <paramref name="declarationSpan"/>.  Subclasses can override this to
+        /// be more efficient if desired (especially if avoiding allocations of the <see cref="Locations"/> array is
+        /// desired).
+        /// </summary>
+        public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            foreach (var loc in this.Locations)
+            {
+                if (IsLocationContainedWithin(loc, tree, declarationSpan, out wasZeroWidthMatch))
+                    return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+        protected static bool IsLocationContainedWithin(Location loc, SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            if (loc.IsInSource && loc.SourceTree == tree && declarationSpan.Contains(loc.SourceSpan))
+            {
+                wasZeroWidthMatch = loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start;
+                return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+#nullable disable
 
         /// <summary>
         /// <para>
@@ -771,7 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.ContainingModule.DefaultMarshallingCharSet;
         }
 
-
         internal bool IsFromCompilation(CSharpCompilation compilation)
         {
             Debug.Assert(compilation != null);
@@ -798,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
-        internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             var declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
@@ -810,8 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree == tree &&
-                    (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)))
+                if (IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan))
                 {
                     return true;
                 }
@@ -819,6 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        protected static bool IsDefinedInSourceTree(SyntaxReference syntaxRef, SyntaxTree tree, TextSpan? definedWithinSpan)
+            => syntaxRef.SyntaxTree == tree &&
+                (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
         internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
         {
@@ -873,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat.TestFormat
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
                     | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
 
         internal virtual string GetDebuggerDisplay()
         {
@@ -939,16 +991,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is the highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
-        protected virtual int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -987,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (info.Severity == DiagnosticSeverity.Error && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == Int32.MaxValue))
+            if (info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -1121,7 +1167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
 
         [Flags]
         internal enum AllowedRequiredModifierType
@@ -1384,6 +1429,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullablePublicOnlyAttribute = 1 << 8,
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
+            RequiredMemberAttribute = 1 << 11,
+            ScopedRefAttribute = 1 << 12,
+            RefSafetyRulesAttribute = 1 << 13,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1437,6 +1485,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.ScopedRefAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.ScopedRefAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
+            {
             }
             else
             {

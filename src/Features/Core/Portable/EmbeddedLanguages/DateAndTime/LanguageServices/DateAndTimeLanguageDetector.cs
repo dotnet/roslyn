@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
 
             var parameters = method.Parameters;
             if (argName != null)
-                return parameters.Any(p => p.Name == argName);
+                return parameters.Any(static (p, argName) => p.Name == argName, argName);
 
             var parameter = argIndex < parameters.Length ? parameters[argIndex.Value] : null;
             return parameter?.Name == FormatName;

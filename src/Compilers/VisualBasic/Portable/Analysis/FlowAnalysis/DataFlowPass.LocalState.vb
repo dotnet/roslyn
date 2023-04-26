@@ -78,25 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        ''' <summary>
-        ''' Union bit arrays taking into account 'all bits set' flag
-        ''' </summary>
-        ''' <remarks>receiver will be changed as a result</remarks>
-        Private Shared Sub UnionBitArrays(ByRef receiver As BitVector, other As BitVector)
-            ' NOTE: a state with 'unreachable' slot set to 'assigned' means 'all bits are set'
-            If receiver(SlotKind.Unreachable) Then
-                ' RECEIVER state has 'all bits set', thus, it does not need to be changed
-            Else
-                If other(SlotKind.Unreachable) Then
-                    ' set RECEIVER to 'all bits are set'
-                    receiver = UnreachableBitsSet
-                Else
-                    ' both RECEIVER and OTHER are valid bitsets
-                    receiver.UnionWith(other)
-                End If
-            End If
-        End Sub
-
         Protected Sub Normalize(ByRef _state As LocalState)
             Dim oldNext As Integer = _state.Assigned.Capacity
             _state.Assigned.EnsureCapacity(nextVariableSlot)

@@ -352,7 +352,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Class
 
-
         ''' <summary>
         ''' Having this binder, which is created for each field initializer within AnonymousObjectCreationExpressionSyntax
         ''' gives us the following advantages:

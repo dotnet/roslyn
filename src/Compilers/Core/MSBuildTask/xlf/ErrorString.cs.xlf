@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: Neočekávaná výjimka: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">Zdrojové referenční sestavení {0} (časové razítko {1}, MVID {2}) se liší od cíle {3} (časové razítko {4}, MVID {5}).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">Kopíruje se referenční sestavení z {0} do {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: Alias sestavení {1} odkazu {0} obsahuje neplatné znaky.</target>

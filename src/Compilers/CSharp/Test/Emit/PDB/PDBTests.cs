@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -77,6 +79,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     <file id=""4"" name=""Baz.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""" + BitConverter.ToString(hash4) + @""" />
   </files>
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
+        }
+
+        [Fact]
+        public void SourceGeneratedFiles()
+        {
+            Compilation compilation = CreateCompilation("class C { }", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var testGenerator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256));
+
+                    Assert.Throws<ArgumentException>(() => context.AddSource("hint3", SourceText.From("class G3 { void F() {} }", encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha256)));
+                }
+            };
+
+            var driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: TestOptions.Regular);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+
+            var result = outputCompilation.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+            Assert.True(result.Success);
+
+            var path1 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var path2 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            outputCompilation.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
+    <file id=""2"" name=""{path2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
+  </files>
+</symbols>", options: PdbValidationOptions.ExcludeMethods);
+        }
+
+        [Fact]
+        public void EmitDebugInfoForSynthesizedSyntaxTree()
+        {
+            var tree1 = SyntaxFactory.ParseCompilationUnit(@"
+#line 1 ""test.cs""
+class C { void M() {} }
+").SyntaxTree;
+            var tree2 = SyntaxFactory.ParseCompilationUnit(@"
+class D { void M() {} }
+").SyntaxTree;
+
+            var comp = CSharpCompilation.Create("test", new[] { tree1, tree2 }, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll);
+
+            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+    <file id=""2"" name=""test.cs"" language=""C#"" />
+  </files>
+</symbols>
+", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
@@ -959,6 +1025,87 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void ConstructorsWithSharedInitializers()
+        {
+            var source = @"
+class B
+{
+    public B(int z) {}
+}
+
+class C : B
+{
+    int a = 1;
+    bool b = true;
+
+    C(int x)
+        : base(3)
+    {
+        a = x;
+    }
+    
+    C(bool y)
+        : base(4)
+    {
+        b = y;
+    }
+}
+
+";
+
+            var c = CompileAndVerify(source);
+
+            c.VerifyMethodBody("C..ctor(int)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(3)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: a = x;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""int C.a""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor(bool)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(4)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.4
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: b = y;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""bool C.b""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
         }
 
         /// <summary>
@@ -7751,6 +7898,9 @@ class C
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""222"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
@@ -9848,7 +9998,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -10057,7 +10207,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object

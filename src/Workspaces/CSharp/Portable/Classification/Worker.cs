@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -18,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
     /// and constructed via provided factory.
     /// </summary>
-    internal ref partial struct Worker
+    internal readonly ref partial struct Worker
     {
         private readonly TextSpan _textSpan;
-        private readonly ArrayBuilder<ClassifiedSpan> _result;
+        private readonly SegmentedList<ClassifiedSpan> _result;
         private readonly CancellationToken _cancellationToken;
 
-        private Worker(TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _result = result;
             _textSpan = textSpan;
@@ -32,17 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         internal static void CollectClassifiedSpans(
-            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             foreach (var tk in tokens)
-            {
                 worker.ClassifyToken(tk);
-            }
         }
 
         internal static void CollectClassifiedSpans(
-            SyntaxNode node, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SyntaxNode node, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             worker.ClassifyNode(node);
@@ -96,11 +96,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (type != null)
                 {
-                    AddClassification(span, type);
+                    if (token.Kind() is
+                            SyntaxKind.Utf8StringLiteralToken or
+                            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                            SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
+                        token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AddClassification(TextSpan.FromBounds(token.Span.Start, token.Span.End - "u8".Length), type);
+                        AddClassification(TextSpan.FromBounds(token.Span.End - "u8".Length, token.Span.End), ClassificationTypeNames.Keyword);
+                    }
+                    else
+                    {
+                        AddClassification(span, type);
+                    }
 
                     // Additionally classify static symbols
-                    if (token.Kind() == SyntaxKind.IdentifierToken
-                        && ClassificationHelpers.IsStaticallyDeclared(token))
+                    if (token.Kind() == SyntaxKind.IdentifierToken &&
+                        ClassificationHelpers.IsStaticallyDeclared(token))
                     {
                         AddClassification(span, ClassificationTypeNames.StaticSymbol);
                     }

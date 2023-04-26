@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpAccessibilityFacts : IAccessibilityFacts
     {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        public bool CanHaveAccessibility(SyntaxNode declaration)
+        public bool CanHaveAccessibility(SyntaxNode declaration, bool ignoreDeclarationModifiers = false)
         {
             switch (declaration.Kind())
             {
@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
+                    return ignoreDeclarationModifiers || !((MemberDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.FileKeyword);
+
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
                 case SyntaxKind.ConstructorDeclaration:
                     // Static constructor can't have accessibility
-                    return !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
+                    return ignoreDeclarationModifiers || !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
 
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
@@ -139,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
                     SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
                     SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
+                    SyntaxKind.FileKeyword => DeclarationModifiers.File,
+                    SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
                     _ => DeclarationModifiers.None,
                 };
 

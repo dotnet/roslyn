@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_AnalyzerCannotBeCreated { get; }
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int WRN_AnalyzerReferencesFramework { get; }
+        public abstract int WRN_AnalyzerReferencesNewerCompiler { get; }
+        public abstract int WRN_DuplicateAnalyzerReference { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
         public abstract int ERR_CompileCancelled { get; }
 
@@ -241,6 +243,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+        public abstract int ERR_FunctionPointerTypesInAttributeNotSupported { get; }
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }

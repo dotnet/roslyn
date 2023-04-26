@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (rootNamespace is not null && @namespace.StartsWith(rootNamespace + ".", StringComparison.OrdinalIgnoreCase))
             {
                 // Add 1 to get rid of the starting "." as well
-                @namespace = @namespace.Substring(rootNamespace.Length + 1);
+                @namespace = @namespace[(rootNamespace.Length + 1)..];
             }
 
             var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);

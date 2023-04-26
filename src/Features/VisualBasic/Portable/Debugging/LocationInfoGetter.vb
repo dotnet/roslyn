@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Debugging
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging

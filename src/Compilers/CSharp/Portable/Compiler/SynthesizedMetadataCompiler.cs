@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         public override void VisitMethod(MethodSymbol symbol)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif
     }

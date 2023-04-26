@@ -25,11 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
+        private readonly SourceText _text;
 
         public CSharpSmartTokenFormatter(
             IndentationOptions options,
             ImmutableArray<AbstractFormattingRule> formattingRules,
-            CompilationUnitSyntax root)
+            CompilationUnitSyntax root,
+            SourceText text)
         {
             Contract.ThrowIfNull(root);
 
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             _formattingRules = formattingRules;
 
             _root = root;
+            _text = text;
         }
 
         public IList<TextChange> FormatRange(
@@ -72,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
         }
 
-        public async Task<IList<TextChange>> FormatTokenAsync(
-            SyntaxToken token, CancellationToken cancellationToken)
+        public IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(token.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
@@ -108,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 _options.IndentStyle != FormattingOptions2.IndentStyle.Smart)
             {
                 RoslynDebug.AssertNotNull(token.SyntaxTree);
-                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                if (token.IsFirstTokenOnLine(text))
+                if (token.IsFirstTokenOnLine(_text))
                 {
                     adjustedStartPosition = token.SpanStart;
                 }

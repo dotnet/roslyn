@@ -6,10 +6,10 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
@@ -39,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
         Protected Overrides Function CreateSmartTokenFormatter(
                 root As CompilationUnitSyntax,
+                text As SourceText,
                 lineToBeIndented As TextLine,
                 options As IndentationOptions,
                 baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter

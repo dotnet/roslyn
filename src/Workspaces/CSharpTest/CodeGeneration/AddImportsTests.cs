@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,10 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
 
-            var addImportOptions = new AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
-                AllowInHiddenRegions: false);
+            var addImportOptions = new AddImportPlacementOptions()
+            {
+                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
+            };
 
             var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 
@@ -170,7 +172,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestDontAddSystemImportFirst(bool useSymbolAnnotations)
+        public async Task TestDoNotAddSystemImportFirst(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using N;
@@ -498,7 +500,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -538,7 +540,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -582,7 +584,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestLeadingWhitespaceLinesArePreserved(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -750,7 +752,7 @@ namespace N
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9228")]
         public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool useSymbolAnnotations)
         {
             var externalCode =
@@ -1051,7 +1053,7 @@ class C
 }", useSymbolAnnotations: true);
         }
 
-        [Fact, WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39641")]
         public async Task TestSafeWithMatchingSimpleNameInAllLocations()
         {
             await TestNoImportsAddedAsync(
@@ -1215,7 +1217,7 @@ namespace N
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestAddImport_InsideNamespace(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -1249,7 +1251,7 @@ namespace N
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -1274,7 +1276,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
         {
             await TestAsync(

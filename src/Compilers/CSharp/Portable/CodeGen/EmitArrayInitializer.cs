@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
-                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics);
+
+                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics.DiagnosticBag);
 
                 if (initializationStyle == ArrayInitializerStyle.Mixed)
                 {
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            return includeConstants || init.ConstantValue == null;
+            return includeConstants || init.ConstantValueOpt == null;
         }
 
         /// <summary>
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// This structure is used for capturing initializers of a given index and 
         /// the index value itself.
         /// </summary>
-        private struct IndexDesc
+        private readonly struct IndexDesc
         {
             public IndexDesc(int index, ImmutableArray<BoundExpression> initializers)
             {
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static ConstantValue AsConstOrDefault(BoundExpression init)
         {
-            ConstantValue initConstantValueOpt = init.ConstantValue;
+            ConstantValue initConstantValueOpt = init.ConstantValueOpt;
 
             if (initConstantValueOpt != null)
             {
@@ -236,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             get
             {
-                var sustainedLowLatency = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
-                return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == _module.Compilation.Assembly.CorLibrary;
+                return _module.Compilation.EnableEnumArrayBlockInitialization;
             }
         }
 
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
-                        if (init.ConstantValue != null)
+                        if (init.ConstantValueOpt != null)
                         {
                             constInits += 1;
                         }
@@ -370,90 +371,347 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
+#nullable enable
+
+        /// <summary>Tries to emit a ReadOnlySpan construction as a wrapper for a blob rather than as a wrapper for an array construction.</summary>
+        /// <param name="spanType">The type of the span being constructed.</param>
+        /// <param name="wrappedExpression">The expression being wrapped in a span.</param>
+        /// <param name="used">true if the result of the expression is used; false if it's required only for its side effects.</param>
+        /// <param name="inPlaceTarget">A non-null expression if the construction is initializing an existing local in-place; otherwise, null.</param>
+        /// <param name="avoidInPlace">
+        /// An output Boolean indicating whether a caller trying to perform in-place initialization should instead prefer to assign the local to a new value.
+        /// Call sites may try to optimize an assignment to a newly-created struct by calling the constructor directly rather than assigning, but that
+        /// may then inhibit the more valuable optimization of creating a span via RuntimeHelpers.CreateSpan, which needs to assign. When a caller has passed
+        /// in an <paramref name="inPlaceTarget"/> but CreateSpan could be used if it weren't, this method may return false and set <paramref name="avoidInPlace"/>
+        /// to true to inform the caller it can try again without the <paramref name="inPlaceTarget"/>.
+        /// </param>
+        /// <param name="start">The expression for the offset into the array being wrapped in a span.</param>
+        /// <param name="length">The expression for the length of the subarray being wrapped in a span.</param>
+        /// <returns>
+        /// true if this method successfully emit a ReadOnlySpan as a wrapper for a blob; otherwise, false.  If false, nothing will have been emitted.
+        /// And if false and <paramref name="avoidInPlace"/> is true (in which case <paramref name="inPlaceTarget"/> must have been non-null), the caller
+        /// may try again but with a null <paramref name="inPlaceTarget"/>.
+        /// </returns>
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
-            ImmutableArray<byte> data = default;
+            // The purpose of this optimization is to replace a BoundArrayCreation with better code generation.
+            // We're looking for an expression like:
+            //     new ReadOnlySpan<T>(new T[] { const, const, ... })
+            //     new ReadOnlySpan<T>(new T[] { const, const, ... }, 0, length)
+            //     (ReadOnlySpan<T>)new T[] { const, const, ... }
+            // etc., and wrappedExpression is that array creation.  For single byte primitives, we can replace that
+            // with the equivalent of:
+            //     new ReadOnlySpan<T>((void*)PrivateImplementationDetails.DataField, Length)
+            // on all target platforms.  For primitives larger than a single byte, if the target platform exposes
+            // the RuntimeHelpers.CreateSpan method, we can emit it instead as:
+            //     RuntimeHelpers.CreateSpan(PrivateImplementationDetails.DataFieldToken)
+            // and for platforms that lack CreateSpan, as a span that wraps a lazily-initialized array:
+            //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= new T[] { ... })
+            // For non-constant data, unsupported primitive types, and other variations, this optimization will fail
+            // and the method will return false indicating that no code was emitted.
+            //
+            // A pattern like the following is also special-cased via the `inPlaceTarget` parameter:
+            //     ReadOnlySpan<T> span = new ReadOnlySpan<T>(new T[] { const, const, ... });
+            // Rather than constructing a span and assigning it to the local, the caller of this method
+            // may try to initialize the local in-place.  In that case, this method is responsible for emitting
+            // a call to the span's constructor.  It can do so for some cases, but in cases that
+            // require the use of RuntimeHelpers.CreateSpan, assignment is a necessity, and as such calls
+            // requiring in-place construction will fail; the code below may set `avoidInPlace` to true
+            // indicating the caller can try again not in place and it should succeed.
+            //
+            // This optimization is also used as part of emitting UTF8 string literals. The code:
+            //     ReadOnlySpan<byte> span = "abc"u8;
+            // is lowered to the equivalent of:
+            //     ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(new byte[] { (byte)'a', (byte)'b', (byte)'c', (byte)'\0' }, 0, 3);
+            // with this optimization then being used to avoid that byte[] allocation. Support for u8
+            // is also the reason this method accepts a start/length, in order to support trimming
+            // the null terminator off as part of creating the span instance.
+
+            Debug.Assert(inPlaceTarget is null || TargetIsNotOnHeap(inPlaceTarget), "in-place construction target should not be on heap");
+            Debug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
+
+            if (start is null != length is null)
+            {
+                // start and length always need to be provided as a pair.
+                throw ExceptionUtilities.Unreachable();
+            }
+
             int elementCount = -1;
-            TypeSymbol elementType = null;
+            avoidInPlace = false;
+            SpecialType specialElementType = SpecialType.None;
 
             if (!_module.SupportsPrivateImplClass)
             {
+                // The implementation stores blobs and possibly cached arrays on the private implementation class.
+                // If it's not supported, the optimizations can't be applied.
                 return false;
             }
 
-            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer));
-            if (ctor == null)
+            // The primary optimization here is for byte-sized primitives that can wrap a ReadOnlySpan directly around a pointer
+            // into a blob.  That requires the ReadOnlySpan(void*, int) ctor.  If this constructor isn't available, we give up on
+            // all optimizations.  Technically, if this ctor isn't available but the ReadOnlySpan(T[]) constructor is, we could still
+            // proceed to use the cached array mechanism.  But all known ReadOnlySpan implementations have always provided both
+            // constructors, and it's not worth trying to optimize here for an arbitrary implementation that has a different shape.
+            var rosPointerCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+            if (rosPointerCtor is null)
             {
                 return false;
             }
+            Debug.Assert(!rosPointerCtor.HasUnsupportedMetadata);
 
+            ImmutableArray<byte> data = default;
+            ArrayTypeSymbol? arrayType = null;
+            TypeSymbol? elementType = null;
             if (wrappedExpression is BoundArrayCreation ac)
             {
-                var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
+                // Get the array type and its element type.
+                arrayType = (ArrayTypeSymbol)ac.Type;
+                elementType = arrayType.ElementType;
 
-                // NB: we cannot use this approach for element types larger than one byte
-                //     the issue is that metadata stores blobs in little-endian format
-                //     so anything that is larger than one byte will be incorrect on a big-endian machine
-                //     With additional runtime support it might be possible, but not yet.
-                //     See: https://github.com/dotnet/corefx/issues/26948 for more details
-                if (elementType.SpecialType.SizeInBytes() != 1)
+                // This optimization is only supported for core primitive types that can be stored in metadata blobs.
+                // For enums, we need to use the underlying type.
+                specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
+                if (!IsTypeAllowedInBlobWrapper(specialElementType))
                 {
                     return false;
                 }
 
+                // Get the data and number of elements that compose the initialization.
                 elementCount = TryGetRawDataForArrayInit(ac.InitializerOpt, out data);
             }
 
             if (elementCount < 0)
             {
+                // The expression wasn't an array creation, and/or its contents wasn't composed entirely of literals, etc.
+                // and the optimization can't be applied.
                 return false;
             }
 
-            if (!inPlace && !used)
+            Debug.Assert(arrayType is not null);
+            Debug.Assert(elementType is not null);
+
+            int lengthForConstructor;
+
+            if (start is not null)
             {
-                // emitting a value that no one will see
+                // The start expression needs to be 0.
+                if (start.ConstantValueOpt?.IsDefaultValue != true || start.ConstantValueOpt.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                // The length expression needs to be an Int32, and it needs to be in the range [0, elementCount].
+                Debug.Assert(length is not null);
+                if (length.ConstantValueOpt?.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                lengthForConstructor = length.ConstantValueOpt.Int32Value;
+
+                if (lengthForConstructor > elementCount || lengthForConstructor < 0)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // There's no start/length, so the length to use with a constructor is the element count.
+                lengthForConstructor = elementCount;
+            }
+
+            if (inPlaceTarget is null && !used)
+            {
+                // The caller has specified that we're creating a ReadOnlySpan expression that won't be used.
+                // We needn't emit anything.
                 return true;
             }
 
             if (elementCount == 0)
             {
-                if (inPlace)
+                // The span is empty.  Optimize away the array.  This works regardless of the size of the type.
+                // (We could optimize this even for non-primitives, but it's not currently worthwhile.)
+
+                // If this is in-place initialization, call the default ctor.
+                if (inPlaceTarget is not null)
                 {
+                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
                     _builder.EmitOpCode(ILOpCode.Initobj);
                     EmitSymbolToken(spanType, wrappedExpression.Syntax);
+                    if (used)
+                    {
+                        EmitExpression(inPlaceTarget, used: true);
+                    }
                 }
                 else
                 {
+                    // Otherwise, assign it to a default value / empty span.
+                    Debug.Assert(used);
                     EmitDefaultValue(spanType, used, wrappedExpression.Syntax);
                 }
+                return true;
             }
-            else
+
+            if (IsPeVerifyCompatEnabled())
             {
-                if (IsPeVerifyCompatEnabled())
+                // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
+                return false;
+            }
+
+            if (specialElementType.SizeInBytes() == 1)
+            {
+                // We're dealing with a ReadOnlySpan<byte/sbyte/bool>. We can optimize this on all target platforms,
+                // whether the initialization is in-place or not.
+
+                if (inPlaceTarget is not null)
                 {
-                    return false;
+                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
-                _builder.EmitIntConstant(elementCount);
+                // Map a field to the block (that makes it addressable).
+                var field = _builder.module.GetFieldForData(data, alignment: 1, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitOpCode(ILOpCode.Ldsflda);
+                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
 
-                if (inPlace)
+                _builder.EmitIntConstant(lengthForConstructor);
+
+                if (inPlaceTarget is not null)
                 {
-                    // consumes target ref, data ptr and size, pushes nothing
+                    // Consumes target ref, data ptr and size, pushes nothing.
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -3);
                 }
                 else
                 {
-                    // consumes data ptr and size, pushes the instance
+                    // Consumes data ptr and size, pushes the instance.
+                    Debug.Assert(used);
                     _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
                 }
 
-                EmitSymbolToken(ctor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
+                EmitSymbolToken(rosPointerCtor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
+
+                if (inPlaceTarget is not null && used)
+                {
+                    EmitExpression(inPlaceTarget, used: true);
+                }
+
+                return true;
             }
 
+            // We're dealing with a primitive that's larger than a single byte.
+            Debug.Assert(specialElementType.SizeInBytes() is 2 or 4 or 8, "Supported primitives are expected to be 2, 4, or 8 bytes");
+
+            if (lengthForConstructor != elementCount)
+            {
+                // We need to use RuntimeHelpers.CreateSpan / cached array, but the code has requested a subset of the elements.
+                // That means the code is something like `new ReadOnlySpan<char>(new[] { 'a', 'b', 'c' }, 1, 2)`
+                // rather than `new ReadOnlySpan<char>(new[] { 'b', 'c' })`.  If such a pattern is found to be
+                // common, this could be augmented to accomodate it.  For now, we just return false to fail
+                // to optimize this case.
+                return false;
+            }
+
+            if (inPlaceTarget is not null)
+            {
+                // We can use RuntimeHelpers.CreateSpan, but not for in-place initialization. Fail to optimize,
+                // but tell the caller they can call this again with a null inPlaceTarget, at which point this
+                // should be able to optimize the call.
+                avoidInPlace = true;
+                return false;
+            }
+
+            // As we're dealing with multi-byte types, endianness needs to be considered. Such handling is provided by the
+            // runtime's RuntimeHelpers.CreateSpan, which will wrap a span around the blob on little endian and which will
+            // allocate an array and cache it on big endian.
+            MethodSymbol? createSpan = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+            if (createSpan is not null)
+            {
+                // CreateSpan was available. Use it.
+                Debug.Assert(!createSpan.HasUnsupportedMetadata);
+
+                // ldtoken <PrivateImplementationDetails>...
+                // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
+                var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitOpCode(ILOpCode.Ldtoken);
+                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                EmitSymbolToken(createSpan.Construct(elementType), wrappedExpression.Syntax, optArgList: null);
+                return true;
+            }
+
+            // We're dealing with a multi-byte primitive, and CreateSpan was not available.  Get a static field from PrivateImplementationDetails,
+            // and use it as a lazily-initialized cache for an array for this data:
+            //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= RuntimeHelpers.InitializeArray(new int[Length], PrivateImplementationDetails.DataField));
+
+            var rosArrayCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+            if (rosArrayCtor is null)
+            {
+                // The ReadOnlySpan<T>(T[] array) constructor we need is missing or something went wrong.
+                return false;
+            }
+            Debug.Assert(!rosArrayCtor.HasUnsupportedMetadata);
+
+            // If we're dealing with an array of enums, we need to handle the possibility that the data blob
+            // is the same for multiple enums all with the same underlying type, or even with the underlying type
+            // itself. This is addressed by always caching an array for the underlying type, and then relying on
+            // arrays being covariant between the underlying type and the enum type, so that it's safe to do:
+            //     new ReadOnlySpan<EnumType>(arrayOfUnderlyingType);
+            // It's important to have a consistent type here, as otherwise the type of the caching field could
+            // end up changing non-deterministically based on which type for a given blob was encountered first.
+            // Also, even if we're not dealing with an enum, we still create a new array type that drops any
+            // annotations that may have initially been associated with the element type; this is similarly to
+            // ensure deterministic behavior.
+            arrayType = arrayType.WithElementType(TypeWithAnnotations.Create(elementType.EnumUnderlyingTypeOrSelf()));
+
+            var cachingField = _builder.module.GetArrayCachingFieldForData(data, _module.Translate(arrayType), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+            var arrayNotNullLabel = new object();
+
+            // T[]? array = PrivateImplementationDetails.cachingField;
+            // if (array is not null) goto arrayNotNull;
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitOpCode(ILOpCode.Dup);
+            _builder.EmitBranch(ILOpCode.Brtrue, arrayNotNullLabel);
+
+            // array = new T[elementCount];
+            // RuntimeHelpers.InitializeArray(token, array);
+            // PrivateImplementationDetails.cachingField = array;
+            _builder.EmitOpCode(ILOpCode.Pop);
+            _builder.EmitIntConstant(elementCount);
+            _builder.EmitOpCode(ILOpCode.Newarr);
+            EmitSymbolToken(arrayType.ElementType, wrappedExpression.Syntax);
+            _builder.EmitArrayBlockInitializer(data, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitOpCode(ILOpCode.Dup);
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+
+            // arrayNotNullLabel:
+            // new ReadOnlySpan<T>(array)
+            _builder.MarkLabel(arrayNotNullLabel);
+            _builder.EmitOpCode(ILOpCode.Newobj, 0);
+            EmitSymbolToken(rosArrayCtor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
             return true;
         }
+
+        /// <summary>Gets whether the element type of an array is appropriate for storing in a blob.</summary>
+        private static bool IsTypeAllowedInBlobWrapper(SpecialType type) => type is
+            // 1 byte
+            // For primitives that are a single byte in size, a span can point directly to a blob
+            // containing the constant data.
+            SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Boolean or
+
+            // For primitives that are > 1 byte in size, we can either use CreateSpan if it's available
+            // or fall back to caching an array.
+
+            // 2 bytes
+            SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char or
+
+            // 4 bytes
+            SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Single or
+
+            // 8 bytes
+            SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double;
+
+#nullable disable
 
         /// <summary>
         ///  Returns a byte blob that matches serialized content of single array initializer.    
@@ -469,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var initializers = initializer.Initializers;
-            if (initializers.Any(init => init.ConstantValue == null))
+            if (initializers.Any(static init => init.ConstantValueOpt == null))
             {
                 return -1;
             }
@@ -485,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var init in initializer.Initializers)
             {
-                init.ConstantValue.Serialize(writer);
+                init.ConstantValueOpt.Serialize(writer);
             }
 
             data = writer.ToImmutableArray();

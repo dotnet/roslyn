@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type));
             }
@@ -192,5 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal override bool IsRequired => false;
     }
 }

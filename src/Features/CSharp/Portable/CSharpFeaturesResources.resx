@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Inline_temporary_variable" xml:space="preserve">
-    <value>Inline temporary variable</value>
-  </data>
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
@@ -213,9 +210,6 @@
   </data>
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
-  </data>
-  <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
-    <value>Make {0} return Task instead of void.</value>
   </data>
   <data name="Generate_explicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
@@ -395,9 +389,6 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Remove_new_modifier" xml:space="preserve">
-    <value>Remove 'new' modifier</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -413,12 +404,6 @@
   <data name="Autoselect_disabled_due_to_possible_deconstruction_declaration" xml:space="preserve">
     <value>Autoselect disabled due to possible deconstruction declaration.</value>
   </data>
-  <data name="Upgrade_this_project_to_csharp_language_version_0" xml:space="preserve">
-    <value>Upgrade this project to C# language version '{0}'</value>
-  </data>
-  <data name="Upgrade_all_csharp_projects_to_language_version_0" xml:space="preserve">
-    <value>Upgrade all C# projects to language version '{0}'</value>
-  </data>
   <data name="class_name" xml:space="preserve">
     <value>&lt;class name&gt;</value>
   </data>
@@ -430,12 +415,6 @@
   </data>
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
-  </data>
-  <data name="Make_method_async" xml:space="preserve">
-    <value>Make method async</value>
-  </data>
-  <data name="Make_method_async_remain_void" xml:space="preserve">
-    <value>Make method async (stay void)</value>
   </data>
   <data name="Convert_to_switch_statement" xml:space="preserve">
     <value>Convert to 'switch' statement</value>
@@ -455,20 +434,11 @@
   <data name="Suggested_name" xml:space="preserve">
     <value>(Suggested name)</value>
   </data>
-  <data name="Remove_unused_function" xml:space="preserve">
-    <value>Remove unused function</value>
-  </data>
-  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
-    <value>Add parentheses</value>
-  </data>
   <data name="Convert_to_foreach" xml:space="preserve">
     <value>Convert to 'foreach'</value>
   </data>
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
-  </data>
-  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
-    <value>Allow unsafe code in this project</value>
   </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
@@ -485,9 +455,6 @@
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
   </data>
-  <data name="Use_0" xml:space="preserve">
-    <value>Use '{0}'</value>
-  </data>
   <data name="Add_missing_usings" xml:space="preserve">
     <value>Add missing usings</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
@@ -495,18 +462,6 @@
   <data name="Introduce_using_statement" xml:space="preserve">
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Make_ref_struct" xml:space="preserve">
-    <value>Make 'ref struct'</value>
-    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="Assign_out_parameters" xml:space="preserve">
-    <value>Assign 'out' parameters</value>
-    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Assign_out_parameters_at_start" xml:space="preserve">
-    <value>Assign 'out' parameters (at start)</value>
-    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Warning_Inlining_temporary_into_conditional_method_call" xml:space="preserve">
     <value>Warning: Inlining temporary into conditional method call.</value>
@@ -531,10 +486,6 @@
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
   </data>
-  <data name="Remove_in_keyword" xml:space="preserve">
-    <value>Remove 'in' keyword</value>
-    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="Change_to_as_expression" xml:space="preserve">
     <value>Change to 'as' expression</value>
   </data>
@@ -549,6 +500,9 @@
   </data>
   <data name="Enable_nullable_reference_types_in_project" xml:space="preserve">
     <value>Enable nullable reference types in project</value>
+  </data>
+  <data name="Enable_nullable_reference_types_in_solution" xml:space="preserve">
+    <value>Enable nullable reference types in solution</value>
   </data>
   <data name="Selection_cannot_include_global_statements" xml:space="preserve">
     <value>Selection cannot include global statements</value>
@@ -624,7 +578,17 @@
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>
   </data>
-  <data name="Apply_utf8_string_literal_preferences" xml:space="preserve">
-    <value>Apply UTF-8 string literal preferences</value>
+  <data name="Convert_0_to_record" xml:space="preserve">
+    <value>Convert '{0}' to record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Apply_readonly_struct_preferences" xml:space="preserve">
+    <value>Apply 'readonly struct' preferences</value>
+  </data>
+  <data name="Selection_cannot_be_in_constructor_initializer" xml:space="preserve">
+    <value>Selection cannot be in constructor initializer</value>
+  </data>
+  <data name="init_only_property" xml:space="preserve">
+    <value>init-only property</value>
   </data>
 </root>

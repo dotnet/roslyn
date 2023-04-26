@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IGlobalOptionService _globalOptions;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly Workspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IEditorFormatMapService formatMapService,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IUIThreadOperationExecutor threadOperationExecutor)
+            IUIThreadOperationExecutor threadOperationExecutor,
+            VisualStudioWorkspace workspace)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _threadingContext = threadingContext;
@@ -69,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _globalOptions = globalOptions;
             _threadOperationExecutor = threadOperationExecutor;
             _listener = listenerProvider.GetListener(FeatureAttribute.ValueTracking);
+            _workspace = workspace;
         }
 
         public string DisplayName => "Go to value tracking";
@@ -97,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    var service = document.Project.Solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
+                    var service = document.Project.Solution.Services.GetRequiredService<IValueTrackingService>();
                     var items = await service.TrackValueSourceAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
                     if (items.Length == 0)
                     {
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
             var solution = document.Project.Solution;
-            var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
+            var valueTrackingService = solution.Services.GetRequiredService<IValueTrackingService>();
             var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items));
 
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var rootItems);
@@ -183,33 +186,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return null;
             }
 
+            var window = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
+                typeof(ValueTrackingToolWindow),
+                0,
+                create: true,
+                roslynPackage.DisposalToken).ConfigureAwait(false);
+
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (ValueTrackingToolWindow.Instance is null)
+            if (!window.Initialized)
             {
-                var factory = roslynPackage.GetAsyncToolWindowFactory(Guids.ValueTrackingToolWindowId);
-
                 var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-
-                factory.CreateToolWindow(Guids.ValueTrackingToolWindowId, 0, viewModel);
-                await factory.InitializeToolWindowAsync(Guids.ValueTrackingToolWindowId, 0);
-
-                // FindWindowPaneAsync creates an instance if it does not exist
-                ValueTrackingToolWindow.Instance = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
-                    typeof(ValueTrackingToolWindow),
-                    0,
-                    true,
-                    roslynPackage.DisposalToken).ConfigureAwait(false);
+                window.Initialize(viewModel, _workspace, _threadingContext);
             }
 
-            // This can happen if the tool window was initialized outside of this command handler. The ViewModel 
-            // still needs to be initialized but had no necessary context. Provide that context now in the command handler.
-            if (ValueTrackingToolWindow.Instance.ViewModel is null)
-            {
-                ValueTrackingToolWindow.Instance.ViewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-            }
-
-            return ValueTrackingToolWindow.Instance;
+            return window;
         }
     }
 }

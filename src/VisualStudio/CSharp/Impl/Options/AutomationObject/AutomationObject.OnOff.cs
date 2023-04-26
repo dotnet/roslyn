@@ -2,8 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.AddImportOnPaste;
+using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
+using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -12,32 +20,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int AutoInsertAsteriskForNewLinesOfBlockComments
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, value); }
+            get { return GetBooleanOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString); }
+            set { SetBooleanOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, value); }
         }
 
         public int AutomaticallyFixStringContentsOnPaste
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, value); }
+            get { return GetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste); }
+            set { SetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, value); }
         }
 
         public int DisplayLineSeparators
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.LineSeparator); }
-            set { SetBooleanOption(FeatureOnOffOptions.LineSeparator, value); }
+            get { return GetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator); }
+            set { SetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator, value); }
         }
 
         public int EnableHighlightRelatedKeywords
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.KeywordHighlighting); }
-            set { SetBooleanOption(FeatureOnOffOptions.KeywordHighlighting, value); }
+            get { return GetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting); }
+            set { SetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, value); }
         }
 
         public int EnterOutliningModeOnOpen
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.Outlining); }
-            set { SetBooleanOption(FeatureOnOffOptions.Outlining, value); }
+            get { return GetBooleanOption(OutliningOptionsStorage.Outlining); }
+            set { SetBooleanOption(OutliningOptionsStorage.Outlining, value); }
         }
 
         public int CollapseImportsWhenFirstOpened
@@ -52,16 +60,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, value); }
         }
 
-        public int CollapseMetadataImplementationsWhenFirstOpened
+        public int CollapseMetadataSignatureFilesWhenFirstOpened
         {
-            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened); }
-            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, value); }
+            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened); }
+            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, value); }
+        }
+
+        public int CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened
+        {
+            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened); }
+            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, value); }
         }
 
         public int HighlightReferences
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting); }
-            set { SetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting, value); }
+            get { return GetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting); }
+            set { SetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, value); }
         }
 
         public int Refactoring_Verification_Enabled
@@ -78,8 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int RenameTrackingPreview
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview); }
-            set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
+            get { return GetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview); }
+            set { SetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview, value); }
         }
 
         public int NavigateAsynchronously
@@ -94,6 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, value); }
         }
 
+        public int NavigateToSourceLinkAndEmbeddedSources
+        {
+            get { return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources); }
+            set { SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, value); }
+        }
+
         public int AlwaysUseDefaultSymbolServers
         {
             get { return GetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers); }
@@ -102,8 +122,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AddImportsOnPaste
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value); }
+            get { return GetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste); }
+            set { SetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, value); }
         }
 
         public int OfferRemoveUnusedReferences
@@ -114,8 +134,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AutomaticallyCompleteStatementOnSemicolon
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
+            get { return GetBooleanOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon); }
+            set { SetBooleanOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, value); }
         }
 
         public int SkipAnalyzersForImplicitlyTriggeredBuilds

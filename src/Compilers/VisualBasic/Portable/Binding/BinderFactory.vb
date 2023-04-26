@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
@@ -471,7 +470,6 @@ lAgain:
                      SyntaxKind.DeclareFunctionStatement,
                      SyntaxKind.OperatorStatement
 
-
                     ' Delegates don't have user-defined members, so it makes more sense to treat
                     ' them like methods.
 
@@ -513,7 +511,6 @@ lAgain:
 
             Dim containingBinder As Binder = GetBinderAtOrAbove(nodeForOuterBinder, parent.SpanStart)
             Dim symbol As Symbol = Nothing
-
 
             Select Case parent.Kind
                 Case SyntaxKind.ClassStatement,

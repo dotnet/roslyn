@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// </summary>
     internal sealed class InheritanceGlyphFactory : IGlyphFactory
     {
+        private readonly Workspace _workspace;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -33,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IGlobalOptionService _globalOptions;
 
         public InheritanceGlyphFactory(
+            Workspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -42,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListener listener)
         {
+            _workspace = workspace;
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
@@ -64,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // we need
             // 1. Generate tags when this option changes.
             // 2. Always return null here to force the editor to remove the glyphs.
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (!_globalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 return null;
             }
@@ -77,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var membersOnLine = inheritanceMarginTag.MembersOnLine;
             Contract.ThrowIfTrue(membersOnLine.IsEmpty);
             return new InheritanceMarginGlyph(
+                _workspace,
                 _threadingContext,
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,

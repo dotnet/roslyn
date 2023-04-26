@@ -11,11 +11,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -58,7 +59,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
         internal abstract bool IsPublicOnlyAccessibility(TExpressionSyntax expression, Project project);
         internal abstract bool IsGenericName(TSimpleNameSyntax simpleName);
         internal abstract bool IsSimpleName(TExpressionSyntax expression);
-        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
+
+        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
@@ -111,8 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
             {
-                var workspace = document.Project.Solution.Workspace;
-                if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+                if (document.Project.Solution.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));
@@ -195,8 +197,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
-            using var namesDisposer = ArrayBuilder<string>.GetInstance(arity, out var names);
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
+            using var _1 = ArrayBuilder<string>.GetInstance(arity, out var names);
+            using var _2 = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
             for (var i = 0; i < arity; i++)
             {
                 var argument = i < arguments.Count ? arguments[i] : null;
@@ -285,17 +287,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        protected static bool GeneratedTypesMustBePublic(Project project)
-        {
-            var projectInfoService = project.Solution.Workspace.Services.GetService<IProjectInfoService>();
-            if (projectInfoService != null)
-            {
-                return projectInfoService.GeneratedTypesMustBePublic(project);
             }
 
             return false;

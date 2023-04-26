@@ -5,10 +5,10 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Rebuild</RootNamespace>
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">

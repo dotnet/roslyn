@@ -11,6 +11,7 @@ using System.Diagnostics;
 
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -62,6 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Assembly's custom attributes
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+#nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
@@ -166,7 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.PrimaryModule.GetForwardedTypes();
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+#nullable enable
+
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             // Check if it is a forwarded type.
             (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
@@ -187,12 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 else
                 {
                     visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                    return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                    return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                 }
             }
 
             return null;
         }
+
+#nullable disable
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
         {
@@ -280,5 +289,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
+
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
+        {
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(PrimaryModule)),
+                    CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo;
+        }
+
+        public override bool HasUnsupportedMetadata
+            => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
     }
 }

@@ -11,9 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
     public partial class UseThrowExpressionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -49,7 +50,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -85,7 +86,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -121,7 +122,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(
@@ -157,7 +158,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInDocumentDoNotTouchOtherDocuments()
         {
             await TestInRegularAndScriptAsync(
@@ -230,7 +231,7 @@ class D
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        [Fact]
         public async Task FixAllInProject1()
         {
             await TestInRegularAndScriptAsync(

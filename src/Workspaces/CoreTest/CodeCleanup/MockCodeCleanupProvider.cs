@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     internal sealed class MockCodeCleanupProvider : ICodeCleanupProvider
     {
         public Func<Document, ImmutableArray<TextSpan>, SyntaxFormattingOptions, CancellationToken, Task<Document>>? CleanupDocumentAsyncImpl { get; set; }
-        public Func<SyntaxNode, ImmutableArray<TextSpan>, SyntaxFormattingOptions, HostWorkspaceServices, SyntaxNode>? CleanupNodeImpl { get; set; }
+        public Func<SyntaxNode, ImmutableArray<TextSpan>, SyntaxFormattingOptions, SolutionServices, SyntaxNode>? CleanupNodeImpl { get; set; }
 
         public MockCodeCleanupProvider()
         {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
             => (CleanupDocumentAsyncImpl ?? throw new NotImplementedException()).Invoke(document, spans, options.FormattingOptions, cancellationToken);
 
-        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
             => Task.FromResult((CleanupNodeImpl ?? throw new NotImplementedException()).Invoke(root, spans, options, services));
     }
 }

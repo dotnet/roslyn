@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
@@ -35,13 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClientDisableUX(
-            XamlRequestDispatcherFactory xamlDispatcherFactory,
+            XamlLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
+            ILspServiceLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
         }
 

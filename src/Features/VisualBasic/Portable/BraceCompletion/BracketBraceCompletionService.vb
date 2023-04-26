@@ -7,10 +7,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
         Protected Overrides ReadOnly Property OpeningBrace As Char = Bracket.OpenCharacter
         Protected Overrides ReadOnly Property ClosingBrace As Char = Bracket.CloseCharacter
 
-        Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)
+        Public Overrides Function AllowOverType(context As BraceCompletionContext, cancellationToken As CancellationToken) As Boolean
+            Return AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken)
         End Function
 
         Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetIdeOptions().ReportInvalidJsonPatterns;
+            var option = context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns;
             if (!option)
                 return;
 

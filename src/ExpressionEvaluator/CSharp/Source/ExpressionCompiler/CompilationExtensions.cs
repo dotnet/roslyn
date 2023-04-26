@@ -38,20 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
-                    if (member is PEMethodSymbol candidateMethod)
+                    if (member is PEMethodSymbol candidateMethod &&
+                        metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, out var stateMachineTypeName) &&
+                        metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
                     {
-                        var module = metadataDecoder.Module;
-                        methodHandle = candidateMethod.Handle;
-                        string stateMachineTypeName;
-                        if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
-                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName))
-                        {
-                            if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
-                            {
-                                return candidateMethod;
-                            }
-                        }
+                        return candidateMethod;
                     }
                 }
             }
@@ -127,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var builder = ArrayBuilder<bool>.GetInstance();
             CSharpCompilation.DynamicTransformsEncoder.Encode(type, customModifiersCount, refKind, builder, addCustomModifierFlags: true);
-            var bytes = builder.Count > 0 && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) ?
-                DynamicFlagsCustomTypeInfo.ToBytes(builder) :
-                null;
+            var bytes = builder.Count > 0 && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None)
+                ? DynamicFlagsCustomTypeInfo.ToBytes(builder)
+                : null;
             builder.Free();
             return bytes;
         }
@@ -139,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type)
         {
             var builder = ArrayBuilder<string?>.GetInstance();
-            var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) ?
-                new ReadOnlyCollection<string?>(builder.ToArray()) :
-                null;
+            var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None)
+                ? new ReadOnlyCollection<string?>(builder.ToArray())
+                : null;
             builder.Free();
             return names;
         }
@@ -162,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 BinderFlags.IgnoreAccessibility |
                 BinderFlags.UnsafeRegion |
                 BinderFlags.UncheckedRegion |
-                BinderFlags.AllowManagedAddressOf |
+                BinderFlags.AllowMoveableAddressOf |
                 BinderFlags.AllowAwaitInUnsafeContext |
                 BinderFlags.IgnoreCorLibraryDuplicatedTypes);
     }

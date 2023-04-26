@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
         internal virtual BlockStructureOptions GetDefaultOptions()
-            => new(MaximumBannerLength: 120, IsMetadataAsSource: WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
+            => new()
+            {
+                MaximumBannerLength = 120,
+                IsMetadataAsSource = WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource,
+            };
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, BlockStructureOptions options, int position)
             => GetBlockSpansWorkerAsync(document, options, position);

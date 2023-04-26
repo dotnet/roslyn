@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
@@ -83,10 +84,10 @@ End NameSpace"
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
 
-            Dim addImportOptions = New AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces:=False,
-                AllowInHiddenRegions:=False)
+            Dim addImportOptions = New AddImportPlacementOptions() With
+            {
+                .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+            }
 
             Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
             Dim simplifierOptions = VisualBasicSimplifierOptions.Default
@@ -162,7 +163,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -398,7 +399,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports system.collections.generic
 
@@ -992,7 +993,7 @@ End Class", useSymbolAnnotations:=True)
         '            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         '        End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestCanExpandCrefSignaturePart() As Task
             Await TestNoImportsAddedAsync(
 "Imports B
@@ -1019,7 +1020,7 @@ Class C
 End Class", useSymbolAnnotations:=True)
         End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
             Await TestNoImportsAddedAsync(
 "Imports System

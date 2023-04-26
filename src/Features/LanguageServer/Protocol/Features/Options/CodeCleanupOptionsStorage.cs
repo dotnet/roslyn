@@ -6,21 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.AddImport;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 internal static class CodeCleanupOptionsStorage
 {
     public static ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.Services), cancellationToken);
 
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => new(
-            FormattingOptions: globalOptions.GetSyntaxFormattingOptions(languageServices),
-            SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
-            AddImportOptions: AddImportPlacementOptions.Default);
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader globalOptions, LanguageServices languageServices)
+        => globalOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: null, fallbackOptions: null);
 }

@@ -17,6 +17,7 @@ using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
@@ -46,18 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public Test()
             {
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -68,6 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
+
+#if !CODE_STYLE
+            internal CodeActionOptionsProvider CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
 
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
@@ -100,9 +97,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return result;
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (CSharpParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
+            }
+
 #if !CODE_STYLE
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
+
+            protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
+                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);
 
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.

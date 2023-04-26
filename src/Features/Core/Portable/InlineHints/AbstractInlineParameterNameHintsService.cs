@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,18 +18,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         protected enum HintKind
         {
             Literal,
             ObjectCreation,
             Other
-        }
-
-        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -42,10 +35,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+            Document document,
+            TextSpan textSpan,
+            InlineParameterHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
@@ -109,6 +106,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
                             new TextChange(textSpan, inlineHintText),
+                            ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

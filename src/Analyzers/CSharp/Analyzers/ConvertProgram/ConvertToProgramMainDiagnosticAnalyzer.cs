@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                   IDEDiagnosticIds.UseProgramMainId,
                   EnforceOnBuildValues.UseProgramMain,
                   CSharpCodeStyleOptions.PreferTopLevelStatements,
-                  LanguageNames.CSharp,
                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -42,11 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
         private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
             var root = (CompilationUnitSyntax)context.Node;
-
-            var optionSet = options.GetAnalyzerOptionSet(root.SyntaxTree, context.CancellationToken);
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
+            var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
 
             if (!CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
                 return;

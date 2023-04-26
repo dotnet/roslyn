@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: indexers,
                 rules: CompletionItemRules.Default,
                 contextPosition: context.Position,
-                properties: IndexerProperties));
+                properties: IndexerProperties,
+                isComplexTextEdit: true));
         }
 
         // Remove the dot, but leave the ? if one is there.  Place the caret one space back so it is between the braces.

@@ -11,33 +11,43 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
     public class CompletionTests : AbstractLanguageServerProtocolTests
     {
-        private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = new LSP.VSInternalClientCapabilities
-        {
-            SupportsVisualStudioExtensions = true,
-            TextDocument = new LSP.TextDocumentClientCapabilities
-            {
-                Completion = new LSP.VSInternalCompletionSetting
-                {
-                    CompletionListSetting = new LSP.CompletionListSetting
-                    {
-                        ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
-                    }
-                }
-            }
-        };
+        private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = CreateCoreCompletionCapabilities();
 
-        [Fact]
-        public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync()
+        private static LSP.VSInternalClientCapabilities CreateCoreCompletionCapabilities()
+            => new()
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new()
+                {
+                    Completion = new()
+                    {
+                        CompletionListSetting = new()
+                        {
+                            ItemDefaults = new[] { CompletionHandler.EditRangeSetting },
+                        },
+                        CompletionItemKind = new(),
+                    },
+                },
+            };
+
+        public CompletionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync(bool mutatingLspWorkspace)
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
@@ -65,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -87,8 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
         }
 
-        [Fact]
-        public async Task TestGetCompletions_PromotesNothingWhenNoCommitCharactersAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletions_PromotesNothingWhenNoCommitCharactersAsync(bool mutatingLspWorkspace)
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
@@ -112,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 @"namespace M
 {{|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -134,8 +144,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
         }
 
-        [Fact]
-        public async Task TestGetCompletionsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -145,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -162,8 +172,81 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.NotNull(results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        public async Task TestGetCompletionsTypingAsync()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1777096")]
+        public async Task TestGetExtensionMethodCoreLsp(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void M(A a)
+    {
+        a.{|caret:|}
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this A a) { }
+}
+";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: new string[] { "ExtensionMethod", "Public" },
+                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
+            Assert.NotNull(results.ItemDefaults.EditRange);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1777096")]
+        public async Task TestGetExtensionMethodCoreVSLsp(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void M(A a)
+    {
+        a.{|caret:|}
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this A a) { }
+}
+";
+
+            // If the client supports more completion kinds, then we can give a more precise answer.
+            var capabilities = CreateCoreCompletionCapabilities();
+            capabilities.TextDocument.Completion.CompletionItemKind.ValueSet = new[] { LSP.CompletionItemKind.ExtensionMethod };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, capabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: new string[] { "ExtensionMethod", "Public" },
+                request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
+            Assert.NotNull(results.ItemDefaults.EditRange);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsTypingAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -173,7 +256,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         A{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -189,8 +272,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             AssertJsonEquals(expected, results.Items.First());
         }
 
-        [Fact]
-        public async Task TestGetCompletionsDoesNotIncludeUnimportedTypesAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsDoesNotIncludeUnimportedTypesAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -200,11 +283,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var solution = testLspServer.TestWorkspace.CurrentSolution;
 
             // Make sure the unimported types option is on by default.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -216,8 +299,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.False(results.Items.Any(item => "Console" == item.Label));
         }
 
-        [Fact]
-        public async Task TestGetCompletionsUsesSnippetOptionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsUsesSnippetOptionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -225,10 +308,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     {|caret:|}
 }";
 
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp), SnippetsRule.NeverInclude);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.NeverInclude);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -240,8 +322,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.False(results.Items.Any(item => "ctor" == item.Label));
         }
 
-        [Fact]
-        public async Task TestGetCompletionsWithPreselectAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsWithPreselectAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -251,7 +333,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         A classA = new {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -267,8 +349,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             AssertJsonEquals(expected, results.Items.First());
         }
 
-        [Fact]
-        public async Task TestGetCompletionsIsInSuggestionMode()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsIsInSuggestionMode(bool mutatingLspWorkspace)
         {
             var markup =
 @"
@@ -285,7 +367,7 @@ namespace M
         }
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -297,8 +379,8 @@ namespace M
             Assert.True(results.SuggestionMode);
         }
 
-        [Fact]
-        public async Task TestGetDateAndTimeCompletionsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetDateAndTimeCompletionsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -309,7 +391,7 @@ class A
         DateTime.Now.ToString(""{|caret:|});
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -325,8 +407,8 @@ class A
             AssertJsonEquals(expected, results.Items.First());
         }
 
-        [Fact, WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")]
-        public async Task TestGetDateAndTimeCompletionOnGuid()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59453")]
+        public async Task TestGetDateAndTimeCompletionOnGuid(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -337,7 +419,7 @@ class A
         Guid.NewGuid().ToString(""{|caret:|});
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -350,9 +432,8 @@ class A
             Assert.Null(results);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
-        public async Task TestGetRegexCompletionsAsync()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+        public async Task TestGetRegexCompletionsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System.Text.RegularExpressions;
@@ -363,7 +444,7 @@ class A
         new Regex(""{|caret:|}"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -388,9 +469,8 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
-        public async Task TestGetRegexLiteralCompletionsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetRegexLiteralCompletionsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System.Text.RegularExpressions;
@@ -401,7 +481,7 @@ class A
         new Regex(@""\{|caret:|}"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -413,22 +493,21 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 20 },
+                Start = new LSP.Position { Line = 5, Character = 21 },
                 End = new LSP.Position { Line = 5, Character = 21 }
             };
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
-        public async Task TestGetRegexCompletionsReplaceTextAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetRegexCompletionsReplaceTextAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System.Text.RegularExpressions;
@@ -439,7 +518,7 @@ class A
         Regex r = new(""\\{|caret:|}"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -451,22 +530,21 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 23 },
+                Start = new LSP.Position { Line = 5, Character = 25 },
                 End = new LSP.Position { Line = 5, Character = 25 }
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, insertText: @"\\A",
-                sortText: "0000").ConfigureAwait(false);
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
+                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
-        public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+        public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync(bool mutatingLspWorkspace)
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
@@ -492,7 +570,7 @@ class A
         new Regex(""{|caret:|}"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -513,9 +591,8 @@ class A
             Assert.Null(results.ItemDefaults);
         }
 
-        [Fact]
-        [WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
-        public async Task TestCompletionListCacheAsync()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/46694")]
+        public async Task TestCompletionListCacheAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -525,14 +602,14 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var cache = GetCompletionListCache(testLspServer);
             Assert.NotNull(cache);
 
             var testAccessor = cache.GetTestAccessor();
 
             // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
-            Assert.True(CompletionListCache.TestAccessor.MaximumCacheSize == 3);
+            Assert.True(testAccessor.MaximumCacheSize == 3);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -542,43 +619,43 @@ class A
 
             // 1 item in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            var completionList = cache.GetCachedCompletionList(0).CompletionList;
+            var completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 1);
 
             // 2 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = cache.GetCachedCompletionList(0).CompletionList;
+            completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 2);
 
             // 3 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = cache.GetCachedCompletionList(0).CompletionList;
+            completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(2).CompletionList;
+            completionList = cache.GetCachedEntry(2).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
 
             // Maximum size of cache (3) should not be exceeded - oldest item should be ejected
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            var cacheEntry = cache.GetCachedCompletionList(0);
+            var cacheEntry = cache.GetCachedEntry(0);
             Assert.Null(cacheEntry);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(2).CompletionList;
+            completionList = cache.GetCachedEntry(2).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(3).CompletionList;
+            completionList = cache.GetCachedEntry(3).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
         }
 
-        [Fact]
-        public async Task TestGetCompletionsWithDeletionInvokeKindAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetCompletionsWithDeletionInvokeKindAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -588,7 +665,7 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Deletion,
@@ -606,8 +683,8 @@ class A
             Assert.Null(results);
         }
 
-        [Fact]
-        public async Task TestDoNotProvideOverrideTextEditsOrInsertTextAsync()
+        [Theory, CombinatorialData]
+        public async Task TestDoNotProvideOverrideTextEditsOrInsertTextAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"abstract class A
@@ -619,7 +696,7 @@ class B : A
 {
     override {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -634,8 +711,8 @@ class B : A
             Assert.True(((LSP.VSInternalCompletionItem)results.Items.First()).VsResolveTextEditOnCommit);
         }
 
-        [Fact]
-        public async Task TestDoNotProvidePartialMethodTextEditsOrInsertTextAsync()
+        [Theory, CombinatorialData]
+        public async Task TestDoNotProvidePartialMethodTextEditsOrInsertTextAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"partial class C
@@ -647,7 +724,7 @@ partial class C
 {
     partial {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -661,8 +738,8 @@ partial class C
             Assert.Null(results.Items.First().InsertText);
         }
 
-        [Fact]
-        public async Task TestAlwaysHasCommitCharactersWithoutVSCapabilityAsync()
+        [Theory, CombinatorialData]
+        public async Task TestAlwaysHasCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -673,7 +750,7 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -688,8 +765,8 @@ class A
             Assert.All(results.Items, (item) => Assert.NotNull(item.CommitCharacters));
         }
 
-        [Fact]
-        public async Task TestSoftSelectedItemsHaveNoCommitCharactersWithoutVSCapabilityAsync()
+        [Theory, CombinatorialData]
+        public async Task TestSoftSelectedItemsHaveNoCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System.Text.RegularExpressions;
@@ -700,7 +777,7 @@ class A
         new Regex(""[{|caret:|}"")
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -715,8 +792,8 @@ class A
             Assert.All(results.Items, (item) => Assert.Null(item.CommitCharacters));
         }
 
-        [Fact]
-        public async Task TestLargeCompletionListIsMarkedIncompleteAsync()
+        [Theory, CombinatorialData]
+        public async Task TestLargeCompletionListIsMarkedIncompleteAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -752,7 +829,7 @@ class A
         T{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -764,8 +841,8 @@ class A
             Assert.True(results.IsIncomplete);
         }
 
-        [Fact]
-        public async Task TestIncompleteCompletionListContainsPreselectedItemAsync()
+        [Theory, CombinatorialData]
+        public async Task TestIncompleteCompletionListContainsPreselectedItemAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -804,7 +881,7 @@ class A
         W someW = new {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var completionParams = CreateCompletionParams(
@@ -820,8 +897,8 @@ class A
             Assert.True(itemW.Preselect);
         }
 
-        [Fact]
-        public async Task TestRequestForIncompleteListIsFilteredDownAsync()
+        [Theory, CombinatorialData]
+        public async Task TestRequestForIncompleteListIsFilteredDownAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -857,7 +934,7 @@ class A
         T{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
             await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
@@ -886,8 +963,8 @@ class A
             Assert.Contains("ta", results.Items.First().Label, StringComparison.OrdinalIgnoreCase);
         }
 
-        [Fact]
-        public async Task TestIncompleteCompletionListFiltersWithPatternMatchingAsync()
+        [Theory, CombinatorialData]
+        public async Task TestIncompleteCompletionListFiltersWithPatternMatchingAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -923,7 +1000,7 @@ class A
         T{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
             await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
@@ -952,8 +1029,8 @@ class A
             Assert.Equal("TaiwanCalendar", results.Items.First().Label);
         }
 
-        [Fact]
-        public async Task TestIncompleteCompletionListWithDeletionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestIncompleteCompletionListWithDeletionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -989,7 +1066,7 @@ class A
         T{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
             await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
@@ -1042,8 +1119,8 @@ class A
             Assert.Equal("Timeout", results.Items.First().Label);
         }
 
-        [Fact]
-        public async Task TestNewCompletionRequestDoesNotUseIncompleteListAsync()
+        [Theory, CombinatorialData]
+        public async Task TestNewCompletionRequestDoesNotUseIncompleteListAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -1084,7 +1161,7 @@ class A
         Console.W{|secondCaret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var firstCaret = testLspServer.GetLocations("firstCaret").Single();
             await testLspServer.OpenDocumentAsync(firstCaret.Uri);
 
@@ -1111,8 +1188,8 @@ class A
             Assert.Equal("WindowHeight", results.Items.First().Label);
         }
 
-        [Fact]
-        public async Task TestRequestForIncompleteListWhenMissingCachedListAsync()
+        [Theory, CombinatorialData]
+        public async Task TestRequestForIncompleteListWhenMissingCachedListAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -1148,7 +1225,7 @@ class A
         Ta{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var completionParams = CreateCompletionParams(
@@ -1163,8 +1240,8 @@ class A
             Assert.Contains("ta", results.Items.First().Label, StringComparison.OrdinalIgnoreCase);
         }
 
-        [Fact]
-        public async Task TestRequestForIncompleteListUsesCorrectCachedListAsync()
+        [Theory, CombinatorialData]
+        public async Task TestRequestForIncompleteListUsesCorrectCachedListAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -1207,7 +1284,7 @@ class A
         {|secondCaret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var firstCaretLocation = testLspServer.GetLocations("firstCaret").Single();
             await testLspServer.OpenDocumentAsync(firstCaretLocation.Uri);
 
@@ -1268,8 +1345,8 @@ class A
             }
         }
 
-        [Fact]
-        public async Task TestCompletionRequestRespectsListSizeOptionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestCompletionRequestRespectsListSizeOptionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -1279,7 +1356,7 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
@@ -1289,15 +1366,15 @@ class A
             var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             var listMaxSize = 1;
 
-            globalOptions.SetGlobalOption(new OptionKey(LspOptions.MaxCompletionListSize), listMaxSize);
+            globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);
             Assert.Equal(listMaxSize, results.Items.Length);
         }
 
-        [Fact]
-        public async Task TestRequestForIncompleteListFiltersDownToEmptyAsync()
+        [Theory, CombinatorialData]
+        public async Task TestRequestForIncompleteListFiltersDownToEmptyAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -1333,7 +1410,7 @@ class A
         T{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caretLocation = testLspServer.GetLocations("caret").Single();
             await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
@@ -1361,6 +1438,62 @@ class A
             Assert.Empty(results.Items);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755138")]
+        public async Task TestOnlyHasSuggestionModeItemAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    void M()
+    {
+        Task.Run(abcdefg{|caret:|}
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "g",
+                triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            var list = (LSP.VSInternalCompletionList)results;
+            Assert.Empty(list.Items);
+            Assert.True(list.SuggestionMode);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
+        public async Task TestNotTriggerCompletionInArgumentListAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"
+using System;
+using System.Text;
+
+public class A
+{
+    public void M()
+    {
+        var x = new StringBuilder();
+        x.Append({|caret:|}
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "(",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results);
+        }
+
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             return testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
@@ -1369,10 +1502,8 @@ class A
 
         private static CompletionListCache GetCompletionListCache(TestLspServer testLspServer)
         {
-            var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CompletionHandler)dispatchAccessor.GetHandler<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName);
-            Assert.NotNull(handler);
-            return handler.GetTestAccessor().GetCache();
+            var cache = testLspServer.GetRequiredLspService<CompletionListCache>();
+            return cache;
         }
     }
 }

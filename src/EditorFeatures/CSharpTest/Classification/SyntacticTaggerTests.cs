@@ -23,10 +23,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SyntacticTaggerTests
     {
-        [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
+        [WpfFact]
         public async Task TestTagsChangedForPortionThatChanged()
         {
             var code =
@@ -85,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             Assert.Equal(2, callstacks.Count);
         }
 
-        [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
+        [WpfFact]
         public async Task TestTagsChangedAfterDelete()
         {
             var code =

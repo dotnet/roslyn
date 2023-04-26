@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -43,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Get
         End Property
 
-        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
-            Return VisualBasicSimplifierOptions.Create(options, DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
+            Return New VisualBasicSimplifierOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default))
         End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode

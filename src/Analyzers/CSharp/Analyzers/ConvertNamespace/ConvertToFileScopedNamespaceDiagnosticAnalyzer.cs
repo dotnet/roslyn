@@ -10,10 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -23,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             : base(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId,
                    EnforceOnBuildValues.UseFileScopedNamespace,
                    CSharpCodeStyleOptions.NamespaceDeclarations,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_file_scoped_namespace), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -36,26 +31,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private void AnalyzeNamespace(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
             var namespaceDeclaration = (NamespaceDeclarationSyntax)context.Node;
             var syntaxTree = namespaceDeclaration.SyntaxTree;
 
             var cancellationToken = context.CancellationToken;
             var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
 
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-
-            var diagnostic = AnalyzeNamespace(optionSet, root, namespaceDeclaration);
+            var diagnostic = AnalyzeNamespace(context.GetCSharpAnalyzerOptions().NamespaceDeclarations, root, namespaceDeclaration);
             if (diagnostic != null)
                 context.ReportDiagnostic(diagnostic);
         }
 
-        private Diagnostic? AnalyzeNamespace(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
+        private Diagnostic? AnalyzeNamespace(CodeStyleOption2<NamespaceDeclarationPreference> option, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
         {
-            var tree = declaration.SyntaxTree;
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
-
-            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
+            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
                 return null;
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
@@ -63,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var severity = option.Notification.Severity;
             var diagnosticLocation = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) != ReportDiagnostic.Hidden
                 ? declaration.Name.GetLocation()
-                : tree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End));
+                : declaration.SyntaxTree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End));
 
             return DiagnosticHelper.Create(
                 this.Descriptor,

@@ -56,6 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasReturnWithExpression = 1 << 8,
 
             IsSimpleProgram = 1 << 9,
+
+            HasRequiredMembers = 1 << 10,
+
+            HasPrimaryConstructor = 1 << 11,
         }
 
         internal SingleTypeDeclaration(
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
+            ImmutableSegmentedHashSet<string> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics,
             QuickAttributes quickAttributes)
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableSegmentedDictionary<string, VoidResult> MemberNames { get; }
+        public ImmutableSegmentedHashSet<string> MemberNames { get; }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
@@ -189,6 +193,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
+
+        public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
+
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
             return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
@@ -204,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // identity that is used when collecting all declarations 
         // of same type across multiple containers
-        internal struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
+        internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
         {
             private readonly SingleTypeDeclaration _decl;
 
@@ -234,6 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (thisDecl._kind != otherDecl._kind) ||
                     (thisDecl.name != otherDecl.name))
                 {
+                    return false;
+                }
+
+                if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
+                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
+                {
+                    // declarations of 'file' types are only the same type if they are in the same file
                     return false;
                 }
 

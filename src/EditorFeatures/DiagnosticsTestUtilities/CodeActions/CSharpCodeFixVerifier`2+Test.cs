@@ -52,18 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -76,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal OptionsCollection Options => _sharedState.Options;
 
 #if !CODE_STYLE
-            internal CodeActionOptions CodeActionOptions
+            internal CodeActionOptionsProvider CodeActionOptions
             {
                 get => _sharedState.CodeActionOptions;
                 set => _sharedState.CodeActionOptions = value;
@@ -104,12 +92,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await base.RunImplAsync(cancellationToken);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (CSharpParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
+            }
+
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, new DelegatingCodeActionOptionsProvider(_ => _sharedState.CodeActionOptions), isBlocking: false, cancellationToken);
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,
-                    new DelegatingCodeActionOptionsProvider(_ => _sharedState.CodeActionOptions)),
+                    _sharedState.CodeActionOptions),
                   new ProgressTracker(), cancellationToken);
 #endif
 

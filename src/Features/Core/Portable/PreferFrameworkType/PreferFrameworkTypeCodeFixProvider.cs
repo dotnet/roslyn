@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,8 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
     internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -28,8 +25,8 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         {
         }
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
-            IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+            = ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -51,8 +48,8 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var generator = editor.Generator;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -61,8 +58,10 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
                 if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is ITypeSymbol typeSymbol)
                 {
-                    var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
-                    editor.ReplaceNode(node, replacementNode);
+                    var replacementNode = typeSymbol.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr
+                        ? generator.QualifiedName(generator.GlobalAliasedName(generator.IdentifierName(nameof(System))), generator.IdentifierName(typeSymbol.Name))
+                        : generator.TypeExpression(typeSymbol);
+                    editor.ReplaceNode(node, replacementNode.WithTriviaFrom(node));
                 }
             }
         }

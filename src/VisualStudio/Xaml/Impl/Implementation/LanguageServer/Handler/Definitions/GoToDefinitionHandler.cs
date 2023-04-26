@@ -27,9 +27,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(GoToDefinitionHandler)), Shared]
     [Method(Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
@@ -42,13 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
+        public bool MutatesSolutionState => false;
 
-        public override bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = new ConcurrentBag<LSP.Location>();
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return locations.ToArray();
             }
 
-            var xamlGoToDefinitionService = document.Project.LanguageServices.GetService<IXamlGoToDefinitionService>();
+            var xamlGoToDefinitionService = document.Project.Services.GetService<IXamlGoToDefinitionService>();
             if (xamlGoToDefinitionService == null)
             {
                 return locations.ToArray();
@@ -170,11 +170,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
+                    var workspace = context.Workspace;
                     var project = context.Document?.GetCodeProject();
-                    if (project != null)
+                    if (workspace != null && project != null)
                     {
-                        var options = globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions(project.Services);
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

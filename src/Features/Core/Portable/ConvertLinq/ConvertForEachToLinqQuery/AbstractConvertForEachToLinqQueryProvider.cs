@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SemanticModel semanticModel,
             TStatement statementCannotBeConverted,
             CancellationToken cancellationToken,
-            out IConverter<TForEachStatement, TStatement> converter);
+            [NotNullWhen(true)] out IConverter<TForEachStatement, TStatement>? converter);
 
         /// <summary>
         /// Creates a default converter where foreach is joined with some children statements but other children statements are kept unmodified.
@@ -66,7 +65,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var forEachStatement = await context.TryGetRelevantNodeAsync<TForEachStatement>().ConfigureAwait(false);
             if (forEachStatement == null)
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             }
 
             if (semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken)
-                .Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                .Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 return;
             }
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             bool convertToQuery,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Services);
             converter.Convert(editor, convertToQuery, cancellationToken);
             var newRoot = editor.GetChangedRoot();
             var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);

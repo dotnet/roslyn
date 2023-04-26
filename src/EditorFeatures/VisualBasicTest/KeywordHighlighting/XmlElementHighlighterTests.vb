@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class XmlElementHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(XmlElementHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlElement1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -22,7 +23,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlElement2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -32,7 +33,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlElement3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -42,7 +43,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample2_1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -59,7 +60,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample2_2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -76,7 +77,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample4_1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -93,7 +94,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample4_2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -110,7 +111,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample4_3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -127,7 +128,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample4_4() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

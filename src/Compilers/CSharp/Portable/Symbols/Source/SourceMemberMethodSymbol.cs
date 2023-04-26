@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbolWithAttributes, IAttributeTargetSymbol
+    internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags
@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int IsNullableAnalysisEnabledOffset = NullableContextOffset + NullableContextSize;
+#pragma warning disable IDE0051 // Remove unused private members
             private const int IsNullableAnalysisEnabledSize = 1;
+#pragma warning restore IDE0051 // Remove unused private members
 
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
@@ -193,11 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
-        protected ImmutableArray<Location> locations;
+        protected readonly Location _location;
         protected string lazyDocComment;
         protected string lazyExpandedDocComment;
 
@@ -217,29 +218,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
-            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location), isIterator)
-        {
-        }
-
         protected SourceMemberMethodSymbol(
             NamedTypeSymbol containingType,
             SyntaxReference syntaxReferenceOpt,
-            ImmutableArray<Location> locations,
+            Location location,
             bool isIterator)
-            : base(syntaxReferenceOpt)
+            : base(syntaxReferenceOpt, isIterator)
         {
-            Debug.Assert((object)containingType != null);
-            Debug.Assert(!locations.IsEmpty);
+            Debug.Assert(containingType is not null);
+            Debug.Assert(location is not null);
             Debug.Assert(containingType.DeclaringCompilation is not null);
 
             _containingType = containingType;
-            this.locations = locations;
-
-            if (isIterator)
-            {
-                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
-            }
+            _location = location;
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
@@ -257,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType.Type);
+                diagnostics.Add(code, GetFirstLocation(), this, returnType.Type);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -269,11 +260,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, GetFirstLocation(), this, parameter.Type);
                 }
             }
 
-            diagnostics.Add(Locations[0], useSiteInfo);
+            diagnostics.Add(GetFirstLocation(), useSiteInfo);
+        }
+
+        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingType.HasFileLocalTypes())
+            {
+                return;
+            }
+
+            if (returnType.Type.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, ContainingType);
+            }
+
+            foreach (var param in parameters)
+            {
+                if (param.Type.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, ContainingType);
+                }
+            }
         }
 
         protected void MakeFlags(
@@ -637,7 +649,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal virtual ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        internal abstract ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false);
+
+        protected ExecutableCodeBinder TryGetBodyBinderFromSyntax(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             Binder inMethod = TryGetInMethodBinder(binderFactoryOpt);
             return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None));
@@ -648,12 +662,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// which might return locations of partial methods.
         /// </summary>
         public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
-            }
-        }
+            => ImmutableArray.Create(_location);
+
+        public override Location TryGetFirstLocation()
+            => _location;
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -700,21 +712,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-        {
-            get
-            {
-                return _lazyIteratorElementType?.Value ?? default;
-            }
-            set
-            {
-                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
-            }
-        }
-
-        internal override bool IsIterator => _lazyIteratorElementType is object;
-
         //overridden appropriately in SourceMemberMethodSymbol
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
@@ -758,6 +755,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case CompletionPart.Attributes:
                         GetAttributes();
+
+                        if (this is SynthesizedPrimaryConstructor primaryConstructor)
+                        {
+                            // The constructor is responsible for completion of the backing fields
+                            foreach (var field in primaryConstructor.GetBackingFields())
+                            {
+                                field.GetAttributes();
+                            }
+                        }
                         break;
 
                     case CompletionPart.ReturnTypeAttributes:
@@ -827,22 +833,16 @@ done:
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var compilation = this.DeclaringCompilation;
-            var location = locations[0];
 
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ShouldEmitNullableContextValue(out _))
             {
-                compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
-            }
-
-            foreach (var parameter in Parameters)
-            {
-                ParameterHelpers.ReportParameterNullCheckingErrors(diagnostics.DiagnosticBag, parameter);
+                compilation.EnsureNullableContextAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
         }
 
@@ -982,12 +982,12 @@ done:
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
 
-                if ((hasBody || IsExplicitInterfaceImplementation || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                if ((((hasBody || IsExtern) && !(IsStatic && IsVirtual)) || IsExplicitInterfaceImplementation) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
 
-                if (!hasBody && IsAbstract && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                if (((!hasBody && IsAbstract) || IsVirtual) && !IsExplicitInterfaceImplementation && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, location);
                 }

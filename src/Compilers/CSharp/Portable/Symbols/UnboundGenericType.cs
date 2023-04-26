@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         internal override DiagnosticInfo ErrorInfo
         {
             get

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Top-level Code
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LineChange()
         {
             var src1 = @"
@@ -39,8 +38,7 @@ Console.ReadLine(1);
                 new[] { new SourceLineUpdate(1, 2) });
         }
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LocalFunction_LineChange()
         {
             var src1 = @"
@@ -502,9 +500,16 @@ class C<T>
 }";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.method) });
+                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "\r\n        /*edit*/", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Bar")) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         [Fact]
@@ -531,7 +536,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.method) });
+                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "\r\n        ", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Bar")) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         [Fact]
@@ -877,7 +888,13 @@ class C<T>
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)") });
+                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "public C(int a)", GetResource("constructor")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         #endregion
@@ -1251,7 +1268,7 @@ class C
         }
 
         [Fact]
-        public void Field_RudeRecompile2()
+        public void Field_RudeRecompile1()
         {
             var src1 = @"
 class C<T>
@@ -1265,12 +1282,22 @@ class C<T>
     static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
                 diagnostics: new[]
                 {
-                    Diagnostic(RudeEditKind.GenericTypeUpdate, "class C<T>")
-                });
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "class C<T>", GetResource("static constructor", "C()"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         [Fact]
@@ -1714,7 +1741,7 @@ class C
                 semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.E").RemoveMethod) });
         }
 
-        [Fact, WorkItem(53263, "https://github.com/dotnet/roslyn/issues/53263")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53263")]
         public void Event_ExpressionBody_MultipleBodiesOnTheSameLine1()
         {
             var src1 = @"
@@ -2010,19 +2037,29 @@ class C
         {
             var src1 = @"
 #line 1 ""a""
-class C { static void Bar<T>() { } }
+class C { static void F<T>() { } }
 ";
             var src2 = @"
 #line 1 ""b""
-class C { static void Bar<T>() { } }";
+class C { static void F<T>() { } }";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyLineEdits(
                  Array.Empty<SequencePointUpdates>(),
                  diagnostics: new[]
                  {
-                     Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "{", FeaturesResources.method)
-                 });
+                     Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "{", GetResource("method"))
+                 },
+                 capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifyLineEdits(
+                 Array.Empty<SequencePointUpdates>(),
+                 semanticEdits: new[]
+                 {
+                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
+                 },
+                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         #endregion

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             else
             {
                 var computed = false;
-                if (allProviders.Any(p => p.IsRetriggerCharacter(args.TypedChar)))
+                if (allProviders.Any(static (p, args) => p.IsRetriggerCharacter(args.TypedChar), args))
                 {
                     // The user typed a character that might close the scope of the current model.
                     // In this case, we should requery all providers.

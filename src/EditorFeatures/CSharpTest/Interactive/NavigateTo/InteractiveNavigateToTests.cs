@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script, exportProvider: exportProvider);
+        protected override TestWorkspace CreateWorkspace(string content, TestComposition composition)
+            => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script, composition: composition);
 
         [WpfTheory]
         [CombinatorialData]

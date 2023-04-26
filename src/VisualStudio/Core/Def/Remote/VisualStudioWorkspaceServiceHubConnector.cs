@@ -25,39 +25,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class VisualStudioWorkspaceServiceHubConnector : IEventListener<object>, IEventListenerStoppable
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
-#pragma warning disable IDE0044 // Add readonly modifier
-        private CancellationTokenSource _disposalCancellationSource = new();
-#pragma warning restore IDE0044 // Add readonly modifier
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceServiceHubConnector(
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IThreadingContext threadingContext)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listenerProvider = listenerProvider;
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
+            if (workspace is not VisualStudioWorkspace)
             {
                 return;
             }
 
             // only push solution snapshot from primary (VS) workspace:
-            _checksumUpdater = new SolutionChecksumUpdater(workspace, _globalOptions, _listenerProvider, _disposalCancellationSource.Token);
+            _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _disposalCancellationSource.Token);
 
-            _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services, _disposalCancellationSource.Token);
+            _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services.SolutionServices, _disposalCancellationSource.Token);
 
             // start launching remote process, so that the first service that needs it doesn't need to wait for it:
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
@@ -66,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StopListening(Workspace workspace)
         {
-            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
+            if (workspace is not VisualStudioWorkspace)
             {
                 return;
             }

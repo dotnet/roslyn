@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
-        bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
-
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
         Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
@@ -44,5 +42,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         void LogAnalyzerCountSummary();
         int Priority { get; }
+        void Shutdown();
     }
 }

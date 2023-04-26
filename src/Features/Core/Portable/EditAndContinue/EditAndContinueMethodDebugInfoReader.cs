@@ -81,18 +81,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    ImmutableArray<byte> localSlots, lambdaMap;
+                    ImmutableArray<byte> localSlots, lambdaMap, stateMachineSuspensionPoints;
                     if (debugInfo != null)
                     {
                         localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
                         lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                        stateMachineSuspensionPoints = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueStateMachineStateMap);
                     }
                     else
                     {
-                        localSlots = lambdaMap = default;
+                        localSlots = lambdaMap = stateMachineSuspensionPoints = default;
                     }
 
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap, stateMachineSuspensionPoints);
                 }
                 catch (InvalidOperationException e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
@@ -120,7 +121,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
                 => EditAndContinueMethodDebugInformation.Create(
                     compressedSlotMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                    compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
             private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
                 => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?

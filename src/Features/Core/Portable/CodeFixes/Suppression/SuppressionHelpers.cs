@@ -85,6 +85,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), SynthesizedExternalSourceDiagnosticTag);
 
         public static bool HasCustomTag(ImmutableArray<string> customTags, string tagToFind)
-            => customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
+            => customTags.Any(static (c, tagToFind) => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0, tagToFind);
     }
 }

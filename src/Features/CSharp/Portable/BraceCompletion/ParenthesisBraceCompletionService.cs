@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => Parenthesis.OpenCharacter;
         protected override char ClosingBrace => Parenthesis.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.OpenParenToken);
 

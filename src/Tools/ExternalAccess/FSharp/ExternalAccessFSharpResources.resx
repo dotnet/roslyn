@@ -117,23 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AddAssemblyReference" xml:space="preserve">
-    <value>Add an assembly reference to '{0}'</value>
-  </data>
-  <data name="AddNewKeyword" xml:space="preserve">
-    <value>Add 'new' keyword</value>
-  </data>
-  <data name="AddProjectReference" xml:space="preserve">
-    <value>Add a project reference to '{0}'</value>
-  </data>
   <data name="CannotDetermineSymbol" xml:space="preserve">
     <value>Cannot determine the symbol under the caret</value>
   </data>
   <data name="CannotNavigateUnknown" xml:space="preserve">
     <value>Cannot navigate to the requested location</value>
-  </data>
-  <data name="ExceptionsHeader" xml:space="preserve">
-    <value>Exceptions:</value>
   </data>
   <data name="FSharpDisposablesClassificationType" xml:space="preserve">
     <value>F# Disposable Types</value>
@@ -149,9 +137,6 @@
   </data>
   <data name="FSharpPropertiesClassificationType" xml:space="preserve">
     <value>F# Properties</value>
-  </data>
-  <data name="GenericParametersHeader" xml:space="preserve">
-    <value>Generic parameters:</value>
   </data>
   <data name="ImplementInterface" xml:space="preserve">
     <value>Implement interface</value>
@@ -171,17 +156,8 @@
   <data name="NavigatingTo" xml:space="preserve">
     <value>Navigating to symbol...</value>
   </data>
-  <data name="PrefixValueNameWithUnderscore" xml:space="preserve">
-    <value>Prefix '{0}' with underscore</value>
-  </data>
   <data name="RemoveUnusedOpens" xml:space="preserve">
     <value>Remove unused open declarations</value>
-  </data>
-  <data name="RenameValueToDoubleUnderscore" xml:space="preserve">
-    <value>Rename '{0}' to '__'</value>
-  </data>
-  <data name="RenameValueToUnderscore" xml:space="preserve">
-    <value>Rename '{0}' to '_'</value>
   </data>
   <data name="SimplifyName" xml:space="preserve">
     <value>Simplify name</value>

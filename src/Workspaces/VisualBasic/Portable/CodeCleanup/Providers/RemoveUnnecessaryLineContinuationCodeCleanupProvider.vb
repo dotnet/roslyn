@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End If
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 

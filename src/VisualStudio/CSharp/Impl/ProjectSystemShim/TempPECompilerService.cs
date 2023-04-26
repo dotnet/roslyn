@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Roslyn.Utilities;
 
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     ///
     /// This class is free-threaded.
     /// </summary>
-    internal class TempPECompilerService : ICSharpTempPECompilerService
+    internal sealed class TempPECompilerService : ICSharpTempPECompilerService
     {
         private readonly IMetadataService _metadataService;
 
@@ -41,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             for (var i = 0; i < fileNames.Length; i++)
             {
-                // create a parse tree w/o encoding - the tree won't be used to emit PDBs
-                trees.Add(SyntaxFactory.ParseSyntaxTree(fileContents[i], parsedArguments.ParseOptions, fileNames[i]));
+                var sourceText = SourceText.From(fileContents[i], parsedArguments.Encoding, parsedArguments.ChecksumAlgorithm);
+                trees.Add(SyntaxFactory.ParseSyntaxTree(sourceText, parsedArguments.ParseOptions, fileNames[i]));
             }
 
             // TODO (tomat): Revisit compilation options: app.config, strong name, search paths, etc? (bug #869604)

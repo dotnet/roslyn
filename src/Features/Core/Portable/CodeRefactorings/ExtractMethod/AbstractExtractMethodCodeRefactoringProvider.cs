@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var workspace = document.Project.Solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            var solution = document.Project.Solution;
+            if (solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var activeInlineRenameSession = workspace.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
+            var activeInlineRenameSession = solution.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
             if (activeInlineRenameSession)
             {
                 return;

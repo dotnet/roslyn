@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -68,8 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, namingPreferences As NamingStylePreferencesProvider, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-            Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
         End Function
 
         Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
@@ -104,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not SymbolEqualityComparer.Default.Equals(currentType, typeParameter) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, binding.ResolveType(typeParameter)) Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),

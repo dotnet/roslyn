@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            HostWorkspaceServices services,
+            SolutionServices services,
             SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken);
@@ -139,8 +139,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
+            if (textDocument is not Document document)
+                return Task.FromResult(ImmutableArray<CodeFix>.Empty);
+
             return GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
         }
 
@@ -332,11 +335,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            if (targetSymbol == null)
-            {
-                // Outside of a member declaration, suppress diagnostic for the entire assembly.
-                targetSymbol = semanticModel.Compilation.Assembly;
-            }
+            // Outside of a member declaration, suppress diagnostic for the entire assembly.
+            targetSymbol ??= semanticModel.Compilation.Assembly;
 
             return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken, TargetMemberNode = targetMemberNode };
         }

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         finally
                         {
@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
                             dependencyGraph: _processor.DependencyGraph,
-                            analyzerService: _processor.DiagnosticAnalyzerService,
                             workItem: out workItem,
                             cancellationToken: out cancellationToken);
                     }
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         finally
                         {
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // after that point.
                             if (!processedEverything && !CancellationToken.IsCancellationRequested)
                             {
-                                _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.WithAsyncToken(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
                             SolutionCrawlerLogger.LogProcessActiveFileDocument(_processor._logAggregator, documentId.Id, processedEverything);

@@ -42,7 +42,7 @@ class C
     System.Func<int> F() => Target1;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -106,7 +106,7 @@ class C<T>
     System.Func<int> F() => Target1<T>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -170,7 +170,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<T>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -234,7 +234,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<G>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -298,7 +298,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<G>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);

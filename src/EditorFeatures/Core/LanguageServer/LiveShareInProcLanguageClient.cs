@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -25,28 +27,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(ILanguageClient))]
     internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
+            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+            ILspServiceLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
             // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
@@ -62,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            var defaultCapabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var defaultCapabilities = _experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
             // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and
             // remote scenarios.
-            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokenEnabled)
             {
                 defaultCapabilities.SemanticTokensOptions = null;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             // When the lsp pull diagnostics feature flag is enabled we do not advertise pull diagnostics capabilities from here
             // as the AlwaysActivateInProcLanguageClient will provide pull diagnostics both locally and remote.
-            var isPullDiagnosticsEnabled = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var isPullDiagnosticsEnabled = GlobalOptions.IsLspPullDiagnostics();
             if (!isPullDiagnosticsEnabled)
             {
                 // Pull diagnostics isn't enabled, let the live share server provide pull diagnostics.

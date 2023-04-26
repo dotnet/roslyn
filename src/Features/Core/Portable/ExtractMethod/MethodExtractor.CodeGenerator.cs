@@ -11,12 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -39,10 +37,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
-            protected readonly NamingStylePreferencesProvider NamingPreferences;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, NamingStylePreferencesProvider namingPreferences, bool localFunction)
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -53,7 +50,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 AnalyzerResult = analyzerResult;
 
                 Options = options;
-                NamingPreferences = namingPreferences;
                 LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
@@ -109,11 +105,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
                     }
 
-                    var info = Options.GetInfo(
+                    var info = codeGenerationService.GetInfo(
                         new CodeGenerationContext(
                             generateDefaultAccessibility: false,
                             generateMethodBodies: true),
-                        callSiteDocument.Project);
+                        Options,
+                        callSiteDocument.Project.ParseOptions);
 
                     var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, info, cancellationToken);
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
@@ -125,12 +122,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                     destination = previousMemberNode.Parent ?? previousMemberNode;
 
-                    var info = Options.GetInfo(
+                    var info = codeGenerationService.GetInfo(
                         new CodeGenerationContext(
                             afterThisLocation: previousMemberNode.GetLocation(),
                             generateDefaultAccessibility: true,
                             generateMethodBodies: true),
-                        callSiteDocument.Project);
+                        Options,
+                        callSiteDocument.Project.ParseOptions);
 
                     newContainer = codeGenerationService.AddMethod(destination, result.Data, info, cancellationToken);
                 }
@@ -354,7 +352,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
                     {
                         var refKind = GetRefKind(parameter.ParameterModifier);
-                        var type = parameter.GetVariableType(SemanticDocument);
+                        var type = parameter.GetVariableType();
 
                         parameters.Add(
                             CodeGenerationSymbolFactory.CreateParameterSymbol(

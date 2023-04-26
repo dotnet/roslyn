@@ -74,14 +74,26 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             if (service == null && asyncService == null)
                 return false;
 
-            // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
-            // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
-            // This can be removed once typescript implements LSP support for goto def.
+            // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP
+            // client from handling the request.  So prevent the local service from handling goto def commands in the
+            // remote workspace. This can be removed once typescript implements LSP support for goto def.
             if (subjectBuffer.IsInLspEditorContext())
                 return false;
 
+            // If the file is empty, there's nothing to be on that we can goto-def on.  This also ensures that we can
+            // create an appropriate non-empty tracking span later on.
+            var currentSnapshot = subjectBuffer.CurrentSnapshot;
+            if (currentSnapshot.Length == 0)
+                return false;
+
             Contract.ThrowIfNull(document);
-            var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
+
+            // If there's a selection, use the starting point of the selection as the invocation point. Otherwise, just
+            // pick wherever the caret is exactly at.
+            var caretPos =
+                args.TextView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).FirstOrNull()?.Start ??
+                args.TextView.GetCaretPoint(subjectBuffer);
+
             if (!caretPos.HasValue)
                 return false;
 
@@ -126,8 +138,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                     return _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         // determine the location first.
-                        var location = await asyncService.FindDefinitionLocationAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                        var (location, _) = await asyncService.FindDefinitionLocationAsync(
+                            document, position, includeType: true, cancellationToken).ConfigureAwait(false);
                         return await location.TryNavigateToAsync(
                             _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                     });
@@ -138,14 +150,14 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }
 
         private static void ReportFailure(Document document)
         {
-            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
             notificationService.SendNotification(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
         }
@@ -155,15 +167,24 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         {
             bool succeeded;
 
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+
+            // TODO: prior logic was to get a tracking span of length 1 here.  Preserving that, though it's unclear if
+            // that is necessary for the BWI to work properly.
+            Contract.ThrowIfTrue(position.Snapshot.Length == 0);
+            var applicableToSpan = position < position.Snapshot.Length
+                ? new SnapshotSpan(position, position + 1)
+                : new SnapshotSpan(position - 1, position);
+
             using (var backgroundIndicator = indicatorFactory.Create(
-                args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
+                args.TextView, applicableToSpan,
                 EditorFeaturesResources.Navigating_to_definition))
             {
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
 
                 // determine the location first.
-                var location = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var (location, _) = await service.FindDefinitionLocationAsync(
+                    document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
                 if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)

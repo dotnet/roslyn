@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     {
         ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
-            DocumentId? documentIdForGlobalImports,
+            DocumentId documentId,
             TextSpan spanToSearch,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken);
     }
 }

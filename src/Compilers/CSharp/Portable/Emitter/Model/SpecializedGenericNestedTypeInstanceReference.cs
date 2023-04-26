@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(underlyingNamedType.IsDefinition);
             // Definition doesn't have custom modifiers on type arguments
-            Debug.Assert(!underlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any()));
+            Debug.Assert(!underlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Any(static a => a.CustomModifiers.Any()));
         }
 
         public sealed override void Dispatch(Cci.MetadataVisitor visitor)

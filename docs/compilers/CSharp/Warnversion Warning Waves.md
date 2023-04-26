@@ -1,4 +1,4 @@
-﻿# /warn warning "waves"
+# /warn warning "waves"
 
 The C# compiler flag `/warn` controls optional warnings.
 When we introduce new warnings that can be reported on existing code,
@@ -8,6 +8,18 @@ For that purpose, we have the compiler flag "`/warn:n`"
 where `n` is a whole number.
 
 The default warning level when the command-line compiler is used is `4`. If you want the compiler to produce all applicable warnings, you can specify `/warn:9999`.
+
+In a typical project, this setting is controlled by the `AnalysisLevel` property,
+which determines the `WarningLevel` property (passed to the `Csc` task).
+For more information on `AnalysisLevel`, see https://devblogs.microsoft.com/dotnet/automatically-find-latent-bugs-in-your-code-with-net-5/
+
+## Warning level 8
+
+The compiler shipped with .NET 8 (the C# 12 compiler) contains the following warnings which are reported only under `/warn:8` or higher.
+
+| Warning ID | Description |
+|------------|-------------|
+| CS9123 | [Taking address of local or parameter in async method can create a GC hole](https://github.com/dotnet/roslyn/issues/63100) |
 
 ## Warning level 7
 

@@ -49,12 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.SwitchExpressionArm:
                 case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     break;
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax || node.Parent is PrimaryConstructorBaseTypeSyntax);
-                    break;
-                case SyntaxKind.RecordDeclaration:
-                    Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
                     break;
                 default:
                     Debug.Assert(node is ExpressionSyntax);
@@ -407,17 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
-        {
-            Debug.Assert(node.ParameterList is object);
-            Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
-
-            if (node.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
-            {
-                VisitNodeToBind(baseWithArguments);
-            }
-        }
-
         private void CollectVariablesFromDeconstruction(
             ExpressionSyntax possibleTupleDeclaration,
             AssignmentExpressionSyntax deconstruction)
@@ -501,7 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private Binder _scopeBinder;
         private Binder _enclosingBinder;
-
 
         internal static void FindExpressionVariables(
             Binder scopeBinder,
@@ -663,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return designation == null ? null : GlobalExpressionVariable.Create(
                 _containingType, _modifiers, type,
-                designation.Identifier.ValueText, designation, designation.GetLocation(),
+                designation.Identifier.ValueText, designation, designation.Span,
                 _containingFieldOpt, nodeToBind);
         }
 
@@ -671,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,
-                designation.Identifier.ValueText, designation, designation.Identifier.GetLocation(),
+                designation.Identifier.ValueText, designation, designation.Identifier.Span,
                 _containingFieldOpt, nodeToBind);
         }
 
@@ -686,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                       typeSyntax: closestTypeSyntax,
                       name: designation.Identifier.ValueText,
                       syntax: designation,
-                      location: designation.Location,
+                      locationSpan: designation.Span,
                       containingFieldOpt: null,
                       nodeToBind: deconstruction);
         }

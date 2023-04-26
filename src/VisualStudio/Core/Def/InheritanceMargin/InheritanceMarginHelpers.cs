@@ -47,47 +47,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static ImageMoniker GetMoniker(InheritanceRelationship inheritanceRelationship)
         {
             //  If there are multiple targets and we have the corresponding compound image, use it
-            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship)
+                && s_relationships_Shown_As_O_Down_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.ImplementingOverridden;
             }
 
-            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship)
+                && s_relationships_Shown_As_O_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.ImplementingOverriding;
             }
 
-            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_I_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship)
+                && s_relationships_Shown_As_I_Down_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.ImplementingImplemented;
             }
 
-            if (s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_O_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship)
+                && s_relationships_Shown_As_O_Down_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.OverridingOverridden;
             }
 
             // Otherwise, show the image based on this preference
-            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.Implementing;
             }
 
-            if (s_relationships_Shown_As_I_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_I_Down_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.Implemented;
             }
 
-            if (s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_O_Up_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.Overriding;
             }
 
-            if (s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            if (s_relationships_Shown_As_O_Down_Arrow.Any(static (flag, inheritanceRelationship) => inheritanceRelationship.HasFlag(flag), inheritanceRelationship))
             {
                 return KnownMonikers.Overridden;
             }

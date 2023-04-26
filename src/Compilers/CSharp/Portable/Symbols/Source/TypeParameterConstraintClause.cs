@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         NotNullableReferenceType = ReferenceType | 0x20,
 
         /// <summary>
-        /// Type parameter has no type constraints, including `struct`, `class`, `unmanaged` and is declared in a context 
+        /// Type parameter has no type constraints, including `struct`, `class`, `unmanaged` and is declared in a context
         /// where nullable annotations are disabled.
         /// Cannot be combined with <see cref="ReferenceType"/>, <see cref="ValueType"/> or <see cref="Unmanaged"/>.
         /// Note, presence of this flag suppresses generation of Nullable attribute on the corresponding type parameter.
@@ -47,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ReferenceTypeFromConstraintTypes = 0x800,
 
         /// <summary>
-        /// All bits involved into describing various aspects of 'class' constraint. 
+        /// All bits involved into describing various aspects of 'class' constraint.
         /// </summary>
         AllReferenceTypeKinds = NullableReferenceType | NotNullableReferenceType,
 
         /// <summary>
-        /// Any of these bits is equivalent to presence of 'struct' constraint. 
+        /// Any of these bits is equivalent to presence of 'struct' constraint.
         /// </summary>
         AllValueTypeKinds = ValueType | Unmanaged,
 
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
                          (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor | TypeParameterConstraintKind.Default |
                                           TypeParameterConstraintKind.PartialMismatch | TypeParameterConstraintKind.ValueTypeFromConstraintTypes | TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes)) == 0);
-#endif 
+#endif
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
         }
@@ -124,8 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
-        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsValueTypeMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
-                                                                                       ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsValueTypeMap(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             Debug.Assert(constraintClauses.Length == typeParameters.Length);
 
@@ -188,8 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsReferenceTypeFromConstraintTypesMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
-                                                                                                              ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsReferenceTypeFromConstraintTypesMap(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             Debug.Assert(constraintClauses.Length == typeParameters.Length);
 

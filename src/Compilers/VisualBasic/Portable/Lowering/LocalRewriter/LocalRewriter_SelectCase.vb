@@ -47,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' hash table based jump table, we generate a single public string hash synthesized method (SynthesizedStringSwitchHashMethod)
     ' that is shared across the module.
 
-
     ' CONSIDER: Ideally generating the SynthesizedStringSwitchHashMethod in <PrivateImplementationDetails>
     ' CONSIDER: class must be done during code generation, as the lowering does not mention or use
     ' CONSIDER: the hash function in any way.
@@ -215,7 +214,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 endSelectResumeLabel = Nothing
             End If
-
 
             ' Rewrite select expression
             rewrittenSelectExpression = VisitExpressionNode(selectExpressionStmt.Expression)

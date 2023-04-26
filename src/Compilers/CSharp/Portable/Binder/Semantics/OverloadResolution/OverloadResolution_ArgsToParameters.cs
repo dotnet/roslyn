@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // we have this immutable struct which maintains the map. If the mapping is
         // trivial then no array is ever allocated.
 
-        private struct ParameterMap
+        private readonly struct ParameterMap
         {
             private readonly int[] _parameters;
             private readonly int _length;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
 
-            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
+            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters);
             if (badNonTrailingNamedArgument != null)
             {
                 return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentAnalysisResult.NormalForm(argsToParameters.ToImmutableArray());
         }
 
-        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters, ImmutableArray<ParameterSymbol> parameters)
+        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters)
         {
             // Is there any named argument used out-of-position and followed by unnamed arguments?
 

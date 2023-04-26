@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly bool _fromDialog;
             private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
             private readonly CancellationToken _cancellationToken;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public Editor(
                 TService service,
                 SemanticDocument document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile,
                 CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 TService service,
                 SemanticDocument document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool fromDialog,
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             return await GetGenerateInNewFileOperationsAsync(
                                 namedType,
                                 documentName,
-                                null,
-                                true,
-                                null,
+                                folders: null,
+                                areFoldersValidIdentifiers: true,
+                                fullFilePath: null,
                                 _semanticDocument.Project,
                                 _semanticDocument.Project,
                                 isDialog: false).ConfigureAwait(false);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             : TargetProjectChangeInLanguage.CSharpToVisualBasic;
 
                         // Get the cross language service
-                        _targetLanguageService = _generateTypeOptionsResult.Project.LanguageServices.GetService<IGenerateTypeService>();
+                        _targetLanguageService = _generateTypeOptionsResult.Project.Services.GetService<IGenerateTypeService>();
                     }
 
                     if (_generateTypeOptionsResult.IsNewFile)
@@ -320,8 +320,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                     if (formattingService is not null)
                     {
-                        // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
-                        var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(fallbackOptions: null, _cancellationToken).ConfigureAwait(false);
+                        var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_fallbackOptions, _cancellationToken).ConfigureAwait(false);
                         codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, cleanupOptions, _cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -354,18 +353,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // TODO(cyrusn): make sure documentId is unique.
                 var documentId = DocumentId.CreateNewId(projectToBeUpdated.Id, documentName);
 
-                var updatedSolution = projectToBeUpdated.Solution.AddDocument(DocumentInfo.Create(
-                    documentId,
-                    documentName,
-                    containers,
-                    sourceCodeKind));
+                var updatedSolution = projectToBeUpdated.Solution.AddDocument(
+                    DocumentInfo.Create(
+                        documentId,
+                        documentName,
+                        containers,
+                        sourceCodeKind));
 
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
 
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(updatedSolution, null, _semanticDocument.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
+                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(
+                        updatedSolution, modifiedRoot: null, _semanticDocument.Document, _state.SimpleName,
+                        includeUsingsOrImports, _fallbackOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
@@ -460,6 +462,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                                         _semanticDocument.Document,
                                         _state.SimpleName,
                                         includeUsingsOrImports,
+                                        _fallbackOptions,
                                         _cancellationToken).ConfigureAwait(false);
                 }
 
@@ -541,9 +544,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         includeUsingsOrImports = string.Join(".", containerList.ToArray());
                         if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                         {
-                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports) ?
-                                                     rootNamespaceOfTheProjectGeneratedInto :
-                                                     rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
+                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)
+                                                     ? rootNamespaceOfTheProjectGeneratedInto
+                                                     : rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
                         }
                     }
 
@@ -615,7 +618,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _fallbackOptions, _cancellationToken).ConfigureAwait(false);
                 var nameToUse = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
                 parameterToNewFieldMap[parameterName.BestNameForParameter] = nameToUse;
                 return false;

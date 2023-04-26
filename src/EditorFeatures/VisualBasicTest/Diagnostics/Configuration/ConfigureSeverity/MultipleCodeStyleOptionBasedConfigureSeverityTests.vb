@@ -29,6 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
         End Function
     End Class
 
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
     Public Class ErrorConfigurationTests
         Inherits MultipleCodeStyleOptionBasedConfigureSeverityTests
 
@@ -38,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
             End Get
         End Property
 
-        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
-        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Async Function ConfigureEditorconfig_Empty_Error() As Task
             Dim input = "
 <Workspace>
@@ -76,8 +77,8 @@ dotnet_diagnostic.IDE0037.severity = error
             Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
         End Function
 
-        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
-        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Async Function ConfigureEditorconfig_BothRulesExist_Error() As Task
             Dim input = "
 <Workspace>
@@ -127,8 +128,8 @@ dotnet_diagnostic.IDE0037.severity = error
             Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
         End Function
 
-        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
-        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Async Function ConfigureEditorconfig_OneRuleExists_Error() As Task
             Dim input = "
 <Workspace>
@@ -172,8 +173,8 @@ dotnet_diagnostic.IDE0037.severity = error
             Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
         End Function
 
-        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
-        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Async Function ConfigureEditorconfig_AllPossibleEntriesExist_Error() As Task
             Dim input = "
 <Workspace>

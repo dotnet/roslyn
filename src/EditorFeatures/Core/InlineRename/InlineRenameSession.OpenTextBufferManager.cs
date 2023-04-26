@@ -31,14 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         internal class OpenTextBufferManager
         {
+            private static readonly object s_propagateSpansEditTag = new();
+            private static readonly object s_calculateMergedSpansEditTag = new();
+
             private readonly DynamicReadOnlyRegionQuery _isBufferReadOnly;
             private readonly InlineRenameSession _session;
             private readonly ITextBuffer _subjectBuffer;
             private readonly IEnumerable<Document> _baseDocuments;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
-
-            private static readonly object s_propagateSpansEditTag = new object();
-            private static readonly object s_calculateMergedSpansEditTag = new object();
+            private readonly ITextBufferCloneService _textBufferCloneService;
 
             /// <summary>
             /// The list of active tracking spans that are updated with the session's replacement text.
@@ -55,14 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public OpenTextBufferManager(
                 InlineRenameSession session,
-                ITextBuffer subjectBuffer,
                 Workspace workspace,
-                ITextBufferFactoryService textBufferFactoryService)
+                ITextBufferFactoryService textBufferFactoryService,
+                ITextBufferCloneService textBufferCloneService,
+                ITextBuffer subjectBuffer)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
                 _baseDocuments = subjectBuffer.GetRelatedDocuments();
                 _textBufferFactoryService = textBufferFactoryService;
+                _textBufferCloneService = textBufferCloneService;
                 _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
 
                 foreach (var view in session._textBufferAssociatedViewService.GetAssociatedTextViews(_subjectBuffer))
@@ -144,10 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var view = sender as ITextView;
                 view.Closed -= OnTextViewClosed;
                 _textViews.Remove(view);
-                if (!_session._dismissed)
-                {
-                    _session.Cancel();
-                }
+                _session.Cancel();
             }
 
             internal void ConnectToView(ITextView textView)
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            internal void Disconnect(bool documentIsClosed, bool rollbackTemporaryEdits)
+            internal void DisconnectAndRollbackEdits(bool documentIsClosed)
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Remove any old read only regions we had
                 UpdateReadOnlyRegions(removeOnly: true);
 
-                if (rollbackTemporaryEdits && !documentIsClosed)
+                if (!documentIsClosed)
                 {
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: true);
                 }
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
                                      new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                      GetWithoutAttributeSuffix(_session.ReplacementText,
-                                        document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
+                                        document.GetLanguageService<LanguageService.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
 
                                 if (linkedRenameSpan.HasValue)
                                 {
@@ -570,13 +570,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             return textChanges;
                         }
 
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                        var textDiffService = oldDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
                         return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -588,24 +588,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
-                var textDiffService = preMergeDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();
+                var textDiffService = preMergeDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
+                var contentType = preMergeDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType();
 
                 // TODO: Track all spans at once
 
-                ITextBufferCloneService textBufferCloneService = null;
                 SnapshotSpan? snapshotSpanToClone = null;
                 string preMergeDocumentTextString = null;
 
                 var preMergeDocumentText = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null)
+                if (snapshot != null && _textBufferCloneService != null)
                 {
-                    textBufferCloneService = preMergeDocument.Project.Solution.Workspace.Services.GetService<ITextBufferCloneService>();
-                    if (textBufferCloneService != null)
-                    {
-                        snapshotSpanToClone = snapshot.GetFullSpan();
-                    }
+                    snapshotSpanToClone = snapshot.GetFullSpan();
                 }
 
                 if (snapshotSpanToClone == null)
@@ -615,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var replacement in relevantReplacements)
                 {
-                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
+                    var buffer = snapshotSpanToClone.HasValue ? _textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
                     var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward);
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))
@@ -654,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private struct SelectionTracking : IDisposable
+            private readonly struct SelectionTracking : IDisposable
             {
                 private readonly int? _anchor;
                 private readonly int? _active;

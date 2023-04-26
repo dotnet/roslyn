@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Symbols;
 using System.Diagnostics.CodeAnalysis;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -27,21 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
-            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
+            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithIndexedNames,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
             EmitContext otherContext,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembersOpt)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
-            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegates, anonymousDelegatesWithFixedTypes, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
+            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegates, anonymousDelegatesWithIndexedNames, sourceAssembly, otherAssembly, otherSynthesizedMembers, otherDeletedMembers, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
         }
 
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
-            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
+            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithIndexedNames,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             PEAssemblySymbol otherAssembly)
@@ -51,11 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _symbols = new MatchSymbols(
                 anonymousTypeMap,
                 anonymousDelegates,
-                anonymousDelegatesWithFixedTypes,
+                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 otherAssembly,
                 otherSynthesizedMembers: null,
-                deepTranslator: null);
+                deepTranslator: null,
+                otherDeletedMembers: null);
         }
 
         public override Cci.IDefinition? MapDefinition(Cci.IDefinition definition)
@@ -189,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyTopLevelTypes;
             }
 
-            private static T VisitTypeMembers<T>(
+            private static T? VisitTypeMembers<T>(
                 Cci.ITypeDefinition otherContainer,
                 T member,
                 Func<Cci.ITypeDefinition, IEnumerable<T>> getMembers,
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
             private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> _anonymousDelegates;
-            private readonly IReadOnlyDictionary<string, AnonymousTypeValue> _anonymousDelegatesWithFixedTypes;
+            private readonly IReadOnlyDictionary<string, AnonymousTypeValue> _anonymousDelegatesWithIndexedNames;
             private readonly SourceAssemblySymbol _sourceAssembly;
 
             // metadata or source assembly:
@@ -291,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// after the symbol has been created.
             /// </summary>
             private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherSynthesizedMembers;
+
+            private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherDeletedMembers;
 
             private readonly SymbolComparer _comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol?> _matches = new(ReferenceEqualityComparer.Instance);
@@ -306,18 +311,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
                 IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
-                IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
+                IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithIndexedNames,
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
                 ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+                ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers,
                 DeepTranslator? deepTranslator)
             {
                 _anonymousTypeMap = anonymousTypeMap;
                 _anonymousDelegates = anonymousDelegates;
-                _anonymousDelegatesWithFixedTypes = anonymousDelegatesWithFixedTypes;
+                _anonymousDelegatesWithIndexedNames = anonymousDelegatesWithIndexedNames;
                 _sourceAssembly = sourceAssembly;
                 _otherAssembly = otherAssembly;
                 _otherSynthesizedMembers = otherSynthesizedMembers;
+                _otherDeletedMembers = otherDeletedMembers;
                 _comparer = new SymbolComparer(this, deepTranslator);
             }
 
@@ -338,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol? Visit(Symbol symbol)
@@ -418,9 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return assembly;
                 }
 
-                // When we map synthesized symbols from previous generations to the latest compilation 
-                // we might encounter a symbol that is defined in arbitrary preceding generation, 
-                // not just the immediately preceding generation. If the source assembly uses time-based 
+                // When we map synthesized symbols from previous generations to the latest compilation
+                // we might encounter a symbol that is defined in arbitrary preceding generation,
+                // not just the immediately preceding generation. If the source assembly uses time-based
                 // versioning assemblies of preceding generations might differ in their version number.
                 if (IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly))
                 {
@@ -543,9 +550,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         else if (sourceType is AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateTemplate)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            if (delegateTemplate.HasFixedTypes)
+                            if (delegateTemplate.HasIndexedName)
                             {
-                                TryFindAnonymousDelegateWithFixedType(delegateTemplate, out var value);
+                                TryFindAnonymousDelegateWithIndexedName(delegateTemplate, out var value);
                                 return (NamedTypeSymbol?)value.Type?.GetInternalSymbol();
                             }
                             else
@@ -573,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitParameter(ParameterSymbol parameter)
             {
                 // Should never reach here. Should be matched as a result of matching the container.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol? VisitPointerType(PointerTypeSymbol symbol)
@@ -684,17 +691,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _anonymousDelegates.TryGetValue(key, out otherDelegateSymbol);
             }
 
-            internal bool TryFindAnonymousDelegateWithFixedType(AnonymousTypeManager.AnonymousDelegateTemplateSymbol type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousDelegateWithIndexedName(AnonymousTypeManager.AnonymousDelegateTemplateSymbol type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
 
-                // Anonymous delegates with fixed types are indexed by name, and the names are <>f__AnonymousDelegate0, 1, ... .
+                // Some anonymous delegates are indexed by name, and the names are <>f__AnonymousDelegate0, 1, ... .
                 // Within a compilation, the index in the name is determined by source order, but the actual signature
                 // of the delegate type may change between generations. For instance, the signature of a lambda
                 // expression may have been changed explicitly, or another lambda expression may have been inserted
                 // ahead of this one in source order. Therefore, we need to verify the signatures of the delegate types
                 // are equivalent - by comparing the Invoke() method signatures.
-                if (_anonymousDelegatesWithFixedTypes.TryGetValue(type.Name, out otherType) &&
+                if (_anonymousDelegatesWithIndexedNames.TryGetValue(type.Name, out otherType) &&
                     otherType.Type.GetInternalSymbol() is NamedTypeSymbol otherDelegateType &&
                     isCorrespondingAnonymousDelegate(type, otherDelegateType))
                 {
@@ -716,7 +723,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return type.DelegateInvokeMethod is { } invokeMethod &&
                         otherType.DelegateInvokeMethod is { } otherInvokeMethod &&
-                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters, (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations)) &&
+                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters,
+                            (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations) &&
+                                x.ExplicitDefaultConstantValue == y.ExplicitDefaultConstantValue &&
+                                x.IsParams == y.IsParams) &&
                         isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 
@@ -987,6 +997,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
+                if (_otherDeletedMembers?.TryGetValue(symbol, out var deletedMembers) == true)
+                {
+                    members.AddRange(deletedMembers);
+                }
+
                 var result = members.ToDictionary(s => s.MetadataName, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
@@ -1006,6 +1021,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 public bool Equals(TypeSymbol source, TypeSymbol other)
                 {
+                    if (ReferenceEquals(source, other))
+                    {
+                        return true;
+                    }
+
                     var visitedSource = (TypeSymbol?)_matcher.Visit(source);
                     var visitedOther = (_deepTranslator != null) ? (TypeSymbol)_deepTranslator.Visit(other) : other;
 
@@ -1028,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol Visit(Symbol symbol)

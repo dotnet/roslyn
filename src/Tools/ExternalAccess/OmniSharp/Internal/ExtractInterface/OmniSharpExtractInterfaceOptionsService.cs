@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var result = await _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptionsAsync(extractableMembers, defaultInterfaceName).ConfigureAwait(false);
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
                 result.InterfaceName,
                 result.FileName,
                 (ExtractInterfaceOptionsResult.ExtractLocation)result.Location,
-                CodeActionOptions.DefaultProvider);
+                fallbackOptions);
         }
     }
 }

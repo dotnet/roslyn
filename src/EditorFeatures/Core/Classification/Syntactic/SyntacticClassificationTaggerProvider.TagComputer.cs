@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Classification
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-                => _workspace?.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
+                => _workspace?.Services.SolutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var (previousSnapshot, previousDocument, previousRoot) = GetLastProcessedData();
 
                 // Optionally pre-calculate the root of the doc so that it is ready to classify
-                // once GetTags is called.  Also, attempt to determine a smallwe change range span
+                // once GetTags is called.  Also, attempt to determine a smaller change range span
                 // for this document so that we can avoid reporting the entire document as changed.
 
                 var currentRoot = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     // If we have syntax available fast path the change computation without async or blocking.
                     if (previousRoot != null && currentRoot != null)
-                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Workspace, previousRoot, currentRoot, _diffTimeout, cancellationToken));
+                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Services, previousRoot, currentRoot, _diffTimeout, cancellationToken));
 
                     // Otherwise, fall back to the language to compute the difference based on the document contents.
                     if (previousDocument != null)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (classificationService == null)
                     return null;
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+                using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
                 foreach (var span in spans)
                     AddClassifications(span);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
             }
 
-            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void AddSyntacticClassificationsForDocument(
                 IClassificationService classificationService, SnapshotSpan span,
-                Document document, SyntaxNode? root, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+                Document document, SyntaxNode? root, SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 var cancellationToken = CancellationToken.None;
@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (_lastLineCache.TryUseCache(span, classifiedSpans))
                     return;
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
+                using var _ = Classifier.GetPooledList(out var tempList);
 
                 // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
                 if (root == null)
                     classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
                 else
-                    classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+                    classificationService.AddSyntacticClassifications(document.Project.Solution.Services, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
                 _lastLineCache.Update(span, tempList);
                 classifiedSpans.AddRange(tempList);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private void AddClassifiedSpansForPreviousDocument(
                 IClassificationService classificationService, SnapshotSpan span,
                 ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot,
-                ArrayBuilder<ClassifiedSpan> classifiedSpans)
+                SegmentedList<ClassifiedSpan> classifiedSpans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
@@ -459,7 +459,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
                 else
                 {
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
+                    using var _ = Classifier.GetPooledList(out var tempList);
+
                     AddSyntacticClassificationsForDocument(classificationService, translatedSpan, lastProcessedDocument, lastProcessedRoot, tempList);
 
                     var currentSnapshot = span.Snapshot;

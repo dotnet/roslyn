@@ -6,9 +6,10 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests
@@ -34,14 +35,14 @@ $$
                 HangMitigatingCancellationToken);
 
             // Trigger a call to File.Close to ensure we can recover from it
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F, ShiftState.Alt), VirtualKey.C);
+            await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_F, VirtualKeyCode.MENU), VirtualKeyCode.VK_C }, HangMitigatingCancellationToken);
 
             var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
             Assert.NotEqual(IntPtr.Zero, modalWindow);
 
             Assert.Equal("Microsoft Visual Studio", IntegrationHelper.GetTitleForWindow(modalWindow));
 
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKey.Escape);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
 
             modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
             if (modalWindow != IntPtr.Zero)

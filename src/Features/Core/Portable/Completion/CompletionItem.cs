@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -45,7 +46,22 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public string FilterText => _filterText ?? DisplayText;
 
+        /// <summary>
+        /// If provided, each additional string would be used in the same way as <see cref="FilterText"/> for item matching.
+        /// However, there's a key difference: matches of <see cref="AdditionalFilterTexts"/> is considered inferior than matches
+        /// of <see cref="FilterText"/> when they have identical pattern matching result.
+        /// </summary>
+        internal ImmutableArray<string> AdditionalFilterTexts { get; init; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Returns <see langword="true"/> if <see cref="DisplayText"/> is identical to  <see cref="FilterText"/>. 
+        /// Otherwise returns <see langword="false"/>.
+        /// Be aware that this value is independent from <see cref="HasAdditionalFilterTexts"/> and could return <see langword="false"/> 
+        /// even if <see cref="HasAdditionalFilterTexts"/> is <see langword="true"/>.
+        /// </summary>
         internal bool HasDifferentFilterText => _filterText != null;
+
+        internal bool HasAdditionalFilterTexts => !AdditionalFilterTexts.IsEmpty;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -65,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
+        /// The latter is not always true because individual provider is free to make more complex changes to the document.
+        /// If this is the case, the provider should set <see cref="IsComplexTextEdit"/> to true.
         /// </summary>
         public TextSpan Span { get; internal set; }
 
@@ -85,17 +103,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// Returns true if this item's text edit requires complex resolution that
-        /// may impact performance. For example, an edit may be complex if it needs
-        /// to format or type check the resulting code, or make complex non-local
-        /// changes to other parts of the file.
-        /// Complex resolution is used so we only do the minimum amount of work
-        /// needed to display completion items. It is performed only for the
-        /// committed item just prior to commit. Thus, it is ideal for any expensive
-        /// completion work that does not affect the display of the item in the
-        /// completion list, but is necessary for committing the item.
-        /// An example of an item type requiring complex resolution is C#/VB
-        /// override completion.
+        /// Returns true if this item's text edit requires complex resolution.
+        /// An edit is considered complex if the span of the change is different from
+        /// specified by <see cref="Span"/>.
+        /// 
+        /// Example of an item type requiring complex resolution is C#/VB override completion.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 
@@ -261,7 +273,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
             Optional<string> inlineDescription = default,
-            Optional<bool> isComplexTextEdit = default)
+            Optional<bool> isComplexTextEdit = default,
+            Optional<ImmutableArray<string>> additionalFilterTexts = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
@@ -274,6 +287,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
             var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
+            var newAdditionalFilterTexts = additionalFilterTexts.HasValue ? additionalFilterTexts.Value.NullToEmpty() : AdditionalFilterTexts;
 
             if (newSpan == Span &&
                 newDisplayText == DisplayText &&
@@ -285,7 +299,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 newDisplayTextPrefix == DisplayTextPrefix &&
                 newDisplayTextSuffix == DisplayTextSuffix &&
                 newInlineDescription == InlineDescription &&
-                newIsComplexTextEdit == IsComplexTextEdit)
+                newIsComplexTextEdit == IsComplexTextEdit &&
+                newAdditionalFilterTexts == AdditionalFilterTexts)
             {
                 return this;
             }
@@ -306,6 +321,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 AutomationText = AutomationText,
                 ProviderName = ProviderName,
                 Flags = Flags,
+                AdditionalFilterTexts = newAdditionalFilterTexts
             };
         }
 
@@ -396,6 +412,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem WithIsComplexTextEdit(bool isComplexTextEdit)
             => With(isComplexTextEdit: isComplexTextEdit);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="AdditionalFilterTexts"/> property changed.
+        /// </summary>
+        internal CompletionItem WithAdditionalFilterTexts(ImmutableArray<string> additionalFilterTexts)
+            => With(additionalFilterTexts: additionalFilterTexts);
 
         int IComparable<CompletionItem>.CompareTo([AllowNull] CompletionItem other)
         {

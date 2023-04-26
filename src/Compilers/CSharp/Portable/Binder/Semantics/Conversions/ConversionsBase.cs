@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.ImplicitUtf8StringLiteral:
                 case ConversionKind.ImplicitPointer:
                 case ConversionKind.ImplicitPointerToVoid:
                 case ConversionKind.ImplicitTuple:
@@ -657,8 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
-                !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsUTF8StringLiteral) // UTF-8 string conversion is not a standard conversion.
+                !conversion.IsInterpolatedStringHandler)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1021,12 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantConversion;
             }
 
-            constantConversion = ClassifyImplicitUtf8StringLiteralConversion(sourceExpression, destination);
-            if (constantConversion.Exists)
-            {
-                return constantConversion;
-            }
-
             switch (sourceExpression.Kind)
             {
                 case BoundKind.Literal:
@@ -1106,35 +1098,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.NoConversion;
         }
-
-#nullable enable
-        private Conversion ClassifyImplicitUtf8StringLiteralConversion(BoundExpression sourceExpression, TypeSymbol destination)
-        {
-            var compilation = Compilation;
-
-            // The language will allow conversions between string constants and byte sequences
-            // where the text is converted into the equivalent UTF8 byte representation.
-            // Specifically the compiler will allow for implicit conversions from string constants to
-            // byte[], Span<byte>, and ReadOnlySpan<byte>.
-            ConstantValue? constantValue = sourceExpression.ConstantValue;
-
-            TypeSymbol destinationOriginalDefinition = destination.OriginalDefinition;
-            if (constantValue is ({ IsString: true } or { IsNull: true }) &&
-                sourceExpression.Type?.SpecialType == SpecialType.System_String &&
-                (destination is ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte } || // byte[]
-                 (destinationOriginalDefinition.TypeKind == TypeKind.Struct && destinationOriginalDefinition.IsRefLikeType &&
-                  compilation is not null &&
-                  (destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||             // Span<T>
-                   destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&    // ReadOnlySpan<T>
-                  ((NamedTypeSymbol)destination).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().SpecialType == SpecialType.System_Byte)))               // T is byte
-            {
-                return Conversion.ImplicitUtf8StringLiteral;
-            }
-
-            Debug.Assert(compilation is not null);
-            return Conversion.NoConversion;
-        }
-#nullable disable
 
         private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -1239,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
                     HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
                 {
-                    return new Conversion(ConversionKind.ImplicitNullable, Conversion.ImplicitConstantUnderlying);
+                    return Conversion.ImplicitNullableWithImplicitConstantUnderlying;
                 }
             }
 
@@ -1310,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
         {
-            var constantValue = source.ConstantValue;
+            var constantValue = source.ConstantValueOpt;
 
             if (constantValue == null || (object)source.Type == null)
             {
@@ -1419,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             return sourceConstantValue != null &&
                 source.Type is object &&
                 IsNumericType(source.Type) &&
@@ -1791,12 +1754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
         }
 
-        public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
-            where T : TypeSymbol
+        private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
+                if (HasIdentityConversionInternal(type, targetType.ParticipatingType, includeNullability: false))
                 {
                     return true;
                 }
@@ -2150,12 +2112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                return Conversion.ImplicitNullableWithIdentityUnderlying;
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ImplicitNullable, Conversion.ImplicitNumericUnderlying);
+                return Conversion.ImplicitNullableWithImplicitNumericUnderlying;
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteInfo);
@@ -2342,17 +2304,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.IdentityUnderlying);
+                return Conversion.ExplicitNullableWithIdentityUnderlying;
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ImplicitNumericUnderlying);
+                return Conversion.ExplicitNullableWithImplicitNumericUnderlying;
             }
 
             if (HasExplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitNumericUnderlying);
+                return Conversion.ExplicitNullableWithExplicitNumericUnderlying;
             }
 
             var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, isChecked: isChecked, ref useSiteInfo, forCast);
@@ -2363,12 +2325,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitEnumerationUnderlying);
+                return Conversion.ExplicitNullableWithExplicitEnumerationUnderlying;
             }
 
             if (HasPointerToIntegerConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.PointerToIntegerUnderlying);
+                return Conversion.ExplicitNullableWithPointerToIntegerUnderlying;
             }
 
             return Conversion.NoConversion;

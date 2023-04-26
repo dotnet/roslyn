@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         public ToggleLineCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
         {
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_line_comment;
 
-        internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
+        internal override CommentSelectionResult CollectEdits(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
             }), cancellationToken))
             {
-                var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                var commentInfo = service.GetInfo();
                 if (commentInfo.SupportsSingleLineComment)
                 {
                     return ToggleLineComment(commentInfo, selectedSpans);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         }
 
         private static bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
-            => linesInSelection.Any(l => !IsLineCommentedOrEmpty(l, commentInfo));
+            => linesInSelection.Any(static (l, commentInfo) => !IsLineCommentedOrEmpty(l, commentInfo), commentInfo);
 
         private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)
         {

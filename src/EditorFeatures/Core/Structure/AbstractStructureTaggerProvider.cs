@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -46,19 +47,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private const string ExternDeclaration = "extern";
         private const string ImportsStatement = "Imports";
 
-        protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
+        protected readonly EditorOptionsService EditorOptionsService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
-            EditorOptionsFactoryService = editorOptionsFactoryService;
+            EditorOptionsService = editorOptionsService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
@@ -76,13 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // so when the document first opens, there won't be any tags yet. When the tags do come in
             // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
             // because the document will already be open.
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+            if (!GlobalOptions.GetOption(OutliningOptionsStorage.Outlining, openDocument.Project.Language))
                 return false;
+
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
 
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            if (openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource &&
-                GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, openDocument.Project.Language))
+            if (openDocument.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace &&
+                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options))
             {
                 return true;
             }
@@ -166,13 +168,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -220,6 +222,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var tag = new StructureTag(this, span, snapshot);
                 context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
+        }
+
+        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is StructureTag);
+            Contract.ThrowIfFalse(tag2 is StructureTag);
+            return tag1.Equals(tag2);
         }
 
         internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
@@ -348,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             SnapshotSpan shortHintSpan)
         {
             return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                EditorOptionsFactoryService.GlobalOptions,
+                EditorOptionsService.Factory.GlobalOptions,
                 contentType: null,
                 exposedSpans: shortHintSpan);
         }

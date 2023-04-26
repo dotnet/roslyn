@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
         internal ImmutableArray<SnapshotSpan> _spansTagged;
-        internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+        public readonly SegmentedList<ITagSpan<TTag>> TagSpans = new();
 
         public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
@@ -72,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         public void AddTag(ITagSpan<TTag> tag)
-            => tagSpans.Add(tag);
+            => TagSpans.Add(tag);
 
         public void ClearTags()
-            => tagSpans.Clear();
+            => TagSpans.Clear();
 
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful when the tagger decides
@@ -86,15 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
             => _spansTagged = spansTagged;
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
-        {
-            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
-            {
-                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
-                           .Where(s => s.Span.Contains(point));
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-        }
+        public bool HasExistingContainingTags(SnapshotPoint point)
+            => _existingTags != null &&
+               _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree) &&
+               tree.HasSpanThatContains(point);
     }
 }

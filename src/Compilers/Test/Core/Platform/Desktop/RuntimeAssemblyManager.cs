@@ -26,7 +26,7 @@ namespace Roslyn.Test.Utilities.Desktop
             Assembly
         }
 
-        private struct AssemblyData
+        private readonly struct AssemblyData
         {
             internal ModuleData ModuleData { get; }
             internal Assembly Assembly { get; }

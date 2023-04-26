@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
     internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceSpellCheckableParams request)
-            => null;
-
         protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
             => new()
             {
@@ -25,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 Ranges = ranges!,
                 ResultId = resultId,
             };
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceSpellCheckableParams requestParams) => null;
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceSpellCheckableParams requestParams)
             => requestParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             var solution = context.Solution;
 
-            var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
 
             // Collect all the documents from the solution in the order we'd like to get spans for.  This will
             // prioritize the files from currently active projects, but then also include all other docs in all

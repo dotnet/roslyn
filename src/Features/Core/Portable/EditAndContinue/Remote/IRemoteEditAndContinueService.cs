@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ValueTask PrepareModuleForUpdateAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken);
 
             ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId? documentId, string filePath, CancellationToken cancellationToken);
+            ValueTask<string?> TryGetMatchingSourceTextAsync(RemoteServiceCallbackId callbackId, string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken);
         }
 
         ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-        ValueTask<bool> HasChangesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, string? sourceFilePath, CancellationToken cancellationToken);
         ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
         /// <summary>
@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
         ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
-        ValueTask OnSourceFileUpdatedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken);
+
+        ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken);
     }
 }

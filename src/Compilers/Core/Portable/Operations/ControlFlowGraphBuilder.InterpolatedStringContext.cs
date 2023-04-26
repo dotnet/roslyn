@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         [Conditional("DEBUG")]
-        [MemberNotNull("_currentInterpolatedStringHandlerCreationContext")]
+        [MemberNotNull(nameof(_currentInterpolatedStringHandlerCreationContext))]
         private void AssertContainingContextIsForThisCreation(IOperation placeholderOperation, bool assertArgumentContext)
         {
             Debug.Assert(_currentInterpolatedStringHandlerCreationContext != null);

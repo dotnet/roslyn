@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -86,13 +87,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-
-                var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
                 var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _document.Project);
-                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, info, cancellationToken);
+                var newTypeDeclaration = info.Service.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -135,9 +133,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-
-                // fallback options: https://github.com/dotnet/roslyn/issues/60794
-                var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;

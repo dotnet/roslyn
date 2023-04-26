@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal interface ISmartTokenFormatter
     {
-        Task<IList<TextChange>> FormatTokenAsync(SyntaxToken token, CancellationToken cancellationToken);
+        IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken);
     }
 }

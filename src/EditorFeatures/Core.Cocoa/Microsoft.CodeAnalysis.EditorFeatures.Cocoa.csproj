@@ -45,6 +45,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="System.Runtime.InteropServices.NFloat.Internal" Version="$(SystemRuntimeInteropServicesNFloatInternalVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
 
     <!-- This project should target net6.0-macos, but due to repeated issues
@@ -52,7 +53,7 @@
          validation errors on workload dependencies), we are instead manually
          referencing what we need out of the macos SDK. -->
     <PackageDownload Include="Microsoft.macOS.Ref" Version="[$(MicrosoftmacOSRefVersion)]" />
-    <Reference Include="$(NuGetPackageRoot)microsoft.macos.ref\$(MicrosoftmacOSRefVersion)\ref\net6.0\Xamarin.Mac.dll" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.macos.ref\$(MicrosoftmacOSRefVersion)\ref\net6.0\Microsoft.macOS.dll" />
 
     <!-- There are net6.0-macos packages. Manually referencing them for the same
          reason. There is no dependency resolution here so must manually list
@@ -83,6 +84,20 @@
     <!-- VS Mac has its own ExternalAccess.FSharp -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+
+    <!-- BEGIN MONODEVELOP
+    These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
+    binary insertions and are exempted from the ExternalAccess adapter assembly policies.
+    -->
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <!-- END MONODEVELOP -->
   </ItemGroup>
 
   <!-- Turn off windows dependency check. Microsoft.VisualStudio.Language.Intellisense

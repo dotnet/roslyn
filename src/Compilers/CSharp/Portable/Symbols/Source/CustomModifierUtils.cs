@@ -78,9 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
-            var builder = ArrayBuilder<bool>.GetInstance();
-            CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
-            resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+            if (!containingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                var builder = ArrayBuilder<bool>.GetInstance();
+                CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
+                resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+            }
 
             if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
@@ -154,17 +157,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasInAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
         }
 
         internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
         }
 
         internal static bool HasOutAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
         }
     }
 }

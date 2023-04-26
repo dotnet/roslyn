@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(publicKey))
             {
-                assemblyName += $", PublicKey={ publicKey }";
+                assemblyName += $", PublicKey={publicKey}";
             }
 
             var textChange = new TextChange(item.Span, assemblyName);

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var existingMethods = TypeToGenerateIn.GetMembers(IdentifierToken.ValueText)
                                                            .OfType<IMethodSymbol>();
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var destinationProvider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);

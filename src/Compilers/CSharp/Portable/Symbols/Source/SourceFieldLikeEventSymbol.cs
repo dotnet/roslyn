@@ -66,15 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (inInterfaceType && !this.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.GetFirstLocation(), this);
                 }
                 else if (this.IsAbstract)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.GetFirstLocation(), this);
                 }
                 else if (this.IsExtern)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.GetFirstLocation(), this);
                 }
             }
 
@@ -88,28 +88,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsStatic && ContainingType.IsReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.GetFirstLocation());
             }
 
             if (inInterfaceType)
             {
-                if (IsAbstract && IsStatic)
+                if ((IsAbstract || IsVirtual) && IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, this.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, this.GetFirstLocation());
                     }
                 }
                 else if (this.IsExtern || this.IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                     }
                 }
                 else if (!this.IsAbstract)
                 {
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
 

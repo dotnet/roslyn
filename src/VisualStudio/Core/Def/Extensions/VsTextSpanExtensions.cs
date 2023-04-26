@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
@@ -18,14 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         public static async Task<VsTextSpan?> MapSpanFromSecondaryBufferToPrimaryBufferAsync(
             this VsTextSpan spanInSecondaryBuffer,
             IThreadingContext threadingContext,
-            Workspace workspace,
             DocumentId documentId,
             CancellationToken cancellationToken)
         {
-            if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
-                return null;
-
-            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             if (containedDocument == null)
                 return null;
 

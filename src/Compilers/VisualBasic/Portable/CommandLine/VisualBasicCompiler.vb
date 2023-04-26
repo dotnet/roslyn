@@ -16,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
-        Private Shared ReadOnly s_responseFileName As String
-        Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
@@ -258,11 +256,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
+            compilationOptions As CompilationOptions,
             skipAnalyzers As Boolean,
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, analyzers, generators)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

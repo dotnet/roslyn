@@ -17,7 +17,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -253,13 +254,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMembersOptions);
 
             if (CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt))
             {
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var value = globalOptions.GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(document.Project.Language);
 
                 var displayName = equatableTypeOpt.ToDisplayString(new SymbolDisplayFormat(
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -273,7 +274,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             if (!HasOperators(containingType))
             {
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators);
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var value = globalOptions.GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(document.Project.Language);
+
                 pickMembersOptions.Add(new PickMembersOption(
                     GenerateOperatorsId,
                     FeaturesResources.Generate_operators,

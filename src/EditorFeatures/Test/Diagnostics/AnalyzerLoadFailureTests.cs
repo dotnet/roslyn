@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 

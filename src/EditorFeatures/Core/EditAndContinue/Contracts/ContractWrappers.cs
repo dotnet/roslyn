@@ -25,20 +25,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static Contracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
             => new((Contracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
 
-        public static ManagedModuleUpdates FromContract(this Contracts.ManagedModuleUpdates updates)
-            => new((ManagedModuleUpdateStatus)updates.Status, updates.Updates.SelectAsArray(FromContract));
-
-        public static ManagedModuleUpdate FromContract(this Contracts.ManagedModuleUpdate update)
+        public static ManagedHotReloadUpdate FromContract(this ModuleUpdate update)
             => new(
-                update.Module,
-                update.ILDelta,
-                update.MetadataDelta,
-                update.PdbDelta,
-                update.SequencePoints.SelectAsArray(FromContract),
-                update.UpdatedMethods,
-                update.UpdatedTypes,
-                update.ActiveStatements.SelectAsArray(FromContract),
-                update.ExceptionRegions.SelectAsArray(FromContract));
+                module: update.Module,
+                ilDelta: update.ILDelta,
+                metadataDelta: update.MetadataDelta,
+                pdbDelta: update.PdbDelta,
+                updatedTypes: update.UpdatedTypes,
+                requiredCapabilities: update.RequiredCapabilities.ToStringArray(),
+                updatedMethods: update.UpdatedMethods,
+                sequencePoints: update.SequencePoints.SelectAsArray(FromContract),
+                activeStatements: update.ActiveStatements.SelectAsArray(FromContract),
+                exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
+
+        public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<ModuleUpdate> diagnostics)
+            => diagnostics.SelectAsArray(FromContract);
 
         public static SequencePointUpdates FromContract(this Contracts.SequencePointUpdates updates)
             => new(updates.FileName, updates.LineUpdates.SelectAsArray(FromContract));

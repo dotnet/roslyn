@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
     /// Ensure this is ordered before the regular invocation signature help provider.
     /// We must replace the entire list of results, including both Pythia and non-Pythia recommendations.
     /// </summary>
-    [ExportSignatureHelpProvider("PythiaSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    [ExtensionOrder(Before = "InvocationExpressionSignatureHelpProvider")]
+    [ExportSignatureHelpProvider(nameof(PythiaSignatureHelpProvider), LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = nameof(InvocationExpressionSignatureHelpProvider))]
     internal sealed class PythiaSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
     {
         private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;

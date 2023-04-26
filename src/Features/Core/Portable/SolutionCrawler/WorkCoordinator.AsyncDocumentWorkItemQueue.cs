@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -56,19 +56,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
+                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph)
                 {
-                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
+                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph);
 
                     var documentMap = _documentWorkQueue[projectId];
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Debug.Assert(existingWorkItem.Language == item.Language);
 
                         // replace it
-                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
+                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.AsyncToken);
                         return false;
                     }
 

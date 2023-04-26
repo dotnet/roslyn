@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <see cref="AnalyzerConfigOptions"/> that memoize structured (parsed) form of certain complex options to avoid parsing them multiple times.
 /// Storages of these complex options may directly call the specialized getters to reuse the cached values.
 /// </summary>
-internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
+internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions, IOptionsReader
 {
     internal sealed class Implementation : StructuredAnalyzerConfigOptions
     {
@@ -40,6 +41,23 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
             => _lazyNamingStylePreferences.Value;
     }
 
+    private sealed class EmptyImplementation : StructuredAnalyzerConfigOptions
+    {
+        public override NamingStylePreferences GetNamingStylePreferences()
+            => NamingStylePreferences.Empty;
+
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        {
+            value = null;
+            return false;
+        }
+
+        public override IEnumerable<string> Keys
+            => SpecializedCollections.EmptyEnumerable<string>();
+    }
+
+    public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();
+
     public abstract NamingStylePreferences GetNamingStylePreferences();
 
     public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
@@ -47,6 +65,12 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
         Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
         return new Implementation(new DictionaryAnalyzerConfigOptions(options));
     }
+
+    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
+        => new Implementation(options);
+
+    public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
+        => this.TryGetEditorConfigOption(optionKey.Option, out value);
 
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {
@@ -68,7 +92,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
     }
 
 #if CODE_STYLE
-    // StructuredAnalyzerConfigOptions is defined in both Worksapce and Code Style layers. It is not public and thus can't be shared between these two.
+    // StructuredAnalyzerConfigOptions is defined in both Workspace and Code Style layers. It is not public and thus can't be shared between these two.
     // However, Code Style layer is compiled against the shared Workspace APIs. The ProjectState creates and holds onto an instance
     // of Workspace layer's version of StructuredAnalyzerConfigOptions. This version of the type is not directly usable by Code Style code.
     // We create a clone of this instance typed to the Code Style's version of StructuredAnalyzerConfigOptions.

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -32,9 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
                     CSharpCodeGenerationOptions options,
-                    NamingStylePreferencesProvider namingPreferences,
                     bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, options, namingPreferences, localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
                 }
 

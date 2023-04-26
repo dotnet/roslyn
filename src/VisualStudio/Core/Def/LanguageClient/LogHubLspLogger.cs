@@ -4,13 +4,15 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LogHub;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal class LogHubLspLogger : ILspLogger
+    internal class LogHubLspLogger : ILspServiceLogger
     {
         private readonly TraceConfiguration _configuration;
         private readonly TraceSource _traceSource;
@@ -36,22 +38,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _configuration.Dispose();
         }
 
-        public void TraceInformation(string message)
-            => _traceSource.TraceInformation(message);
+        public void LogInformation(string message, params object[] @params)
+        {
+            // Explicitly call TraceEvent here instead of TraceInformation.
+            // TraceInformation indirectly calls string.Format which throws if the message
+            // has unescaped curlies in it (can be a part of a URI for example).
+            // Since we have no need to call string.Format here, we don't.
+            _traceSource.TraceEvent(TraceEventType.Information, id: 0, message);
+        }
 
-        public void TraceWarning(string message)
-            => _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);
+        public void LogWarning(string message, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);
+        }
 
-        public void TraceError(string message)
-            => _traceSource.TraceEvent(TraceEventType.Error, id: 0, message);
+        public void LogError(string message, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Error, id: 0, message);
+        }
 
-        public void TraceException(Exception exception)
-            => _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
+        public void LogException(Exception exception, string? message = null, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
+        }
 
-        public void TraceStart(string message)
-            => _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
+        public void LogStartContext(string message, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
+        }
 
-        public void TraceStop(string message)
-            => _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
+        public void LogEndContext(string message, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
+        }
     }
 }

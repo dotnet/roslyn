@@ -287,7 +287,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Or if we have a ref-constrained T (to do box just once)
                 Dim receiver As BoundExpression = conditional.ReceiverOrCondition
                 Dim receiverType As TypeSymbol = receiver.Type
-                Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
+                Dim nullCheckOnCopy = (Not receiverType.IsReferenceType AndAlso
+                                       Not receiverType.IsValueType AndAlso
+                                       Not DirectCast(receiverType, TypeParameterSymbol).HasInterfaceConstraint) OrElse ' This could be a nullable value type, which must be copied in order to not mutate the original value
+                                      conditional.CaptureReceiver OrElse
+                                      (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
@@ -1246,6 +1250,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitTernaryConditionalExpression(expr As BoundTernaryConditionalExpression, used As Boolean)
             Debug.Assert(expr.ConstantValueOpt Is Nothing, "Constant value should have been emitted directly")
 
+            ' Generate branchless IL for If(b, 1, 0).
+            Dim isOneWhenTrue = False
+            Dim isOneWhenFalse = False
+            If used AndAlso _ilEmitStyle <> ILEmitStyle.Debug AndAlso
+                (IsSimpleType(expr.Type.PrimitiveTypeCode) OrElse expr.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Char) AndAlso
+                HasIntegralValueZeroOrOne(expr.WhenTrue, isOneWhenTrue) AndAlso
+                HasIntegralValueZeroOrOne(expr.WhenFalse, isOneWhenFalse) AndAlso
+                isOneWhenTrue <> isOneWhenFalse AndAlso
+                TryEmitComparison(expr.Condition, sense:=isOneWhenTrue) Then
+
+                Dim toType = expr.Type.PrimitiveTypeCode
+                If toType <> Cci.PrimitiveTypeCode.Boolean Then
+                    _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.Int32, toType, checked:=False)
+                End If
+
+                Return
+            End If
+
             Dim consequenceLabel = New Object()
             Dim doneLabel = New Object()
 
@@ -1301,6 +1323,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             _builder.MarkLabel(doneLabel)
         End Sub
+
+        Private Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
+            If expr.IsConstant Then
+                Dim constantValue = expr.ConstantValueOpt
+
+                If constantValue.IsIntegral AndAlso constantValue.UInt64Value <= 1 Then
+                    isOne = (constantValue.UInt64Value = 1)
+                    Return True
+                End If
+
+                If constantValue.IsBoolean Then
+                    isOne = constantValue.BooleanValue
+                    Return True
+                End If
+
+                If constantValue.IsChar AndAlso AscW(constantValue.CharValue) <= 1 Then
+                    isOne = (AscW(constantValue.CharValue) = 1)
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
 
         ''' <summary>
         ''' Emit code for a null-coalescing operator.
@@ -1556,46 +1601,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitInitObj(type, used, syntaxNode)
         End Sub
 
-        Private Sub EmitStructConstructorCallOnTarget(constructor As MethodSymbol,
-                                                      arguments As ImmutableArray(Of BoundExpression),
-                                                      target As BoundExpression,
-                                                      syntaxNode As VisualBasicSyntaxNode)
-
-            Debug.Assert(target.IsLValue OrElse target.Kind = BoundKind.MeReference OrElse
-                         (target.Kind = BoundKind.Local AndAlso DirectCast(target, BoundLocal).LocalSymbol.IsReadOnly))
-
-            If target.Kind = BoundKind.Local AndAlso IsStackLocal(DirectCast(target, BoundLocal).LocalSymbol) Then
-                ' A newobj for a struct will create a new object on the stack for stack locals
-                EmitNewObj(constructor, arguments, True, syntaxNode)
-                Return
-            End If
-
-            ' NOTE!!!: We are misusing isReadOnly here!!!
-            '
-            ' We are creating a fully modifiable reference to a struct in order to initialize it.
-            ' In fact we are going to pass the reference as a byref arg to a constructor 
-            ' (which can do whatever it wants with it - pass it byref to somebody else, etc...)
-            '
-            ' We are still going to say the reference is immutable. Since we are initializing, there is nothing to mutate.
-            '
-            ' Also note that we will not produce controlled mutability pointers here too.
-            ' since the target is definitely a struct, it cannot be accessed covariantly.
-            '
-            EmitAddress(target, addressKind:=AddressKind.Immutable)
-            ' otherwise instead of 'Initobj' the constructor should be called 
-
-            ' NOTE: we don't call initobj before calling constructor following Dev10 implementation. This
-            '       may cause errors in some scenarios in case constructor does not initialize all the fields
-            ' TODO: revise?
-
-            '  emit constructor call
-            Dim stackBehavior = -constructor.ParameterCount - 1
-
-            EmitArguments(arguments, constructor.Parameters)
-            _builder.EmitOpCode(ILOpCode.Call, stackBehavior)
-            EmitSymbolToken(constructor, syntaxNode)
-        End Sub
-
         Private Sub EmitInitObjOnTarget(target As BoundExpression)
             ' NOTE!!!: We are misusing isReadOnly here!!!
             '
@@ -1629,10 +1634,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitConstantValue(constantValue)
                 End If
             End If
-        End Sub
-
-        Private Sub EmitConstantExpression(expression As BoundExpression)
-            _builder.EmitConstantValue(expression.ConstantValueOpt)
         End Sub
 
         Private Sub EmitAssignmentExpression(assignmentOperator As BoundAssignmentOperator, used As Boolean)
@@ -1749,7 +1750,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Function SafeToGetWriteableReference(left As BoundExpression) As Boolean
             Return AllowedToTakeRef(left, AddressKind.Writeable) AndAlso Not (left.Kind = BoundKind.ArrayAccess AndAlso left.Type.TypeKind = TypeKind.TypeParameter)
         End Function
-
 
         Private Sub InPlaceInit(target As BoundExpression, used As Boolean)
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)

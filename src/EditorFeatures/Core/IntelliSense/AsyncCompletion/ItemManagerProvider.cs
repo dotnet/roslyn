@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
-            => _instance = new ItemManager(recentItemsManager, globalOptions);
+        public ItemManagerProvider(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService)
+            => _instance = new ItemManager(recentItemsManager, editorOptionsService);
 
         public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
             {
                 // If we're in an LSP editing context, we want to avoid returning a completion item manager.
                 // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 InteractiveHostPlatform.Core => " " + PlatformCore,
                 InteractiveHostPlatform.Desktop64 => " " + PlatformDesktop64,
                 InteractiveHostPlatform.Desktop32 => " " + PlatformDesktop32,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
         private void ReportInvalidArguments(IInteractiveWindow window)

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     generateDocumentationComments: true,
                     mergeAttributes: false,
                     autoInsertionLocation: false),
-                new CodeAndImportGenerationOptions(options.GenerationOptions, options.CleanupOptions.AddImportOptions).CreateProvider());
+                new CodeAndImportGenerationOptions()
+                {
+                    GenerationOptions = options.GenerationOptions,
+                    AddImportOptions = options.CleanupOptions.AddImportOptions
+                }.CreateProvider());
 
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(

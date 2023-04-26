@@ -730,7 +730,6 @@ class A {}
             var symbolInfo = model.GetSpeculativeSymbolInfo(xdecl.SpanStart, speculate, SpeculativeBindingOption.BindAsTypeOrNamespace);
             var lookup = symbolInfo.Symbol as ITypeSymbol;
 
-
             Assert.NotNull(lookup);
             var a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
             Assert.Equal(a, lookup);
@@ -1466,6 +1465,7 @@ enum C
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
+            Assert.False(speculativeModel.IgnoresAccessibility);
 
             var typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
@@ -1475,6 +1475,10 @@ enum C
             var constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal((short)0, constantInfo.Value);
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
+            Assert.True(speculativeModel.IgnoresAccessibility);
         }
 
         [Fact]
@@ -2699,6 +2703,7 @@ class C
             var success = model.TryGetSpeculativeSemanticModel(position, speculatedTypeSyntax, out speculativeModel, bindingOption);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
+            Assert.False(speculativeModel.IgnoresAccessibility);
 
             Assert.True(speculativeModel.IsSpeculativeSemanticModel);
             Assert.Equal(model, speculativeModel.ParentModel);
@@ -2830,6 +2835,11 @@ class MyException : System.Exception
             var speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, baseList.SpanStart,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsTypeOrNamespace, SymbolKind.NamedType, "System.ArgumentException");
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            SemanticModel speculativeModel;
+            model.TryGetSpeculativeSemanticModel(baseList.SpanStart, speculatedTypeExpression, out speculativeModel);
+            Assert.True(speculativeModel.IgnoresAccessibility);
         }
 
         [Fact]
@@ -4448,6 +4458,138 @@ public partial class C
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
+        }
+
+        [Theory, CombinatorialData, WorkItem(54437, "https://github.com/dotnet/roslyn/issues/54437")]
+        public void TestVarTuple(NullableContextOptions nullableContextOption)
+        {
+            var source = """
+                var (a1, b1) = ("", 0);
+                """;
+            var options = WithNullable(TestOptions.DebugExe, nullableContextOption);
+            var comp = CreateCompilation(source, options: options, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var declarationExpression = root.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            var varNode = declarationExpression.Type;
+
+            var varTypeInfo = model.GetTypeInfo(varNode);
+            var declarationExpressionTypeInfo = model.GetTypeInfo(declarationExpression);
+            assertTypeInfo(varTypeInfo);
+            Assert.Equal(varTypeInfo, declarationExpressionTypeInfo);
+
+            var varSymbolInfo = model.GetSymbolInfo(varNode);
+            assertSymbolInfo(varSymbolInfo);
+
+            var declarationExpressionSymbolInfo = model.GetSymbolInfo(declarationExpression);
+            Assert.Equal(SymbolInfo.None, declarationExpressionSymbolInfo);
+
+            static void assertTypeInfo(TypeInfo typeInfo)
+            {
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.ConvertedNullability.Annotation);
+
+                Assert.NotNull(typeInfo.Type);
+                Assert.NotNull(typeInfo.ConvertedType);
+                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+                var type = (INamedTypeSymbol)typeInfo.Type;
+                Assert.True(type.IsTupleType);
+                Assert.Equal(2, type.Arity);
+                Assert.Equal(2, type.TupleElements.Length);
+                Assert.Equal(SpecialType.System_String, type.TupleElements[0].Type.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, type.TupleElements[1].Type.SpecialType);
+            }
+
+            static void assertSymbolInfo(SymbolInfo symbolInfo)
+            {
+                Assert.False(symbolInfo.IsEmpty);
+                Assert.Empty(symbolInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal("(System.String a1, System.Int32 b1)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem(54437, "https://github.com/dotnet/roslyn/issues/54437")]
+        public void TestVarTupleWithVarTypeInScope(NullableContextOptions nullableContextOption)
+        {
+            var source = """
+                var (a1, b1) = ("", 0);
+                class @var { }
+                """;
+            var options = WithNullable(TestOptions.DebugExe, nullableContextOption);
+            var comp = CreateCompilation(source, options: options, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (a1, b1) = ("", 0);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(a1, b1)").WithLocation(1, 5),
+                // (1,17): error CS0029: Cannot implicitly convert type 'string' to 'var'
+                // var (a1, b1) = ("", 0);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "var").WithLocation(1, 17),
+                // (1,21): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                // var (a1, b1) = ("", 0);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "var").WithLocation(1, 21));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var declarationExpression = root.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            var varNode = declarationExpression.Type;
+
+            var varTypeInfo = model.GetTypeInfo(varNode);
+            var declarationExpressionTypeInfo = model.GetTypeInfo(declarationExpression);
+            assertTypeInfoForVar(varTypeInfo);
+            assertTypeInfoForDeclarationExpression(declarationExpressionTypeInfo);
+
+            var varSymbolInfo = model.GetSymbolInfo(varNode);
+            assertSymbolInfo(varSymbolInfo);
+
+            var declarationExpressionSymbolInfo = model.GetSymbolInfo(declarationExpression);
+            Assert.Equal(SymbolInfo.None, declarationExpressionSymbolInfo);
+
+            static void assertTypeInfoForVar(TypeInfo typeInfo)
+            {
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.ConvertedNullability.Annotation);
+
+                Assert.NotNull(typeInfo.Type);
+                Assert.NotNull(typeInfo.ConvertedType);
+                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+                var type = (INamedTypeSymbol)typeInfo.Type;
+                Assert.Equal("var", type.ToTestDisplayString());
+                Assert.Equal(TypeKind.Class, type.TypeKind);
+            }
+
+            static void assertTypeInfoForDeclarationExpression(TypeInfo typeInfo)
+            {
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.ConvertedNullability.Annotation);
+
+                Assert.NotNull(typeInfo.Type);
+                Assert.NotNull(typeInfo.ConvertedType);
+                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+                var type = (INamedTypeSymbol)typeInfo.Type;
+                Assert.True(type.IsTupleType);
+                Assert.Equal(2, type.Arity);
+                Assert.Equal(2, type.TupleElements.Length);
+                Assert.Equal(TypeKind.Class, type.TupleElements[0].Type.TypeKind);
+                Assert.Equal(TypeKind.Class, type.TupleElements[1].Type.TypeKind);
+            }
+
+            static void assertSymbolInfo(SymbolInfo symbolInfo)
+            {
+                Assert.False(symbolInfo.IsEmpty);
+                Assert.Empty(symbolInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal("var", symbolInfo.Symbol.ToTestDisplayString());
+            }
         }
 
         [Fact]
