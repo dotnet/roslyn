@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -332,20 +333,19 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxTree(Document document, SyntaxTree tree, SemanticModel? model = null, bool lazy = true, Workspace? workspace = null)
+        public async Task DisplaySyntaxTreeAsync(Document document, SyntaxTree tree, SemanticModel? model, bool lazy, Workspace? workspace, CancellationToken cancellationToken)
         {
             if (tree != null)
             {
                 IsLazy = lazy;
                 SyntaxTree = tree;
                 SemanticModel = model;
-                AddNode(null, SyntaxTree.GetRoot());
+                AddNode(null, await SyntaxTree.GetRootAsync(cancellationToken));
 
                 if (model != null && workspace != null)
                 {
-                    var root = ThreadHelper.JoinableTaskFactory.Run(() => tree.GetRootAsync());
-                    classifiedSpans = ThreadHelper.JoinableTaskFactory.Run(
-                        () => Classifier.GetClassifiedSpansAsync(document, root.FullSpan, CancellationToken.None)).ToImmutableArray();
+                    var root = await tree.GetRootAsync(cancellationToken);
+                    classifiedSpans = (await Classifier.GetClassifiedSpansAsync(document, root.FullSpan, cancellationToken)).ToImmutableArray();
                 }
                 else
                 {

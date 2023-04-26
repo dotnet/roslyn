@@ -31,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.SyntaxVisualizer.Extension" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="SyntaxGraph.ico" />
   </ItemGroup>
 
