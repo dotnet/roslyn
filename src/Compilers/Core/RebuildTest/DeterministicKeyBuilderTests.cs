@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 touchedFilesLogger: null,
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
-                globalConfigOptions: default);
+                globalConfigOptions: default,
+                analyzerConfigSet: null);
             AssertEx.NotNull(compilation);
             Assert.Empty(writer.GetStringBuilder().ToString());
             var obj = GetSyntaxTreeValues(compilation, compiler.Arguments.PathMap);

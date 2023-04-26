@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 touchedFilesLogger: null,
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
-                globalConfigOptions: default);
+                globalConfigOptions: default,
+                analyzerConfigSet: null);
             AssertEx.NotNull(compilation);
             RoundTripUtil.VerifyCompilationOptions(commonCompiler.Arguments.CompilationOptions, compilation.Options);
 
