@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, cancellationToken).ConfigureAwait(false);
 
-            solutionUpdate.Log(EditAndContinueWorkspaceService.Log, updateId);
+            solutionUpdate.Log(EditAndContinueService.Log, updateId);
             _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
             if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
