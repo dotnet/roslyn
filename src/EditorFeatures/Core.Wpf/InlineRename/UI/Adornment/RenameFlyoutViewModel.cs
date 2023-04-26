@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             NotifyPropertyChanged(nameof(IdentifierText));
         }
 
-        private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
+        private void OnReplacementsComputed(object? sender, IInlineRenameReplacementInfo result)
         {
             if (Set(ref _isReplacementTextValid, result.ReplacementTextValid, "IsReplacementTextValid"))
             {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
+        private void OnReferenceLocationsChanged(object? sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
             // Collapse the same edits across multiple instances of the same linked-file.
             var fileCount = renameLocations.GroupBy(s => s.Document.FilePath).Count();

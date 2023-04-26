@@ -675,6 +675,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Contract.ThrowIfFalse(this._supportsLspMutation);
 
             var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
             this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
@@ -694,6 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             // Fetching the open SourceTextContainer implicitly opens the document.
             var testDocument = GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
             testDocument.GetOpenTextContainer();
@@ -702,6 +704,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override void CloseAdditionalDocument(DocumentId documentId)
         {
             var testDocument = this.GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 
@@ -712,6 +715,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             // Fetching the open SourceTextContainer implicitly opens the document.
             var testDocument = GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
             testDocument.GetOpenTextContainer();
@@ -720,6 +724,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override void CloseAnalyzerConfigDocument(DocumentId documentId)
         {
             var testDocument = this.GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 

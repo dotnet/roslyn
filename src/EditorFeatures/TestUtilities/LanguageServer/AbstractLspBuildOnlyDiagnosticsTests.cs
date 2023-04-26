@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.LanguageServer
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.LanguageServer
         public void TestExportedDiagnosticIds()
         {
             var attribute = this.LspBuildOnlyDiagnosticsType.GetCustomAttribute<LspBuildOnlyDiagnosticsAttribute>();
+            Contract.ThrowIfNull(attribute);
 
             var actualDiagnosticCodes = attribute.BuildOnlyDiagnostics;
             var missing = ExpectedDiagnosticCodes.Except(actualDiagnosticCodes).OrderBy(k => k).ToList();

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// invokes a TagsChanged event. Using the BatchedTagsChangedEvent since it is raised
         /// on the same thread that created the tag aggregator, unlike TagsChanged.
         /// </summary>
-        private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        private void TagAggregator_BatchedTagsChanged(object? sender, BatchedTagsChangedEventArgs e)
         {
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             InvalidateCache();
