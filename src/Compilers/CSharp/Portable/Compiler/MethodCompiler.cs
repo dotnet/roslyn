@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_globalHasErrors)
             {
                 var extensionMarker = new SynthesizedExtensionMarker(sourceExtension,
-                    sourceExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
+                    sourceExtension.ExtendedTypeNoUseSiteDiagnostics, sourceExtension.BaseExtensionsNoUseSiteDiagnostics,
                     _diagnostics);
 
 #if DEBUG

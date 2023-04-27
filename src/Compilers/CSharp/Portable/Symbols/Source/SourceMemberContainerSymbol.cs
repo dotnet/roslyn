@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
-            var extendedType = ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var extendedType = ExtendedTypeNoUseSiteDiagnostics;
             var baseExtensions = BaseExtensionsNoUseSiteDiagnostics;
 
             if (compilation.ShouldEmitNativeIntegerAttributes())

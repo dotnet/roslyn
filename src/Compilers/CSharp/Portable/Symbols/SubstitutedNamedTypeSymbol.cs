@@ -441,9 +441,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
+        internal sealed override bool IsExplicitExtension => _underlyingType.IsExplicitExtension;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
-            => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtensionUnderlyingTypeNoUseSiteDiagnostics).Type;
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
+            => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
 
         internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
             => _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.BaseExtensionsNoUseSiteDiagnostics);

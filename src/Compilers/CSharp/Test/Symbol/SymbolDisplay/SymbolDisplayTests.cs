@@ -7996,7 +7996,9 @@ implicit extension R for C { }
                 findSymbol,
                 format,
                 TestOptions.RegularNext,
-                "extension R",
+                "implicit extension R",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ExtensionName);
@@ -8018,7 +8020,9 @@ explicit extension R for C { }
                 findSymbol,
                 format,
                 TestOptions.RegularNext,
-                "extension R",
+                "explicit extension R",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ExtensionName);

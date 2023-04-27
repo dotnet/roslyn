@@ -714,8 +714,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal sealed override bool IsExtension => false;
+        internal sealed override bool IsExplicitExtension => false;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
         internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
             => ImmutableArray<NamedTypeSymbol>.Empty;
     }

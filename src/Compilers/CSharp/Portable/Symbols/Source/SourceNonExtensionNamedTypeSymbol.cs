@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExtension => false;
-        internal override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
+        internal override bool IsExplicitExtension => false;
+
+        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
         internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
             => ImmutableArray<NamedTypeSymbol>.Empty;
 

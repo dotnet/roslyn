@@ -357,9 +357,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
         internal override bool IsExtension => false;
+        internal override bool IsExplicitExtension => false;
         internal override TypeSymbol GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
-        internal override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
+        internal override TypeSymbol ExtendedTypeNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
         internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
 
         [Conditional("DEBUG")]

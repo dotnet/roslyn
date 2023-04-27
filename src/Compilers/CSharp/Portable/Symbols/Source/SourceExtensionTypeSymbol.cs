@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceExtensionTypeSymbol : SourceNamedTypeSymbol
     {
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
+        // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions;
 
@@ -40,9 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExtension => true;
 
+        internal override bool IsExplicitExtension
+            => this.declaration.Declarations[0].IsExplicitExtension;
+
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {
-            var underlyingType = this.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
 
             if (underlyingType is null)
                 return;
@@ -58,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Validation in this method should be in sync with:
+        /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
+        /// </summary>
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
         {
             // PROTOTYPE confirm and test this once extensions can be loaded from metadata
@@ -75,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var corLibrary = this.ContainingAssembly.CorLibrary;
             var conversions = new TypeConversions(corLibrary);
             var location = singleDeclaration.NameLocation;
-            var underlyingType = this.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
+            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
 
             foreach (var pair in allBaseExtensions)
             {
@@ -87,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     baseExtension.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
                     // PROTOTYPE confirm what we allow in terms of variation between various underlying types
-                    var baseUnderlyingType = baseExtension.ExtensionUnderlyingTypeNoUseSiteDiagnostics;
-                    if (baseUnderlyingType?.Equals(underlyingType, TypeCompareKind.ConsiderEverything) == false)
+                    var baseUnderlyingType = baseExtension.ExtendedTypeNoUseSiteDiagnostics;
+                    if (AreExtendedTypesIncompatible(underlyingType, baseUnderlyingType))
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType!, baseUnderlyingType);
+                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType, baseUnderlyingType);
                     }
 
                     if (!ReferenceEquals(referenceBaseExtension, baseExtension))
@@ -128,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
             => GetDeclaredExtensionInfo().BaseExtensions;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
             get
             {
@@ -167,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var current = declaredUnderlyingType;
                     do
                     {
+                        // PROTOTYPE should this should check declaring module rather than compilations?
                         if (ReferenceEquals(current.DeclaringCompilation, this.DeclaringCompilation))
                         {
                             break;
@@ -179,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                     {
+                        // PROTOTYPE Are we dropping dependencies if we are not getting into this 'if'?
                         var location = FindUnderlyingTypeSyntax(declaredUnderlyingType) ?? Locations[0];
                         diagnostics.Add(location, useSiteInfo);
                     }
@@ -271,8 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                             declaredBaseExtension.AddUseSiteInfo(ref useSiteInfo);
 
+                            // PROTOTYPE why do we go one extra level here, and, if that is necessary, why only one level.
                             foreach (var extension in declaredBaseExtension.BaseExtensionsNoUseSiteDiagnostics)
                             {
+                                // PROTOTYPE should this should check declaring module rather than compilations?
                                 if (extension.DeclaringCompilation != this.DeclaringCompilation)
                                 {
                                     extension.AddUseSiteInfo(ref useSiteInfo);
@@ -433,7 +447,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ExtensionInfo(underlyingType, baseExtensions);
         }
 
-        /// <summary> Bind the base extensions for one part of a partial extension.</summary>
+        /// <summary>
+        /// Bind the base extensions for one part of a partial extension.
+        /// Validation in this method should be in sync with:
+        /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredExtensionUnderlyingType"/>
+        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
+        /// </summary>
         private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
         {
@@ -448,7 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingTypeWithAnnotations = underlyingTypeBinder.BindType(underlyingTypeSyntax, diagnostics, basesBeingResolved);
 
                 TypeSymbol underlyingType = underlyingTypeWithAnnotations.Type;
-                if (underlyingType.IsStatic && !this.IsStatic)
+                // PROTOTYPE are nullable annotations allowed on extended types?
+                if (AreStaticIncompatible(extendedType: underlyingType, extensionType: this))
                 {
                     diagnostics.Add(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, location, this, underlyingType);
                 }
@@ -521,6 +542,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 baseBinder = baseBinder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
                 return baseBinder;
             }
+        }
+
+        internal static bool AreStaticIncompatible(TypeSymbol extendedType, NamedTypeSymbol extensionType)
+        {
+            return extendedType.IsStatic && !extensionType.IsStatic;
+        }
+
+        internal static bool AreExtendedTypesIncompatible([NotNullWhen(true)] TypeSymbol? extendedType, [NotNullWhen(true)] TypeSymbol? baseExtendedType)
+        {
+            return extendedType is not null &&
+                baseExtendedType?.Equals(extendedType, TypeCompareKind.ConsiderEverything) == false;
         }
 
         internal static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)

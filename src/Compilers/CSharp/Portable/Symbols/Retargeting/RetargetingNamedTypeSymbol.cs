@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
@@ -32,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredInterfaces;
+
+        private TypeSymbol _lazyExtendedType = ErrorTypeSymbol.UnknownResultType;
+        private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions = default;
+
+        private TypeSymbol _lazyDeclaredExtendedType = ErrorTypeSymbol.UnknownResultType;
+        private ImmutableArray<NamedTypeSymbol> _lazyDeclaredBaseExtensions;
 
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
@@ -289,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if ((object)acyclicBase != null && BaseTypeAnalysis.TypeDependsOn(acyclicBase, this))
                     {
-                        return CyclicInheritanceError(acyclicBase);
+                        acyclicBase = CyclicInheritanceError(acyclicBase);
                     }
 
                     Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);
@@ -342,6 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 var underlyingBaseInterfaces = _underlyingType.GetDeclaredInterfaces(basesBeingResolved);
                 var result = this.RetargetingTranslator.Retarget(underlyingBaseInterfaces);
+                // We should check that the type is an interface
+                // Tracked by https://github.com/dotnet/roslyn/issues/67946
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
 
@@ -393,17 +402,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
 #nullable enable
-        internal sealed override bool IsExtension => false; // PROTOTYPE
+        internal sealed override bool IsExtension => _underlyingType.IsExtension;
+        internal sealed override bool IsExplicitExtension => _underlyingType.IsExplicitExtension;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
+        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (ReferenceEquals(_lazyExtendedType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    // Cycles are handled in `GetDeclaredExtensionUnderlyingType` (where a bad extended type,
+                    // such as one that is an extension type, would be replaced with an error type)
+                    TypeSymbol? extendedType = GetDeclaredExtensionUnderlyingType();
+                    Interlocked.CompareExchange(ref _lazyExtendedType, extendedType, ErrorTypeSymbol.UnknownResultType);
+                }
+
+                return _lazyExtendedType;
+            }
+        }
+
         internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty;
+        {
+            get
+            {
+                if (_lazyBaseExtensions.IsDefault)
+                {
+                    var declaredBaseExtensions = GetDeclaredBaseExtensions();
+
+                    ImmutableArray<NamedTypeSymbol> result = declaredBaseExtensions
+                        .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, on: this) ? CyclicInheritanceError(t) : t);
+
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBaseExtensions, result, default);
+                }
+
+                return _lazyBaseExtensions;
+            }
+        }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => throw new System.Exception("PROTOTYPE"); // PROTOTYPE
+        {
+            if (TypeKind != TypeKind.Extension)
+                return null;
+
+            if (ReferenceEquals(_lazyDeclaredExtendedType, ErrorTypeSymbol.UnknownResultType))
+            {
+                var extendedType = _underlyingType.GetDeclaredExtensionUnderlyingType();
+                var declaredExtendedType = extendedType is null ? null : this.RetargetingTranslator.Retarget(extendedType, RetargetOptions.RetargetPrimitiveTypesByName);
+                if (declaredExtendedType is not null)
+                {
+                    if (SourceExtensionTypeSymbol.AreStaticIncompatible(extendedType: declaredExtendedType, extensionType: this)
+                        || SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(declaredExtendedType))
+                    {
+                        declaredExtendedType = MakeErrorType(declaredExtendedType);
+                    }
+                }
+
+                Interlocked.CompareExchange(ref _lazyDeclaredExtendedType, declaredExtendedType, ErrorTypeSymbol.UnknownResultType);
+            }
+
+            return _lazyDeclaredExtendedType;
+        }
+
+        private static NamedTypeSymbol MakeErrorType(TypeSymbol type)
+        {
+            // PROTOTYPE consider using a more specific diagnostic. Maybe ERR_MalformedExtensionInMetadata or "Extension type declaration is malformed"
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, type.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
+            return new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+        }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
-            => throw new System.Exception("PROTOTYPE"); // PROTOTYPE
+        {
+            if (TypeKind != TypeKind.Extension)
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+
+            if (_lazyDeclaredBaseExtensions.IsDefault)
+            {
+                var underlyingBaseExtensions = _underlyingType.GetDeclaredBaseExtensions();
+                var result = this.RetargetingTranslator.Retarget(underlyingBaseExtensions);
+
+                if (result.Any(b => isBadBaseExtension(b)))
+                {
+                    result = result.SelectAsArray(b => isBadBaseExtension(b) ? MakeErrorType(b) : b);
+                }
+
+                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredBaseExtensions, result, comparand: default);
+            }
+
+            return _lazyDeclaredBaseExtensions;
+
+            bool isBadBaseExtension(NamedTypeSymbol baseExtension)
+            {
+                return !baseExtension.IsExtension
+                    || SourceExtensionTypeSymbol.AreExtendedTypesIncompatible(
+                        this.ExtendedTypeNoUseSiteDiagnostics,
+                        baseExtension.ExtendedTypeNoUseSiteDiagnostics);
+            }
+        }
 #nullable disable
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
