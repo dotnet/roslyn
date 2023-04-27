@@ -222,10 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
-            if (node is BoundNameOfOperator { WasCompilerGenerated: false, Syntax: InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Location: var nameofPseudoCallLocation } } }
-                && this._compilation.TryGetInterceptor(nameofPseudoCallLocation) is not null)
+            if (node is BoundNameOfOperator nameofOperator)
             {
-                this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofPseudoCallLocation);
+                Debug.Assert(!nameofOperator.WasCompilerGenerated);
+                var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
+                }
             }
 
             ConstantValue? constantValue = node.ConstantValueOpt;
