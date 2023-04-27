@@ -913,8 +913,8 @@ namespace Microsoft.CodeAnalysis
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
         {
-            foreach (var kvp in dictionary)
-                result.Add(kvp.Key, createMembers(kvp.Value));
+            foreach (var (name, value) in dictionary)
+                result.Add(name, createMembers(value));
 
             return;
 
