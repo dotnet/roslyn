@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -11,9 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
@@ -257,6 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
         private sealed class CustomCodeAction : CodeAction.SolutionChangeAction
         {
             private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
+
+            // This code action might need to check the project file.
+            // Tracked issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1810443
+            public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
             public CustomCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
                 : base(
