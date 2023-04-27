@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
+using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -145,7 +146,7 @@ namespace Roslyn.Test.Utilities
                 buffer[authenticodeOffset + i] = 0;
             }
 
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var hash = RoslynIncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 // First hash the DOS header and PE headers
                 hash.AppendData(buffer, 0, peHeadersSize);

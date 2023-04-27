@@ -5,13 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
-using System.Security.Cryptography;
 
 namespace Roslyn.Utilities
 {
-    internal static class IncrementalHashExtensions
+    internal static class RoslynIncrementalHashExtensions
     {
-        internal static void AppendData(this IncrementalHash hash, IEnumerable<Blob> blobs)
+        internal static void AppendData(this RoslynIncrementalHash hash, IEnumerable<Blob> blobs)
         {
             foreach (var blob in blobs)
             {
@@ -19,7 +18,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static void AppendData(this IncrementalHash hash, IEnumerable<ArraySegment<byte>> blobs)
+        internal static void AppendData(this RoslynIncrementalHash hash, IEnumerable<ArraySegment<byte>> blobs)
         {
             foreach (var blob in blobs)
             {
@@ -27,7 +26,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static void AppendData(this IncrementalHash hash, ArraySegment<byte> segment)
+        internal static void AppendData(this RoslynIncrementalHash hash, ArraySegment<byte> segment)
         {
             RoslynDebug.AssertNotNull(segment.Array);
             hash.AppendData(segment.Array, segment.Offset, segment.Count);

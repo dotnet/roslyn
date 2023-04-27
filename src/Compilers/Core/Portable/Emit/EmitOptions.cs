@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 try
                 {
-                    IncrementalHash.CreateHash(PdbChecksumAlgorithm).Dispose();
+                    RoslynIncrementalHash.CreateHash(PdbChecksumAlgorithm).Dispose();
                 }
                 catch
                 {

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<Blob> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            using (var incrementalHash = RoslynIncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<ArraySegment<byte>> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            using (var incrementalHash = RoslynIncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         internal static ImmutableArray<byte> ComputeSourceHash(ImmutableArray<byte> bytes, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithms.Default)
         {
             var algorithmName = GetAlgorithmName(hashAlgorithm);
-            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            using (var incrementalHash = RoslynIncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes.ToArray());
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());

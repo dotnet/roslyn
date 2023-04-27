@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static byte[] CalculateSha1(IEnumerable<Blob> content)
         {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var hash = RoslynIncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 hash.AppendData(content);
                 return hash.GetHashAndReset();

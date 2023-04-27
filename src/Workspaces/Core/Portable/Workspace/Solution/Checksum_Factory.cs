@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
         private const int SHA256HashSizeBytes = 256 / 8;
 
-        private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
-            new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+        private static readonly ObjectPool<RoslynIncrementalHash> s_incrementalHashPool =
+            new(() => RoslynIncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
         // Dedicated pools for the byte[]s we use to create checksums from two or three existing checksums. Sized to
         // exactly the space needed to splat the existing checksum data into the array and then hash it.
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
-        private static void AppendData(IncrementalHash hash, byte[] buffer, string value)
+        private static void AppendData(RoslynIncrementalHash hash, byte[] buffer, string value)
         {
             var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());
             Debug.Assert(stringBytes.Length == value.Length * 2);
