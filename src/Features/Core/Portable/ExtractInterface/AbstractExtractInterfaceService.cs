@@ -393,7 +393,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
                             explicitInterfaceImplementations: default,
-                            name: @event.Name));
+                            name: @event.Name, 
+                            documentationCommentXml: @event.GetDocumentationCommentXml()));
                         break;
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
@@ -407,7 +408,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             name: method.Name,
                             typeParameters: method.TypeParameters,
                             parameters: method.Parameters,
-                            isInitOnly: method.IsInitOnly));
+                            isInitOnly: method.IsInitOnly,
+                            documentationCommentXml: method.GetDocumentationCommentXml()));
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
@@ -422,7 +424,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             parameters: property.Parameters,
                             getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
                             setMethod: property.SetMethod == null ? null : (property.SetMethod.DeclaredAccessibility == Accessibility.Public ? property.SetMethod : null),
-                            isIndexer: property.IsIndexer));
+                            isIndexer: property.IsIndexer,
+                            documentationCommentXml: property.GetDocumentationCommentXml()));
                         break;
                     default:
                         Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));

@@ -1736,6 +1736,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithComments()
+        {
+            var markup =
+                    """
+                public class $$Goo
+                {                
+                    /// <summary>
+                    /// Comment 
+                    /// </summary>
+                    public bool MyBool { get; set; }
+
+                            
+                    /// <summary>
+                    /// Event comment
+                    /// </summary>
+                    public event Action MyEvent;
+
+                    /// <summary>
+                    /// Comment
+                    /// </summary>
+                    public void Test()
+                    {
+                      // The body of the method
+                    }
+                }
+                """;
+
+            var expectedInterfaceCode =
+                """
+                public interface IGoo
+                {
+                    /// 
+                    /// <member name="P:Goo.MyBool">
+                    ///     <summary>
+                    ///     Comment 
+                    ///     </summary>
+                    /// </member>
+                    /// 
+                    bool MyBool { get; set; }
+                    /// 
+                    /// <member name="E:Goo.MyEvent">
+                    ///     <summary>
+                    ///     Event comment
+                    ///     </summary>
+                    /// </member>
+                    /// 
+                    event Action MyEvent;
+                    /// 
+                    /// <member name="M:Goo.Test">
+                    ///     <summary>
+                    ///     Comment
+                    ///     </summary>
+                    /// </member>
+                    /// 
+                    void Test();
+                }
+                """;
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord1()

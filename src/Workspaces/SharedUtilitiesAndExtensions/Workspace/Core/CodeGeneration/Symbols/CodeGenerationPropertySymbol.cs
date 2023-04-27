@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool isIndexer,
             ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
-            IMethodSymbol setMethod)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+            IMethodSymbol setMethod,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             this.Type = type;
             _refKind = refKind;
