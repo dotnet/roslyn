@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class OverloadResolution
     {
         private NamedTypeSymbol MakeNullable(TypeSymbol type)
-            => Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
+        {
+            return Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
+        }
 
         public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
