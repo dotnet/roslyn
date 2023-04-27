@@ -546,14 +546,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModelActions">Semantic model actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="semanticModel">Semantic model to analyze.</param>
-        /// <param name="analysisScope">Scope for analyzer execution.</param>
+        /// <param name="filterSpan">Optional filter span for analysis.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSemanticModelActions(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            AnalysisScope analysisScope,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                    isSupportedDiagnostic, analysisScope.FilterSpanOpt, isGeneratedCode, cancellationToken);
+                    isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
 
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
@@ -592,12 +592,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxTreeActions">Syntax tree actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="file">Syntax tree to analyze.</param>
+        /// <param name="filterSpan">Optional filter span within the <paramref name="file"/> for analysis.</param>
         /// <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSyntaxTreeActions(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
             SourceOrAdditionalFile file,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -618,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, isGeneratedCode, cancellationToken);
+                var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, filterSpan, isGeneratedCode, cancellationToken);
 
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(

@@ -9,22 +9,33 @@ using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class PendingSolutionUpdate
+    internal abstract class PendingUpdate
+    {
+        public readonly ImmutableArray<ProjectBaseline> ProjectBaselines;
+        public readonly ImmutableArray<ModuleUpdate> Deltas;
+
+        public PendingUpdate(
+            ImmutableArray<ProjectBaseline> projectBaselines,
+            ImmutableArray<ModuleUpdate> deltas)
+        {
+            ProjectBaselines = projectBaselines;
+            Deltas = deltas;
+        }
+    }
+
+    internal sealed class PendingSolutionUpdate : PendingUpdate
     {
         public readonly Solution Solution;
-        public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
-        public readonly ImmutableArray<ModuleUpdate> Deltas;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions;
 
         public PendingSolutionUpdate(
             Solution solution,
-            ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
+            ImmutableArray<ProjectBaseline> projectBaselines,
             ImmutableArray<ModuleUpdate> deltas,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions)
+            : base(projectBaselines, deltas)
         {
             Solution = solution;
-            EmitBaselines = emitBaselines;
-            Deltas = deltas;
             NonRemappableRegions = nonRemappableRegions;
         }
     }

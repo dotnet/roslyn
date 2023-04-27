@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -50,7 +51,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
+                localComposition = localComposition
+                    .AddExcludedPartTypes(typeof(EditAndContinueService))
+                    .AddParts(typeof(MockEditAndContinueWorkspaceService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -63,16 +66,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Null(clientProvider);
 
-                mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+                mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.GetService<IEditAndContinueService>();
             }
             else
             {
                 Assert.NotNull(clientProvider);
                 clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
+                clientProvider!.ExcludedRemoteParts = new[] { typeof(EditAndContinueService) };
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
-                mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+                mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
             }
 
             var projectId = ProjectId.CreateNewId();
@@ -222,10 +226,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
                 var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
-                var diagnostics = ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
+                var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
                 var documentsWithRudeEdits = ImmutableArray.Create((documentId, ImmutableArray<RudeEditDiagnostic>.Empty));
 
-                return new(updates, diagnostics, documentsWithRudeEdits, syntaxError);
+                return new()
+                {
+                    ModuleUpdates = updates,
+                    Diagnostics = diagnostics,
+                    RudeEdits = documentsWithRudeEdits,
+                    SyntaxError = syntaxError
+                };
             };
 
             var (updates, _, _, syntaxErrorData) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None);
