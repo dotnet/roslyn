@@ -1073,7 +1073,7 @@ public class InterceptorsTests : CSharpTestBase
             using System.Runtime.CompilerServices;
             using System;
 
-            C.M(() => Console.Write(0));
+            C.M(() => Console.Write(1));
 
             static class C
             {
@@ -1086,10 +1086,10 @@ public class InterceptorsTests : CSharpTestBase
             static class D
             {
                 [InterceptsLocation("Program.cs", 10, 9)]
-                public static void Interceptor1(this Action action) { Console.Write(1); }
+                public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "12");
         // PROTOTYPE(ic): perhaps give a more specific error here.
         // If/when we change "missing InterceptableAttribute" to an error, we might not need any specific error, because user cannot attribute the Invoke method.
         // I don't think we intend for delegate Invoke to be interceptable, but it doesn't seem harmful to allow it.
