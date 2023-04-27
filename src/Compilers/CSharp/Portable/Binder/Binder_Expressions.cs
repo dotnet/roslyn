@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(resultKind != LookupResultKind.Viable);
 
+            expr = BindToTypeForErrorRecovery(expr);
+
             TypeSymbol resultType = expr.Type;
             BoundKind exprKind = expr.Kind;
 

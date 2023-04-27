@@ -15351,5 +15351,72 @@ Block[B5] - Exit
     Statements (0)
 ");
         }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806208")]
+        public void InvalidTrailingUnconvertedExpressions()
+        {
+            var source = """
+                var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+
+                class C
+                {
+                    public int F1;
+                }
+                """;
+
+            var expectedDiagnostics = new[]{
+                // (1,37): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{asdf}""").WithLocation(1, 37),
+                // (1,40): error CS0103: The name 'asdf' does not exist in the current context
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(1, 40),
+                // (1,48): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "true switch { _ => false }").WithLocation(1, 48),
+                // (1,76): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "new()").WithLocation(1, 76)
+            };
+
+            string expectedOperationTree = """
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')
+                  Arguments(0)
+                  Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ F1 = 1, $ ...  }, new() }')
+                      Initializers(4):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F1 = 1')
+                            Left:
+                              IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F1')
+                            Right:
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{asdf}"')
+                            Parts(1):
+                                IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{asdf}')
+                                  Expression:
+                                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'asdf')
+                                      Children(0)
+                                  Alignment:
+                                    null
+                                  FormatString:
+                                    null
+                          IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                            Children(1):
+                                ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Boolean, IsInvalid) (Syntax: 'true switch ...  => false }')
+                                  Value:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+                                  Arms(1):
+                                      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => false')
+                                        Pattern:
+                                          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                                        Value:
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                            Children(0)
+                """;
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
     }
 }
