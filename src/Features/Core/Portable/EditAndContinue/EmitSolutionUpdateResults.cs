@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public static readonly EmitSolutionUpdateResults Empty = new()
         {
-            ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, ImmutableArray<ModuleUpdate>.Empty),
+            ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, ImmutableArray<ManagedHotReloadUpdate>.Empty),
             Diagnostics = ImmutableArray<ProjectDiagnostics>.Empty,
             RudeEdits = ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.Empty,
             SyntaxError = null
