@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal abstract class PendingUpdate
     {
         public readonly ImmutableArray<ProjectBaseline> ProjectBaselines;
-        public readonly ImmutableArray<ModuleUpdate> Deltas;
+        public readonly ImmutableArray<ManagedHotReloadUpdate> Deltas;
 
         public PendingUpdate(
             ImmutableArray<ProjectBaseline> projectBaselines,
-            ImmutableArray<ModuleUpdate> deltas)
+            ImmutableArray<ManagedHotReloadUpdate> deltas)
         {
             ProjectBaselines = projectBaselines;
             Deltas = deltas;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public PendingSolutionUpdate(
             Solution solution,
             ImmutableArray<ProjectBaseline> projectBaselines,
-            ImmutableArray<ModuleUpdate> deltas,
+            ImmutableArray<ManagedHotReloadUpdate> deltas,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions)
             : base(projectBaselines, deltas)
         {

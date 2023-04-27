@@ -207,17 +207,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 Assert.Equal("proj", project.Name);
                 AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
 
-                var deltas = ImmutableArray.Create(new ModuleUpdate(
-                    Module: moduleId1,
-                    ILDelta: ImmutableArray.Create<byte>(1, 2),
-                    MetadataDelta: ImmutableArray.Create<byte>(3, 4),
-                    PdbDelta: ImmutableArray.Create<byte>(5, 6),
-                    UpdatedMethods: ImmutableArray.Create(0x06000001),
-                    UpdatedTypes: ImmutableArray.Create(0x02000001),
-                    SequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
-                    ActiveStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                    ExceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
-                    RequiredCapabilities: EditAndContinueCapabilities.Baseline));
+                var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
+                    module: moduleId1,
+                    moduleName: "mod",
+                    ilDelta: ImmutableArray.Create<byte>(1, 2),
+                    metadataDelta: ImmutableArray.Create<byte>(3, 4),
+                    pdbDelta: ImmutableArray.Create<byte>(5, 6),
+                    updatedMethods: ImmutableArray.Create(0x06000001),
+                    updatedTypes: ImmutableArray.Create(0x02000001),
+                    sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
+                    activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
+                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                    requiredCapabilities: EditAndContinueCapabilities.Baseline.ToStringArray()));
 
                 var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
