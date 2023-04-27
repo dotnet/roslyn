@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var current = declaredUnderlyingType;
                     do
                     {
+                        // PROTOTYPE should this should check declaring module rather than compilations?
                         if (ReferenceEquals(current.DeclaringCompilation, this.DeclaringCompilation))
                         {
                             break;
@@ -189,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                     {
+                        // PROTOTYPE Are we dropping dependencies if we are not getting into this 'if'?
                         var location = FindUnderlyingTypeSyntax(declaredUnderlyingType) ?? Locations[0];
                         diagnostics.Add(location, useSiteInfo);
                     }
@@ -281,8 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                             declaredBaseExtension.AddUseSiteInfo(ref useSiteInfo);
 
+                            // PROTOTYPE why do we go one extra level here, and, if that is necessary, why only one level.
                             foreach (var extension in declaredBaseExtension.BaseExtensionsNoUseSiteDiagnostics)
                             {
+                                // PROTOTYPE should this should check declaring module rather than compilations?
                                 if (extension.DeclaringCompilation != this.DeclaringCompilation)
                                 {
                                     extension.AddUseSiteInfo(ref useSiteInfo);
