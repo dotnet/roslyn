@@ -1090,9 +1090,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "12");
-        // PROTOTYPE(ic): perhaps give a more specific error here.
-        // If/when we change "missing InterceptableAttribute" to an error, we might not need any specific error, because user cannot attribute the Invoke method.
-        // I don't think we intend for delegate Invoke to be interceptable, but it doesn't seem harmful to allow it.
+        // PROTOTYPE(ic): drop warning when InterceptableAttribute is removed from the design.
         verifier.VerifyDiagnostics(
             // Program.cs(16,6): warning CS27000: Call to 'Action.Invoke()' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.
             //     [InterceptsLocation("Program.cs", 10, 9)]
