@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var newTextDoc = getNewDocument(docId);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    // Create the document as empty
+                    // If the file path doesn't exist, try to create from project path
                     var uri = newTextDoc.FilePath != null
                         ? newTextDoc.GetURI()
                         : newTextDoc.GetUriFromProjectPath();
