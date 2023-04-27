@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
-    internal static class CodeActionHelpers
+    internal static partial class CodeActionHelpers
     {
         /// <summary>
         /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="hasVsLspCapability"/>.
@@ -90,13 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             return codeActions.ToArray();
         }
 
-        private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
-            // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            => suggestedAction.OriginalCodeAction is CodeActionWithOptions
-            // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
-            // https://github.com/dotnet/roslyn/issues/48698
-            || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
-
         /// <summary>
         /// Generate the matching code actions for <paramref name="suggestedAction"/>. If it contains nested code actions, flatten them into an array.
         /// </summary>
@@ -124,9 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var action in actionSet.Actions)
                     {
-                        // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
-                        // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
-                        if (action.OriginalCodeAction is not AbstractConfigurationActionWithNestedActions)
+                        if (IsCodeActionNotSupportedByLSP(action))
                         {
                             builder.AddRange(GenerateCodeActions(
                                 request,
