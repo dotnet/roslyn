@@ -3413,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
         }
 
-        /// <returns><see langword="true"/> if duplicate interceptors are present in the compilation. Otherwise, <see langword="false" />.</returns>
+        /// <returns><see langword="true"/> if duplicate interceptions are present in the compilation. Otherwise, <see langword="false" />.</returns>
         internal bool CheckDuplicateInterceptions(BindingDiagnosticBag diagnostics)
         {
             if (_interceptions is null)
