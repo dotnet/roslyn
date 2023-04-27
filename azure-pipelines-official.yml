@@ -150,7 +150,7 @@ stages:
     - task: npmAuthenticate@0
       displayName: Authenticate NPM Feed
       inputs:
-        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/Microsoft.CodeAnalysis.LanguageServer.Internal/.npmrc
+        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/LanguageServer/Impl/.npmrc
         customEndpoint: devdiv-vs-green-npm-package-feed
 
     # Needed for SBOM tool
