@@ -1019,6 +1019,54 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableDoubleUnderscoreReservedIdentifiers()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    M1(__arglist(1, 2, 3));
+
+                    int i = 0;
+                    TypedReference tr = __makeref(i);
+                    ref int ri = ref __refvalue(tr, int);
+                    Type t = __reftype(tr);
+                }
+
+                static void M1(__arglist) { }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 8, 12)] // __arglist
+                [InterceptsLocation("Program.cs", 11, 29)] // __makeref
+                [InterceptsLocation("Program.cs", 12, 26)] // __refvalue
+                [InterceptsLocation("Program.cs", 13, 18)] // __reftype
+                public static void Interceptor1(int x, int y, int z) { }
+            }
+            """;
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '__arglist'.
+            //     [InterceptsLocation("Program.cs", 8, 12)] // __arglist
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 8, 12)").WithArguments("__arglist").WithLocation(21, 6),
+            // Program.cs(22,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '__makeref'.
+            //     [InterceptsLocation("Program.cs", 11, 29)] // __makeref
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 11, 29)").WithArguments("__makeref").WithLocation(22, 6),
+            // Program.cs(23,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '__refvalue'.
+            //     [InterceptsLocation("Program.cs", 12, 26)] // __refvalue
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 12, 26)").WithArguments("__refvalue").WithLocation(23, 6),
+            // Program.cs(24,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '__reftype'.
+            //     [InterceptsLocation("Program.cs", 13, 18)] // __reftype
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 13, 18)").WithArguments("__reftype").WithLocation(24, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptableDelegateInvocation()
     {
         var source = """
