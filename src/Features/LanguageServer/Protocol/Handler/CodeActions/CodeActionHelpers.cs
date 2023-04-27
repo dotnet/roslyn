@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     var currentSetNumber = ++currentHighestSetNumber;
                     foreach (var suggestedAction in set.Actions)
                     {
-                        if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                        if (!IsCodeActionNotSupportedByVSLsp(suggestedAction))
                         {
                             codeActions.Add(GenerateVSCodeAction(
                                 request, documentText,
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var suggestedAction in set.Actions)
                     {
-                        if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                        if (!IsCodeActionNotSupportedByStandardLsp(suggestedAction))
                         {
                             codeActions.AddRange(GenerateCodeActions(
                                 request,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var action in actionSet.Actions)
                     {
-                        if (IsCodeActionNotSupportedByLSP(action))
+                        if (!IsCodeActionNotSupportedByStandardLsp(action))
                         {
                             builder.AddRange(GenerateCodeActions(
                                 request,
