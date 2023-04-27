@@ -43,7 +43,7 @@ internal readonly struct ManagedHotReloadUpdate
 
     [DataMember(Name = "exceptionRegions")]
     public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; }
-    
+
     public ManagedHotReloadUpdate(
         Guid module,
         string moduleName,
