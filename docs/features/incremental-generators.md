@@ -390,18 +390,18 @@ public static partial class IncrementalValueSourceExtensions
 ```
 
 ```ascii
-                                          Select<TSource, TResult>
+                                               Where<TSource>
                                    .......................................
                                    .                   ┌───────────┐     .
                                    .   predicate(Item1)│           │     .
                                    . ┌────────────────►│   Item1   ├───┐ .
                                    . │                 │           │   │ .
-IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
-          ┌───────────┐            . │                                 │ .        ┌────────────┐
-          │           │            . │ predicate(Item2)                │ .        │            │
-          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
-          │           │            . │                                 │ .        │            │
-          └───────────┘            . │                                 │ .        └────────────┘
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TSource>
+          ┌───────────┐            . │                                 │ .        ┌───────────┐
+          │           │            . │ predicate(Item2)                │ .        │           │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│  TSource  │
+          │           │            . │                                 │ .        │           │
+          └───────────┘            . │                                 │ .        └───────────┘
              3 Items               . │                 ┌───────────┐   │ .           2 Items
                                    . │ predicate(Item3)│           │   │ .
                                    . └────────────────►│   Item3   ├───┘ .
