@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// The baseline of each updated project is linked to its initial baseline that reads from the on-disk metadata and PDB.
         /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
-        /// even when it's replaced in <see cref="_projectEmitBaselines"/> by a newer baseline.
+        /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
         /// </remarks>
-        private readonly Dictionary<ProjectId, (EmitBaseline Baseline, int Generation)> _projectEmitBaselines = new();
+        private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = new();
         private readonly List<IDisposable> _initialBaselineModuleReaders = new();
         private readonly object _projectEmitBaselinesGuard = new();
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly DebuggingSessionTelemetry _telemetry;
         private readonly EditSessionTelemetry _editSessionTelemetry = new();
 
-        private PendingSolutionUpdate? _pendingUpdate;
+        private PendingUpdate? _pendingUpdate;
         private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         /// <summary>
@@ -161,13 +161,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw new ObjectDisposedException(nameof(DebuggingSession));
         }
 
-        private void StorePendingUpdate(Solution solution, SolutionUpdate update)
+        private void StorePendingUpdate(PendingUpdate update)
         {
-            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
-                solution,
-                update.EmitBaselines,
-                update.ModuleUpdates.Updates,
-                update.NonRemappableRegions));
+            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, update);
 
             // commit/discard was not called:
             if (previousPendingUpdate != null)
@@ -176,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private PendingSolutionUpdate RetrievePendingUpdate()
+        private PendingUpdate RetrievePendingUpdate()
         {
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
             if (pendingUpdate == null)
@@ -300,7 +296,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private bool TryGetProjectId(Guid moduleId, [NotNullWhen(true)] out ProjectId? projectId)
+        internal bool TryGetProjectId(Guid moduleId, [NotNullWhen(true)] out ProjectId? projectId)
         {
             lock (_projectModuleIdsGuard)
             {
@@ -315,17 +311,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal bool TryGetOrCreateEmitBaseline(
             Project project,
             out ImmutableArray<Diagnostic> diagnostics,
-            [NotNullWhen(true)] out EmitBaseline? baseline,
-            out int baselineGeneration,
+            [NotNullWhen(true)] out ProjectBaseline? baseline,
             [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
         {
             baselineAccessLock = _baselineAccessLock;
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
+                if (_projectBaselines.TryGetValue(project.Id, out baseline))
                 {
-                    (baseline, baselineGeneration) = baselineAndGeneration;
                     diagnostics = ImmutableArray<Diagnostic>.Empty;
                     return true;
                 }
@@ -336,31 +330,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
-                baselineGeneration = -1;
                 baseline = null;
                 return false;
             }
 
-            const int initialBaselineGeneration = 0;
-
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
+                if (_projectBaselines.TryGetValue(project.Id, out baseline))
                 {
                     metadataReaderProvider.Dispose();
                     debugInfoReaderProvider.Dispose();
-                    (baseline, baselineGeneration) = baselineAndGeneration;
                     return true;
                 }
 
-                _projectEmitBaselines.Add(project.Id, (initialBaseline, initialBaselineGeneration));
+                baseline = new ProjectBaseline(project.Id, initialBaseline, generation: 0);
 
+                _projectBaselines.Add(project.Id, baseline);
                 _initialBaselineModuleReaders.Add(metadataReaderProvider);
                 _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
 
-            baseline = initialBaseline;
-            baselineGeneration = initialBaselineGeneration;
             return true;
         }
 
@@ -531,82 +520,60 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, cancellationToken).ConfigureAwait(false);
 
-            LogSolutionUpdate(solutionUpdate, updateId);
+            solutionUpdate.Log(EditAndContinueService.Log, updateId);
+            _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
             if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
-                StorePendingUpdate(solution, solutionUpdate);
+                StorePendingUpdate(new PendingSolutionUpdate(
+                    solution,
+                    solutionUpdate.ProjectBaselines,
+                    solutionUpdate.ModuleUpdates.Updates,
+                    solutionUpdate.NonRemappableRegions));
             }
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits, solutionUpdate.SyntaxError);
-        }
-
-        private void LogSolutionUpdate(SolutionUpdate update, UpdateId updateId)
-        {
-            var log = EditAndContinueService.Log;
-
-            log.Write("Solution update {0}.{1} status: {2}", updateId.SessionId.Ordinal, updateId.Ordinal, update.ModuleUpdates.Status);
-
-            foreach (var moduleUpdate in update.ModuleUpdates.Updates)
+            return new EmitSolutionUpdateResults()
             {
-                log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
-                    moduleUpdate.RequiredCapabilities,
-                    moduleUpdate.UpdatedTypes,
-                    moduleUpdate.UpdatedMethods);
-            }
-
-            if (update.Diagnostics.Length > 0)
-            {
-                var firstProjectDiagnostic = update.Diagnostics[0];
-
-                log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
-                    update.Diagnostics.Length,
-                    firstProjectDiagnostic.ProjectId,
-                    firstProjectDiagnostic.Diagnostics[0]);
-            }
-
-            if (update.DocumentsWithRudeEdits.Length > 0)
-            {
-                var firstDocumentWithRudeEdits = update.DocumentsWithRudeEdits[0];
-
-                log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
-                    update.DocumentsWithRudeEdits.Length,
-                    firstDocumentWithRudeEdits.DocumentId,
-                    firstDocumentWithRudeEdits.Diagnostics[0].Kind);
-            }
-
-            _lastModuleUpdatesLog = update.ModuleUpdates.Updates;
+                ModuleUpdates = solutionUpdate.ModuleUpdates,
+                Diagnostics = solutionUpdate.Diagnostics,
+                RudeEdits = solutionUpdate.DocumentsWithRudeEdits,
+                SyntaxError = solutionUpdate.SyntaxError,
+            };
         }
 
         public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             ThrowIfDisposed();
 
+            ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? newNonRemappableRegions = null;
+
             var pendingUpdate = RetrievePendingUpdate();
+            if (pendingUpdate is PendingSolutionUpdate pendingSolutionUpdate)
+            {
+                // Save new non-remappable regions for the next edit session.
+                // If no edits were made the pending list will be empty and we need to keep the previous regions.
 
-            // Save new non-remappable regions for the next edit session.
-            // If no edits were made the pending list will be empty and we need to keep the previous regions.
+                newNonRemappableRegions = GroupToImmutableDictionary(
+                    from moduleRegions in pendingSolutionUpdate.NonRemappableRegions
+                    from region in moduleRegions.Regions
+                    group region.Region by new ManagedMethodId(moduleRegions.ModuleId, region.Method));
 
-            var newNonRemappableRegions = GroupToImmutableDictionary(
-                from moduleRegions in pendingUpdate.NonRemappableRegions
-                from region in moduleRegions.Regions
-                group region.Region by new ManagedMethodId(moduleRegions.ModuleId, region.Method));
+                if (newNonRemappableRegions.IsEmpty)
+                    newNonRemappableRegions = null;
 
-            if (newNonRemappableRegions.IsEmpty)
-                newNonRemappableRegions = null;
+                LastCommittedSolution.CommitSolution(pendingSolutionUpdate.Solution);
+            }
 
             // update baselines:
             lock (_projectEmitBaselinesGuard)
             {
-                foreach (var (projectId, baseline) in pendingUpdate.EmitBaselines)
+                foreach (var baseline in pendingUpdate.ProjectBaselines)
                 {
-                    _projectEmitBaselines[projectId] = (baseline, _projectEmitBaselines[projectId].Generation + 1);
+                    _projectBaselines[baseline.ProjectId] = baseline;
                 }
             }
-
-            LastCommittedSolution.CommitSolution(pendingUpdate.Solution);
 
             _editSessionTelemetry.LogCommitted();
 
@@ -1110,14 +1077,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lock (_instance._projectEmitBaselinesGuard)
                 {
-                    return _instance._projectEmitBaselines[id].Baseline;
+                    return _instance._projectBaselines[id].EmitBaseline;
                 }
             }
 
             public ImmutableArray<IDisposable> GetBaselineModuleReaders()
                 => _instance.GetBaselineModuleReaders();
 
-            public PendingSolutionUpdate? GetPendingSolutionUpdate()
+            public PendingUpdate? GetPendingSolutionUpdate()
                 => _instance._pendingUpdate;
 
             public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
