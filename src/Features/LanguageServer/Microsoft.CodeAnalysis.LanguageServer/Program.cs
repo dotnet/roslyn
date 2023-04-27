@@ -71,7 +71,7 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     // Allow the extension to override the razor file name to generate, in case they need to break the format
     if (projectRazorJsonFileName is not null)
     {
-        RazorDynamicFileInfoProvider.SetProjectRazorJsonFileName(projectRazorJsonFileName);
+        RazorWorkspaceListenerInitializer.SetProjectRazorJsonFileName(projectRazorJsonFileName);
     }
 
     // Initialize the fault handler if it's available

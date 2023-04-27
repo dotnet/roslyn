@@ -4,7 +4,6 @@
 
 using System.Composition;
 using System.Runtime.Serialization;
-using Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -18,12 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
-    private static string _projectRazorJsonFileName = "project.razor.vscode.json";
-
-    internal static void SetProjectRazorJsonFileName(string projectRazorJsonFileName)
-    {
-        _projectRazorJsonFileName = projectRazorJsonFileName;
-    }
 
     [DataContract]
     private class ProvideDynamicFileParams
@@ -52,26 +45,18 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     public event EventHandler<string>? Updated;
 #pragma warning restore CS0067
 
-    private readonly Lazy<RazorWorkspaceListener> _razorWorkspaceListener;
+    private readonly RazorWorkspaceListenerInitializer _razorWorkspaceListenerInitializer;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
+    public RazorDynamicFileInfoProvider(RazorWorkspaceListenerInitializer razorWorkspaceListenerInitializer)
     {
-        _razorWorkspaceListener = new Lazy<RazorWorkspaceListener>(() =>
-        {
-            var razorWorkspaceListener = new RazorWorkspaceListener();
-            var workspace = workspaceFactory.Value.Workspace;
-            razorWorkspaceListener.EnsureInitialized(workspace, _projectRazorJsonFileName);
-
-            return razorWorkspaceListener;
-        });
+        _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        // Make sure Razor is listening, since we have evidence of at least one .razor or .cshtml file in this workspace!
-        _ = _razorWorkspaceListener.Value;
+        _razorWorkspaceListenerInitializer.NotifyDynamicFile(projectId);
 
         var requestParams = new ProvideDynamicFileParams { RazorFiles = new[] { ProtocolConversions.GetUriFromFilePath(filePath) } };
 
