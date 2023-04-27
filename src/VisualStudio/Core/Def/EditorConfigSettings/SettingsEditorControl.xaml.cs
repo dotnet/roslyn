@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -94,10 +95,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 var updatedText = originalText;
                 foreach (var view in _views)
                 {
+                    // Get any changes for the editors. This will return the source text if there are no changes.
                     updatedText = await view.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
                 }
 
-                _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
+                // Save the updates if they are different from what is currently saved
+                if (updatedText != originalText)
+                {
+                    _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
+                }
             });
         }
 
