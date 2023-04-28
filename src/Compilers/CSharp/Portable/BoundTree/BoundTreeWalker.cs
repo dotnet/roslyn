@@ -170,6 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Called only for the first (in evaluation order) <see cref="BoundCall"/> in the chain.
+        /// </summary>
         protected virtual void VisitReceiver(BoundCall node)
         {
             this.Visit(node.ReceiverOpt);
