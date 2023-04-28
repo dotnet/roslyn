@@ -191,6 +191,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
             }
 
+            // Clear out the solution context to avoid retaining memory
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1809058
+            context.ClearSolutionContext();
+
             // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
             // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
             // so that the client asks us again.

@@ -79,10 +79,13 @@ namespace Microsoft.CodeAnalysis
 
         private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, LoadTextOptions loadTextOptions, SolutionServices services)
         {
-            var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-
             var service = services.GetRequiredService<IWorkspaceConfigurationService>();
             var options = service.Options;
+
+            if (options.DisableRecoverableText)
+                return CreateStrongText(text);
+
+            var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
 
             if (!options.DeferCreatingRecoverableText)
             {
@@ -99,7 +102,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-            => new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
+        {
+            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var options = service.Options;
+
+            if (options.DisableRecoverableText)
+                return CreateStrongText(loader);
+
+            return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
+        }
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -119,24 +130,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool TryGetTextVersion(out VersionStamp version)
-        {
-            // try fast path first
-            if (this.TextAndVersionSource is ITextVersionable versionable)
-            {
-                return versionable.TryGetTextVersion(LoadTextOptions, out version);
-            }
-
-            if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
-            {
-                version = textAndVersion.Version;
-                return true;
-            }
-            else
-            {
-                version = default;
-                return false;
-            }
-        }
+            => TextAndVersionSource.TryGetVersion(LoadTextOptions, out version);
 
         public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(LoadTextOptions, out textAndVersion);

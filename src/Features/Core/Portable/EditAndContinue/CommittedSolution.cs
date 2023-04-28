@@ -414,14 +414,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (debugInfoReaderProvider == null)
                 {
-                    EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' (assembly: '{2}') not found", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath);
+                    EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' (assembly: '{2}') not found", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath);
                 }
 
                 return debugInfoReaderProvider;
             }
             catch (Exception e)
             {
-                EditAndContinueWorkspaceService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}' (assembly: '{2}'): {3}", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath, e.Message);
+                EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}' (assembly: '{2}'): {3}", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath, e.Message);
                 return null;
             }
         }
@@ -454,14 +454,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return sourceText;
                 }
 
-                EditAndContinueWorkspaceService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
+                EditAndContinueService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
 
                 // does not match:
                 return null;
             }
             catch (Exception e)
             {
-                EditAndContinueWorkspaceService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
+                EditAndContinueService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
 
                 // unable to determine:
                 return default;
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (!debugInfoReader.TryGetDocumentChecksum(sourceFilePath, out checksum, out var algorithmId))
                 {
-                    EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: no document", sourceFilePath);
+                    EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: no document", sourceFilePath);
                     return false;
                 }
 
@@ -509,14 +509,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (algorithm == SourceHashAlgorithm.None)
                 {
                     // This can only happen if the PDB was post-processed by a misbehaving tool.
-                    EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
+                    EditAndContinueService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
                 }
 
                 return true;
             }
             catch (Exception e)
             {
-                EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: error reading symbols: {1}", sourceFilePath, e.Message);
+                EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: error reading symbols: {1}", sourceFilePath, e.Message);
             }
 
             // unable to determine
