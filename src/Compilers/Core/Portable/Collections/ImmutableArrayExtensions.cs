@@ -959,6 +959,8 @@ namespace Microsoft.CodeAnalysis
 
             static ImmutableArray<TNamedTypeSymbol> getOrCreateNamedTypes(ImmutableArray<TNamespaceOrTypeSymbol> members)
             {
+                Debug.Assert(members.Length > 0);
+
                 // See if creator 'map' put a downcasted ImmutableArray<TNamedTypeSymbol> in it.  If so, we can just directly
                 // downcast to that and trivially reuse it.  If not, that means the array must have contained at least one
                 // TNamespaceSymbol and we'll need to filter that out.
