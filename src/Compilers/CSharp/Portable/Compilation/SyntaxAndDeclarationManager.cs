@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
             var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
             var declMapBuilder = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance();
-            var lastComputedMemberNamesMap = ImmutableDictionary.CreateBuilder<SyntaxTree, ImmutableSegmentedHashSet<string>>();
+            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>>.GetInstance();
             var declTable = DeclarationTable.Empty;
 
             foreach (var tree in externalSyntaxTrees)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMapBuilder.ToImmutableDictionaryAndFree(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionaryAndFree(),
                 declMapBuilder.ToImmutableDictionaryAndFree(),
-                lastComputedMemberNamesMap.ToImmutable(),
+                lastComputedMemberNamesMap.ToImmutableDictionaryAndFree(),
                 declTable);
         }
 
