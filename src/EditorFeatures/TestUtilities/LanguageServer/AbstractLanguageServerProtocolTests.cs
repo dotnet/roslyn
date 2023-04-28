@@ -253,7 +253,8 @@ namespace Roslyn.Test.Utilities
             string? sortText = null,
             string? filterText = null,
             long resultId = 0,
-            bool vsResolveTextEditOnCommit = false)
+            bool vsResolveTextEditOnCommit = false,
+            LSP.CompletionItemLabelDetails? labelDetails = null)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -274,7 +275,8 @@ namespace Roslyn.Test.Utilities
                     ResultId = resultId,
                 }),
                 Preselect = preselect,
-                VsResolveTextEditOnCommit = vsResolveTextEditOnCommit
+                VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
+                LabelDetails = labelDetails
             };
 
             if (tags != null)

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,

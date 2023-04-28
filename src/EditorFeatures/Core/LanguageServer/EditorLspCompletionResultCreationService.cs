@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [ExportWorkspaceService(typeof(ILspCompletionResultCreationService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorLspCompletionResultCreationService : ILspCompletionResultCreationService
+    internal sealed class EditorLspCompletionResultCreationService : AbstractLspCompletionResultCreationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public async Task<LSP.CompletionItem> CreateAsync(
+        protected override async Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(
             Document document,
             SourceText documentText,
             bool snippetsSupported,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else
             {
-                await LspCompletionUtilities.PopulateSimpleTextEditAsync(
+                await PopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return lspItem;
         }
 
-        public async Task<LSP.CompletionItem> ResolveAsync(
+        public override async Task<LSP.CompletionItem> ResolveAsync(
             LSP.CompletionItem lspItem,
             CompletionItem roslynItem,
             LSP.TextDocumentIdentifier textDocumentIdentifier,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Contract.ThrowIfTrue(lspItem.TextEdit != null);
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var (edit, _, _) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
+                var (edit, _, _) = await GenerateComplexTextEditAsync(
                     document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
 
                 lspItem.TextEdit = edit;

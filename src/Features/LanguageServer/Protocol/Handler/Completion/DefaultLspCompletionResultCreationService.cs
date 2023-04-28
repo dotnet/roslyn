@@ -10,12 +10,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
     [ExportWorkspaceService(typeof(ILspCompletionResultCreationService), ServiceLayer.Default), Shared]
-    internal sealed class DefaultLspCompletionResultCreationService : ILspCompletionResultCreationService
+    internal sealed class DefaultLspCompletionResultCreationService : AbstractLspCompletionResultCreationService
     {
         /// <summary>
         /// Command name implemented by the client and invoked when an item with complex edit is committed.
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         {
         }
 
-        public async Task<LSP.CompletionItem> CreateAsync(Document document,
+        protected override async Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(Document document,
             SourceText documentText,
             bool snippetsSupported,
             bool itemDefaultsSupported,
@@ -42,16 +43,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             if (item.IsComplexTextEdit)
             {
                 // For complex change, we'd insert a placeholder edit as part of completion
-                // and rely on a post resolution command to make the actual change.
-                lspItem.TextEdit = new LSP.TextEdit()
-                {
-                    NewText = item.DisplayText[..Math.Min(defaultSpan.Length, item.DisplayText.Length)],
-                    Range = ProtocolConversions.TextSpanToRange(defaultSpan, documentText),
-                };
+                // and rely on resolve request and a post resolution command to make the full change.
+                var completionChange = CompletionChange.Create(new TextChange(defaultSpan, item.DisplayText));
+                PopulateTextEdit(lspItem, completionChange, documentText, itemDefaultsSupported, defaultSpan);
             }
             else
             {
-                await LspCompletionUtilities.PopulateSimpleTextEditAsync(
+                await PopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             return lspItem;
         }
 
-        public async Task<LSP.CompletionItem> ResolveAsync(
+        public override async Task<LSP.CompletionItem> ResolveAsync(
             LSP.CompletionItem lspItem,
             CompletionItem roslynItem,
             LSP.TextDocumentIdentifier textDocumentIdentifier,
@@ -84,18 +82,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
             if (roslynItem.IsComplexTextEdit)
             {
-                var (textEdit, isSnippetString, newPosition) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
-                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: false, cancellationToken).ConfigureAwait(false);
-
-                var lspOffset = newPosition is null ? -1 : newPosition.Value;
-
-                lspItem.Command = new LSP.Command()
+                if (roslynItem.Flags.IsExpanded())
                 {
-                    CommandIdentifier = CompleteComplexEditCommand,
-                    Title = nameof(CompleteComplexEditCommand),
-                    Arguments = new object[] { textDocumentIdentifier.Uri, textEdit, isSnippetString, lspOffset }
-                };
+                    var additionalEdits = await GenerateAdditionalTextEditForImportCompletionAsync(roslynItem, document, completionService, cancellationToken).ConfigureAwait(false);
+                    lspItem.AdditionalTextEdits = additionalEdits;
+                }
+                else
+                {
+                    var (textEdit, isSnippetString, newPosition) = await GenerateComplexTextEditAsync(
+                        document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: false, cancellationToken).ConfigureAwait(false);
+
+                    var lspOffset = newPosition is null ? -1 : newPosition.Value;
+
+                    lspItem.Command = new LSP.Command()
+                    {
+                        CommandIdentifier = CompleteComplexEditCommand,
+                        Title = nameof(CompleteComplexEditCommand),
+                        Arguments = new object[] { textDocumentIdentifier.Uri, textEdit, isSnippetString, lspOffset }
+                    };
+                }
             }
+
+            if (!roslynItem.InlineDescription.IsEmpty())
+                lspItem.LabelDetails = new() { Description = roslynItem.InlineDescription };
 
             return lspItem;
         }

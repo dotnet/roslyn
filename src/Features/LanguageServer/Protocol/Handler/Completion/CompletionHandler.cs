@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
@@ -36,7 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler(IGlobalOptionService globalOptions)
+        public CompletionHandler(
+            IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
         }
@@ -70,7 +69,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
 
             var (list, isIncomplete, resultId) = completionListResult.Value;
-            return await ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+
+            var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
+            return await creationService.ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -218,32 +219,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private CompletionOptions GetCompletionOptions(Document document, CompletionCapabilityHelper capabilityHelper)
         {
-            // Filter out unimported types for now as there are two issues with providing them:
-            // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
-            //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
-            // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
-            //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
-            // 3.  LSP client should support completion filters / expanders
-            //
-            // Also don't trigger completion in argument list automatically, since LSP currently has no concept of soft selection.
-            // We want to avoid committing selected item with commit chars like `"` and `)`.
-            var option = _globalOptions.GetCompletionOptions(document.Project.Language) with
-            {
-                ShowItemsFromUnimportedNamespaces = false,
-                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
-                UpdateImportCompletionCacheInBackground = false,
-            };
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
 
-            if (!capabilityHelper.SupportVSInternalClientCapabilities)
+            if (capabilityHelper.SupportVSInternalClientCapabilities)
             {
-                option = option with
+                // Filter out unimported types for now as there are two issues with providing them:
+                // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
+                //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
+                // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
+                //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
+                // 3.  LSP client should support completion filters / expanders
+                options = options with
                 {
+                    ShowItemsFromUnimportedNamespaces = false,
+                    ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
+                    UpdateImportCompletionCacheInBackground = false,
+                };
+            }
+            else
+            {
+                var updateImportCompletionCacheInBackground = options.ShowItemsFromUnimportedNamespaces is true;
+                options = options with
+                {
+                    // Don't trigger completion in argument list automatically, since LSP currently has no concept of soft selection.
+                    // We want to avoid committing selected item with commit chars like `"` and `)`.
                     TriggerInArgumentLists = false,
                     ShowNewSnippetExperienceUserOption = false,
+                    UpdateImportCompletionCacheInBackground = updateImportCompletionCacheInBackground
                 };
             }
 
-            return option;
+            return options;
         }
     }
 }

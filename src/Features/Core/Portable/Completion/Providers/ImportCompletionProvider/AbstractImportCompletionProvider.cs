@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
+                if (ImportCompletionItem.ShouldAlwaysAddMissingImport(completionItem))
+                    return false;
+
                 if (!IsAddingImportsSupported(document))
-                {
                     return true;
-                }
 
                 // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
                 // import container (e.g. namespace/class/etc. declarations).
