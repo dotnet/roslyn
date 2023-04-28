@@ -990,6 +990,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
             SyntaxTree? matchingTree = null;
+            // PROTOTYPE(ic): we need to resolve the paths before comparing (i.e. respect /pathmap).
+            // At that time, we should look at caching the resolved paths for the trees in a set (or maybe a Map<string, OneOrMany<SyntaxTree>>).
+            // so we can reduce the cost of these checks.
             foreach (var tree in syntaxTrees)
             {
                 if (tree.FilePath == filePath)
