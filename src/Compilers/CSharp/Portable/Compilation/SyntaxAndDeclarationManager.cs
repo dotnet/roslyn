@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMapBuilder.ToImmutableDictionary(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionary(),
                 declMapBuilder.ToImmutableDictionary(),
-                lastComputedMemberNamesMap.ToImmutable(),
+                lastComputedMemberNamesMap.ToImmutableDictionary(),
                 declTable);
 
             return new SyntaxAndDeclarationManager(
