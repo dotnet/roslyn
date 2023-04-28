@@ -181,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method to generate a bound expression with HasErrors set to true.
         /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
+        /// Returned bound expression is guaranteed to be converted to its natural type, if it should not live past initial binding (for example, <see cref="BoundUnconvertedInterpolatedString"/>).
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
+        /// If <paramref name="expr"/> already has errors and meets the above type requirements except for being unconverted, it is converted to its natural type and otherwise returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
         /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned. 
         /// </summary>
