@@ -121,47 +121,50 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             EmitFormatMethods: emitFormatMethods)
                     };
                 });
-            var resourceFilesToGenerateSourceWithNames = resourceFilesToGenerateSource.Collect().SelectMany(
-                static (resourceFiles, cancellationToken) =>
+            var renameMapping = resourceFilesToGenerateSource
+                .Select(static (resourceFile, cancellationToken) =>
+                {
+                    return (resourceFile.ResourceName, resourceFile.ResourceHintName);
+                })
+                .Collect()
+                .Select(static (resourceNames, cancellationToken) =>
                 {
                     var names = new HashSet<string>();
-                    Dictionary<ResourceInformation, string>? remappedNames = null;
-                    foreach (var resourceFile in resourceFiles.OrderBy(x => x.ResourceName, StringComparer.Ordinal))
+                    var remappedNames = ImmutableDictionary<string, string>.Empty;
+                    foreach (var (resourceName, resourceHintName) in resourceNames.OrderBy(x => x.ResourceName, StringComparer.Ordinal))
                     {
                         for (var i = -1; true; i++)
                         {
                             if (i == -1)
                             {
-                                if (names.Add(resourceFile.ResourceHintName))
+                                if (names.Add(resourceHintName))
                                     break;
                             }
                             else
                             {
-                                var candidateName = resourceFile.ResourceHintName + i;
+                                var candidateName = resourceHintName + i;
                                 if (names.Add(candidateName))
                                 {
-                                    remappedNames ??= new Dictionary<ResourceInformation, string>();
-                                    remappedNames.Add(resourceFile, candidateName);
+                                    remappedNames = remappedNames.Add(resourceName, candidateName);
                                     break;
                                 }
                             }
                         }
                     }
 
-                    if (remappedNames is null)
+                    return remappedNames;
+                })
+                .WithComparer(ImmutableDictionaryEqualityComparer<string, string>.Instance);
+            var resourceFilesToGenerateSourceWithNames = resourceFilesToGenerateSource.Combine(renameMapping).Select(
+                static (resourceFileAndRenameMapping, cancellationToken) =>
+                {
+                    var (resourceFile, renameMapping) = resourceFileAndRenameMapping;
+                    if (renameMapping.TryGetValue(resourceFile.ResourceName, out var newHintName))
                     {
-                        // None of the files needed to be renamed
-                        return resourceFiles;
+                        return resourceFile with { ResourceHintName = newHintName };
                     }
 
-                    var builder = resourceFiles.ToBuilder();
-                    for (int i = 0; i < builder.Count; i++)
-                    {
-                        if (remappedNames.TryGetValue(builder[i], out var name))
-                            builder[i] = builder[i] with { ResourceHintName = name };
-                    }
-
-                    return builder.MoveToImmutable();
+                    return resourceFile;
                 });
 
             context.RegisterSourceOutput(
@@ -245,6 +248,43 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             bool AsConstants,
             bool IncludeDefaultValues,
             bool EmitFormatMethods);
+
+        private sealed class ImmutableDictionaryEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, TValue>?>
+            where TKey : notnull
+        {
+            public static readonly ImmutableDictionaryEqualityComparer<TKey, TValue> Instance = new();
+
+            public bool Equals(ImmutableDictionary<TKey, TValue>? x, ImmutableDictionary<TKey, TValue>? y)
+            {
+                if (ReferenceEquals(x, y))
+                    return true;
+
+                if (x is null || y is null)
+                    return false;
+
+                if (!Equals(x.KeyComparer, y.KeyComparer))
+                    return false;
+
+                if (!Equals(x.ValueComparer, y.ValueComparer))
+                    return false;
+
+                foreach (var (key, value) in x)
+                {
+                    if (!y.TryGetValue(key, out var other)
+                        || !x.ValueComparer.Equals(value, other))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(ImmutableDictionary<TKey, TValue>? obj)
+            {
+                return obj?.Count ?? 0;
+            }
+        }
 
         private sealed class Impl
         {
