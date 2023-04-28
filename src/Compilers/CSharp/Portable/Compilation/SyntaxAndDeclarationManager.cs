@@ -166,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddSyntaxTreeToDeclarationMapAndTable(
-                tree, scriptClassName, isSubmission, declMapBuilder, ref declTable,
-                lastComputedTopLevelTypeMemberNames: ImmutableSegmentedHashSet<string>.Empty);
+                tree, scriptClassName, isSubmission, declMapBuilder, lastComputedTopLevelTypeMemberNames: ImmutableSegmentedHashSet<string>.Empty, ref declTable);
 
             treesBuilder.Add(tree);
             ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
