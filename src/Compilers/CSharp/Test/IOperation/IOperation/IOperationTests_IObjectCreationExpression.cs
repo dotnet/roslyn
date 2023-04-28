@@ -15413,8 +15413,10 @@ Block[B5] - Exit
                                           IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Boolean, NarrowedType: System.Boolean)
                                         Value:
                                           ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
-                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
-                            Children(0)
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'new()')
+                            Children(1):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
                 """;
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
         }
