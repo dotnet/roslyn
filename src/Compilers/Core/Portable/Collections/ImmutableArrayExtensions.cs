@@ -860,27 +860,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var item in items)
             {
                 var key = keySelector(item);
-                if (accumulator.TryGetValue(key, out var existingValueOrArray))
-                {
-                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
-                    {
-                        // Already a builder in the accumulator, just add to that.
-                        arrayBuilder.Add(item);
-                    }
-                    else
-                    {
-                        // Just a single value in the accumulator so far.  Convert to using a builder.
-                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
-                        arrayBuilder.Add((T)existingValueOrArray);
-                        arrayBuilder.Add(item);
-                        accumulator[key] = arrayBuilder;
-                    }
-                }
-                else
-                {
-                    // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, item);
-                }
+                AddToMultiValueDictionaryBuilder(accumulator, key, item);
             }
 
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
@@ -894,6 +874,138 @@ namespace Microsoft.CodeAnalysis
             }
 
             accumulator.Free();
+
+            return dictionary;
+        }
+
+        internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
+            where K : notnull
+            where T : notnull
+        {
+            if (accumulator.TryGetValue(key, out var existingValueOrArray))
+            {
+                if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
+                {
+                    // Already a builder in the accumulator, just add to that.
+                }
+                else
+                {
+                    // Just a single value in the accumulator so far.  Convert to using a builder.
+                    arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                    arrayBuilder.Add((T)existingValueOrArray);
+                    accumulator[key] = arrayBuilder;
+                }
+
+                arrayBuilder.Add(item);
+            }
+            else
+            {
+                // Nothing in the dictionary so far.  Add the item directly.
+                accumulator.Add(key, item);
+            }
+        }
+
+        internal static void CreateNameToMembersMap
+            <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
+            (Dictionary<string, object> dictionary, Dictionary<String, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
+        {
+            foreach (var kvp in dictionary)
+            {
+                object value = kvp.Value;
+                ImmutableArray<TNamespaceOrTypeSymbol> members;
+
+                var builder = value as ArrayBuilder<TNamespaceOrTypeSymbol>;
+                if (builder != null)
+                {
+                    Debug.Assert(builder.Count > 1);
+                    bool hasNamespaces = false;
+                    for (int i = 0; i < builder.Count; i++)
+                    {
+                        if (builder[i] is TNamespaceSymbol)
+                        {
+                            hasNamespaces = true;
+                            break;
+                        }
+                    }
+
+                    members = hasNamespaces
+                        ? builder.ToImmutable()
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
+
+                    builder.Free();
+                }
+                else
+                {
+                    TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
+                    members = symbol is TNamespaceSymbol
+                        ? ImmutableArray.Create<TNamespaceOrTypeSymbol>(symbol)
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
+                }
+
+                result.Add(kvp.Key, members);
+            }
+        }
+
+        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap
+            <TNamespaceOrTypeSymbol, TNamedTypeSymbol
+#if DEBUG
+             , TNamespaceSymbol
+#endif
+            >
+            (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+#if DEBUG
+            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
+#endif
+        {
+            var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
+
+            foreach (var kvp in map)
+            {
+                ImmutableArray<TNamespaceOrTypeSymbol> members = kvp.Value;
+
+                bool hasType = false;
+                bool hasNamespace = false;
+
+                foreach (var symbol in members)
+                {
+                    if (symbol is TNamedTypeSymbol)
+                    {
+                        hasType = true;
+                        if (hasNamespace)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+#if DEBUG
+                        Debug.Assert(symbol is TNamespaceSymbol);
+#endif
+                        hasNamespace = true;
+                        if (hasType)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (hasType)
+                {
+                    if (hasNamespace)
+                    {
+                        dictionary.Add(kvp.Key, members.OfType<TNamedTypeSymbol>().AsImmutable());
+                    }
+                    else
+                    {
+                        dictionary.Add(kvp.Key, members.As<TNamedTypeSymbol>());
+                    }
+                }
+            }
 
             return dictionary;
         }

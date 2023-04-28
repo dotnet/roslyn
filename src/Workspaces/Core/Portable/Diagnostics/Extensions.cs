@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (documentAnalysisScope.TextDocument is Document document)
                     {
                         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
