@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         {
             foreach (var child in root.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.IsNode && ShouldAnalyze(context, child))
                 {
                     var node = child.AsNode();
                     if (node is MemberDeclarationSyntax memberDeclaration)

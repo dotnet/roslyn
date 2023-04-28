@@ -37,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
                 member As StatementSyntax)
 
+            If context.FilterSpan.HasValue AndAlso Not member.Span.IntersectsWith(context.FilterSpan.GetValueOrDefault) Then
+                Return
+            End If
+
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
                 ProcessMembers(context, [option], namespaceBlock.Members)

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -105,10 +106,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
             var compilationOptions = ((CSharpCompilationOptions)context.SemanticModel.Compilation.Options).NullableContextOptions;
 
-            DirectiveTriviaSyntax? previousRetainedDirective = null;
+            NullableDirectiveTriviaSyntax? previousRetainedDirective = null;
             NullableContextOptions? retainedOptions = compilationOptions;
 
-            DirectiveTriviaSyntax? currentOptionsDirective = null;
+            NullableDirectiveTriviaSyntax? currentOptionsDirective = null;
             var currentOptions = retainedOptions;
 
             for (var directive = root.GetFirstDirective(); directive is not null; directive = directive.GetNextDirective())
@@ -288,6 +289,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
             public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
+                if (context.FilterSpan.HasValue)
+                {
+                    // Bail out if the analysis filter span does not have any nullable directives.
+                    var root = context.SemanticModel.SyntaxTree.GetRoot(context.CancellationToken);
+                    var node = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
+                    if (!node.DescendantNodesAndSelf(descendIntoTrivia: true).Any(node => node is NullableDirectiveTriviaSyntax))
+                        return;
+                }
+
                 // Get the state information for the syntax tree. If the state information is not available, it is
                 // initialized directly to a completed state, ensuring that concurrent (or future) calls to
                 // AnalyzeCodeBlock will always read completed==true, and intervalTree does not need to be initialized

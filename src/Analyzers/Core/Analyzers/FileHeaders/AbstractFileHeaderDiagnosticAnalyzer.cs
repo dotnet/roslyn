@@ -56,6 +56,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
+
+            if (context.FilterSpan.HasValue
+                && !fileHeader.GetLocation(tree).SourceSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+            {
+                return;
+            }
+
             if (fileHeader.IsMissing)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_missingHeaderDescriptor, fileHeader.GetLocation(tree)));

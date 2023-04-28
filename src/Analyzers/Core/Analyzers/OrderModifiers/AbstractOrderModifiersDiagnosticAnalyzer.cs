@@ -47,8 +47,13 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             }
 
             var root = context.Tree.GetRoot(context.CancellationToken);
+            if (context.FilterSpan.HasValue)
+                root = root.FindNode(context.FilterSpan.GetValueOrDefault());
             Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
+
+        protected static bool ShouldAnalyze(SyntaxTreeAnalysisContext context, SyntaxNodeOrToken nodeOrToken)
+            => !context.FilterSpan.HasValue || nodeOrToken.Span.IntersectsWith(context.FilterSpan.GetValueOrDefault());
 
         protected abstract void Recurse(
             SyntaxTreeAnalysisContext context,

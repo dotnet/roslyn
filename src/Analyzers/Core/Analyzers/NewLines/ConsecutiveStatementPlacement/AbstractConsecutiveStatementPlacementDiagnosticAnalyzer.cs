@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             var cancellationToken = context.CancellationToken;
             var root = context.Tree.GetRoot(cancellationToken);
-
+            if (context.FilterSpan.HasValue)
+                root = root.FindNode(context.FilterSpan.GetValueOrDefault());
             Recurse(context, option.Notification.Severity, root, cancellationToken);
         }
 
@@ -58,6 +59,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (context.FilterSpan.HasValue && !child.FullSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!, cancellationToken);
             }

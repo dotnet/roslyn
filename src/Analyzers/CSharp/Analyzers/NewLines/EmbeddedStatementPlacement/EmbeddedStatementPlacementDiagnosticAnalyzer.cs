@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             if (option.Value)
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            var root = context.Tree.GetRoot(context.CancellationToken);
+            if (context.FilterSpan.HasValue)
+                root = root.FindNode(context.FilterSpan.GetValueOrDefault());
+            Recurse(context, option.Notification.Severity, root);
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
@@ -59,6 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (context.FilterSpan.HasValue && !child.Span.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!);
             }

@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var root = syntaxTree.GetRoot(cancellationToken);
+            if (context.FilterSpan.HasValue)
+                root = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
             Analyze(context, detector, root, cancellationToken);
         }
 
@@ -63,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (context.FilterSpan.HasValue && !child.FullSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                    continue;
+
                 if (child.IsNode)
                 {
                     Analyze(context, detector, child.AsNode()!, cancellationToken);
