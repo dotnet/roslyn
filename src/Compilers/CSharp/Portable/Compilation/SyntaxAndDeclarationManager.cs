@@ -484,9 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = loadDirectiveMap.ToBuilder();
             var loadedSyntaxTreeMapBuilder = loadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
+            var lastComputedMemberNamesMap = state.LastComputedTopLevelTypeMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
-            var lastComputedMemberNamesMap = state.LastComputedTopLevelTypeMemberNames.ToBuilder();
             var lastComputedMemberNames = tryGetLastComputedMemberNames();
 
             foreach (var tree in removeSet)
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, ref declTable, lastComputedMemberNames);
+                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, lastComputedMemberNames, ref declTable);
 
                 if (newLoadDirectivesSyntax.Any())
                 {
@@ -568,10 +568,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ordinalMap = ordinalMap.Remove(oldTree);
                 ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
-            }
 
-            lastComputedMemberNamesMap.Remove(oldTree);
-            lastComputedMemberNamesMap.Add(newTree, lastComputedMemberNames);
+                lastComputedMemberNamesMap.Remove(oldTree);
+                lastComputedMemberNamesMap.Add(newTree, lastComputedMemberNames);
+            }
 
             state = new State(
                 newTrees,
