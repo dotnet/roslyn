@@ -1648,6 +1648,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Visit(node.Operand);
+
+                if (node.Conversion.IsInlineArray &&
+                    node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
+                {
+                    // exposing ref is a potential write
+                    // PROTOTYPE(InlineArrays): Revisit. This is likely to mark the entire buffer assigned, which we don't really want.
+                    //                          What we really want is to suppress "never written to" warning.
+                    WriteArgument(node.Operand, RefKind.Ref, method: null);
+                }
             }
 
             return null;

@@ -7307,10 +7307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked)
+        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked, bool? fromExpression = null)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
+            bool useExpression = fromExpression ?? (sourceType is null || UseExpressionForConversion(sourceExpression));
             if (extensionMethodThisArgument)
             {
                 return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
@@ -8251,6 +8251,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitEnumeration:
                     // Can reach here, with an error type.
+                    break;
+
+                case ConversionKind.InlineArray:
+                    if (checkConversion)
+                    {
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false, fromExpression: true);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
                     break;
 
                 default:

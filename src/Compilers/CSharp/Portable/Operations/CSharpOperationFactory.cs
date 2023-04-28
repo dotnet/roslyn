@@ -1013,6 +1013,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode || forceOperandImplicitLiteral;
             BoundExpression boundOperand = boundConversion.Operand;
 
+            // PROTOTYPE(InlineArrays):
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
             {
                 Debug.Assert(!forceOperandImplicitLiteral);
