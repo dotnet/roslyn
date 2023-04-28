@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis
 
             return dictionary;
 
-            ImmutableArray<TNamedTypeSymbol> getOrCreateNamedTypes(ImmutableArray<TNamespaceOrTypeSymbol> members)
+            static ImmutableArray<TNamedTypeSymbol> getOrCreateNamedTypes(ImmutableArray<TNamespaceOrTypeSymbol> members)
             {
                 // See if creator 'map' put a downcasted ImmutableArray<TNamedTypeSymbol> in it.  If so, we can just directly
                 // downcast to that and trivially reuse it.  If not, that means the array must have contained at least one
