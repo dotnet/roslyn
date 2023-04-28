@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -120,9 +121,51 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             EmitFormatMethods: emitFormatMethods)
                     };
                 });
+            var resourceFilesToGenerateSourceWithNames = resourceFilesToGenerateSource.Collect().SelectMany(
+                static (resourceFiles, cancellationToken) =>
+                {
+                    var names = new HashSet<string>();
+                    Dictionary<ResourceInformation, string>? remappedNames = null;
+                    foreach (var resourceFile in resourceFiles.OrderBy(x => x.ResourceName, StringComparer.Ordinal))
+                    {
+                        for (var i = -1; true; i++)
+                        {
+                            if (i == -1)
+                            {
+                                if (names.Add(resourceFile.ResourceHintName))
+                                    break;
+                            }
+                            else
+                            {
+                                var candidateName = resourceFile.ResourceHintName + i;
+                                if (names.Add(candidateName))
+                                {
+                                    remappedNames ??= new Dictionary<ResourceInformation, string>();
+                                    remappedNames.Add(resourceFile, candidateName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (remappedNames is null)
+                    {
+                        // None of the files needed to be renamed
+                        return resourceFiles;
+                    }
+
+                    var builder = resourceFiles.ToBuilder();
+                    for (int i = 0; i < builder.Count; i++)
+                    {
+                        if (remappedNames.TryGetValue(builder[i], out var name))
+                            builder[i] = builder[i] with { ResourceHintName = name };
+                    }
+
+                    return builder.MoveToImmutable();
+                });
 
             context.RegisterSourceOutput(
-                resourceFilesToGenerateSource,
+                resourceFilesToGenerateSourceWithNames,
                 static (context, resourceInformation) =>
                 {
                     try
@@ -138,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                         var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
                         var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
-                        context.AddSource($"{Path.GetFileName(resourceInformation.ResourceFile.Path)}.Error", errorText);
+                        context.AddSource($"{resourceInformation.ResourceHintName}.Error", errorText);
                     }
                 });
         }
