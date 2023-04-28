@@ -281,9 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree tree,
             string scriptClassName,
             bool isSubmission,
-            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ref DeclarationTable declTable,
-            ImmutableSegmentedHashSet<string> lastComputedTopLevelTypeMemberNames)
+            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,,
+            ImmutableSegmentedHashSet<string> lastComputedTopLevelTypeMemberNames
+            ref DeclarationTable declTable)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedTopLevelTypeMemberNames));
             declMapBuilder.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
