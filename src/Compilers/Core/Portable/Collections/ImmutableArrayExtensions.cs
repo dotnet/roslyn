@@ -957,7 +957,11 @@ namespace Microsoft.CodeAnalysis
             var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
             foreach (var (name, members) in map)
-                dictionary.Add(name, getOrCreateNamedTypes(members));
+            {
+                var namedTypes = getOrCreateNamedTypes(members);
+                if (namedTypes.Length > 0)
+                    dictionary.Add(name, namedTypes);
+            }
 
             return dictionary;
 
@@ -973,6 +977,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Preallocate the right amount so we can avoid garbage reallocs.
                 var count = members.Count(static s => s is TNamedTypeSymbol);
+                if (count == 0)
+                    return ImmutableArray<TNamedTypeSymbol>.Empty;
+
                 var builder = ArrayBuilder<TNamedTypeSymbol>.GetInstance(count);
                 foreach (var member in members)
                 {
@@ -980,7 +987,9 @@ namespace Microsoft.CodeAnalysis
                         builder.Add(namedType);
                 }
 
-                Debug.Assert(builder.Count == count);
+                // Must have less items than in the original array.  Otherwise, the .As<TNamedTypeSymbol>() cast would
+                // have succeeded.
+                Debug.Assert(builder.Count < count);
                 return builder.ToImmutableAndFree();
             }
         }
