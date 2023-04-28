@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatementSpanProvider activeStatementSpanProvider = null)
         {
             var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
-            return (result.ModuleUpdates, result.GetDiagnosticData(solution));
+            return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
         }
 
         internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
@@ -2717,7 +2717,7 @@ class G
             Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
             ValidateDelta(updates.Updates.Single());
 
-            void ValidateDelta(ModuleUpdate delta)
+            void ValidateDelta(ManagedHotReloadUpdate delta)
             {
                 // check emitted delta:
                 Assert.Empty(delta.ActiveStatements);
@@ -2733,10 +2733,10 @@ class G
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
+            var newBaseline = pendingUpdate.ProjectBaselines.Single();
             AssertEx.Equal(updates.Updates, pendingUpdate.Deltas);
-            Assert.Equal(document2.Project.Id, baselineProjectId);
-            Assert.Equal(moduleId, newBaseline.OriginalMetadata.GetModuleVersionId());
+            Assert.Equal(document2.Project.Id, newBaseline.ProjectId);
+            Assert.Equal(moduleId, newBaseline.EmitBaseline.OriginalMetadata.GetModuleVersionId());
 
             var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
@@ -2759,7 +2759,7 @@ class G
                 Assert.Same(readers[1], baselineReaders[1]);
 
                 // verify that baseline is added:
-                Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+                Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
 
                 // solution update status after committing an update:
                 (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2868,15 +2868,15 @@ class G
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
+            var newBaseline = pendingUpdate.ProjectBaselines.Single();
 
             var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
             Assert.NotNull(readers[0]);
             Assert.NotNull(readers[1]);
 
-            Assert.Equal(document2.Project.Id, baselineProjectId);
-            Assert.Equal(moduleId, newBaseline.OriginalMetadata.GetModuleVersionId());
+            Assert.Equal(document2.Project.Id, newBaseline.ProjectId);
+            Assert.Equal(moduleId, newBaseline.EmitBaseline.OriginalMetadata.GetModuleVersionId());
 
             if (commitUpdate)
             {
@@ -2887,7 +2887,7 @@ class G
                 Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 // verify that baseline is added:
-                Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+                Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
 
                 // solution update status after committing an update:
                 ExitBreakState(debuggingSession);
@@ -3375,8 +3375,8 @@ class C { int Y => 1; }
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (_, newBaselineA1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
-            var (_, newBaselineB1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
+            var newBaselineA1 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectA.Id).EmitBaseline;
+            var newBaselineB1 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectB.Id).EmitBaseline;
 
             var baselineA0 = newBaselineA1.GetInitialEmitBaseline();
             var baselineB0 = newBaselineB1.GetInitialEmitBaseline();
@@ -3423,8 +3423,8 @@ class C { int Y => 1; }
 
             // the update should be stored on the service:
             pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (_, newBaselineA2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
-            var (_, newBaselineB2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
+            var newBaselineA2 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectA.Id).EmitBaseline;
+            var newBaselineB2 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectB.Id).EmitBaseline;
 
             Assert.NotSame(newBaselineA1, newBaselineA2);
             Assert.NotSame(newBaselineB1, newBaselineB2);
