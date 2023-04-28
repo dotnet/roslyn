@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!membersAndInitializers.HaveIndexers)
                 {
-                    membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(s => s.Name);
+                    membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name);
                 }
                 else
                 {
@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // IndexerNameAttribute).
                     membersByName = membersAndInitializers.NonTypeMembers.
                         WhereAsArray(s => !s.IsIndexer() && (!s.IsAccessor() || ((MethodSymbol)s).AssociatedSymbol?.IsIndexer() != true)).
-                        ToDictionary(s => s.Name);
+                        ToDictionary(static s => s.Name);
                 }
 
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
@@ -2721,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+                membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name);
 
                 // Merge types into the member dictionary
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());

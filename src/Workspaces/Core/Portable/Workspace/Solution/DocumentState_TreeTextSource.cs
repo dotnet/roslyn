@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private sealed class TreeTextSource : ITextAndVersionSource, ITextVersionable
+        private sealed class TreeTextSource : ITextAndVersionSource
         {
             private readonly ValueSource<SourceText> _textSource;
             private readonly VersionStamp _version;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
+            public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
             {
                 version = _version;
                 return version != default;

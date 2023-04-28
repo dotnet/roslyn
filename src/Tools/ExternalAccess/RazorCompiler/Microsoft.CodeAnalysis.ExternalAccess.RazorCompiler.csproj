@@ -5,6 +5,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
 
+    <!-- Used by Razor source generator which is included in source build. -->
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</PackageId>
