@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> LoadDirectiveMap;
             internal readonly ImmutableDictionary<string, SyntaxTree> LoadedSyntaxTreeMap;
             internal readonly ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> RootNamespaces;
-            internal readonly DeclarationTable DeclarationTable;
+            internal readonly DeclarationTableInput DeclarationTableInput;
 
             internal State(
                 ImmutableArray<SyntaxTree> syntaxTrees,
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,
                 ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap,
                 ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces,
-                DeclarationTable declarationTable)
+                DeclarationTableInput declarationTableInput)
             {
                 Debug.Assert(syntaxTrees.All(tree => syntaxTrees[syntaxTreeOrdinalMap[tree]] == tree));
                 Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer<SyntaxTree>.Default));
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LoadDirectiveMap = loadDirectiveMap;
                 this.LoadedSyntaxTreeMap = loadedSyntaxTreeMap;
                 this.RootNamespaces = rootNamespaces;
-                this.DeclarationTable = declarationTable;
+                this.DeclarationTableInput = declarationTableInput;
             }
         }
     }

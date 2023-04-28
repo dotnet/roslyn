@@ -2615,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _syntaxAndDeclarations.GetLazyState().DeclarationTable;
+                return _syntaxAndDeclarations.GetLazyState().DeclarationTableInput.GetDeclarationTable();
             }
         }
 
