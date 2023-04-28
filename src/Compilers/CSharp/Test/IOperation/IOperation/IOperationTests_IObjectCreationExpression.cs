@@ -15379,6 +15379,8 @@ Block[B5] - Exit
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "new()").WithLocation(1, 76)
             };
 
+            var comp = CreateCompilation(source);
+
             string expectedOperationTree = """
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')
                   Arguments(0)
@@ -15418,7 +15420,112 @@ Block[B5] - Exit
                                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
                                   Children(0)
                 """;
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            string expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [C c]
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (3)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                              Value:
+                                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F1 = 1')
+                              Left:
+                                IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                                  Instance Receiver:
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{asdf}"')
+                              Parts(1):
+                                  IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{asdf}')
+                                    Expression:
+                                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'asdf')
+                                        Children(0)
+                                    Alignment:
+                                      null
+                                    FormatString:
+                                      null
+                        Next (Regular) Block[B2]
+                            Entering: {R2} {R3}
+                    .locals {R2}
+                    {
+                        CaptureIds: [1]
+                        .locals {R3}
+                        {
+                            CaptureIds: [2]
+                            Block[B2] - Block
+                                Predecessors: [B1]
+                                Statements (1)
+                                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'true')
+                                      Value:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+                                Jump if False (Regular) to Block[B4]
+                                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => false')
+                                      Value:
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Boolean, Constant: True, IsInvalid, IsImplicit) (Syntax: 'true')
+                                      Pattern:
+                                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                                    Leaving: {R3}
+                                Next (Regular) Block[B3]
+                            Block[B3] - Block
+                                Predecessors: [B2]
+                                Statements (1)
+                                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'false')
+                                      Value:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
+                                Next (Regular) Block[B5]
+                                    Leaving: {R3}
+                        }
+                        Block[B4] - Block
+                            Predecessors: [B2]
+                            Statements (0)
+                            Next (Throw) Block[null]
+                                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                        Block[B5] - Block
+                            Predecessors: [B3]
+                            Statements (1)
+                                IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                                  Children(1):
+                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                            Next (Regular) Block[B6]
+                                Leaving: {R2}
+                    }
+                    Block[B6] - Block
+                        Predecessors: [B5]
+                        Statements (2)
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'new()')
+                              Children(1):
+                                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                    Children(0)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'c = /*<bind ...  }, new() }')
+                              Left:
+                                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c = /*<bind ...  }, new() }')
+                              Right:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                        Next (Regular) Block[B7]
+                            Leaving: {R1}
+                }
+                Block[B7] - Exit
+                    Predecessors: [B6]
+                    Statements (0)
+                """;
+
+            VerifyFlowGraph(comp, comp.SyntaxTrees[0].GetRoot(), expectedFlowGraph);
         }
     }
 }
