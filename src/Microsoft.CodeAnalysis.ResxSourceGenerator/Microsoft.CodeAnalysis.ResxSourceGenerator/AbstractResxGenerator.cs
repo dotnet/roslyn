@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         rootNamespace = compilationInfo.AssemblyName;
                     }
 
-                    var resourceName = Path.GetFileNameWithoutExtension(resourceFile.Path);
+                    var resourceHintName = Path.GetFileNameWithoutExtension(resourceFile.Path);
+                    var resourceName = resourceHintName;
                     if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
                     {
                         resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             CompilationInformation: compilationInfo,
                             ResourceFile: resourceFile,
                             ResourceName: string.Join(".", rootNamespace, resourceName),
+                            ResourceHintName: resourceHintName,
                             ResourceClassName: null,
                             OmitGetResourceString: omitGetResourceString,
                             AsConstants: asConstants,
@@ -184,6 +186,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         /// <param name="CompilationInformation">Information about the compilation.</param>
         /// <param name="ResourceFile">Resources (resx) file.</param>
         /// <param name="ResourceName">Name of the embedded resources to generate accessor class for.</param>
+        /// <param name="ResourceHintName">Unique identifying name for the generated resource file within the compilation. This will be the same as the last segment of <paramref name="ResourceName"/> (after the final <c>.</c>) except in the case of duplicates.</param>
         /// <param name="ResourceClassName">Optionally, a <c>namespace.type</c> name for the generated Resources accessor class. Defaults to <see cref="ResourceName"/> if unspecified.</param>
         /// <param name="OmitGetResourceString">If set to <see langword="true"/>, the <c>GetResourceString</c> method is not included in the generated class and must be specified in a separate source file.</param>
         /// <param name="AsConstants">If set to <see langword="true"/>, emits constant key strings instead of properties that retrieve values.</param>
@@ -193,6 +196,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             CompilationInformation CompilationInformation,
             AdditionalText ResourceFile,
             string ResourceName,
+            string ResourceHintName,
             string? ResourceClassName,
             bool OmitGetResourceString,
             bool AsConstants,
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     _ => "cs",
                 };
 
-                OutputTextHintName = ResourceInformation.ResourceName + $".Designer.{extension}";
+                OutputTextHintName = ResourceInformation.ResourceHintName + $".Designer.{extension}";
 
                 if (string.IsNullOrEmpty(ResourceInformation.ResourceName))
                 {
