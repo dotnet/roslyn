@@ -941,18 +941,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol
-#if DEBUG
-             , TNamespaceSymbol
-#endif
-            >
+        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TNamespaceOrTypeSymbol, TNamedTypeSymbol>
             (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
-#if DEBUG
-            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
-#endif
         {
             var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
