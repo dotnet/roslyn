@@ -969,6 +969,11 @@ namespace Microsoft.CodeAnalysis
 
                 // Preallocate the right amount so we can avoid garbage reallocs.
                 var count = members.Count(static s => s is TNamedTypeSymbol);
+
+                // Must have less items than in the original array.  Otherwise, the .As<TNamedTypeSymbol>() cast would
+                // have succeeded.
+                Debug.Assert(count < members.Length);
+
                 if (count == 0)
                     return ImmutableArray<TNamedTypeSymbol>.Empty;
 
@@ -979,9 +984,7 @@ namespace Microsoft.CodeAnalysis
                         builder.Add(namedType);
                 }
 
-                // Must have less items than in the original array.  Otherwise, the .As<TNamedTypeSymbol>() cast would
-                // have succeeded.
-                Debug.Assert(builder.Count < count);
+                Debug.Assert(builder.Count == count);
                 return builder.ToImmutableAndFree();
             }
         }
