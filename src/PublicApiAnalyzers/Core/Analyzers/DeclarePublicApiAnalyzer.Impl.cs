@@ -20,15 +20,46 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     public partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
+        private sealed record AdditionalFileInfo(SourceText SourceText, bool IsShippedApi)
+        {
+            public string? TryGetPath(ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellationToken)
+            {
+                foreach (var additionalText in additionalFiles)
+                {
+                    var publicFile = new PublicApiFile(additionalText.Path, isPublic: true);
+                    var internalFile = new PublicApiFile(additionalText.Path, isPublic: false);
+                    if (publicFile.IsApiFile || internalFile.IsApiFile)
+                    {
+                        var sourceText = additionalText.GetText(cancellationToken);
+                        if (SourceText == sourceText)
+                            return additionalText.Path;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
         {
             public bool IsDefault => FileInfo == null;
 
             public SourceText SourceText => FileInfo.SourceText;
-            public string Path => FileInfo.Path;
             public bool IsShippedApi => FileInfo.IsShippedApi;
+
+            public string? TryGetPath(ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellationToken)
+                => FileInfo.TryGetPath(additionalFiles, cancellationToken);
+
+            public Location GetLocationOrNone(ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellationToken)
+            {
+                if (TryGetPath(additionalFiles, cancellationToken) is { } path)
+                {
+                    LinePositionSpan linePositionSpan = SourceText.Lines.GetLinePositionSpan(Span);
+                    return Location.Create(path, Span, linePositionSpan);
+                }
+
+                return Location.None;
+            }
         }
 
         private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
@@ -85,7 +116,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
                 var obsoleteAttribute = symbolContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
-                OnSymbolActionCore(symbolContext.Symbol, symbolContext.ReportDiagnostic, obsoleteAttribute, symbolContext.CancellationToken);
+                OnSymbolActionCore(symbolContext.Options.AdditionalFiles, symbolContext.Symbol, symbolContext.ReportDiagnostic, obsoleteAttribute, symbolContext.CancellationToken);
             }
 
             internal void OnPropertyAction(SymbolAnalysisContext symbolContext)
@@ -127,14 +158,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 var obsoleteAttribute = symbolContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
-                this.OnSymbolActionCore(accessor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, symbolContext.CancellationToken);
+                this.OnSymbolActionCore(symbolContext.Options.AdditionalFiles, accessor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, symbolContext.CancellationToken);
             }
 
             /// <param name="symbol">The symbol to analyze. Will also analyze implicit constructors too.</param>
             /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
+            private void OnSymbolActionCore(ImmutableArray<AdditionalText> additionalFiles, ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
             {
                 if (!IsTrackedAPI(symbol, cancellationToken))
                 {
@@ -142,7 +173,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 Debug.Assert(!symbol.IsImplicitlyDeclared);
-                OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                OnSymbolActionCore(additionalFiles, symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
                 if (symbol.Kind == SymbolKind.NamedType)
@@ -154,7 +185,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
                         if (implicitConstructor != null)
                         {
-                            OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                            OnSymbolActionCore(additionalFiles, implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
                         }
                     }
                 }
@@ -170,7 +201,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <param name="isImplicitlyDeclaredConstructor">If the symbol is an implicitly declared constructor.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
+            private void OnSymbolActionCore(ImmutableArray<AdditionalText> additionalFiles, ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
             {
                 Debug.Assert(IsTrackedAPI(symbol, cancellationToken));
 
@@ -223,12 +254,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                         else
                         {
-                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.TryGetPath(additionalFiles, cancellationToken));
                         }
                     }
                     else if (hasApiEntryWithNullability && symbolUsesOblivious)
                     {
-                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.TryGetPath(additionalFiles, cancellationToken));
                     }
                 }
                 else
@@ -366,7 +397,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     reportDiagnosticAtLocations(GetDiagnostic(DeclareNewPublicApiRule, DeclareNewInternalApiRule), propertyBag, publicApiName);
                 }
 
-                void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped, string filename)
+                void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped, string? filename)
                 {
                     // Public API missing annotations in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
@@ -374,8 +405,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         .Add(ApiNamePropertyBagKey, publicApiName.Name)
                         .Add(ApiNameWithNullabilityPropertyBagKey, withObliviousIfNeeded(publicApiName.NameWithNullability))
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
-                        .Add(ApiIsShippedPropertyBagKey, isShipped ? "true" : "false")
-                        .Add(FileName, filename);
+                        .Add(ApiIsShippedPropertyBagKey, isShipped ? "true" : "false");
+
+                    if (filename is not null)
+                        propertyBag = propertyBag.Add(FileName, filename);
 
                     reportDiagnosticAtLocations(GetDiagnostic(AnnotatePublicApiRule, AnnotateInternalApiRule), propertyBag, publicApiName.NameWithNullability);
                 }
@@ -610,12 +643,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             internal void OnCompilationEnd(CompilationAnalysisContext context)
             {
-                ProcessTypeForwardedAttributes(context.Compilation, context.ReportDiagnostic, context.CancellationToken);
-                ReportDeletedApiList(context.ReportDiagnostic);
-                ReportMarkedAsRemovedButNotActuallyRemovedApiList(context.ReportDiagnostic);
+                ProcessTypeForwardedAttributes(context.Options.AdditionalFiles, context.Compilation, context.ReportDiagnostic, context.CancellationToken);
+                ReportDeletedApiList(context.Options.AdditionalFiles, context.ReportDiagnostic, context.CancellationToken);
+                ReportMarkedAsRemovedButNotActuallyRemovedApiList(context.Options.AdditionalFiles, context.ReportDiagnostic, context.CancellationToken);
             }
 
-            private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+            private void ProcessTypeForwardedAttributes(ImmutableArray<AdditionalText> additionalFiles, Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
                 var typeForwardedToAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesTypeForwardedToAttribute);
 
@@ -634,29 +667,29 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 forwardedType = forwardedType.ConstructedFrom;
                             }
 
-                            VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
+                            VisitForwardedTypeRecursively(additionalFiles, forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                         }
                     }
                 }
             }
 
-            private void VisitForwardedTypeRecursively(ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, Location typeForwardedAttributeLocation, CancellationToken cancellationToken)
+            private void VisitForwardedTypeRecursively(ImmutableArray<AdditionalText> additionalFiles, ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, Location typeForwardedAttributeLocation, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                OnSymbolActionCore(symbol, reportDiagnostic, obsoleteAttribute, cancellationToken, typeForwardedAttributeLocation);
+                OnSymbolActionCore(additionalFiles, symbol, reportDiagnostic, obsoleteAttribute, cancellationToken, typeForwardedAttributeLocation);
 
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     foreach (var nestedType in namedTypeSymbol.GetTypeMembers())
                     {
-                        VisitForwardedTypeRecursively(nestedType, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
+                        VisitForwardedTypeRecursively(additionalFiles, nestedType, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
                     }
 
                     foreach (var member in namedTypeSymbol.GetMembers())
                     {
                         if (!(member.IsImplicitlyDeclared && member.IsDefaultConstructor()))
                         {
-                            VisitForwardedTypeRecursively(member, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
+                            VisitForwardedTypeRecursively(additionalFiles, member, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
                         }
                     }
                 }
@@ -665,7 +698,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <summary>
             /// Report diagnostics to the set of APIs which have been deleted but not yet documented.
             /// </summary>
-            internal void ReportDeletedApiList(Action<Diagnostic> reportDiagnostic)
+            internal void ReportDeletedApiList(ImmutableArray<AdditionalText> additionalFiles, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
                 foreach (KeyValuePair<string, ApiLine> pair in _apiMap)
                 {
@@ -679,7 +712,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         continue;
                     }
 
-                    Location location = GetLocationFromApiLine(pair.Value);
+                    Location location = pair.Value.GetLocationOrNone(additionalFiles, cancellationToken);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(ApiNamePropertyBagKey, pair.Value.Text);
                     reportDiagnostic(Diagnostic.Create(GetDiagnostic(RemoveDeletedPublicApiRule, RemoveDeletedInternalApiRule), location, propertyBag, pair.Value.Text));
                 }
@@ -688,22 +721,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <summary>
             /// Report diagnostics to the set of APIs which have been marked with *REMOVED* but still exists in source code.
             /// </summary>
-            internal void ReportMarkedAsRemovedButNotActuallyRemovedApiList(Action<Diagnostic> reportDiagnostic)
+            internal void ReportMarkedAsRemovedButNotActuallyRemovedApiList(ImmutableArray<AdditionalText> additionalFiles, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
                 foreach (var markedAsRemoved in _unshippedData.RemovedApiList)
                 {
                     if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
                     {
-                        Location location = GetLocationFromApiLine(markedAsRemoved.ApiLine);
+                        Location location = markedAsRemoved.ApiLine.GetLocationOrNone(additionalFiles, cancellationToken);
                         reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
                     }
                 }
-            }
-
-            private static Location GetLocationFromApiLine(ApiLine apiLine)
-            {
-                LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
-                return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)
