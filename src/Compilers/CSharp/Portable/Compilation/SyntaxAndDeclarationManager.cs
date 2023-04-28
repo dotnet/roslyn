@@ -281,8 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree tree,
             string scriptClassName,
             bool isSubmission,
-            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,,
-            ImmutableSegmentedHashSet<string> lastComputedTopLevelTypeMemberNames
+            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
+            ImmutableSegmentedHashSet<string> lastComputedTopLevelTypeMemberNames,
             ref DeclarationTable declTable)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedTopLevelTypeMemberNames));
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMap,
                 loadedSyntaxTreeMap,
                 declMapBuilder.ToImmutableDictionary(),
-                lastComputedMemberNamesMap.ToImmutable(),
+                lastComputedMemberNamesMap.ToImmutableDictionary(),
                 declTable);
 
             return new SyntaxAndDeclarationManager(
