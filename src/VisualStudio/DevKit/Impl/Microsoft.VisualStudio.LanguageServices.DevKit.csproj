@@ -10,6 +10,17 @@
       .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\Workspace\Mef\MefConstruction.cs" Link="Utilities\MefConstruction.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Can only reference Microsoft.CodeAnalysis.Contracts namespace -->
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Aliases>DoNotUse</Aliases>
+    </ProjectReference>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />

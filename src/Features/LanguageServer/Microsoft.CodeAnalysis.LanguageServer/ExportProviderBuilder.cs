@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
@@ -13,22 +14,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync()
+    private const string AddonsAssemblyFileName = "Microsoft.CodeAnalysis.LanguageServer.Internal.dll";
+
+    public static async Task<ExportProvider> CreateExportProviderAsync(string? addonsDirectory)
     {
         var baseDirectory = AppContext.BaseDirectory;
 
         var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
 
         // Load any Roslyn assemblies from the extension directory
-        var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
-        assembliesToDiscover = assembliesToDiscover.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+        var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
+        assemblyPaths = assemblyPaths.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
 
         // Temporarily explicitly load the dlls we want to add to the MEF composition.  This is due to a runtime bug
         // in the 7.0.4 runtime where the APIs MEF uses to load assemblies break with R2R assemblies.
         // See https://github.com/dotnet/runtime/issues/83526
         //
         // Once a newer version of the runtime is widely available, we can remove this.
-        foreach (var path in assembliesToDiscover)
+        foreach (var path in assemblyPaths)
         {
             Assembly.LoadFrom(path);
         }
@@ -38,10 +41,25 @@ internal sealed class ExportProviderBuilder
             new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(resolver));
 
+        var assemblies = new List<Assembly>()
+        {
+            typeof(ExportProviderBuilder).Assembly
+        };
+
+        // Additional Roslyn services:
+        if (addonsDirectory != null)
+        {
+            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "CodeAnalysisAddons", addonsDirectory, logger: null);
+            if (loadContext != null)
+            {
+                assemblies.Add(loadContext.GetAssembly(AddonsAssemblyFileName));
+            }
+        }
+
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(resolver)
-            .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
-            .AddParts(await discovery.CreatePartsAsync(assembliesToDiscover))
+            .AddParts(await discovery.CreatePartsAsync(assemblies))
+            .AddParts(await discovery.CreatePartsAsync(assemblyPaths))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
         // Assemble the parts into a valid graph.

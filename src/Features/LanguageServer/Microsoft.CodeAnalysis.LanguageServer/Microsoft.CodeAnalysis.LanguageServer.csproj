@@ -66,7 +66,12 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
-        <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
+
+        <!--
+          Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,
+          because the versions of C# DevKit and C# Extension might not be aligned.
+        -->
+        <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.DevKit" Namespace="Microsoft.CodeAnalysis.Contracts" />
     </ItemGroup>
 
     <ItemGroup>

@@ -8,6 +8,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
@@ -23,7 +24,15 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
-static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName, LogLevel minimumLogLevel, string? starredCompletionPath, string? projectRazorJsonFileName, string? telemetryLevel, string? telemetryPath, CancellationToken cancellationToken)
+static async Task RunAsync(
+    bool launchDebugger,
+    string? brokeredServicePipeName,
+    LogLevel minimumLogLevel,
+    string? starredCompletionPath,
+    string? projectRazorJsonFileName,
+    string? telemetryLevel,
+    string? addonsDirectory,
+    CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
@@ -63,7 +72,7 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(addonsDirectory);
 
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
     exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
@@ -75,7 +84,8 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
     }
 
     // Initialize the fault handler if it's available
-    RoslynLogger.Initialize(telemetryLevel, telemetryPath);
+    var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+    RoslynLogger.Initialize(telemetryReporter, telemetryLevel);
 
     // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -162,9 +172,9 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
-    var telemetryPathOption = new Option<string?>("--telemetryComponentPath")
+    var addonsDirectoryOption = new Option<string?>("--telemetryComponentPath")
     {
-        Description = "The location of the telemetry component (if one exists).",
+        Description = "The directory containing additional Roslyn components (optional).",
         IsRequired = false
     };
 
@@ -186,9 +196,9 @@ static Parser CreateCommandLineParser()
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
-        var telemetryPath = context.ParseResult.GetValueForOption(telemetryPathOption);
+        var addonsDirectory = context.ParseResult.GetValueForOption(addonsDirectoryOption);
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, telemetryPath, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, addonsDirectory, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
