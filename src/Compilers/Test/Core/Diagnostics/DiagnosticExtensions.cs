@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources = null)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            var pdbStream = MonoHelpers.IsRunningOnMono() || options?.EmitMetadataOnly == true ? null : new MemoryStream();
             return c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics;
         }
 

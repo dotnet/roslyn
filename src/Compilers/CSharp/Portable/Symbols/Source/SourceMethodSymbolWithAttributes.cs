@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -988,9 +989,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-            // PROTOTYPE(ic): consider avoiding an array allocation here, on the assumption that 1 matching tree is the success (common) case, 0 is the most common error case, and 2 or more is much more rare.
-            var matchingTrees = syntaxTrees.WhereAsArray(static (tree, filePath) => tree.FilePath == filePath, filePath);
-            if (matchingTrees is [])
+            SyntaxTree? matchingTree = null;
+            // PROTOTYPE(ic): we need to resolve the paths before comparing (i.e. respect /pathmap).
+            // At that time, we should look at caching the resolved paths for the trees in a set (or maybe a Map<string, OneOrMany<SyntaxTree>>).
+            // so we can reduce the cost of these checks.
+            foreach (var tree in syntaxTrees)
+            {
+                if (tree.FilePath == filePath)
+                {
+                    if (matchingTree == null)
+                    {
+                        matchingTree = tree;
+                        // need to keep searching in case we find another tree with the same path
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
+                        return;
+                    }
+                }
+            }
+
+            if (matchingTree == null)
             {
                 var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
                 if (suffixMatch != null)
@@ -1002,12 +1022,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
                 }
 
-                return;
-            }
-
-            if (matchingTrees is not [var matchingTree])
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
                 return;
             }
 

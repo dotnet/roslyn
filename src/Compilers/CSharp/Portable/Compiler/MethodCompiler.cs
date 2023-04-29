@@ -120,10 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
-            // PROTOTYPE(ic):
-            // - Move check for duplicate interceptions in here.
-            // - Change lowering to throw on duplicates.
-            // - Test no duplicate error given when emitting a ref assembly.
+            hasDeclarationErrors |= compilation.CheckDuplicateInterceptions(diagnostics);
 
             if (compilation.PreviousSubmission != null)
             {

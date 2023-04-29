@@ -857,6 +857,11 @@
         <target state="new">Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="new">A nameof operator cannot be intercepted.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCharacterOutOfRange">
         <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
         <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>

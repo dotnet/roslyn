@@ -2288,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
 
-        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation, BindingDiagnosticBag diagnostics)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {
             if (_interceptions is null || callLocation is null)
             {
@@ -2306,10 +2306,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return oneInterception;
                 }
 
-                // We don't normally reach this branch in batch compilation, because we would have already reported an error after the declaration phase.
-                // One scenario where we may reach this is when validating used assemblies, which performs lowering of method bodies even if declaration errors would be reported.
-                // See 'CSharpCompilation.GetCompleteSetOfUsedAssemblies'.
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, callLocation, this.SourceModule.Name, new LocalizableResourceString(nameof(CSharpResources.ERR_DuplicateInterceptor), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
+                // Duplicate interceptors is an error in the declaration phase.
+                // This method is only expected to be called if no such errors are present.
+                throw ExceptionUtilities.Unreachable();
             }
 
             return null;
@@ -3274,8 +3273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
-            hasDeclarationErrors |= CheckDuplicateInterceptions(diagnostics);
-
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
@@ -3416,8 +3413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
         }
 
-        /// <returns><see langword="true"/> if duplicate interceptors are present in the compilation. Otherwise, <see langword="false" />.</returns>
-        private bool CheckDuplicateInterceptions(DiagnosticBag diagnostics)
+        /// <returns><see langword="true"/> if duplicate interceptions are present in the compilation. Otherwise, <see langword="false" />.</returns>
+        internal bool CheckDuplicateInterceptions(BindingDiagnosticBag diagnostics)
         {
             if (_interceptions is null)
             {
