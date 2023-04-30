@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.IsExtension)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodInExtension, location);
+                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodInExtension, _location);
                 }
                 else if (!parameter0Type.Type.IsValidExtensionParameterType())
                 {

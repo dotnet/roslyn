@@ -170,16 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
-<<<<<<< HEAD
                 nameLocation: location,
-                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
-||||||| cbcd873ce25
-                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
-                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
-=======
-                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableSegmentedHashSet<string>.Empty,
->>>>>>> dotnet/main
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,
                 quickAttributes: QuickAttributes.None);

@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (isExplicit != oneExplicit)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialDifferentExtensionModifiers, Locations.FirstOrNone(), this);
+                    diagnostics.Add(ErrorCode.ERR_PartialDifferentExtensionModifiers, GetFirstLocationOrNone(), this);
                 }
 
                 var partUnderlyingType = one.UnderlyingType;
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (shouldReportUnderlyingTypeConflict)
                         {
-                            var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleUnderlyingTypes, Locations.FirstOrNone(), this);
+                            var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleUnderlyingTypes, GetFirstLocationOrNone(), this);
                             underlyingType = new ExtendedErrorTypeSymbol(underlyingType, LookupResultKind.Ambiguous, info);
                             underlyingTypeLocation = declaration.NameLocation;
                             reportedUnderlyingTypeConflict = true;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!sawUnderlyingType)
             {
-                diagnostics.Add(ErrorCode.ERR_ExtensionMissingUnderlyingType, Locations.FirstOrNone(), this);
+                diagnostics.Add(ErrorCode.ERR_ExtensionMissingUnderlyingType, GetFirstLocationOrNone(), this);
             }
             else if (underlyingType is not null)
             {
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             baseExtensionLocations.Free();
 
-            diagnostics.Add(Locations.FirstOrNone(), useSiteInfo);
+            diagnostics.Add(GetFirstLocationOrNone(), useSiteInfo);
 
             return new ExtensionInfo(underlyingType, baseExtensions);
         }
