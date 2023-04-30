@@ -83,7 +83,7 @@ internal sealed class RazorWorkspaceListenerInitializer
         }
 
         _logger.LogTrace("{projectId} queuing up a dynamic file notify for later", projectId);
-        // We haven't been initialized by the extension yet, so just queue up the project for later
+        // We haven't been initialized by the extension yet, so just store the project id, to tell Razor later
         ImmutableInterlocked.Update(ref _projectIdWithDynamicFiles, (col, arg) => col.Add(arg), projectId);
     }
 }
