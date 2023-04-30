@@ -3720,6 +3720,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return escape;
 
+                case BoundKind.DynamicObjectCreationExpression:
+                    var dynamicObjectCreation = (BoundDynamicObjectCreationExpression)expr;
+
+                    escape = GetValEscape(dynamicObjectCreation.Arguments, scopeOfTheContainingExpression);
+
+                    if (dynamicObjectCreation.InitializerExpressionOpt != null)
+                    {
+                        escape = Math.Max(escape, GetValEscape(dynamicObjectCreation.InitializerExpressionOpt, scopeOfTheContainingExpression));
+                    }
+
+                    return GetValEscape(dynamicObjectCreation.Arguments, scopeOfTheContainingExpression);
+
                 case BoundKind.WithExpression:
                     var withExpression = (BoundWithExpression)expr;
 
@@ -4189,6 +4201,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return escape;
                     }
 
+                case BoundKind.DynamicObjectCreationExpression:
+                    {
+
+                        var dynamicObjectCreation = (BoundDynamicObjectCreationExpression)expr;
+                        var escape = CheckValEscape(dynamicObjectCreation.Arguments, escapeFrom, escapeTo, diagnostics);
+
+                        var initializerExpr = dynamicObjectCreation.InitializerExpressionOpt;
+                        if (dynamicObjectCreation.InitializerExpressionOpt != null)
+                        {
+                            escape = escape &&
+                                CheckValEscape(
+                                    initializerExpr.Syntax,
+                                    initializerExpr,
+                                    escapeFrom,
+                                    escapeTo,
+                                    checkingReceiver: false,
+                                    diagnostics: diagnostics);
+                        }
+
+                        return escape;
+                    }
+
                 case BoundKind.WithExpression:
                     {
                         var withExpr = (BoundWithExpression)expr;
@@ -4338,7 +4372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //                case BoundKind.StringInsert:
                     //                case BoundKind.DynamicIndexerAccess:
                     //                case BoundKind.Lambda:
-                    //                case BoundKind.DynamicObjectCreationExpression:
                     //                case BoundKind.NoPiaObjectCreationExpression:
                     //                case BoundKind.BaseReference:
                     //                case BoundKind.Literal:
