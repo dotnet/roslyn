@@ -1919,8 +1919,8 @@ namespace Microsoft.CodeAnalysis
                     if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(SymbolsStarted.Select(s => s.ToDisplayString())));
-                        var symbolsEndedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(symbolsEnded.Select(s => s.ToDisplayString())));
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString().Order()));
+                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString().Order()));
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
 
@@ -2268,7 +2268,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-            public string GetSortedSymbolCallbacksString() => string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(_symbolCallbacks.Select(s => s.Name)));
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
 
             public override void Initialize(AnalysisContext context)
             {
@@ -2881,6 +2881,41 @@ namespace Microsoft.CodeAnalysis
                         codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext => AnalyzedSyntaxNodesInsideCodeBlock.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement);
                         codeBlockStartContext.RegisterCodeBlockEndAction(codeBlockEndContext => AnalyzedCodeBlockEndSymbols.Add(codeBlockEndContext.OwningSymbol));
                     });
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FilterSpanTestAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+
+            private readonly bool _testSyntaxTreeAction;
+
+            public FilterSpanTestAnalyzer(bool testSyntaxTreeAction)
+            {
+                _testSyntaxTreeAction = testSyntaxTreeAction;
+            }
+
+            public TextSpan? CallbackFilterSpan { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_testSyntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(context => CallbackFilterSpan = context.FilterSpan);
+                }
+                else
+                {
+                    context.RegisterSemanticModelAction(context => CallbackFilterSpan = context.FilterSpan);
                 }
             }
         }

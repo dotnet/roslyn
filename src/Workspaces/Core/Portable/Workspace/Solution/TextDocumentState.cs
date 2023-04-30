@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
             // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
             // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
-            _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
         }
 
         public TextDocumentState(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)
@@ -79,21 +79,38 @@ namespace Microsoft.CodeAnalysis
 
         private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, LoadTextOptions loadTextOptions, SolutionServices services)
         {
+            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var options = service.Options;
+
+            if (options.DisableRecoverableText)
+                return CreateStrongText(text);
+
             var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
 
-            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
-            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
-            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
-            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
-            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
-            // hold its data from the start.
-            result.GetValue(loadTextOptions, CancellationToken.None);
+            if (!options.DeferCreatingRecoverableText)
+            {
+                // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
+                // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
+                // transitions to a weak reference backed by temporary storage after the first time GetValue (or
+                // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
+                // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
+                // hold its data from the start.
+                result.GetValue(loadTextOptions, CancellationToken.None);
+            }
 
             return result;
         }
 
         private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-            => new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
+        {
+            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var options = service.Options;
+
+            if (options.DisableRecoverableText)
+                return CreateStrongText(loader);
+
+            return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
+        }
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -113,24 +130,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool TryGetTextVersion(out VersionStamp version)
-        {
-            // try fast path first
-            if (this.TextAndVersionSource is ITextVersionable versionable)
-            {
-                return versionable.TryGetTextVersion(LoadTextOptions, out version);
-            }
-
-            if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
-            {
-                version = textAndVersion.Version;
-                return true;
-            }
-            else
-            {
-                version = default;
-                return false;
-            }
-        }
+            => TextAndVersionSource.TryGetVersion(LoadTextOptions, out version);
 
         public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(LoadTextOptions, out textAndVersion);

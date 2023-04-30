@@ -45,13 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
-            {
-                return SimplifyNode(
+                => SimplifyNode(
                     node,
                     newNode: base.VisitDefaultExpression(node),
-                    parentNode: node.Parent,
                     simplifier: _simplifyDefaultExpression);
-            }
         }
     }
 }

@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         internal static LinePositionSpan AddLineDelta(this LinePositionSpan span, int lineDelta)
             => new(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
@@ -130,5 +131,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static bool IsRazorDesignTimeOnlyDocument(string filePath)
             => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
                 filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
+
+        public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus)
+        {
+            var fileSpan = data.DataLocation.MappedFileSpan;
+
+            return new(
+                data.Id,
+                data.Message ?? FeaturesResources.Unknown_error_occurred,
+                updateStatus == ModuleUpdateStatus.RestartRequired ?
+                    ManagedHotReloadDiagnosticSeverity.RestartRequired :
+                    (data.Severity == DiagnosticSeverity.Error) ?
+                        ManagedHotReloadDiagnosticSeverity.Error :
+                        ManagedHotReloadDiagnosticSeverity.Warning,
+                fileSpan.Path ?? "",
+                fileSpan.Span.ToSourceSpan());
+        }
     }
 }

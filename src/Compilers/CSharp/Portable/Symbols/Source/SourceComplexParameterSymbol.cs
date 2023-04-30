@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax, defaultSyntax.EqualsToken.GetLocation());
+            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax.EqualsToken);
 
             binder = GetDefaultParameterValueBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
@@ -1394,21 +1394,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (data.HasOutAttribute && !data.HasInAttribute)
                         {
                             // error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
-                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.GetFirstLocation());
                         }
                         break;
                     case RefKind.Out:
                         if (data.HasInAttribute)
                         {
                             // error CS0036: An out parameter cannot have the In attribute.
-                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.GetFirstLocation());
                         }
                         break;
                     case RefKind.In:
                         if (data.HasOutAttribute)
                         {
                             // error CS8355: An in parameter cannot have the Out attribute.
-                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.GetFirstLocation());
                         }
                         break;
                 }

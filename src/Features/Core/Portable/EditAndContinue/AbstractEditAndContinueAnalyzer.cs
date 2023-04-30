@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static TraceLog Log
-            => EditAndContinueWorkspaceService.AnalysisLog;
+            => EditAndContinueService.AnalysisLog;
 
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
@@ -3267,10 +3267,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
 
                         // updating generic methods and types
-                        if (InGenericContext(oldSymbol, out var oldIsGenericMethod))
+                        if (InGenericContext(oldSymbol) && !capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod))
                         {
-                            var rudeEdit = oldIsGenericMethod ? RudeEditKind.GenericMethodTriviaUpdate : RudeEditKind.GenericTypeTriviaUpdate;
-                            diagnostics.Add(new RudeEditDiagnostic(rudeEdit, diagnosticSpan, newEditNode, new[] { GetDisplayName(newEditNode) }));
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, diagnosticSpan, newEditNode, new[] { GetDisplayName(newEditNode) }));
                             continue;
                         }
 
@@ -3707,16 +3706,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, GetDiagnosticSpan(newDeclaration, EditKind.Update)));
                 }
 
-                var newIsGenericMethod = false;
-                var oldInGenericLocalContext = false;
-                var newInGenericLocalContext = false;
-                if (InGenericContext(oldMember, out var oldIsGenericMethod) ||
-                    InGenericContext(newMember, out newIsGenericMethod) ||
-                    (oldInGenericLocalContext = InGenericLocalContext(oldBody, memberBodyMatch.OldRoot)) ||
-                    (newInGenericLocalContext = InGenericLocalContext(newBody, memberBodyMatch.NewRoot)))
+                if ((InGenericContext(oldMember) ||
+                     InGenericContext(newMember) ||
+                     InGenericLocalContext(oldBody, memberBodyMatch.OldRoot) ||
+                     InGenericLocalContext(newBody, memberBodyMatch.NewRoot)) &&
+                    !capabilities.Grant(EditAndContinueCapabilities.GenericAddFieldToExistingType))
                 {
-                    var rudeEdit = oldIsGenericMethod || newIsGenericMethod || oldInGenericLocalContext || newInGenericLocalContext ? RudeEditKind.GenericMethodUpdate : RudeEditKind.GenericTypeUpdate;
-                    diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newDeclaration, EditKind.Update), newDeclaration));
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, GetDiagnosticSpan(newDeclaration, EditKind.Update), newDeclaration, new[] { GetDisplayName(newDeclaration) }));
                 }
             }
         }
@@ -4016,13 +4012,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // updating within generic context
-            var oldIsGenericMethod = false;
-            var newIsGenericMethod = false;
             if (rudeEdit == RudeEditKind.None &&
                 oldSymbol is not INamedTypeSymbol and not ITypeParameterSymbol and not IParameterSymbol &&
-                (InGenericContext(oldSymbol, out oldIsGenericMethod) || InGenericContext(newSymbol, out newIsGenericMethod)))
+                (InGenericContext(oldSymbol) || InGenericContext(newSymbol)) &&
+                !capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod))
             {
-                rudeEdit = oldIsGenericMethod || newIsGenericMethod ? RudeEditKind.GenericMethodUpdate : RudeEditKind.GenericTypeUpdate;
+                rudeEdit = RudeEditKind.UpdatingGenericNotSupportedByRuntime;
             }
 
             if (rudeEdit != RudeEditKind.None)
@@ -4558,7 +4553,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private bool CanRenameOrChangeSignature(ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities, CancellationToken cancellationToken)
             => CanAddNewMemberToExistingType(newSymbol, capabilities, cancellationToken) &&
-               CanUpdateMemberBody(oldSymbol, newSymbol);
+               CanUpdateMemberBody(oldSymbol, newSymbol, capabilities);
 
         private bool CanAddNewMemberToExistingType(ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities, CancellationToken cancellationToken)
         {
@@ -4575,19 +4570,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Inserting a member into an existing generic type, or a generic method into a type is only allowed if the runtime supports it
-            if (newSymbol is not INamedTypeSymbol && InGenericContext(newSymbol, out _))
+            if (newSymbol is not INamedTypeSymbol && InGenericContext(newSymbol))
             {
-                return false;
+                requiredCapabilities |= newSymbol is IFieldSymbol ? EditAndContinueCapabilities.GenericAddFieldToExistingType : EditAndContinueCapabilities.GenericAddMethodToExistingType;
             }
 
             return capabilities.Grant(requiredCapabilities);
         }
 
-        private static bool CanUpdateMemberBody(ISymbol oldSymbol, ISymbol newSymbol)
+        private static bool CanUpdateMemberBody(ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities)
         {
-            if (InGenericContext(oldSymbol, out _) || InGenericContext(newSymbol, out _))
+            if (InGenericContext(oldSymbol) || InGenericContext(newSymbol))
             {
-                return false;
+                return capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod);
             }
 
             return true;
@@ -5247,9 +5242,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             oldStateMachineInfo,
                             newStateMachineInfo);
 
-                        if (IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda))
+                        if ((IsGenericLocalFunction(oldLambda) || IsGenericLocalFunction(newLambda)) &&
+                            !capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod))
                         {
-                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.GenericMethodUpdate, GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Update), newLambda, new[] { GetDisplayName(newLambda) }));
                         }
                     }
                 }
@@ -5466,7 +5462,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var containingTypeDeclaration = TryGetContainingTypeDeclaration(newMemberBody);
             var isInInterfaceDeclaration = containingTypeDeclaration != null && IsInterfaceDeclaration(containingTypeDeclaration);
-            var isNewMemberInGenericContext = InGenericContext(newMember, out _);
+            var isNewMemberInGenericContext = InGenericContext(newMember);
 
             var newHasLambdaBodies = newHasLambdasOrLocalFunctions;
             while (newHasLambdaBodies)
@@ -5526,7 +5522,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (isNewMemberInGenericContext || inGenericLocalContext)
                 {
-                    return false;
+                    requiredCapabilities |= EditAndContinueCapabilities.GenericAddMethodToExistingType;
                 }
 
                 // Static lambdas are cached in static fields, unless in generic local functions.
@@ -5540,6 +5536,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (isLambdaCachedInField)
                 {
                     requiredCapabilities |= EditAndContinueCapabilities.AddStaticFieldToExistingType;
+
+                    // If we are in a generic type or a member then the closure type is generic and we are adding a static field to a generic type.
+                    if (isNewMemberInGenericContext)
+                    {
+                        requiredCapabilities |= EditAndContinueCapabilities.GenericAddFieldToExistingType;
+                    }
                 }
 
                 // If the old verison of the method had any lambdas the nwe know a closure type exists and a new one isn't needed.
@@ -6184,6 +6186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                    x.Kind switch
                    {
                        TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
+                       TypedConstantKind.Type => TypesEquivalent(x.Value as ITypeSymbol, y.Value as ITypeSymbol, exact: false),
                        _ => object.Equals(x.Value, y.Value)
                    };
 
@@ -6206,7 +6209,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static bool IsGlobalMain(ISymbol symbol)
             => symbol is IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName };
 
-        private static bool InGenericContext(ISymbol symbol, out bool isGenericMethod)
+        private static bool InGenericContext(ISymbol symbol)
         {
             var current = symbol;
 
@@ -6214,20 +6217,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (current is IMethodSymbol { Arity: > 0 })
                 {
-                    isGenericMethod = true;
                     return true;
                 }
 
                 if (current is INamedTypeSymbol { Arity: > 0 })
                 {
-                    isGenericMethod = false;
                     return true;
                 }
 
                 current = current.ContainingSymbol;
                 if (current == null)
                 {
-                    isGenericMethod = false;
                     return false;
                 }
             }

@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
+            var clientCapability = context.GetRequiredClientCapabilities();
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
-
+                request, document, options, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
             return codeActions;
         }
     }

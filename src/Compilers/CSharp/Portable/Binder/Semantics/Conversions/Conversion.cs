@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // in uncommon cases an instance of this class is attached to the conversion.
         private class UncommonData
         {
+            public static readonly UncommonData NoApplicableOperators = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: UserDefinedConversionResult.NoApplicableOperators(ImmutableArray<UserDefinedConversionAnalysis>.Empty),
+                conversionMethod: null,
+                nestedConversions: default);
+
             public UncommonData(
                 bool isExtensionMethod,
                 bool isArrayIndex,
@@ -107,12 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
 
-            _uncommonData = new UncommonData(
-                isExtensionMethod: false,
-                isArrayIndex: false,
-                conversionResult: conversionResult,
-                conversionMethod: null,
-                nestedConversions: default);
+            _uncommonData = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators && conversionResult.Results.IsEmpty
+                ? UncommonData.NoApplicableOperators
+                : new UncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: false,
+                    conversionResult: conversionResult,
+                    conversionMethod: null,
+                    nestedConversions: default);
         }
 
         // For the method group, lambda and anonymous method conversions

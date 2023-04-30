@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +27,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
                 : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+        }
+
+        /// <summary>
+        /// Generate the Uri of a document by replace the name in file path using the document's name.
+        /// Used to generate the correct Uri when rename a document, because calling <seealso cref="Document.WithName(string)"/> doesn't update the file path.
+        /// </summary>
+        public static Uri GetUriForRenamedDocument(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfTrue(document is SourceGeneratedDocument);
+            var directoryName = Path.GetDirectoryName(document.FilePath);
+
+            Contract.ThrowIfNull(directoryName);
+            var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.GetUriFromFilePath(path);
         }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)

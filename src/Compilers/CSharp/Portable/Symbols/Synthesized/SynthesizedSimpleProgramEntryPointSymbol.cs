@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
         internal SynthesizedSimpleProgramEntryPointSymbol(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, ImmutableArray.Create(declaration.SyntaxReference.GetLocation()), isIterator: declaration.IsIterator)
+            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, declaration.SyntaxReference.GetLocation(), isIterator: declaration.IsIterator)
         {
             Debug.Assert(declaration.SyntaxReference.GetSyntax() is CompilationUnitSyntax);
             _declaration = declaration;

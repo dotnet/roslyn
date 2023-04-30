@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         protected PatternMatcher(
             bool includeMatchedSpans,
-            CultureInfo culture,
+            CultureInfo? culture,
             bool allowFuzzyMatching = false)
         {
             culture ??= CultureInfo.CurrentCulture;
@@ -74,21 +75,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public static PatternMatcher CreateContainerPatternMatcher(
             string[] patternParts,
             char[] containerSplitCharacters,
+            bool includeMatchedSpans = false,
             CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return new ContainerPatternMatcher(
-                patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
+                patternParts, containerSplitCharacters, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
+            bool includeMatchedSpans = false,
             CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
                 pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
-                s_dotCharacterArray, culture, allowFuzzyMatching);
+                s_dotCharacterArray, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public abstract bool AddMatches(string? candidate, ref TemporaryArray<PatternMatch> matches);
 
-        private bool SkipMatch(string? candidate)
+        private bool SkipMatch([NotNullWhen(false)] string? candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private static bool ContainsUpperCaseLetter(string pattern)
