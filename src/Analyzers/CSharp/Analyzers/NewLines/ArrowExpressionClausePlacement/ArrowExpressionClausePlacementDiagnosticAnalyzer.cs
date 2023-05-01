@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
             if (option.Value)
                 return;
 
-            var root = context.Tree.GetRoot(context.CancellationToken);
-            if (context.FilterSpan.HasValue)
-                root = root.FindNode(context.FilterSpan.GetValueOrDefault());
-            Recurse(context, option.Notification.Severity, root);
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (context.FilterSpan.HasValue && !child.Span.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                if (!context.IsInAnalysisSpan(child.Span))
                     continue;
 
                 if (child.IsNode)

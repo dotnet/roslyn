@@ -47,14 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 var defaultNullableContext = ((CSharpCompilation)context.Compilation).Options.NullableContextOptions;
                 context.RegisterSyntaxTreeAction(context =>
                 {
-                    var root = context.Tree.GetCompilationUnitRoot(context.CancellationToken);
-                    if (context.FilterSpan.HasValue)
-                    {
-                        // Bail out if the analysis filter span does not have any nullable directives.
-                        var node = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
-                        if (!node.DescendantNodesAndSelf(descendIntoTrivia: true).Any(node => node is NullableDirectiveTriviaSyntax))
-                            return;
-                    }
+                    var root = context.GetAnalysisRoot(findInTrivia: true);
+                    
+                    // Bail out if the root contains no nullable directives.
+                    if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+                        return;
 
                     var initialState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
                         ? NullableContextOptions.Disable

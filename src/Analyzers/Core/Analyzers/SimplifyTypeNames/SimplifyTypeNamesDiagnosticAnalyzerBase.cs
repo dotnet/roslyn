@@ -268,9 +268,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var root = context.SemanticModel.SyntaxTree.GetRoot(context.CancellationToken);
-                if (context.FilterSpan.HasValue)
-                    root = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
+                var root = context.GetAnalysisRoot(findInTrivia: true);
 
                 // Get the state information for the syntax tree. If the state information is not available, it is
                 // initialized directly to a completed state, ensuring that concurrent (or future) calls to

@@ -40,19 +40,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         public void Analyze(SemanticModelAnalysisContext context)
         {
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns;
-            if (!option)
+            if (!context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns)
                 return;
 
-            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
-            var root = syntaxTree.GetRoot(cancellationToken);
-            if (context.FilterSpan.HasValue)
-                root = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
-            Analyze(context, detector, root, cancellationToken);
+            var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
+            Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
         }
 
         private void Analyze(
@@ -65,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (context.FilterSpan.HasValue && !child.FullSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                if (!context.IsInAnalysisSpan(child.FullSpan))
                     continue;
 
                 if (child.IsNode)

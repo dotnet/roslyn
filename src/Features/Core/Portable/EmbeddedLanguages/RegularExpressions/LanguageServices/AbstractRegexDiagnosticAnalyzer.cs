@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         public void Analyze(SemanticModelAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
             var option = context.GetIdeAnalyzerOptions().ReportInvalidRegexPatterns;
@@ -50,9 +49,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // Use an actual stack object so that we don't blow the actual stack through recursion.
-            var root = syntaxTree.GetRoot(cancellationToken);
-            if (context.FilterSpan.HasValue)
-                root = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
+            var root = context.GetAnalysisRoot(findInTrivia: true);
             var stack = new Stack<SyntaxNode>();
             stack.Push(root);
 
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
-                    if (context.FilterSpan.HasValue && !child.FullSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                    if (!context.IsInAnalysisSpan(child.FullSpan))
                         continue;
 
                     if (child.IsNode)

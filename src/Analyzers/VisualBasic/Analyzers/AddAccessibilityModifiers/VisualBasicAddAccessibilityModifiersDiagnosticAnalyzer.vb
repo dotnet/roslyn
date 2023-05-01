@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
                 member As StatementSyntax)
 
-            If context.FilterSpan.HasValue AndAlso Not member.Span.IntersectsWith(context.FilterSpan.GetValueOrDefault) Then
+            If Not context.IsInAnalysisSpan(member.Span) Then
                 Return
             End If
 

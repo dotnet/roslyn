@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
@@ -28,8 +29,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             if (span.HasValue)
             {
                 // Bail out if there are no usings/imports in the filter span.
-                var root = model.SyntaxTree.GetRoot(cancellationToken);
-                var node = root.FindNode(span.GetValueOrDefault(), getInnermostNodeForTie: true);
+                var node = model.SyntaxTree.GetNodeForSpan(span, findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
                 if (node.FirstAncestorOrSelf<TSyntaxNode>() is null)
                     return ImmutableArray<TSyntaxNode>.Empty;
             }

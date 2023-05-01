@@ -46,10 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
-            var root = tree.GetRoot(cancellationToken);
+            var root = context.GetAnalysisRoot(findInTrivia: false);
             var text = tree.GetText(cancellationToken);
-            if (context.FilterSpan.HasValue)
-                root = root.FindNode(context.FilterSpan.GetValueOrDefault());
 
             stack.Add(root);
             while (stack.Count > 0)
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
-                    if (context.FilterSpan.HasValue && !child.FullSpan.IntersectsWith(context.FilterSpan.GetValueOrDefault()))
+                    if (!context.IsInAnalysisSpan(child.FullSpan))
                         continue;
 
                     if (child.IsNode)

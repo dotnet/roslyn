@@ -289,14 +289,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
             public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                if (context.FilterSpan.HasValue)
-                {
-                    // Bail out if the analysis filter span does not have any nullable directives.
-                    var root = context.SemanticModel.SyntaxTree.GetRoot(context.CancellationToken);
-                    var node = root.FindNode(context.FilterSpan.GetValueOrDefault(), findInsideTrivia: true, getInnermostNodeForTie: true);
-                    if (!node.DescendantNodesAndSelf(descendIntoTrivia: true).Any(node => node is NullableDirectiveTriviaSyntax))
-                        return;
-                }
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+
+                // Bail out if the root contains no nullable directives.
+                if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+                    return;
 
                 // Get the state information for the syntax tree. If the state information is not available, it is
                 // initialized directly to a completed state, ensuring that concurrent (or future) calls to
