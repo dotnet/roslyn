@@ -281,21 +281,20 @@ namespace Microsoft.CodeAnalysis.Testing
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await VerifySourceGeneratorAsync(Language, sourceGenerators, testState, ApplySourceGeneratorsAsync, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(Language, sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken);
         }
 
         private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
             string language,
             ImmutableArray<Type> sourceGenerators,
             SolutionState testState,
-            Func<ImmutableArray<Type>, Project, IVerifier, CancellationToken, Task<(Project project, ImmutableArray<Diagnostic> diagnostics)>> applySourceGenerators,
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
             var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
 
             ImmutableArray<Diagnostic> diagnostics;
-            (project, diagnostics) = await applySourceGenerators(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
+            (project, diagnostics) = await ApplySourceGeneratorsAsync(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying the source generator, compare the resulting string to the inputted one
             if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
