@@ -12,6 +12,9 @@ using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Xunit;
 using CSharpAnalyzerTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
     Microsoft.CodeAnalysis.Testing.TestAnalyzers.HighlightBracesAnalyzer>;
+using CSharpCompilerTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpSuppressorTest<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.Testing.DiagnosticSuppressorTests.NonNullableFieldSuppressor>;
 using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpSuppressorTest<
     Microsoft.CodeAnalysis.Testing.TestAnalyzers.HighlightBracesAnalyzer,
     Microsoft.CodeAnalysis.Testing.DiagnosticSuppressorTests.HighlightBracesSuppressor>;
@@ -49,6 +52,29 @@ namespace Microsoft.CodeAnalysis.Testing
                     ExpectedDiagnostics =
                     {
                         new DiagnosticResult(DiagnosticDescriptor).WithLocation(0).WithIsSuppressed(true),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(1090, "https://github.com/dotnet/roslyn-sdk/issues/1090")]
+        public async Task TestSuppressionOfCompilerDiagnostic()
+        {
+            await new CSharpCompilerTest
+            {
+                CompilerDiagnostics = CompilerDiagnostics.Warnings,
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"#nullable enable
+class Sample { string {|#0:_value|}; }",
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        DiagnosticResult.CompilerWarning("CS8618").WithLocation(0).WithIsSuppressed(true),
+                        DiagnosticResult.CompilerWarning("CS0169").WithLocation(0),
                     },
                 },
             }.RunAsync();
@@ -123,6 +149,23 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             internal static readonly SuppressionDescriptor Descriptor =
                 new SuppressionDescriptor("XBrace", DiagnosticDescriptor.Id, "justification");
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(Descriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        internal class NonNullableFieldSuppressor : DiagnosticSuppressor
+        {
+            internal static readonly SuppressionDescriptor Descriptor =
+                new SuppressionDescriptor("FieldIsAssigned", "CS8618", "justification");
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(Descriptor);
 

@@ -1005,10 +1005,15 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        private static bool IsCompilerDiagnosticId(string id)
+        {
+            return id.StartsWith("CS", StringComparison.Ordinal)
+                || id.StartsWith("BC", StringComparison.Ordinal);
+        }
+
         private static bool IsSubjectToExclusion(DiagnosticResult result, ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources)
         {
-            if (result.Id.StartsWith("CS", StringComparison.Ordinal)
-                || result.Id.StartsWith("BC", StringComparison.Ordinal))
+            if (IsCompilerDiagnosticId(result.Id))
             {
                 // This is a compiler diagnostic
                 return false;
@@ -1125,12 +1130,13 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var project in solution.Projects)
             {
                 var (compilation, generatorDiagnostics) = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, GetAnalyzerOptions(project), cancellationToken);
+                var analyzerOptions = GetAnalyzerOptions(project);
+                var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, analyzerOptions, cancellationToken);
 
                 ImmutableArray<Diagnostic> allDiagnostics;
                 if (AnalysisResultWrapper.WrappedType is not null)
                 {
-                    var compilationDiagnostics = compilation.GetDiagnostics(cancellationToken);
+                    var compilerReportedDiagnostics = await GetCompilerDiagnosticsAsync(this, compilation, analyzers, analyzerOptions, cancellationToken).ConfigureAwait(false);
                     var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                     foreach (var (analyzer, analyzerNonLocalDiagnostics) in analysisResult.CompilationDiagnostics)
                     {
@@ -1140,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
 
-                    allDiagnostics = compilationDiagnostics.AddRange(analysisResult.GetAllDiagnostics());
+                    allDiagnostics = compilerReportedDiagnostics.AddRange(analysisResult.GetAllDiagnostics());
                 }
                 else
                 {
@@ -1154,6 +1160,39 @@ namespace Microsoft.CodeAnalysis.Testing
             diagnostics.AddRange(additionalDiagnostics);
             var results = SortDistinctDiagnostics(diagnostics);
             return results;
+
+            static async Task<ImmutableArray<Diagnostic>> GetCompilerDiagnosticsAsync(AnalyzerTest<TVerifier> self, Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            {
+                if (!analyzers.Any(static analyzer => IsCompilerDiagnosticSuppressor(analyzer)))
+                {
+                    return compilation.GetDiagnostics(cancellationToken);
+                }
+
+                // Need to get the compiler diagnostics through a new CompilationWithAnalyzers instance to ensure
+                // suppressions are applied.
+                var compilerSuppressors = analyzers.Where(static analyzer => IsCompilerDiagnosticSuppressor(analyzer)).ToImmutableArray();
+                var compilationWithAnalyzers = self.CreateCompilationWithAnalyzers(compilation, compilerSuppressors, analyzerOptions, cancellationToken);
+                return await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+            }
+
+            static bool IsCompilerDiagnosticSuppressor(DiagnosticAnalyzer analyzer)
+            {
+                if (!DiagnosticSuppressorWrapper.IsInstance(analyzer))
+                {
+                    return false;
+                }
+
+                var wrapper = DiagnosticSuppressorWrapper.FromInstance(analyzer);
+                foreach (var descriptor in wrapper.SupportedSuppressions)
+                {
+                    if (IsCompilerDiagnosticId(descriptor.SuppressedDiagnosticId))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private protected static bool IsNonLocalDiagnostic(Diagnostic diagnostic)
