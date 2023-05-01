@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (!context.IsInAnalysisSpan(child.Span))
+                if (!context.ShouldAnalyzeSpan(child.Span))
                     continue;
 
                 if (child.IsNode)

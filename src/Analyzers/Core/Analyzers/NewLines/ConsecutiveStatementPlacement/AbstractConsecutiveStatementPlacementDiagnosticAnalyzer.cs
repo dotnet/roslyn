@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (!context.IsInAnalysisSpan(child.FullSpan))
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
                     continue;
 
                 if (child.IsNode)

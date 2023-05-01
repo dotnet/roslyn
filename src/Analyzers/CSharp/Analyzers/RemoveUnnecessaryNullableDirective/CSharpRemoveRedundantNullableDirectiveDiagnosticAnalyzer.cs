@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 context.RegisterSyntaxTreeAction(context =>
                 {
                     var root = context.GetAnalysisRoot(findInTrivia: true);
-                    
+
                     // Bail out if the root contains no nullable directives.
                     if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
                         return;

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (!context.IsInAnalysisSpan(child.FullSpan))
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
                     continue;
 
                 if (child.IsNode)

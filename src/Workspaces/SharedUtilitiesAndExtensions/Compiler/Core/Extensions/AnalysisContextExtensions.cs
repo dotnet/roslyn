@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SyntaxTreeAnalysisContext.FilterSpan"/>.
         /// </summary>
-        public static bool IsInAnalysisSpan(this SyntaxTreeAnalysisContext context, TextSpan span)
+        public static bool ShouldAnalyzeSpan(this SyntaxTreeAnalysisContext context, TextSpan span)
             => !context.FilterSpan.HasValue || span.IntersectsWith(context.FilterSpan.Value);
 
         /// <summary>
@@ -27,19 +27,19 @@ namespace Microsoft.CodeAnalysis
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SemanticModelAnalysisContext.FilterSpan"/>.
         /// </summary>
-        public static bool IsInAnalysisSpan(this SemanticModelAnalysisContext context, TextSpan span)
+        public static bool ShouldAnalyzeSpan(this SemanticModelAnalysisContext context, TextSpan span)
             => !context.FilterSpan.HasValue || span.IntersectsWith(context.FilterSpan.Value);
 
         /// <summary>
         /// Gets the root node in the analysis span for the given <paramref name="context"/>.
         /// </summary>
-        public static SyntaxNode GetAnalysisRoot(this SyntaxTreeAnalysisContext context, bool findInTrivia)
-            => context.Tree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie: false, context.CancellationToken);
+        public static SyntaxNode GetAnalysisRoot(this SyntaxTreeAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => context.Tree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie, context.CancellationToken);
 
         /// <summary>
         /// Gets the root node in the analysis span for the given <paramref name="context"/>.
         /// </summary>
-        public static SyntaxNode GetAnalysisRoot(this SemanticModelAnalysisContext context, bool findInTrivia)
-            => context.SemanticModel.SyntaxTree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie: false, context.CancellationToken);
+        public static SyntaxNode GetAnalysisRoot(this SemanticModelAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => context.SemanticModel.SyntaxTree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie, context.CancellationToken);
     }
 }

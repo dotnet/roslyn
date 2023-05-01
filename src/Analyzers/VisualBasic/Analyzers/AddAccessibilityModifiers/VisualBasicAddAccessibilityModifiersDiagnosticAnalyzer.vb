@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
                 member As StatementSyntax)
 
-            If Not context.IsInAnalysisSpan(member.Span) Then
+            If Not context.ShouldAnalyzeSpan(member.Span) Then
                 Return
             End If
 

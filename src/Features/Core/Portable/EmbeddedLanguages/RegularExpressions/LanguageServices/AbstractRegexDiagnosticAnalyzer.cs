@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
-                    if (!context.IsInAnalysisSpan(child.FullSpan))
+                    if (!context.ShouldAnalyzeSpan(child.FullSpan))
                         continue;
 
                     if (child.IsNode)

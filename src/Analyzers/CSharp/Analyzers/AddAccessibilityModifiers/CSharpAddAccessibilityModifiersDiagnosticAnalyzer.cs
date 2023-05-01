@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             SyntaxTreeAnalysisContext context,
             CodeStyleOption2<AccessibilityModifiersRequired> option, MemberDeclarationSyntax member)
         {
-            if (!context.IsInAnalysisSpan(member.Span))
+            if (!context.ShouldAnalyzeSpan(member.Span))
                 return;
 
             if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)

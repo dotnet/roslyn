@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
-                    if (!context.IsInAnalysisSpan(child.FullSpan))
+                    if (!context.ShouldAnalyzeSpan(child.FullSpan))
                         continue;
 
                     if (child.IsNode)

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
 
-            if (!context.IsInAnalysisSpan(fileHeader.GetLocation(tree).SourceSpan))
+            if (!context.ShouldAnalyzeSpan(fileHeader.GetLocation(tree).SourceSpan))
             {
                 return;
             }
