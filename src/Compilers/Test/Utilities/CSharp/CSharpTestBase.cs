@@ -1758,7 +1758,7 @@ namespace System.Diagnostics.CodeAnalysis
 
                 try
                 {
-                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, new BindingDiagnosticBag(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, BindingDiagnosticBagFactory.New(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
                 }
                 finally
                 {

@@ -893,17 +893,17 @@ internal static class Extensions
 
     public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
     {
-        return binder.BindCref(syntax, out ambiguityWinner, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        return binder.BindCref(syntax, out ambiguityWinner, Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBagFactory.New(diagnostics));
     }
 
     public static BoundBlock BindEmbeddedBlock(this Microsoft.CodeAnalysis.CSharp.Binder binder, BlockSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindEmbeddedBlock(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        return binder.BindEmbeddedBlock(node, Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBagFactory.New(diagnostics));
     }
 
     public static BoundExpression BindExpression(this Microsoft.CodeAnalysis.CSharp.Binder binder, ExpressionSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindExpression(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        return binder.BindExpression(node, Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBagFactory.New(diagnostics));
     }
 
     public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
