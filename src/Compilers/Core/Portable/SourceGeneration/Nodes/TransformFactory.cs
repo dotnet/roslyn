@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<(IIncrementalGeneratorNode node, object? comparer), IIncrementalGeneratorNode> _withComparer = new();
         private readonly Dictionary<(IIncrementalGeneratorNode, string?), IIncrementalGeneratorNode> _withTrackingName = new();
         private readonly Dictionary<object, object> _wrappedUserObjects = new();
+        private readonly Dictionary<Delegate, Delegate> _wrappedUserFunctionsAsImmutableArray = new();
 
         public T WithContext<T>(
             T node,
@@ -89,6 +91,16 @@ namespace Microsoft.CodeAnalysis
             var wrappedUserFunctionT = userFunction.WrapUserFunction();
             _wrappedUserObjects.Add(userFunction, wrappedUserFunctionT);
             return wrappedUserFunctionT;
+        }
+
+        internal Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
+        {
+            if (_wrappedUserFunctionsAsImmutableArray.TryGetValue(userFunction, out var wrappedUserFunctionAsImmutableArray))
+                return (Func<TInput, CancellationToken, ImmutableArray<TOutput>>)wrappedUserFunctionAsImmutableArray;
+
+            var wrappedUserFunctionAsImmutableArrayT = userFunction.WrapUserFunctionAsImmutableArray();
+            _wrappedUserFunctionsAsImmutableArray.Add(userFunction, wrappedUserFunctionAsImmutableArrayT);
+            return wrappedUserFunctionAsImmutableArrayT;
         }
     }
 }

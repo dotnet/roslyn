@@ -32,7 +32,11 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
         }
 
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunctionAsImmutableArray()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
+        {
+            var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory?.WrapUserFunctionAsImmutableArray(selector) ?? selector.WrapUserFunctionAsImmutableArray();
+            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray));
+        }
 
         public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
         {
@@ -40,7 +44,11 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
         }
 
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunctionAsImmutableArray()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
+        {
+            var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory?.WrapUserFunctionAsImmutableArray(selector) ?? selector.WrapUserFunctionAsImmutableArray();
+            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray));
+        }
 
         public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source) => new IncrementalValueProvider<ImmutableArray<TSource>>(new BatchNode<TSource>(source.Node));
 
