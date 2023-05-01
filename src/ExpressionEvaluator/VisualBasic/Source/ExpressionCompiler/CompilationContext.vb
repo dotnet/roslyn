@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function BindExpression(binder As Binder, syntax As ExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
-            Dim bindingDiagnostics = New BindingDiagnosticBag(diagnostics)
+            Dim bindingDiagnostics = BindingDiagnosticBagFactory.NewBag(diagnostics)
             Dim expression = binder.BindExpression(syntax, bindingDiagnostics)
 
             Dim flags = DkmClrCompilationResultFlags.None
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function IsAssignableExpression(binder As Binder, expression As BoundExpression) As Boolean
-            Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+            Dim diagnostics = BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance())
             Dim value = binder.ReclassifyAsValue(expression, diagnostics)
             Dim result = False
             If Binder.IsValidAssignmentTarget(value) AndAlso Not diagnostics.HasAnyErrors() Then
@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BindStatement(binder As Binder, syntax As StatementSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
             resultProperties = New ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            Return binder.BindStatement(syntax, New BindingDiagnosticBag(diagnostics)).MakeCompilerGenerated()
+            Return binder.BindStatement(syntax, BindingDiagnosticBagFactory.NewBag(diagnostics)).MakeCompilerGenerated()
         End Function
 
         Private Shared Function CreateBinderChain(

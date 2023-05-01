@@ -7,6 +7,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <ImportedNamespaces>Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler=True</ImportedNamespaces>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -31,6 +32,9 @@
       <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="BindingDiagnosticBag = Microsoft.CodeAnalysis.BindingDiagnosticBag(Of Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
