@@ -3721,16 +3721,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return escape;
 
                 case BoundKind.DynamicObjectCreationExpression:
-                    var dynamicObjectCreation = (BoundDynamicObjectCreationExpression)expr;
-
-                    escape = GetValEscape(dynamicObjectCreation.Arguments, scopeOfTheContainingExpression);
-
-                    if (dynamicObjectCreation.InitializerExpressionOpt != null)
-                    {
-                        escape = Math.Max(escape, GetValEscape(dynamicObjectCreation.InitializerExpressionOpt, scopeOfTheContainingExpression));
-                    }
-
-                    return escape;
+                    // always returnable
+                    return CallingMethodScope;
 
                 case BoundKind.WithExpression:
                     var withExpression = (BoundWithExpression)expr;
@@ -4202,26 +4194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.DynamicObjectCreationExpression:
-                    {
-
-                        var dynamicObjectCreation = (BoundDynamicObjectCreationExpression)expr;
-                        var escape = CheckValEscape(dynamicObjectCreation.Arguments, escapeFrom, escapeTo, diagnostics);
-
-                        var initializerExpr = dynamicObjectCreation.InitializerExpressionOpt;
-                        if (dynamicObjectCreation.InitializerExpressionOpt != null)
-                        {
-                            escape = escape &&
-                                CheckValEscape(
-                                    initializerExpr.Syntax,
-                                    initializerExpr,
-                                    escapeFrom,
-                                    escapeTo,
-                                    checkingReceiver: false,
-                                    diagnostics: diagnostics);
-                        }
-
-                        return escape;
-                    }
+                    // always returnable
+                    return true;
 
                 case BoundKind.WithExpression:
                     {
