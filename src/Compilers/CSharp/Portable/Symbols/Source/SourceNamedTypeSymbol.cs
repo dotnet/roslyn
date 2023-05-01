@@ -1209,7 +1209,7 @@ next:;
         }
 
         // Process the specified AttributeUsage attribute on the given ownerSymbol
-        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag diagnosticsOpt = null)
+        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag? diagnosticsOpt = null)
         {
             Debug.Assert(diagnose == (diagnosticsOpt != null));
             Debug.Assert(!attribute.HasErrors);

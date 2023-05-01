@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             where T : WellKnownAttributeData, ISecurityAttributeTarget, new()
         {
             Debug.Assert(!this.HasErrors);
-            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
+            // Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             bool hasErrors;
             DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, (BindingDiagnosticBag)arguments.Diagnostics);

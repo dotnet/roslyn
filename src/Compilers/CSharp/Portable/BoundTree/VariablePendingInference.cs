@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (inferenceFailed)
                         {
-                            ReportInferenceFailure(diagnosticsOpt);
+                            ReportInferenceFailure(diagnosticsOpt.Value);
                         }
                         else
                         {
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 
-                            Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+                            Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt.Value, typeOrDesignationSyntax);
 
                             if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrRefLikeType())
                             {
-                                diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
+                                diagnosticsOpt.Value.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
                                                    (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);
                             }
                         }

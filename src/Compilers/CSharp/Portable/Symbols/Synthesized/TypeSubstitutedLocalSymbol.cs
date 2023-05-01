@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override ScopedKind Scope => throw new System.NotImplementedException();
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }

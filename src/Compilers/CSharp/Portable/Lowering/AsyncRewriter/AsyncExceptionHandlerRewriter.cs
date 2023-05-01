@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             var analysis = new AwaitInFinallyAnalysis(statement);
             if (!analysis.ContainsAwaitInHandlers())

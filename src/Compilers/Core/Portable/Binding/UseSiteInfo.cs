@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _discardLevel = DiscardLevel.DiagnosticsAndDependencies;
             }
-            else if (!futureDestination.AccumulatesDependencies)
+            else if (!futureDestination.Value.AccumulatesDependencies)
             {
                 _discardLevel = DiscardLevel.Dependencies;
             }

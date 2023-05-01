@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DiagnosticsPass(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert((object)containingSymbol != null);
 
             _compilation = compilation;

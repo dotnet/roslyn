@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected MethodToClassRewriter(VariableSlotAllocator? slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
             this.CompilationState = compilationState;

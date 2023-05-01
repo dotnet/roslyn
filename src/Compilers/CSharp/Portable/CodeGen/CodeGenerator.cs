@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(boundBody != null);
             Debug.Assert(builder != null);
             Debug.Assert(moduleBuilder != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
             _method = method;

@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
-            SeparatedSyntaxList<ArgumentSyntax> arguments, BindingDiagnosticBag diagnostics)
+            SeparatedSyntaxList<ArgumentSyntax> arguments, BindingDiagnosticBag? diagnostics)
         {
             bool hasErrors = false;
             int numElements = arguments.Count;
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     name = nameSyntax.Identifier.ValueText;
 
-                    if (diagnostics != null && !CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
+                    if (diagnostics != null && !CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics.Value, uniqueFieldNames))
                     {
                         hasErrors = true;
                     }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (diagnosticsOpt?.DiagnosticBag != null)
             {
-                Binder.Error(diagnosticsOpt, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
+                Binder.Error(diagnosticsOpt.Value, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
             }
             return this.Update(NullableAnnotation.Oblivious, this.IsInferred, binder.CreateErrorType("var"));
         }

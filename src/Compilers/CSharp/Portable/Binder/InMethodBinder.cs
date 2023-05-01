@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, Location errorLocation, BindingDiagnosticBag diagnostics)
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, BindingDiagnosticBag? diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSite(objectType, diagnostics, errorLocation);
+                            ReportUseSite(objectType, diagnostics.Value, errorLocation);
                         }
                         return TypeWithAnnotations.Create(objectType);
 

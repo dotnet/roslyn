@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (current.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == current));
 #endif
 
-                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType.RefKeyword);
+                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics.Value, refType.RefKeyword);
 
                     if (refType.ReadOnlyKeyword != default)
-                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, refType.ReadOnlyKeyword);
+                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics.Value, refType.ReadOnlyKeyword);
                 }
 
                 return refType.Type;

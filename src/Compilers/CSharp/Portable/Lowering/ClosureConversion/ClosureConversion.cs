@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)thisType != null);
             RoslynDebug.Assert(method != null);
             RoslynDebug.Assert(compilationState != null);
-            RoslynDebug.Assert(diagnostics != null);
+            // RoslynDebug.Assert(diagnostics != null);
 
             _topLevelMethod = method;
             _substitutedSourceMethod = substitutedSourceMethod;

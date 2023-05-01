@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if ((object?)mergedType == null && diagnostics is object)
                         {
                             // (variables) on the left and null on the right
-                            Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
+                            Error(diagnostics.Value, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
                         }
                     }
                     else

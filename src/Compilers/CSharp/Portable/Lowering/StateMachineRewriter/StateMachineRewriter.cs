@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method != null);
             Debug.Assert(stateMachineType is not null);
             Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
             Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
 

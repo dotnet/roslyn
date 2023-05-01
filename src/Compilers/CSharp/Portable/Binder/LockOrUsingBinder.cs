@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression BindTargetExpression(BindingDiagnosticBag diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
+        protected BoundExpression BindTargetExpression(BindingDiagnosticBag? diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
         {
             if (_lazyExpressionAndDiagnostics == null)
             {

@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (diagnosticsOpt != null)
                     {
-                        var errorReported = Binder.ReportUseSite(userDefinedAttribute, diagnosticsOpt, locationOpt);
+                        var errorReported = Binder.ReportUseSite(userDefinedAttribute, diagnosticsOpt.Value, locationOpt);
                         Debug.Assert(errorReported);
                     }
                 }
@@ -657,10 +657,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This should produce diagnostics if the member is missing or bad
                 var member = Binder.GetWellKnownTypeMember(this, attributeCtor,
-                                                           diagnosticsOpt, locationOpt);
+                                                           diagnosticsOpt.Value, locationOpt);
                 if (member != null && secondAttributeCtor != null)
                 {
-                    Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, diagnosticsOpt, locationOpt);
+                    Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, diagnosticsOpt.Value, locationOpt);
                 }
             }
 

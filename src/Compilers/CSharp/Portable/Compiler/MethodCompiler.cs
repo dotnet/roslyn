@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
             Debug.Assert(diagnostics.DependenciesBag == null || diagnostics.DependenciesBag is ConcurrentSet<AssemblySymbol>);
 

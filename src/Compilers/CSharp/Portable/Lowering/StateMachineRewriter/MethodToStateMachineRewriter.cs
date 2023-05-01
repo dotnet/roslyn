@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(originalMethod != null);
             Debug.Assert(state != null);
             Debug.Assert(nonReusableLocalProxies != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
             Debug.Assert(hoistedVariables != null);
             Debug.Assert(nextFreeHoistedLocalSlot >= 0);
 

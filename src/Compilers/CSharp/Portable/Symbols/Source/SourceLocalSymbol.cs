@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics)
         {
             return null;
         }
@@ -573,13 +573,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null)
+            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null)
             {
                 if (this.IsConst && inProgress == this)
                 {
                     if (diagnostics != null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
+                        diagnostics.Value.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
                     }
 
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;

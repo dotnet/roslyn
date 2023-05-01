@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             this.CompilationState = compilationState;
             this.CurrentType = currentClassOpt;

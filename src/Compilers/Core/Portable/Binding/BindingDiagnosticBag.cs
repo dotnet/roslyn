@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal sealed class BindingDiagnosticBag<TAssemblySymbol>
+    internal readonly struct BindingDiagnosticBag<TAssemblySymbol>
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         public static readonly BindingDiagnosticBag<TAssemblySymbol> Discarded = new BindingDiagnosticBag<TAssemblySymbol>(null, null, null);
@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis
                   reportUseSiteDiagnostic)
         {
         }
+
+        public bool IsDiscarded => _reportUseSiteDiagnostic == null;
 
         [MemberNotNullWhen(true, nameof(DiagnosticBag))]
         internal bool AccumulatesDiagnostics => DiagnosticBag is object;
@@ -132,9 +134,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (other is object)
             {
-                AddRange(other.DiagnosticBag);
-                Debug.Assert(allowMismatchInDependencyAccumulation || !other.AccumulatesDependencies || this.AccumulatesDependencies);
-                AddDependencies(other.DependenciesBag);
+                AddRange(other.Value.DiagnosticBag);
+                Debug.Assert(allowMismatchInDependencyAccumulation || !other.Value.AccumulatesDependencies || this.AccumulatesDependencies);
+                AddDependencies(other.Value.DependenciesBag);
             }
         }
 
