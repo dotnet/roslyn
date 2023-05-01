@@ -186,17 +186,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-
-                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
-                Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = Me.GetNameToMembersMap()
-
-#If DEBUG Then
-                dictionary = ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(map, CaseInsensitiveComparison.Comparer)
-#Else
-                dictionary = ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol)(map, CaseInsensitiveComparison.Comparer)
-#End If
-
-                Interlocked.CompareExchange(_nameToTypeMembersMap, dictionary, Nothing)
+                Interlocked.CompareExchange(
+                    _nameToTypeMembersMap,
+                    ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol)(Me.GetNameToMembersMap(), CaseInsensitiveComparison.Comparer),
+                    comparand:=Nothing)
             End If
 
             Return _nameToTypeMembersMap
