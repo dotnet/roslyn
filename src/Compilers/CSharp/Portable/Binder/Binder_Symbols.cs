@@ -1899,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupOptions options)
             {
                 Debug.Assert(where != null);
-                Debug.Assert(diagnostics != null);
+                // Debug.Assert(diagnostics != null);
 
                 var symbols = result.Symbols;
                 wasError = false;

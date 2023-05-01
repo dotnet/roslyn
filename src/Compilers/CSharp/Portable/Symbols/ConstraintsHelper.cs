@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CheckAllConstraints(this TypeSymbol type, CheckConstraintsArgsBoxed args)
         {
+            Debug.Assert(args.Args.Diagnostics != null);
             type.VisitType(s_checkConstraintsSingleTypeFunc, args);
         }
 
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ConversionsBase Conversions;
             public readonly bool IncludeNullability;
             public readonly Location Location;
-            public readonly BindingDiagnosticBag Diagnostics;
+            public readonly BindingDiagnosticBag? Diagnostics;
             public readonly CompoundUseSiteInfo<AssemblySymbol> Template;
 
             public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics) :
@@ -507,12 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics) :
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag? diagnostics) :
                 this(currentCompilation, conversions, includeNullability, location, diagnostics, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly))
             {
             }
 
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics, CompoundUseSiteInfo<AssemblySymbol> template)
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag? diagnostics, CompoundUseSiteInfo<AssemblySymbol> template)
             {
                 this.CurrentCompilation = currentCompilation;
                 this.Conversions = conversions;
@@ -556,13 +557,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool CheckConstraintsSingleType(TypeSymbol type, in CheckConstraintsArgs args)
         {
+            Debug.Assert(args.Diagnostics != null);
             if (type.Kind == SymbolKind.NamedType)
             {
                 ((NamedTypeSymbol)type).CheckConstraints(args);
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
-                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics.Value);
             }
             return false; // continue walking types
         }
@@ -652,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            Debug.Assert(args.Diagnostics != null);
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
@@ -666,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int ordinal = pair.TypeParameter.Ordinal;
                 var location = ordinal < typeArgumentsSyntax.Count ? typeArgumentsSyntax[ordinal].Location : args.Location;
-                args.Diagnostics.Add(pair.UseSiteInfo, location);
+                args.Diagnostics.Value.Add(pair.UseSiteInfo, location);
             }
 
             diagnosticsBuilder.Free();
@@ -674,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (HasDuplicateInterfaces(type, basesBeingResolved))
             {
                 result = false;
-                args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
+                args.Diagnostics.Value.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
 
             return result;
@@ -689,6 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            Debug.Assert(args.Diagnostics != null);
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = CheckTypeConstraints(type, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
@@ -701,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                args.Diagnostics.Add(pair.UseSiteInfo, args.Location);
+                args.Diagnostics.Value.Add(pair.UseSiteInfo, args.Location);
             }
 
             diagnosticsBuilder.Free();
@@ -712,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!(args.CurrentCompilation != null && type.IsFromCompilation(args.CurrentCompilation)) && HasDuplicateInterfaces(type, null))
             {
                 result = false;
-                args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
+                args.Diagnostics.Value.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
 
             return result;
@@ -775,6 +779,7 @@ hasRelatedInterfaces:
                 return true;
             }
 
+            Debug.Assert(args.Diagnostics != null);
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = CheckMethodConstraints(method, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
@@ -787,7 +792,7 @@ hasRelatedInterfaces:
 
             foreach (var pair in diagnosticsBuilder)
             {
-                args.Diagnostics.Add(pair.UseSiteInfo, args.Location);
+                args.Diagnostics.Value.Add(pair.UseSiteInfo, args.Location);
             }
 
             diagnosticsBuilder.Free();
