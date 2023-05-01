@@ -37,7 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-
     Friend Class TypeInferenceCollection(Of TDominantTypeData As DominantTypeData)
         Private ReadOnly _dominantTypeDataList As ArrayBuilder(Of TDominantTypeData)
 
@@ -57,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' count: number of elements in this enum, used to construct an array
             Count
         End Enum
-
 
         ' This method, given a set of types and constraints, attempts to find the
         ' best type that's in the set.
@@ -503,8 +501,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If hint.IsReferenceType AndAlso candidate.IsReferenceType Then
                     conversion = Conversions.ClassifyDirectCastConversion(hint, candidate, useSiteInfo)
-
-
 
                     ' Dev10#595234: to preserve backwards-compatibility with Orcas, a narrowing
                     ' counts as type inference failure if it happens inside a generic type parameter.

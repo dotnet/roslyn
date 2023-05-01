@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        [return: NotNullIfNotNull("list1"), NotNullIfNotNull("list2")]
+        [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
         public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
         {
             if (list1 == null)

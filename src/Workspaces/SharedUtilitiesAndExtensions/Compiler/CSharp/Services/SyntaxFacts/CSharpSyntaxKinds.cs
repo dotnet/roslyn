@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct
             => (TSyntaxKind)(object)(SyntaxKind)kind;
 
+        // Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
+        public int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct
+            => (int)(SyntaxKind)(object)kind;
+
         public int ConflictMarkerTrivia => (int)SyntaxKind.ConflictMarkerTrivia;
         public int DisabledTextTrivia => (int)SyntaxKind.DisabledTextTrivia;
         public int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
@@ -31,10 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
+        public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
+        public int CloseParenToken => (int)SyntaxKind.CloseParenToken;
+        public int CommaToken => (int)SyntaxKind.CommaToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;
+        public int GreaterThanToken => (int)SyntaxKind.GreaterThanToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
+        public int LessThanToken => (int)SyntaxKind.LessThanToken;
+        public int OpenBraceToken => (int)SyntaxKind.OpenBraceToken;
+        public int? OpenBracketToken => (int)SyntaxKind.OpenBracketToken;
+        public int OpenParenToken => (int)SyntaxKind.OpenParenToken;
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
         public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
@@ -49,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
         public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
+        public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
         public int GenericName => (int)SyntaxKind.GenericName;
         public int IdentifierName => (int)SyntaxKind.IdentifierName;
@@ -64,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
+        public int AddressOfExpression => (int)SyntaxKind.AddressOfExpression;
         public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
@@ -96,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? AndPattern => (int)SyntaxKind.AndPattern;
         public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;
         public int? DeclarationPattern => (int)SyntaxKind.DeclarationPattern;
+        public int? ListPattern => (int)SyntaxKind.ListPattern;
         public int? NotPattern => (int)SyntaxKind.NotPattern;
         public int? OrPattern => (int)SyntaxKind.OrPattern;
         public int? ParenthesizedPattern => (int)SyntaxKind.ParenthesizedPattern;
@@ -126,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
         public int ConstructorDeclaration => (int)SyntaxKind.ConstructorDeclaration;
+        public int EnumDeclaration => (int)SyntaxKind.EnumDeclaration;
         public int InterfaceDeclaration => (int)SyntaxKind.InterfaceDeclaration;
         public int? StructDeclaration => (int)SyntaxKind.StructDeclaration;
         public int Parameter => (int)SyntaxKind.Parameter;
@@ -137,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
 
+        public int ElseClause => (int)SyntaxKind.ElseClause;
         public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
         public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;

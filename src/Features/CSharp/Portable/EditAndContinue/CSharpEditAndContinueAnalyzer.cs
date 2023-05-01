@@ -517,8 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
 
-        protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.AreEquivalent(left, right);
+        protected override bool AreEquivalentLambdaBodies(SyntaxNode oldLambda, SyntaxNode oldLambdaBody, SyntaxNode newLambda, SyntaxNode newLambdaBody)
+            => SyntaxFactory.AreEquivalent(oldLambdaBody, newLambdaBody);
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
         {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent);
         }
 
-        protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+        protected override Match<SyntaxNode> ComputeBodyMatchImpl(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
@@ -1250,32 +1250,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
-            if (editKind == EditKind.Reorder &&
-                oldNode is not ParameterSyntax &&
-                newNode is not ParameterSyntax)
-            {
-                // Other than parameters, we don't do any semantic checks for reordering
-                // and we don't need to report them to the compiler either.
-                // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
-
-                // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
-                return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
-            }
-
             var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel!, cancellationToken) : null;
             var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel, cancellationToken) : null;
 
             switch (editKind)
             {
                 case EditKind.Reorder:
-                    Debug.Assert(oldSymbol is IParameterSymbol);
-                    Debug.Assert(newSymbol is IParameterSymbol);
+                    Contract.ThrowIfNull(oldNode);
 
-                    // When parameters are reordered, we issue an update edit for the containing method
-                    return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
+                    if (oldNode is ParameterSyntax)
+                    {
+                        Debug.Assert(oldSymbol is IParameterSymbol);
+                        Debug.Assert(newSymbol is IParameterSymbol);
+
+                        // When parameters are reordered, we issue an update edit for the containing method
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
+                    }
+                    else if (IsGlobalStatement(oldNode))
+                    {
+                        // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
+                        // oldSymbol and newSymbol will point to
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol, newSymbol, EditKind.Update));
+                    }
+
+                    // Otherwise, we don't do any semantic checks for reordering
+                    // and we don't need to report them to the compiler either.
+                    // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+
+                    // Consider: Reordering of fields is not allowed since it changes the layout of the type.
+                    // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
+                    // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
+                    Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
+                    return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
+
                 case EditKind.Update:
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);
@@ -1409,9 +1416,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     Debug.Assert(SupportsMove(oldNode));
                     Debug.Assert(SupportsMove(newNode));
 
-                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement) ?
-                        OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty :
-                        OneOrMany.Create((oldSymbol, newSymbol, editKind));
+                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement)
+                        ? OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty
+                        : OneOrMany.Create((oldSymbol, newSymbol, editKind));
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
@@ -1468,6 +1475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+
+        internal override bool IsGenericLocalFunction(SyntaxNode node)
+            => node is LocalFunctionStatementSyntax { TypeParameterList: not null };
 
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax;
@@ -2429,16 +2439,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newDeclarationOrBody)
+            public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newBody)
             {
-                foreach (var node in newDeclarationOrBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                foreach (var node in newBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
                 {
-                    switch (node.Kind())
+                    if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
                     {
-                        case SyntaxKind.StackAllocArrayCreationExpression:
-                        case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
-                            ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
-                            return;
+                        ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
+                        return;
                     }
                 }
             }
@@ -2459,10 +2467,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberBodyUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
+        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, SyntaxNode newBody, TextSpan? span)
         {
-            var classifier = new EditClassifier(this, diagnostics, oldNode: null, newMember, EditKind.Update, span: span);
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember);
+            var classifier = new EditClassifier(this, diagnostics, oldNode: null, newDeclaration, EditKind.Update, span: span);
+            classifier.ClassifyDeclarationBodyRudeUpdates(newBody);
         }
 
         #endregion
@@ -2480,17 +2488,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // All rude edits below only apply when inserting into an existing type (not when the type itself is inserted):
                 _ when !insertingIntoExistingContainingType => RudeEditKind.None,
 
-                // Inserting a member into an existing generic type is not allowed.
-                { ContainingType.Arity: > 0 } and not INamedTypeSymbol
-                    => RudeEditKind.InsertIntoGenericType,
+                // inserting any nested type is allowed
+                INamedTypeSymbol => RudeEditKind.None,
 
                 // Inserting virtual or interface member into an existing type is not allowed.
-                { IsVirtual: true } or { IsOverride: true } or { IsAbstract: true } and not INamedTypeSymbol
+                { IsVirtual: true } or { IsOverride: true } or { IsAbstract: true }
                     => RudeEditKind.InsertVirtual,
-
-                // Inserting generic method into an existing type is not allowed.
-                IMethodSymbol { Arity: > 0 }
-                    => RudeEditKind.InsertGenericMethod,
 
                 // Inserting destructor to an existing type is not allowed.
                 IMethodSymbol { MethodKind: MethodKind.Destructor }
@@ -2505,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     => RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
 
                 // TODO: Inserting non-virtual member to an interface (https://github.com/dotnet/roslyn/issues/37128)
-                { ContainingType.TypeKind: TypeKind.Interface } and not INamedTypeSymbol
+                { ContainingType.TypeKind: TypeKind.Interface }
                     => RudeEditKind.InsertIntoInterface,
 
                 // Inserting a field into an enum:
@@ -2652,9 +2655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     return TextSpan.FromBounds(
                         tryStatement.Catches.First().SpanStart,
-                        (tryStatement.Finally != null) ?
-                            tryStatement.Finally.Span.End :
-                            tryStatement.Catches.Last().Span.End);
+                        (tryStatement.Finally != null)
+                            ? tryStatement.Finally.Span.End
+                            : tryStatement.Catches.Last().Span.End);
 
                 case SyntaxKind.CatchClause:
                     coversAllChildren = true;
@@ -2677,22 +2680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
-        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
-        {
-            suspensionPoints = SyntaxUtilities.GetSuspensionPoints(body).ToImmutableArray();
-
-            kinds = StateMachineKinds.None;
-
-            if (SyntaxUtilities.IsIterator(body))
-            {
-                kinds |= StateMachineKinds.Iterator;
-            }
-
-            if (SyntaxUtilities.IsAsyncDeclaration(body.Parent))
-            {
-                kinds |= StateMachineKinds.Async;
-            }
-        }
+        internal override StateMachineInfo GetStateMachineInfo(SyntaxNode body)
+            => new(
+                IsAsync: SyntaxUtilities.IsAsyncDeclaration(body.Parent),
+                IsIterator: SyntaxUtilities.IsIterator(body),
+                HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(body).Any());
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
@@ -3079,5 +3071,60 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         #endregion
+
+        protected override bool IsRudeEditDueToPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    {
+                        return IsTypeWithPrimaryConstructor(symbol, cancellationToken);
+                    }
+
+                case SymbolKind.Parameter:
+                    {
+                        var container = symbol.ContainingSymbol;
+
+                        if (container is IMethodSymbol { IsImplicitlyDeclared: false, MethodKind: MethodKind.Constructor })
+                        {
+                            foreach (var syntaxReference in container.DeclaringSyntaxReferences)
+                            {
+                                if (syntaxReference.GetSyntax(cancellationToken) is
+                                    ClassDeclarationSyntax { ParameterList: not null } or
+                                    StructDeclarationSyntax { ParameterList: not null })
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    {
+                        return IsTypeWithPrimaryConstructor(symbol.ContainingSymbol, cancellationToken);
+                    }
+            }
+
+            return false;
+
+            static bool IsTypeWithPrimaryConstructor(ISymbol container, CancellationToken cancellationToken)
+            {
+                if (container is { Kind: SymbolKind.NamedType, IsImplicitlyDeclared: false })
+                {
+                    foreach (var syntaxReference in container.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxReference.GetSyntax(cancellationToken) is
+                            ClassDeclarationSyntax { ParameterList: not null } or
+                            StructDeclarationSyntax { ParameterList: not null })
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
     }
 }

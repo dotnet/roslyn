@@ -5,12 +5,15 @@
 #nullable disable
 
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile)
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds)
         {
             string expectedOutput =
 @"{{
@@ -179,7 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
           }},
           ""suppressions"": [
             {{
-              ""kind"": ""inSource""
+              ""kind"": ""inSource"",
+              ""properties"": {{
+                ""suppressionType"": ""Pragma Directive""
+              }}
             }}
           ],
           ""locations"": [
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               }},
               ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
-                ""category"": ""Compiler"",
+                ""category"": ""Compiler""" + AnalyzerForErrorLogTest.GetExpectedV2SuppressionTextForRulesSection(suppressionKinds) + @",
                 ""tags"": [
                   ""Compiler"",
                   ""Telemetry""
@@ -289,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
-        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
         {
             string expectedOutput =
 @"{{
@@ -315,8 +321,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -363,6 +369,204 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             }.Concat(additionalArguments).ToArray();
 
             return string.Format(CultureInfo.InvariantCulture, s, arguments);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDisabledWithCommandLineOptions()
+        {
+            var source = @"
+class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", "/nowarn:ID1", "/nowarn:ID2", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Assert no diagnostics are reported as the analyzer has been disabled with nowarn.
+            Assert.DoesNotContain("Category1", actualConsoleOutput);
+            Assert.DoesNotContain("Category2", actualConsoleOutput);
+            Assert.Equal(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+
+            var expectedOutputMarkup =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+      ""results"": [
+      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{5}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            var expectedOutput = FormatOutputText(
+                expectedOutputMarkup,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
+                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerPartiallyDisabledWithEditorconfig()
+        {
+            var source1 = @"
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""ID1"", Justification = ""Justification1"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""ID2"", Justification = ""Justification2"")]
+class C
+{
+}";
+            var source2 = @"
+class C2
+{
+}";
+            var editorconfigText = @"
+[source2.cs]
+dotnet_diagnostic.ID1.severity = none
+";
+            var sourceDir = Temp.CreateDirectory();
+            var sourceFile1 = sourceDir.CreateFile("source1.cs").WriteAllText(source1).Path;
+            var sourceFile2 = sourceDir.CreateFile("source2.cs").WriteAllText(source2).Path;
+            var editorconfigFile = sourceDir.CreateFile(".editorconfig").WriteAllText(editorconfigText).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", sourceFile1, sourceFile2, $"/analyzerconfig:{editorconfigFile}", "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Assert suppressed/disabled diagnostics are not reported on the command line.
+            Assert.DoesNotContain("Category1", actualConsoleOutput);
+            Assert.DoesNotContain("Category2", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+
+            var expectedOutputMarkup =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            var expectedOutput = FormatOutputText(
+                expectedOutputMarkup,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds1: new[] { "external", "inSource" }));
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile1);
+            CleanupAllGeneratedFiles(sourceFile2);
+            CleanupAllGeneratedFiles(editorconfigFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticSuppressedWithDiagnosticSuppressor()
+        {
+            var source = @"
+class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: new DiagnosticAnalyzer[] { new AnalyzerForErrorLogTest(), new SuppressorForErrorLogTest() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Assert suppressed/disabled diagnostics are not reported on the command line.
+            Assert.DoesNotContain("Category1", actualConsoleOutput);
+            Assert.DoesNotContain("Category2", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+
+            var expectedOutputMarkup =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            var expectedOutput = FormatOutputText(
+                expectedOutputMarkup,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation,
+                    null,
+                    suppressionType: $"DiagnosticSuppressor {{ Suppression Id: {SuppressorForErrorLogTest.Descriptor1.Id}, Suppression Justification: {SuppressorForErrorLogTest.Descriptor1.Justification} }}"),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds1: new[] { "inSource" }));
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
         }
     }
 }

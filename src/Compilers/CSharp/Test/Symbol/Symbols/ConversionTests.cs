@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // UNDONE: Conversions involving expressions: null, lambda, method group
         }
 
-
         [Fact]
         public void TestIsSameTypeIgnoringDynamic()
         {
@@ -1131,9 +1130,9 @@ class Convertible
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'int' is expected
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "default(Convertible)").WithArguments("int").WithLocation(8, 18)
                 );
         }
 
@@ -1161,9 +1160,9 @@ class Convertible
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'int' is expected
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "c").WithArguments("int").WithLocation(9, 18)
                 );
         }
 

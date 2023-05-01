@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
 
-        public VisualStudioProject? Project { get; }
+        public ProjectSystemProject? Project { get; }
 
         protected readonly ContainedDocument ContainedDocument;
 
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IComponentModel componentModel,
             Workspace workspace,
             ProjectId projectId,
-            VisualStudioProject? project,
+            ProjectSystemProject? project,
             Guid languageServiceGuid,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
@@ -170,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
             // when primary buffer has changed to update diagnostic positions.
-            _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
+            _diagnosticAnalyzerService.Reanalyze(this.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id), highPriority: false);
         }
 
         public string GetFilePathFromBuffers()

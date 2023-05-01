@@ -1301,7 +1301,6 @@ public static class E2
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void BadTruncateExtensionMethodLookupAfterFirstNamespace()
         {

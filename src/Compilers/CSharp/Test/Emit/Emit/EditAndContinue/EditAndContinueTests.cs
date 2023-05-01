@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void Constructor_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -592,7 +592,7 @@ class Bad : Bad
         public void ModifyMethod_WithAttributes1()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 class C
 {
@@ -1744,6 +1744,106 @@ class C
                 "C: {<>c}");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67243")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67243")]
+        public void SynthesizedDelegate_MethodGroup()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
+                .AddBaseline(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(2);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "Program", "C", "<>O");
+
+                        g.VerifyMethodBody("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (<>f__AnonymousDelegate0<bool> V_0) //y
+  // sequence point: Console.WriteLine(1);
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  // sequence point: var      y = C.G      ;
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_0022:  stloc.0
+  // sequence point: Console.WriteLine(2);
+  IL_0023:  ldc.i4.2
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .AddGeneration(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(3);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<>O#1");
+
+                        g.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                <>f__AnonymousDelegate0<bool> V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_0022:  stloc.1
+  IL_0023:  ldc.i4.3
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .Verify();
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
@@ -1804,8 +1904,8 @@ class C
         [Fact]
         public void PartialMethod_WithLambda()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: @"
 partial class C
 {
@@ -2142,8 +2242,8 @@ delegate void D([A]int x);
         [Fact]
         public void TypePropertyField_Attributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: @"
 enum E
 {
@@ -2984,8 +3084,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3114,8 +3214,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_ChangeToAutoProp()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3247,8 +3347,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3372,8 +3472,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_OneAccessor()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3489,8 +3589,8 @@ class C
         [Fact]
         public void Property_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3687,8 +3787,8 @@ class C
         [Fact]
         public void Property_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3885,8 +3985,8 @@ class C
         [Fact]
         public void Indexer_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3956,8 +4056,8 @@ class C
         [Fact]
         public void Indexer_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4245,8 +4345,8 @@ class C
         [Fact]
         public void Event_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4318,8 +4418,8 @@ class C
         [Fact]
         public void Event_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -7548,24 +7648,73 @@ class C
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
-            var source =
-@"class C
+            var source = """
+class C
 {
     static int F(string s)
     {
-        switch (s)
+        return s switch
         {
-            case ""1"": return 1;
-            case ""2"": return 2;
-            case ""3"": return 3;
-            case ""4"": return 4;
-            case ""5"": return 5;
-            case ""6"": return 6;
-            case ""7"": return 7;
-            default: return 0;
-        }
+            "00" => 00,
+            "01" => 01,
+            "02" => 02,
+            "03" => 03,
+            "04" => 04,
+            "05" => 05,
+            "06" => 06,
+            "07" => 07,
+            "08" => 08,
+            "09" => 09,
+            "10" => 10,
+            "11" => 11,
+            "12" => 12,
+            "13" => 13,
+            "14" => 14,
+            "15" => 15,
+            "16" => 16,
+            "17" => 17,
+            "18" => 18,
+            "19" => 19,
+            "20" => 20,
+            "21" => 21,
+            "22" => 22,
+            "23" => 23,
+            "24" => 24,
+            "25" => 25,
+            "26" => 26,
+            "27" => 27,
+            "28" => 28,
+            "29" => 29,
+            "30" => 30,
+            "31" => 31,
+            "32" => 32,
+            "33" => 33,
+            "34" => 34,
+            "35" => 35,
+            "36" => 36,
+            "37" => 37,
+            "38" => 38,
+            "39" => 39,
+            "40" => 40,
+            "41" => 41,
+            "42" => 42,
+            "43" => 43,
+            "44" => 44,
+            "45" => 45,
+            "46" => 46,
+            "47" => 47,
+            "48" => 48,
+            "49" => 49,
+            "59" => 59,
+            "69" => 69,
+            "79" => 79,
+            "89" => 89,
+            "99" => 99,
+            _ => 0
+        };
     }
-}";
+}
+""";
             const string ComputeStringHashName = "ComputeStringHash";
             var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
@@ -11040,8 +11189,8 @@ public interface IB
         [Fact]
         public void Operator_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14840,8 +14989,8 @@ class C
         [InlineData("T M1<T>() where T : C { return default; }", 0)]
         public void Method_Delete(string methodDef, int parameterCount)
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14904,8 +15053,8 @@ class C
         [Fact]
         public void Method_AddThenDelete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14998,8 +15147,8 @@ class C
         [Fact]
         public void Method_DeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15092,8 +15241,8 @@ class C
         [Fact]
         public void Method_DeleteThenAdd_WithAttributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class A : System.Attribute { }
                         class B : System.Attribute { }
@@ -15229,8 +15378,8 @@ class C
         [Fact]
         public void Method_AddThenDeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15383,8 +15532,8 @@ class C
         [Fact]
         public void Method_Rename_Multiple()
         {
-            using var test = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var test = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15440,8 +15589,8 @@ class C
         [Fact]
         public void Method_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15567,8 +15716,8 @@ class C
         [Fact]
         public void Method_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15701,8 +15850,8 @@ class C
         [Fact]
         public void Method_InsertAndDeleteParameter()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {

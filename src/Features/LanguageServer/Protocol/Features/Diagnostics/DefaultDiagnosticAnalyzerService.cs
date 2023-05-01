@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (_globalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
+            if (_globalOptions.IsLspPullDiagnostics())
             {
                 // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
                 // have happened to the project or closed files outside of VS.
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit: false, logPerformanceInfo: true);
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
-                syntax.Type.SkipScoped(out _).GetRefKind(),
+                syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
                 location,
@@ -131,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetExpressionBodySyntax(),
                 syntax,
                 diagnostics);
+
+            if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
+                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, initializer.EqualsToken);
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -336,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
@@ -445,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeSyntax = GetTypeSyntax(syntax);
             Debug.Assert(typeSyntax is not ScopedTypeSyntax);
 
-            typeSyntax = typeSyntax.SkipScoped(out _).SkipRef(out _);
+            typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -544,22 +547,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.TryGetFirstLocation() ?? Location, param.Name);
                 }
             }
 
             diagnostics.Add(Location, useSiteInfo);
-        }
-
-        protected override bool HasPointerTypeSyntactically
-        {
-            get
-            {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode);
-                Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-                typeSyntax = typeSyntax.SkipScoped(out _).SkipRef(out _);
-                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
-            }
         }
 
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
         protected AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
+            : base(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpression,
                    CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),

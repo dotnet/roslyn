@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
                     }
 
-                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier.GetLocation());
+                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier);
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int GetHashCodeNoParameters()
-            => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
+            => Hash.Combine(ReturnType, Hash.Combine(((int)CallingConvention).GetHashCode(), ((int)FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind)).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
         internal override bool UseUpdatedEscapeRules { get; }

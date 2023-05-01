@@ -167,6 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
             Dim ruleSetPath As String = Nothing
+            Dim generatedFilesOutputDirectory As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -497,7 +498,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             refOnly = True
                             Continue For
 
-
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
                             outputKind = ParseTarget(name, value, diagnostics)
@@ -582,6 +582,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
                                     Continue For
                                 End If
+                            End If
+
+                            Continue For
+
+                        Case "generatedfilesout"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<dir>")
+                            Else
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory)
                             End If
 
                             Continue For
@@ -1493,7 +1503,8 @@ lVbRuntimePlus:
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
                 .SkipAnalyzers = skipAnalyzers,
-                .EmbeddedFiles = embeddedFiles.AsImmutable()
+                .EmbeddedFiles = embeddedFiles.AsImmutable(),
+                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory
             }
         End Function
 

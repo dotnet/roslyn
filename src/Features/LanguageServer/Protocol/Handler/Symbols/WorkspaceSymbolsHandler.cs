@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken);
 
             await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         private class LSPNavigateToCallback : INavigateToSearchCallback
         {
             private readonly RequestContext _context;
-            private readonly BufferedProgress<SymbolInformation> _progress;
+            private readonly BufferedProgress<SymbolInformation[]> _progress;
 
             public LSPNavigateToCallback(
                 RequestContext context,
-                BufferedProgress<SymbolInformation> progress)
+                BufferedProgress<SymbolInformation[]> progress)
             {
                 _context = context;
                 _progress = progress;
@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // do nothing, LSP doesn't support reporting progress towards completion.
                 // used by non-LSP editor API.
+            }
+
+            public void ReportIncomplete()
+            {
             }
         }
     }

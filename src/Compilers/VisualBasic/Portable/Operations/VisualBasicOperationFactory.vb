@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
@@ -59,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
-
 
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundTypeArgumentsOperation(boundTypeArguments As BoundTypeArguments) As IInvalidOperation
             ' This can occur in scenarios involving latebound member accesses in Strict mode, such as
             ' element.UnresolvedMember(Of String)
-            ' The BadExpression has 2 children in this case: the receiver, and the type arguments. 
+            ' The BadExpression has 2 children in this case: the receiver, and the type arguments.
             ' Just create an invalid operation to represent the node, as it won't ever be surfaced in good code.
 
             Dim syntax As SyntaxNode = boundTypeArguments.Syntax
@@ -1695,5 +1695,4 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 End Namespace
-
 

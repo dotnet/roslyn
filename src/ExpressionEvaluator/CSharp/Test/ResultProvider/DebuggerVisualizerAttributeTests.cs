@@ -59,13 +59,15 @@ class Q
                     UISideVisualizerAssemblyName = typeP.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
-                    DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName},
+                    DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
+                    ExtensionPartId = Guid.Empty},
                 new DkmCustomUIVisualizerInfo { Id = 1, Description = "Q Visualizer", MenuName = "Q Visualizer",  Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeQ.FullName,
                     UISideVisualizerAssemblyName = typeQ.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
-                    DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName}
+                    DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
+                    ExtensionPartId = Guid.Empty}
             };
 
             Verify(evalResult,

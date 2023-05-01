@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService
+    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
@@ -40,9 +41,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".vbx", s_vbLanguageInformation },
         };
 
-        public LspMiscellaneousFilesWorkspace() : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
+        public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
         {
         }
+
+        public bool SupportsMutation => true;
 
         /// <summary>
         /// Takes in a file URI and text and creates a misc project and document for the file.
@@ -62,7 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                this, uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -90,6 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
                 OnProjectRemoved(project.Id);
             }
+        }
+
+        public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
+        {
+            this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+            return ValueTaskFactory.CompletedTask;
         }
 
         private sealed class SourceTextLoader : TextLoader

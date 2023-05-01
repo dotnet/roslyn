@@ -336,7 +336,7 @@ End Module</Document>
             End Using
         End Function
 
-        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <WpfFact>
         Public Async Function StoppedOnEndSub() As Task
             Dim text = <Workspace>
@@ -352,7 +352,7 @@ End Module</Document>
             End Using
         End Function
 
-        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <WpfFact>
         Public Async Function StoppedOnEndProperty() As Task
             Dim text = <Workspace>

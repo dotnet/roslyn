@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageServiceInternal"/>.
     /// </remarks>
-    internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
+    internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
     {
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
@@ -42,12 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
         /// entire contents of the assembly over the channel to the OOP process.
         /// </summary>
-        private static readonly ConditionalWeakTable<ValueSource<AssemblyMetadata>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
+        private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_metadataToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
         private readonly TemporaryStorageService _temporaryStorageService;
-        private readonly IWorkspaceConfigurationService _configurationService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -58,14 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
-        internal IVsFileChangeEx FileChangeService { get; }
-
         private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            TemporaryStorageService temporaryStorageService,
-            IWorkspaceConfigurationService configurationService)
+            TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -75,19 +72,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
             Assumes.Present(SmartOpenScopeServiceOpt);
 
-            FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            Assumes.Present(FileChangeService);
             _temporaryStorageService = temporaryStorageService;
-            _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);
         }
 
-        public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+        public void Dispose()
+        {
+            using (_readerWriterLock.DisposableWrite())
+            {
+                // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
+                // Windows Error Reporting as we try creating metadata for compilations.
+                SmartOpenScopeServiceOpt = null;
+            }
+        }
+
+        public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
-            if (_metadataCache.TryGetSource(key, out var source) &&
-                s_valueSourceToStorages.TryGetValue(source, out var storages))
+            if (_metadataCache.TryGetMetadata(key, out var source) &&
+                s_metadataToStorages.TryGetValue(source, out var storages))
             {
                 return storages;
             }
@@ -133,19 +137,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_metadataCache.TryGetMetadata(key, out var metadata))
                 return metadata;
 
-            var (newMetadata, newMetadataValueSource) = GetMetadataWorker();
+            var newMetadata = GetMetadataWorker();
 
-            if (!_metadataCache.GetOrAddMetadata(key, newMetadataValueSource, out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
                 newMetadata.Dispose();
 
             return metadata;
 
-            (AssemblyMetadata newMetadata, ValueSource<AssemblyMetadata> newMetadataValueSource) GetMetadataWorker()
+            AssemblyMetadata GetMetadataWorker()
             {
                 if (VsSmartScopeCandidate(key.FullPath))
                 {
                     var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                    return (newMetadata, ValueSource.Constant(newMetadata));
+                    return newMetadata;
                 }
                 else
                 {
@@ -162,13 +166,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     var storagesArray = storages.ToImmutable();
 
-                    var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
-                        ? ValueSource.Constant(newMetadata)
-                        : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+                    s_metadataToStorages.Add(newMetadata, storagesArray);
 
-                    s_valueSourceToStorages.Add(valueSource, storagesArray);
-
-                    return (newMetadata, valueSource);
+                    return newMetadata;
                 }
             }
         }
@@ -337,16 +337,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 moduleBuilder.Add(manifestModule);
 
             return AssemblyMetadata.Create(moduleBuilder.ToImmutable());
-        }
-
-        public void DisconnectFromVisualStudioNativeServices()
-        {
-            using (_readerWriterLock.DisposableWrite())
-            {
-                // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
-                // Windows Error Reporting as we try creating metadata for compilations.
-                SmartOpenScopeServiceOpt = null;
-            }
         }
     }
 }

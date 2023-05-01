@@ -234,7 +234,6 @@ class C
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-
         [ClrOnlyFact]
         public void EventInvocation()
         {

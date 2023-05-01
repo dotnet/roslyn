@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
 
-        private readonly ILegacyWorkspaceOptionService _legacyOptions;
+        private readonly ILegacyGlobalOptionService _legacyOptions;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>();
+            _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
             _legacyOptions.RegisterWorkspace(this);
 
             // queue used for sending events
@@ -87,9 +88,6 @@ namespace Microsoft.CodeAnalysis
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
-
-        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
-            => Services.GetService<IWorkspaceTestLogger>()?.Log(messageFactory(state));
 
         /// <summary>
         /// Services provider by the host for implementing workspace features.
@@ -180,31 +178,82 @@ namespace Microsoft.CodeAnalysis
                     return (solution, solution);
                 }
 
-                _latestSolution = solution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
                 return (oldSolution, _latestSolution);
             }
         }
 
-        /// <summary>
-        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
-        /// the new value and raises a workspace change event of the specified kind.
-        /// </summary>
-        /// <param name="transformation">Solution transformation.</param>
-        /// <param name="kind">The kind of workspace change event to raise.</param>
-        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
-        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
-        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
+        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, ValueTuple{WorkspaceChangeKind, ProjectId?, DocumentId?}}, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
         internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            WorkspaceChangeKind kind,
+            WorkspaceChangeKind changeKind,
             ProjectId? projectId = null,
             DocumentId? documentId = null,
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            var (oldSolution, newSolution) = SetCurrentSolution(
-                transformation: static (oldSolution, data) => data.transformation(oldSolution),
-                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
+            var (updated, _) = SetCurrentSolution(
+                transformation,
+                (_, _) => (changeKind, projectId, documentId),
+                onBeforeUpdate,
+                onAfterUpdate);
+            return updated;
+        }
+
+        /// <summary>
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
+        /// the new value and raises a workspace change event of the specified kind.  All linked documents in the
+        /// solution (which normally will have the same content values) will be updated to to have the same content
+        /// *identity*.  In other words, they will point at the same <see cref="ITextAndVersionSource"/> instances,
+        /// allowing that memory to be shared.
+        /// </summary>
+        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="changeKind">The kind of workspace change event to raise. The id of the project updated by
+        /// <paramref name="transformation"/> to be passed to the workspace change event.  And the id of the document
+        /// updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
+        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
+        /// transformation did not change the solution.</returns>
+        private protected (bool updated, Solution newSolution) SetCurrentSolution(
+            Func<Solution, Solution> transformation,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
+            Action<Solution, Solution>? onBeforeUpdate = null,
+            Action<Solution, Solution>? onAfterUpdate = null)
+        {
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                transformation,
+                changeKind,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+
+            return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
+        }
+
+        internal async ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
+            bool useAsync,
+            Func<Solution, Solution> transformation,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
+            Action<Solution, Solution>? onBeforeUpdate,
+            Action<Solution, Solution>? onAfterUpdate,
+            CancellationToken cancellationToken)
+        {
+            var (oldSolution, newSolution) = await SetCurrentSolutionAsync(
+                useAsync,
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind),
+                transformation: static (oldSolution, data) =>
+                {
+                    var newSolution = data.transformation(oldSolution);
+
+                    // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
+                    var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+                    if (options.DisableSharedSyntaxTrees)
+                        return newSolution;
+
+                    return UnifyLinkedDocumentContents(oldSolution, newSolution);
+                },
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -216,10 +265,73 @@ namespace Microsoft.CodeAnalysis
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
-                });
+                    var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
+                    data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
+                },
+                cancellationToken).ConfigureAwait(false);
 
-            return oldSolution != newSolution;
+            return (oldSolution != newSolution, newSolution);
+
+            static Solution UnifyLinkedDocumentContents(Solution oldSolution, Solution newSolution)
+            {
+                // note: if it turns out this is too expensive, we could consider using the passed in projectId/document
+                // to limit the set of changes we look at.  However, GetChanges *should* be fairly fast as it does
+                // workspace-green-node identity checks to quickly narrow down what changed.
+
+                var changes = newSolution.GetChanges(oldSolution);
+
+                // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
+                foreach (var addedProject in changes.GetAddedProjects())
+                {
+                    foreach (var addedDocument in addedProject.Documents)
+                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
+                }
+
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
+
+                foreach (var projectChanges in changes.GetProjectChanges())
+                {
+                    // Now do the same for all added documents in a project.
+                    foreach (var addedDocument in projectChanges.GetAddedDocuments())
+                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
+
+                    // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+                        newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+                }
+
+                return newSolution;
+            }
+
+            static Solution UpdateAddedDocumentToExistingContentsInSolution(Solution solution, DocumentId addedDocumentId)
+            {
+                var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
+                foreach (var relatedDocumentId in relatedDocumentIds)
+                {
+                    var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState);
+                }
+
+                return solution;
+            }
+
+            static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
+            {
+                // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
+                // process that chain once.
+                if (processedDocuments.Add(changedDocumentId))
+                {
+                    var changedDocument = solution.GetRequiredDocument(changedDocumentId);
+                    var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
+                    foreach (var relatedDocumentId in relatedDocumentIds)
+                    {
+                        if (processedDocuments.Add(relatedDocumentId))
+                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState);
+                    }
+                }
+
+                return solution;
+            }
         }
 
         /// <summary>
@@ -227,22 +339,46 @@ namespace Microsoft.CodeAnalysis
         /// the new value and performs a requested callback immediately before and after that update.  The callbacks
         /// will be invoked atomically while while <see cref="_serializationLock"/> is being held.
         /// </summary>
-        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="transformation">Solution transformation. This may be run multiple times.  As such it should be
+        /// a purely functional transformation on the solution instance passed to it.  It should not make stateful
+        /// changes elsewhere.</param>
         /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
         /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
         /// it will be replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
         /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
-            Func<Solution, TData, Solution> transformation,
             TData data,
+            Func<Solution, TData, Solution> transformation,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
+        {
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                data,
+                transformation,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+
+            return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
+        }
+
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
+            bool useAsync,
+            TData data,
+            Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData>? onBeforeUpdate,
+            Action<Solution, Solution, TData>? onAfterUpdate,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -262,7 +398,7 @@ namespace Microsoft.CodeAnalysis
                     return (oldSolution, newSolution);
 
                 // Now, take the lock and try to update our internal state.
-                using (_serializationLock.DisposableWait())
+                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
                 {
                     if (_latestSolution != oldSolution)
                     {
@@ -271,7 +407,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
@@ -299,14 +435,14 @@ namespace Microsoft.CodeAnalysis
             [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                var changedOptionKeys = value switch
+                var changedOptions = value switch
                 {
                     null => throw new ArgumentNullException(nameof(value)),
-                    SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
+                    SolutionOptionSet solutionOptionSet => solutionOptionSet.GetChangedOptions(),
                     _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(value))
                 };
 
-                _legacyOptions.SetOptions(value, changedOptionKeys);
+                _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
             }
         }
 
@@ -361,8 +497,8 @@ namespace Microsoft.CodeAnalysis
         private void ClearSolution(bool reportChangeEvent)
         {
             this.SetCurrentSolution(
-                (oldSolution, _) => this.CreateSolution(oldSolution.Id),
                 data: /*unused*/ 0,
+                (oldSolution, _) => this.CreateSolution(oldSolution.Id),
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
                 {
@@ -732,8 +868,8 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
             this.SetCurrentSolution(
-                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
                 data: (@this: this, documentInfos),
+                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
@@ -781,49 +917,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is changed on disk.
-        /// </summary>
-        protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
-                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)));
-        }
-
-        /// <summary>
-        /// Call this method when the text of a additional document is changed on disk.
-        /// </summary>
-        protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AdditionalDocumentChanged, documentId: documentId);
-        }
-
-        /// <summary>
-        /// Call this method when the text of a analyzer config document is changed on disk.
-        /// </summary>
-        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AnalyzerConfigDocumentChanged, documentId: documentId);
-        }
-
-        /// <summary>
         /// Call this method when the document info changes, such as the name, folders or file path.
         /// </summary>
         protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
@@ -868,16 +961,18 @@ namespace Microsoft.CodeAnalysis
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
+            => OnDocumentTextChanged(documentId, newText, mode, requireDocumentPresent: true);
+
+        private protected void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode, bool requireDocumentPresent)
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
-                CheckDocumentIsInSolution,
-                (solution, docId) => solution.GetRelatedDocumentIds(docId),
-                (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+                (newText, mode),
+                static (solution, docId) => solution.GetDocument(docId),
+                (solution, docId, newTextAndMode) => solution.WithDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.DocumentChanged,
-                isCodeDocument: true);
+                isCodeDocument: true,
+                requireDocumentPresent);
         }
 
         /// <summary>
@@ -887,13 +982,12 @@ namespace Microsoft.CodeAnalysis
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
-                CheckAdditionalDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
+                (newText, mode),
+                static (solution, docId) => solution.GetAdditionalDocument(docId),
+                (solution, docId, newTextAndMode) => solution.WithAdditionalDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
@@ -903,57 +997,158 @@ namespace Microsoft.CodeAnalysis
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
-                CheckAnalyzerConfigDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
+                (newText, mode),
+                static (solution, docId) => solution.GetAnalyzerConfigDocument(docId),
+                (solution, docId, newTextAndMode) => solution.WithAnalyzerConfigDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                isCodeDocument: false);
+                isCodeDocument: false,
+                requireDocumentPresent: true);
         }
 
         /// <summary>
-        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
-        /// files also have their content updated in the new solution before applying it to the
-        /// workspace to avoid the workspace having solutions with linked files where the contents
-        /// do not match.
+        /// Call this method when the text of a document is changed on disk.
         /// </summary>
-        private void OnAnyDocumentTextChanged(
+        protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+            => OnDocumentTextLoaderChanged(documentId, loader, requireDocumentPresent: true);
+
+        /// <summary>
+        /// Call this method when the text of a document is changed on disk.
+        /// </summary>
+        private protected void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader, bool requireDocumentPresent)
+        {
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                static (solution, docId) => solution.GetDocument(docId),
+                (solution, docId, loader) => solution.WithDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.DocumentChanged,
+                isCodeDocument: true,
+                requireDocumentPresent);
+        }
+
+        /// <summary>
+        /// Call this method when the text of a additional document is changed on disk.
+        /// </summary>
+        protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                static (solution, docId) => solution.GetAdditionalDocument(docId),
+                (solution, docId, loader) => solution.WithAdditionalDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false,
+                requireDocumentPresent: true);
+        }
+
+        /// <summary>
+        /// Call this method when the text of a analyzer config document is changed on disk.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                static (solution, docId) => solution.GetAnalyzerConfigDocument(docId),
+                (solution, docId, loader) => solution.WithAnalyzerConfigDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
+                isCodeDocument: false,
+                requireDocumentPresent: true);
+        }
+
+        /// <summary>
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked files also have their
+        /// content updated in the new solution before applying it to the workspace to avoid the workspace having
+        /// solutions with linked files where the contents do not match.
+        /// </summary>
+        /// <param name="requireDocumentPresent">Allow caller to indicate behavior that should happen if this is a
+        /// request to update a document not currently in the workspace.  This should be used only in hosts where there
+        /// may be disparate sources of text change info, without an underlying agreed upon synchronization context to
+        /// ensure consistency between events.  For example, in an LSP server it might be the case that some events were
+        /// being posted by an attached lsp client, while another source of events reported information produced by a
+        /// self-hosted project system.  These systems might report events on entirely different cadences, leading to
+        /// scenarios where there might be disagreements as to the state of the workspace.  Clients in those cases must
+        /// be resilient to those disagreements (for example, by falling back to a misc-workspace if the lsp client
+        /// referred to a document no longer in the workspace populated by the project system).</param>
+        private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
-            SourceText newText,
-            PreservationMode mode,
-            Action<Solution, DocumentId> checkIsInSolution,
-            Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
-            Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
+            TArg arg,
+            Func<Solution, DocumentId, TextDocument?> getDocumentInSolution,
+            Func<Solution, DocumentId, TArg, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
-            bool isCodeDocument)
+            bool isCodeDocument,
+            bool requireDocumentPresent)
         {
             // Data that is updated in the transformation, and read in in onAfterUpdate.  Because SetCurrentSolution may
             // loop, we have to make sure to always clear this each time we enter the loop.
             var updatedDocumentIds = new List<DocumentId>();
             SetCurrentSolution(
+                data: (@this: this, documentId, arg, getDocumentInSolution, updateSolutionWithText, changeKind, isCodeDocument, requireDocumentPresent, updatedDocumentIds),
                 static (oldSolution, data) =>
                 {
                     // Ensure this closure data is always clean if we had to restart the the operation.
                     var updatedDocumentIds = data.updatedDocumentIds;
                     updatedDocumentIds.Clear();
 
-                    data.checkIsInSolution(oldSolution, data.documentId);
+                    var @this = data.@this;
+                    var documentId = data.documentId;
 
-                    var newSolution = oldSolution;
-
-                    var linkedDocuments = data.getRelatedDocuments(oldSolution, data.documentId);
-                    foreach (var linkedDocument in linkedDocuments)
+                    var document = data.getDocumentInSolution(oldSolution, documentId);
+                    if (document is null)
                     {
-                        var previousSolution = newSolution;
-                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.newText, data.mode);
-                        if (previousSolution != newSolution)
-                            updatedDocumentIds.Add(linkedDocument);
+                        if (data.requireDocumentPresent)
+                        {
+                            throw new ArgumentException(string.Format(
+                                WorkspacesResources._0_is_not_part_of_the_workspace,
+                                data.@this.GetDocumentName(documentId)));
+                        }
+                        else
+                        {
+                            return oldSolution;
+                        }
+                    }
+
+                    // First, just update the text for the document passed in.
+                    var newSolution = oldSolution;
+                    var previousSolution = newSolution;
+                    newSolution = data.updateSolutionWithText(newSolution, documentId, data.arg);
+
+                    if (previousSolution != newSolution)
+                    {
+                        updatedDocumentIds.Add(documentId);
+
+                        // Now go update the linked docs to have the same doc contents.
+                        var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+                        if (linkedDocumentIds.Length > 0)
+                        {
+                            // Two options for updating linked docs (legacy and new).
+                            //
+                            // Legacy behavior: update each linked doc to point at the same SourceText instance.  Each
+                            // doc will reparse itself however it wants (and thus not share any tree contents).
+                            //
+                            // Modern behavior: attempt to actually have the linked documents point *into* the same
+                            // instance data that the initial document points at.  This way things like tree data can be
+                            // shared across docs.
+
+                            var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+                            var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
+
+                            var newDocument = newSolution.GetRequiredDocument(documentId);
+                            foreach (var linkedDocumentId in linkedDocumentIds)
+                            {
+                                previousSolution = newSolution;
+                                newSolution = shareSyntaxTrees
+                                    ? newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState)
+                                    : data.updateSolutionWithText(newSolution, linkedDocumentId, data.arg);
+
+                                if (previousSolution != newSolution)
+                                    updatedDocumentIds.Add(linkedDocumentId);
+                            }
+                        }
                     }
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, newText, mode, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)
@@ -1224,7 +1419,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    _legacyOptions.SetOptions(newSolution.State.Options, newSolution.State.Options.GetChangedOptions());
+                    var changedOptions = newSolution.State.Options.GetChangedOptions();
+                    _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
                 }
 
                 if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

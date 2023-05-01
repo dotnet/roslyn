@@ -553,13 +553,13 @@ class C
             CreateCompilation(tree).VerifyDiagnostics(
                 // (7,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         x = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
                 // (10,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         z = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
                 // (12,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         o = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
         }
 
         [Theory]
@@ -3337,7 +3337,6 @@ class Program
     }
 }
 ";
-
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference

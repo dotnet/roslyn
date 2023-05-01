@@ -62,7 +62,6 @@ class C
             comp.VerifyDiagnostics();
         }
 
-
         [Fact, WorkItem(546716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546716")]
         public void TestBug16639()
         {
@@ -1433,7 +1432,6 @@ class C
             Assert.Equal(0, call.Arguments.Length);
             Assert.Equal("T", call.Constructor.ContainingSymbol.Name);
         }
-
 
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithSingleIntArgument()

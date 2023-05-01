@@ -8281,7 +8281,6 @@ class C
             }
         }
 
-
         [Fact]
         public void TestNullCheckedOperator()
         {
@@ -8617,11 +8616,15 @@ class B<X, Y> : A<int
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void TestExtraneousColonInBaseList()
         {
-            var tree = UsingNode(@"
+            var text = @"
 class A : B : C
 {
 }
-", TestOptions.Regular7_3,
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 11),
                 // (2,13): error CS1514: { expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
@@ -8631,18 +8634,59 @@ class A : B : C
                 // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
-                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
+                // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
+{
+").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
+                // (2,15): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
-}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            var tree = UsingNode(text, TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-}").WithLocation(3, 1)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8664,19 +8708,22 @@ class A : B : C
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "C");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -8830,17 +8877,29 @@ b { }";
         [CombinatorialData]
         public void DefaultConstraint_01(bool useCSharp8)
         {
-            UsingNode(
-@"class C<T> where T : default { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
-                useCSharp8 ?
-                    new[]
+            var test = @"class C<T> where T : default { }";
+
+            CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
+                useCSharp8
+                    ? new[]
                     {
                         // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         // class C<T> where T : default { }
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
-                    } :
-                    Array.Empty<DiagnosticDescription>());
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22),
+                        // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
+                    }
+                    : new[]
+                    {
+                        // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
+                    });
+
+            UsingNode(
+                test,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8944,22 +9003,48 @@ b { }";
         [CombinatorialData]
         public void DefaultConstraint_03(bool useCSharp8)
         {
-            UsingNode(
+            var test =
 @"class C<T, U>
     where T : struct, default
-    where U : default, class { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
-                useCSharp8 ?
-                    new[]
-                    {
-                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     where T : struct, default
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
-                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     where U : default, class { }
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
-                    } :
-                    Array.Empty<DiagnosticDescription>());
+    where U : default, class { }";
+
+            CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
+                useCSharp8
+                ? new[] {
+                    // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                    // (2,23): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(2, 23),
+                    // (2,23): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(2, 23),
+                    // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15),
+                    // (3,15): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
+                    // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) }
+                : new[] {
+                    // (2,23): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(2, 23),
+                    // (2,23): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(2, 23),
+                    // (3,15): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
+                    // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) });
+
+            UsingNode(test,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9091,6 +9176,2052 @@ b { }";
                     }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_NoBody()
+        {
+            var text = @"
+interface C";
+            UsingTree(text,
+                // (2,12): error CS1514: { expected
+                // interface C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
+                // interface C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 12)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_SemicolonBody()
+        {
+            var text = @"
+interface C
+;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_SemicolonBodyAfterBase_01()
+        {
+            var text = @"
+interface C : I1
+;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_SemicolonBodyAfterBase_02()
+        {
+            var text = @"
+interface C : I1, I2
+;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I1");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_SemicolonBodyAfterConstraint_01()
+        {
+            var text = @"
+interface C where T1 : U1
+;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interface_SemicolonBodyAfterConstraint_02()
+        {
+            var text = @"
+interface C where T1 : U1 where T2 : U2
+;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_NoBody_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C";
+            UsingTree(text,
+                // (3,2): error CS1514: { expected
+                // C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
+                // (3,2): error CS1513: } expected
+                // C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_NoBody_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C<T>";
+            UsingTree(text,
+                // (3,5): error CS1514: { expected
+                // C<T>
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 5),
+                // (3,5): error CS1513: } expected
+                // C<T>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonBody_01(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBody_02(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C<T>;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBody_03(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @"
+C<>;";
+            UsingTree(text,
+                // (3,3): error CS1001: Identifier expected
+                // C<>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonAfterSemicolonBody(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C;
+;";
+            UsingTree(text,
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // ;
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, ";").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonBodyAfterBase_01(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C : Base;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterBase_02(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C : Base, I1;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_01(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C where T1 : U1 ;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_02(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C where T1 : U1 where T2 : U2 ;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_03(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C<T1> where T1 : U1 ;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonAfterBlock(SyntaxKind declKind, SyntaxKind keywordKind)
+        {
+            var text = @"
+" + SyntaxFacts.GetText(keywordKind) + @" C { };";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(declKind);
+                {
+                    N(keywordKind);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterIdentifier_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C(int x);";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterIdentifier_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C(){}";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterTypeParameters_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>();";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterTypeParameters_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C<>();";
+            UsingTree(text,
+                // (3,3): error CS1001: Identifier expected
+                // C<>();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(;";
+            UsingTree(text,
+                // (3,2): error CS1026: ) expected
+                // (;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(int x ;";
+            UsingTree(text,
+                // (3,8): error CS1026: ) expected
+                // (int x ;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(int x, ;";
+            UsingTree(text,
+                // (3,9): error CS1031: Type expected
+                // (int x, ;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(3, 9),
+                // (3,9): error CS1001: Identifier expected
+                // (int x, ;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(3, 9),
+                // (3,9): error CS1026: ) expected
+                // (int x, ;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 9)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Parameter);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_04(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(
+: Base;";
+            UsingTree(text,
+                // (3,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_05(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(int x
+: Base;";
+            UsingTree(text,
+                // (3,7): error CS1026: ) expected
+                // (int x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 7)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_06(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+(int x,
+: Base;";
+            UsingTree(text,
+                // (3,8): error CS1031: Type expected
+                // (int x,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 8),
+                // (3,8): error CS1001: Identifier expected
+                // (int x,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 8),
+                // (3,8): error CS1026: ) expected
+                // (int x,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Parameter);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_07(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>
+(
+where T : class;";
+            UsingTree(text,
+                // (3,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_08(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>
+(T x
+where T : class;";
+            UsingTree(text,
+                // (3,5): error CS1026: ) expected
+                // (T x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteParameterList_09(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>
+(T x,
+where T : class;";
+            UsingTree(text,
+                // (3,6): error CS1031: Type expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 6),
+                // (3,6): error CS1001: Identifier expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 6),
+                // (3,6): error CS1026: ) expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 6)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Parameter);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterGenericTypeParameters_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>(T x);";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterIncompleteGenericTypeParameters_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+<
+(T x);";
+            UsingTree(text,
+                // (3,2): error CS1001: Identifier expected
+                // <
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 2),
+                // (3,2): error CS1003: Syntax error, '>' expected
+                // <
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterIncompleteGenericTypeParameters_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+<T
+(T x);";
+            UsingTree(text,
+                // (3,3): error CS1003: Syntax error, '>' expected
+                // <T
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterIncompleteGenericTypeParameters_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+<T,
+(T x);";
+            UsingTree(text,
+                // (3,4): error CS1001: Identifier expected
+                // <T,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 4),
+                // (3,4): error CS1003: Syntax error, '>' expected
+                // <T,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(3, 4)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterMissingIdentifier_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" 
+(T x);";
+            UsingTree(text,
+                // (2,6): error CS1001: Identifier expected
+                // class 
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, @struct ? 7 : 6)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ArgumentList_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C : Base(x);";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ArgumentList_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C : Base() {}";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ArgumentList_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C : Base,
+I1(x);";
+            UsingTree(text,
+                // (3,3): error CS1003: Syntax error, ',' expected
+                // I1(x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(3, 3),
+                // (3,4): error CS1003: Syntax error, ',' expected
+                // I1(x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(3, 4),
+                // (3,5): error CS1003: Syntax error, ',' expected
+                // I1(x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I1");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ArgumentList_04(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C(int x) : Base(x);";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base(;";
+            UsingTree(text,
+                // (3,8): error CS1026: ) expected
+                // : Base(;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base(x;";
+            UsingTree(text,
+                    // (3,9): error CS1026: ) expected
+                    // : Base(x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 9)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base(x,;";
+            UsingTree(text,
+                // (3,10): error CS1525: Invalid expression term ';'
+                // : Base(x,;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 10),
+                // (3,10): error CS1026: ) expected
+                // : Base(x,;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 10)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.Argument);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_04(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base( where T : class;";
+            UsingTree(text,
+                // (3,9): error CS1026: ) expected
+                // : Base( where T : class;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 9)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_05(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base(x where T : class;";
+            UsingTree(text,
+                // (3,10): error CS1026: ) expected
+                // : Base(x where T : class;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 10)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_IncompleteArgumentList_06(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C
+: Base(x, where T : class;";
+            UsingTree(text,
+                // (3,11): error CS1525: Invalid expression term 'where'
+                // : Base(x, where T : class;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "where").WithArguments("where").WithLocation(3, 11),
+                // (3,11): error CS1026: ) expected
+                // : Base(x, where T : class;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 11)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.Argument);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

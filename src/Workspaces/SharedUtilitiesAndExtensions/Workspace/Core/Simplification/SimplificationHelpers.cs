@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal static class SimplificationHelpers
     {
-        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new();
+        public static readonly SyntaxAnnotation DoNotSimplifyAnnotation = new();
         public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new();
 
         public static TNode CopyAnnotations<TNode>(SyntaxNode from, TNode to) where TNode : SyntaxNode
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             if (dontSimplifyResult)
             {
-                to = to.WithAdditionalAnnotations(DontSimplifyAnnotation);
+                to = to.WithAdditionalAnnotations(DoNotSimplifyAnnotation);
             }
 
             return to;
@@ -54,13 +55,13 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             if (dontSimplifyResult)
             {
-                to = to.WithAdditionalAnnotations(DontSimplifyAnnotation);
+                to = to.WithAdditionalAnnotations(DoNotSimplifyAnnotation);
             }
 
             return to;
         }
 
-        internal static ISymbol? GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
+        public static ISymbol? GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
         {
             Contract.ThrowIfNull(expression);
             var annotation1 = expression.GetAnnotations(SymbolAnnotation.Kind).FirstOrDefault();
@@ -68,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             {
                 var typeSymbol = SymbolAnnotation.GetSymbol(annotation1, semanticModel.Compilation);
                 if (IsValidSymbolInfo(typeSymbol))
-                {
                     return typeSymbol;
-                }
             }
 
             var annotation2 = expression.GetAnnotations(SpecialTypeAnnotation.Kind).FirstOrDefault();
@@ -81,17 +80,13 @@ namespace Microsoft.CodeAnalysis.Simplification
                 {
                     var typeSymbol = semanticModel.Compilation.GetSpecialType(specialType);
                     if (IsValidSymbolInfo(typeSymbol))
-                    {
                         return typeSymbol;
-                    }
                 }
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression);
             if (!IsValidSymbolInfo(symbolInfo.Symbol))
-            {
                 return null;
-            }
 
             return symbolInfo.Symbol;
         }

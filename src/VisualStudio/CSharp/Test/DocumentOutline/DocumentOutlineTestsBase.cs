@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 => _disposable.DisposeAsync();
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
@@ -134,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
 
             solution = solution.WithAnalyzerReferences(new[] { new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()) });
-            workspace.ChangeSolution(solution);
+            await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state

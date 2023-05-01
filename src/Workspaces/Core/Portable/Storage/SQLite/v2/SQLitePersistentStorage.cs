@@ -21,9 +21,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     /// <summary>
     /// Implementation of an <see cref="IPersistentStorage"/> backed by SQLite.
     /// </summary>
-    internal partial class SQLitePersistentStorage : AbstractPersistentStorage
+    internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
         private readonly CancellationTokenSource _shutdownTokenSource = new();
+
+        private readonly SolutionKey _solutionKey;
+        private readonly string _solutionDirectory;
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
@@ -40,18 +43,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // cached query strings
 
-        private readonly string _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
-        private readonly string _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
+        private readonly string _insert_into_string_table_values_0 = $"insert into {StringInfoTableName}({DataColumnName}) values (?)";
+        private readonly string _select_star_from_string_table_where_0_limit_one = $"select * from {StringInfoTableName} where ({DataColumnName} = ?) limit 1";
+        private readonly string _select_star_from_string_table = $"select * from {StringInfoTableName}";
 
         private SQLitePersistentStorage(
             SQLiteConnectionPoolService connectionPoolService,
+            SolutionKey solutionKey,
             string workingFolderPath,
-            string solutionFilePath,
             string databaseFile,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : base(workingFolderPath, solutionFilePath, databaseFile)
+            : base(workingFolderPath, solutionKey.FilePath!, databaseFile)
         {
+            Contract.ThrowIfNull(solutionKey.FilePath);
+            _solutionKey = solutionKey;
+            _solutionDirectory = PathUtilities.GetDirectoryName(solutionKey.FilePath);
             _connectionPoolService = connectionPoolService;
 
             _solutionAccessor = new SolutionAccessor(this);
@@ -77,14 +84,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public static SQLitePersistentStorage? TryCreate(
             SQLiteConnectionPoolService connectionPoolService,
+            SolutionKey solutionKey,
             string workingFolderPath,
-            string solutionFilePath,
             string databaseFile,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
         {
             var sqlStorage = new SQLitePersistentStorage(
-                connectionPoolService, workingFolderPath, solutionFilePath, databaseFile, asyncListener, faultInjector);
+                connectionPoolService, solutionKey, workingFolderPath, databaseFile, asyncListener, faultInjector);
             if (sqlStorage._connectionPool is null)
             {
                 // The connection pool failed to initialize
@@ -135,7 +142,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 d["Message"] = exception.Message;
             });
 
-        private static void Initialize(SqlConnection connection, CancellationToken cancellationToken)
+        private void Initialize(SqlConnection connection, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -169,7 +176,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
 $@"create table if not exists {StringInfoTableName}(
-""{DataIdColumnName}"" integer primary key autoincrement not null,
+""{StringDataIdColumnName}"" integer primary key autoincrement not null,
 ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
@@ -183,28 +190,19 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
 
+            // Bulk load all the existing string/id pairs in the DB at once.  In a solution like roslyn, there are
+            // roughly 20k of these strings.  Doing it as 20k individual reads adds more than a second of work time
+            // reading in all the data.  This allows for a single query that can efficiently have the DB just stream the
+            // pages from disk and bulk read those in the cursor the query uses.
+            LoadExistingStringIds(connection);
+
             return;
 
-            static void EnsureTables(SqlConnection connection, Database database)
+            void EnsureTables(SqlConnection connection, Database database)
             {
-                var dbName = database.GetName();
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{SolutionDataTableName}(
-    ""{DataIdColumnName}"" varchar primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{ProjectDataTableName}(
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{DocumentDataTableName}(
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
+                _solutionAccessor.CreateTable(connection, database);
+                _projectAccessor.CreateTable(connection, database);
+                _documentAccessor.CreateTable(connection, database);
             }
         }
     }

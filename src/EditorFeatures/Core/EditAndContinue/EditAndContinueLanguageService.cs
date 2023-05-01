@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -24,6 +25,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
+        private sealed class NoSessionException : InvalidOperationException
+        {
+            public NoSessionException()
+                : base("Internal error: no session.")
+            {
+                // unique enough HResult to distinguish from other exceptions
+                HResult = unchecked((int)0x801315087);
+            }
+        }
+
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -61,6 +72,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _sourceTextProvider = sourceTextProvider;
         }
 
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                    await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
         private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
         {
             var workspace = WorkspaceProvider.Value.Workspace;
@@ -68,11 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
+            => _debuggingSession ?? throw new NoSessionException();
 
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
             => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
@@ -145,8 +168,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Start tracking after we entered break state so that break-state session is active.
-            // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
+            // This is potentially costly operation as source generators might get invoked in OOP
+            // to determine the spans of all active statements.
+            // We start the operation but do not wait for it to complete.
+            // The tracking session is cancelled when we exit the break state.
+
+            GetActiveStatementTrackingService().StartTracking(solution, session);
         }
 
         public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
@@ -289,9 +316,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldSolution = _committedDesignTimeSolution;
                 var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
 
-                return (sourceFilePath != null) ?
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+                return (sourceFilePath != null)
+                    ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
+                    : await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

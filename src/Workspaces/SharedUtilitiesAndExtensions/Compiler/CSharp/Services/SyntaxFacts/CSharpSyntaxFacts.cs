@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -69,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool SupportsConstantInterpolatedStrings(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
+        public bool SupportsTupleDeconstruction(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return name.IsMemberBindingExpressionName();
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
             => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
 
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
-               usingDirective.Name == node;
+               usingDirective.NamespaceOrType == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
             alias = usingDirective.Alias!.Name.Identifier;
-            name = usingDirective.Name;
+            name = usingDirective.NamespaceOrType;
         }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
@@ -323,8 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         }
 
         private static PredefinedType GetPredefinedType(SyntaxToken token)
-        {
-            return (SyntaxKind)token.RawKind switch
+            => token.Kind() switch
             {
                 SyntaxKind.BoolKeyword => PredefinedType.Boolean,
                 SyntaxKind.ByteKeyword => PredefinedType.Byte,
@@ -342,9 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 SyntaxKind.CharKeyword => PredefinedType.Char,
                 SyntaxKind.ObjectKeyword => PredefinedType.Object,
                 SyntaxKind.VoidKeyword => PredefinedType.Void,
+                SyntaxKind.IdentifierToken => token.Text switch
+                {
+                    "nint" => PredefinedType.IntPtr,
+                    "nuint" => PredefinedType.UIntPtr,
+                    _ => PredefinedType.None,
+                },
                 _ => PredefinedType.None,
             };
-        }
 
         public bool IsPredefinedOperator(SyntaxToken token)
             => TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;
@@ -370,10 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 case SyntaxKind.MinusEqualsToken:
                     return PredefinedOperator.Subtraction;
 
+                case SyntaxKind.AmpersandAmpersandToken: // overridden bitwise & can be accessed through &&
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.AmpersandEqualsToken:
                     return PredefinedOperator.BitwiseAnd;
 
+                case SyntaxKind.BarBarToken: // overridden bitwise | can be accessed through ||
                 case SyntaxKind.BarToken:
                 case SyntaxKind.BarEqualsToken:
                     return PredefinedOperator.BitwiseOr;
@@ -678,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsElementAccessExpression(SyntaxNode? node)
             => node.IsKind(SyntaxKind.ElementAccessExpression);
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
 
@@ -1352,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
@@ -1365,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
             => node.GetModifiers();
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 
@@ -1702,6 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
+
+        public SyntaxNode? GetExpressionOfThrowStatement(SyntaxNode node)
+            => ((ThrowStatementSyntax)node).Expression;
 
         public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
             => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;

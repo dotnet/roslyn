@@ -389,7 +389,6 @@ class C
                 var offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
                 var mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
 
-
                 var optSym = interopNS.GetTypeMember("OptionalAttribute");
                 var inSym = interopNS.GetTypeMember("InAttribute");
                 var outSym = interopNS.GetTypeMember("OutAttribute");
@@ -520,7 +519,7 @@ public class Bar
                     Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
 
                     // let's find the attribute in the PE metadata
-                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute, out _);
                     Assert.True(attributeInfo.HasValue);
 
                     long attributeValue;
@@ -8718,7 +8717,6 @@ class C2 : C1
 
             verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
 
-
             // WithSpecificDiagnosticOption for id TEST1
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
                 // (6,9): warning TEST1: 'C1.M1()' is obsolete
@@ -8739,7 +8737,6 @@ class C2 : C1
                 );
 
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
-
 
             // WithSpecificDiagnosticOption for id CS0618
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),
@@ -10314,7 +10311,7 @@ public class C
 
         #region SkipLocalsInitAttribute
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification? verify = null)
         {
             const string skipLocalsInitDef = @"
 namespace System.Runtime.CompilerServices
@@ -10325,12 +10322,12 @@ namespace System.Runtime.CompilerServices
 }";
 
             var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: options, parseOptions: parseOptions);
-            return CompileAndVerify(comp, verify: verify);
+            return CompileAndVerify(comp, verify: verify ?? Verification.Fails);
         }
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification? verify = null)
         {
-            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify);
+            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify ?? Verification.Fails);
         }
 
         [Fact]

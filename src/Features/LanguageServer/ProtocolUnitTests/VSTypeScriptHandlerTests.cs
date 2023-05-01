@@ -65,7 +65,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         var options = new InitializationOptions()
         {
-            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull)
+            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.LspPull)
         };
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, options);
@@ -84,7 +84,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        var testWorkspace = CreateWorkspace(options, workspaceKind: null);
+        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
@@ -110,6 +110,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             servicesProvider, jsonRpc,
             capabilitiesProvider,
             logger,
+            workspace.Services.HostServices,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 

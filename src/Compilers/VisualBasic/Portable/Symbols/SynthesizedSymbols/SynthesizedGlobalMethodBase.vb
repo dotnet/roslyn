@@ -32,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_privateImplType = privateImplType
         End Sub
 
-
         Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return True

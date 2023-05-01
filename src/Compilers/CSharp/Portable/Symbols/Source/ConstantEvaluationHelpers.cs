@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         /// <summary>
         /// Generate a list containing the given field and all dependencies
         /// of that field that require evaluation. The list is ordered by

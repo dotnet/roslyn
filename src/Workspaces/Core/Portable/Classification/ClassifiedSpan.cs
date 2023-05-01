@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             => Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
 
         public override bool Equals(object? obj)
-        {
-            return obj is ClassifiedSpan &&
-                Equals((ClassifiedSpan)obj);
-        }
+            => obj is ClassifiedSpan span && Equals(span);
 
         public bool Equals(ClassifiedSpan other)
             => this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;

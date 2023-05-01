@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis
             | out var x                |      |  ✔️   |             |             |                 | ️
             | case X x:                |      |  ✔️   |             |             |                 | ️
             | obj is X x               |      |  ✔️   |             |             |                 |
+            | obj is { } x             |      |  ✔️   |             |             |                 |
+            | obj is [] x              |      |  ✔️   |             |             |                 |
             | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
             | ref readonly var x =     |      |       |     ✔️      |             |                 |
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis
 
                 switch (operation.Parent)
                 {
-                    case IPatternCaseClauseOperation _:
+                    case IPatternCaseClauseOperation:
                         // A declaration pattern within a pattern case clause is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IRecursivePatternOperation:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case ISwitchExpressionArmOperation _:
+                    case ISwitchExpressionArmOperation:
                         // A declaration pattern within a switch expression arm is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IIsPatternOperation _:
+                    case IIsPatternOperation:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IPropertySubpatternOperation _:
+                    case IPropertySubpatternOperation:
                         // A declaration pattern within a property sub-pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj.Property' below:
@@ -117,6 +119,10 @@ namespace Microsoft.CodeAnalysis
                         // Conservatively assume read/write.
                         return ValueUsageInfo.ReadWrite;
                 }
+            }
+            else if (operation is IRecursivePatternOperation or IListPatternOperation)
+            {
+                return ValueUsageInfo.Write;
             }
 
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
@@ -278,17 +284,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Retursn true if the given operation is a regular compound assignment,
+        /// Returns true if the given operation is a regular compound assignment,
         /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
-        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// or a special null coalescing compound assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
         {
             switch (operation)
             {
-                case ICompoundAssignmentOperation _:
-                case ICoalesceAssignmentOperation _:
+                case ICompoundAssignmentOperation:
+                case ICoalesceAssignmentOperation:
                     return true;
 
                 default:
@@ -376,7 +382,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static IOperation? WalkDownConversion(this IOperation? operation)
         {
             while (operation is IConversionOperation conversionOperation)
@@ -448,7 +454,7 @@ namespace Microsoft.CodeAnalysis
                    notImplementedExceptionType.Equals(objectCreation.Type);
         }
 
-        [return: NotNullIfNotNull("value")]
+        [return: NotNullIfNotNull(nameof(value))]
         public static IOperation? UnwrapImplicitConversion(this IOperation? value)
             => value is IConversionOperation conversion && conversion.IsImplicit
                 ? conversion.Operand

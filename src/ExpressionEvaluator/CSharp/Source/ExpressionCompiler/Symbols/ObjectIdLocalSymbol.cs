@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            return RewriteLocalInternal(compilation, container, syntax, this);
+            return RewriteLocalInternal(compilation, syntax, this);
         }
 
-        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
+        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, LocalSymbol local)
         {
-            return RewriteLocalInternal(compilation, container, syntax, local);
+            return RewriteLocalInternal(compilation, syntax, local);
         }
 
-        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
+        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, SyntaxNode syntax, LocalSymbol local)
         {
             return new BoundPseudoVariable(
                 syntax,

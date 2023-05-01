@@ -161,6 +161,7 @@ Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.SoftSelection 
 Microsoft.CodeAnalysis.Completion.CompletionList
 Microsoft.CodeAnalysis.Completion.CompletionList.DefaultSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.Completion.CompletionList.Items.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem>
+Microsoft.CodeAnalysis.Completion.CompletionList.ItemsList.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Completion.CompletionItem>
 Microsoft.CodeAnalysis.Completion.CompletionList.Rules.get -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionList.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.Completion.CompletionList.SuggestionModeItem.get -> Microsoft.CodeAnalysis.Completion.CompletionItem

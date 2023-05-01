@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
             => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-
         public override bool HasUnsupportedMetadata
         {
             get
@@ -852,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)currType == implementingType || implementingTypeImplementsInterface)
                     {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.GetFirstLocation(), interfaceMember);
                     }
 
                     implementationInInterfacesMightChangeResult = false;
@@ -1763,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         if (arg.isExplicit)
                                                                                         {
                                                                                             diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation,
-                                                                                                            implementingEvent.Locations[0], new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                                                                            implementingEvent.GetFirstLocation(), new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                                                                         }
                                                                                         else
                                                                                         {
@@ -1796,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0], new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                    implementingMethod.GetFirstLocation(), new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
                                 else
                                 {
@@ -1817,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0],
+                                                    implementingMethod.GetFirstLocation(),
                                                     new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                     new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
@@ -1862,6 +1861,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 (implementingType, isExplicit),
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
+                        }
+
+                        if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
                         }
                     }
 
@@ -2031,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocationOrNone();
         }
 
         private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)
@@ -2083,13 +2089,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
-                return member.Locations[0];
+                return member.GetFirstLocation();
             }
             else
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocation();
             }
         }
 

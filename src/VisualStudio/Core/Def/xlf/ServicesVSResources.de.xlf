@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Analyze_source_generated_files">
         <source>Analyze source generated files</source>
-        <target state="new">Analyze source generated files</target>
+        <target state="translated">Analysieren der von der Quelle generierten Dateien</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -287,11 +287,6 @@
         <target state="translated">Kommentare</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">Schnelle Aktionen asynchron berechnen (experimentell, Neustart erforderlich)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Enthaltender Member</target>
@@ -430,6 +425,11 @@
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">Aktivieren aller Funktionen in geöffneten Dateien von Quellgeneratoren (experimentell)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">Dokumentgliederung aktivieren (experimentell, Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -776,11 +776,6 @@
         <source>Namespace declarations</source>
         <target state="translated">Namespacedeklarationen</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Namespaces wurden aktualisiert.</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1152,6 +1147,11 @@
         <target state="translated">Schreibgeschützte Struktur bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">Schreibgeschützten Strukturmember bevorzugen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">readonly-Felder bevorzugen</target>
@@ -1491,6 +1491,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Namespaces synchronisieren</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">Änderungen an Synchronisierungsnamespaces</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

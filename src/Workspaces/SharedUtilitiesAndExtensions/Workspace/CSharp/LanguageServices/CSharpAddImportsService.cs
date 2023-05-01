@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
@@ -29,8 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
         }
 
-        public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(AnalyzerConfigOptions configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue)
-            => configOptions.GetEditorConfigOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, fallbackValue);
+        protected override string Language
+            => LanguageNames.CSharp;
+
+        public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue)
+            => configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, fallbackValue);
 
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 _cancellationToken = cancellationToken;
             }
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
                 => base.Visit(node);
 

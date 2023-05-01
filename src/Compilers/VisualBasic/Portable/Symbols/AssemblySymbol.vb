@@ -336,12 +336,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Function SupportsRuntimeCapability(capability As RuntimeCapability) As Boolean
+            ' Keep in sync with C#'s AssemblySymbol.SupportsRuntimeCapability
+            Select Case capability
+                Case RuntimeCapability.ByRefFields
+                    Return Me.RuntimeSupportsByRefFields
+                Case RuntimeCapability.CovariantReturnsOfClasses
+                    Return Me.RuntimeSupportsCovariantReturnsOfClasses
+                Case RuntimeCapability.DefaultImplementationsOfInterfaces
+                    Return Me.RuntimeSupportsDefaultInterfaceImplementation
+                Case RuntimeCapability.NumericIntPtr
+                    Return Me.RuntimeSupportsNumericIntPtr
+                Case RuntimeCapability.UnmanagedSignatureCallingConvention
+                    Return Me.RuntimeSupportsUnmanagedSignatureCallingConvention
+                Case RuntimeCapability.VirtualStaticsInInterfaces
+                    Return Me.RuntimeSupportsVirtualStaticsInInterfaces
+            End Select
+
+            Return False
+        End Function
+
+        Private ReadOnly Property RuntimeSupportsByRefFields As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefFields
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsCovariantReturnsOfClasses As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsCovariantReturnsOfClasses
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) AndAlso
+                       GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute).IsClassType()
+            End Get
+        End Property
+
         ''' <summary>
         ''' Figure out if the target runtime supports default interface implementation.
         ''' </summary>
         Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
             Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsDefaultInterfaceImplementation
                 Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsNumericIntPtr As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsNumericIntPtr
+
+                ' CorLibrary should never be null, but that invariant Is broken in some cases for MissingAssemblySymbol.
+                ' Tracked by https://github.com/dotnet/roslyn/issues/61262
+                Return CorLibrary IsNot Nothing AndAlso
+                       RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsUnmanagedSignatureCallingConvention As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsUnmanagedSignatureCallingConvention
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsVirtualStaticsInInterfaces As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsStaticAbstractMembersInInterfaces
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces)
             End Get
         End Property
 
@@ -433,7 +494,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetSpecialType(SpecialTypes.GetTypeFromMetadataName(type))
         End Function
 
-
         ''' <summary>
         ''' Lookup a type within the assembly using its canonical CLR metadata name (names are compared case-sensitively).
         ''' </summary>
@@ -520,7 +580,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(If(Not type?.IsErrorType(), True))
             Return type
         End Function
-
 
         ''' <summary>
         ''' Lookup a top level type within the assembly or one of the assemblies referenced by the primary module, 

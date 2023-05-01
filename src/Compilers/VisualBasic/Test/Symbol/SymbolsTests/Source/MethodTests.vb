@@ -1421,7 +1421,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, so all methods should match methods in base
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1463,7 +1462,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, but base methods have multiple casing, so don't use it.
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1657,7 +1655,6 @@ End Module
             Dim badext6 = DirectCast(modM2.GetMembers("badext6").Single(), MethodSymbol)
             Assert.False(badext6.IsExtensionMethod)
             Assert.True(badext6.MayBeReducibleExtensionMethod)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                <expected>

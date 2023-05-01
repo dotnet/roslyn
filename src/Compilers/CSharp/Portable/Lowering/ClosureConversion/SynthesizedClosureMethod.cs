@@ -233,5 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
         public ClosureKind ClosureKind { get; }
+
+        internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

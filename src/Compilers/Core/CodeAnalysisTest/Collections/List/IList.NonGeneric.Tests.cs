@@ -742,7 +742,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
-
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public void IList_NonGeneric_Insert_IndexGreaterThanListCount_Appends(int count)

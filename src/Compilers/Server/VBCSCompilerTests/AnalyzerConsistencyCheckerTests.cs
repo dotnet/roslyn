@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void MissingReference()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CopyFile(TestFixture.Alpha.Path);
+            var alphaDll = directory.CopyFile(TestFixture.Alpha);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 new CommandLineAnalyzerReference("Gamma.dll"),
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(Path.GetDirectoryName(TestFixture.Alpha.Path), analyzerReferences, new InMemoryAssemblyLoader(), Logger);
+            var result = AnalyzerConsistencyChecker.Check(Path.GetDirectoryName(TestFixture.Alpha), analyzerReferences, new InMemoryAssemblyLoader(), Logger);
             Assert.True(result);
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void AssemblyLoadException()
         {
             var directory = Temp.CreateDirectory();
-            directory.CopyFile(TestFixture.Delta1.Path);
+            directory.CopyFile(TestFixture.Delta1);
 
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Delta.dll"));

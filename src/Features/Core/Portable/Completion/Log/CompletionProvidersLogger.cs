@@ -41,17 +41,17 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionTicks, elapsed);
         }
 
-        internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionItemCount, count);
+        internal static void LogTypeImportCompletionItemCountDataPoint(int count)
+            => s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionItemCount, count);
 
-        internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionReferenceCount, count);
+        internal static void LogTypeImportCompletionReferenceCountDataPoint(int count)
+            => s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionReferenceCount, count);
 
-        internal static void LogTypeImportCompletionCacheMiss() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
+        internal static void LogTypeImportCompletionCacheMiss()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
 
-        internal static void LogCommitOfTypeImportCompletionItem() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
+        internal static void LogCommitOfTypeImportCompletionItem()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
         internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, TimeSpan? remoteAssetSync)
         {
@@ -68,20 +68,20 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
         }
 
-        internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
+        internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count)
+            => s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
-        internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+        internal static void LogCommitOfExtensionMethodImportCompletionItem()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
-        internal static void LogExtensionMethodCompletionPartialResultCount() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
+        internal static void LogExtensionMethodCompletionPartialResultCount()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
 
-        internal static void LogCommitUsingSemicolonToAddParenthesis() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
+        internal static void LogCommitUsingSemicolonToAddParenthesis()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
-        internal static void LogCommitUsingDotToAddParenthesis() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
+        internal static void LogCommitUsingDotToAddParenthesis()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
 
         internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
         {

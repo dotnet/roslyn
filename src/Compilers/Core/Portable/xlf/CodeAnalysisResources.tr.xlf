@@ -64,6 +64,11 @@
         <target state="translated">İlgili yield return deyimi silindiğinden Düzenle ve Devam Et, askıya alınmış yineleyiciyi sürdüremiyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Oluşturucu</target>
@@ -78,6 +83,16 @@
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">hintName '{0}', {2} konumunda geçersiz bir '{1}' karakteri içeriyor.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="translated">HintName '{0}', {2} konumunda geçersiz bir '{1}' segmenti içeriyor.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="translated">HintName '{0}' geçerli dizinde değil.</target>
+        <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
@@ -94,6 +109,11 @@
         <target state="translated">'{0}' gizlenmiş tanılama kimliği, belirtilen gizleme tanımlayıcısı için gizlenebilir '{1}' kimliği ile eşleşmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="translated">Geçersiz izleme türü: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Belirtilen işlem bloğu geçerli analiz bağlamına ait değil.</target>
@@ -107,6 +127,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">'{0}' parametresi bu derleme veya bazı başvurulan derleme bir sembol olması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="translated">Yöntem sembolü bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -484,11 +509,6 @@
         <target state="translated">'start' negatif olmamalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end', 'start'tan az olmamalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Geçersiz içerik türü</target>
@@ -671,18 +691,18 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">Çözümleyici Hatası</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <target state="needs-review-translation">Çözümleyici Hatası</target>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="translated">'{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
+        <target state="needs-review-translation">'{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

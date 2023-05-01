@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
@@ -89,7 +89,6 @@ class Program
                 return checker.AddAliasesIfAny(list);
             }
         }
-
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
@@ -770,6 +769,26 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
         }
 
         [Fact]
+        public void TestParseInvalidAttributeArgumentList1()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]");
+            Assert.Equal("[]", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
+
+        [Fact]
+        public void TestParseInvalidAttributeArgumentList2()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]", consumeFullText: false);
+            Assert.Equal("", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
+
+        [Fact]
         public void TestAttributeCallerInfoSemanticModel_Method_Speculative2()
         {
             var source = @"
@@ -1316,7 +1335,6 @@ public unsafe partial class A : C, I
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
-
 
         [Fact, WorkItem(545326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545326")]
         public void TestAssemblyAttributes_Bug13670()
@@ -2619,7 +2637,6 @@ public class Test
                 Assert.Equal("FF", GetSingleAttributeName(event6));
                 AssertNoAttributes(event6.AddMethod);
                 AssertNoAttributes(event6.RemoveMethod);
-
 
                 AssertNoAttributes(event7);
                 Assert.Equal("GG", GetSingleAttributeName(event7.AddMethod));
@@ -3963,7 +3980,6 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
 
-
                 property = (PropertySymbol)type.GetMember("P2");
                 var getter = property.GetMethod;
 
@@ -4518,7 +4534,6 @@ public class Program
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, cClass.AsUnboundGenericType());
             };
 
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
@@ -4558,7 +4573,6 @@ class Program
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, bClass.AsUnboundGenericType());
             };
-
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
@@ -5006,7 +5020,6 @@ class C
                 attr = attrs.ElementAt(1);
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
-
 
                 // Verify B attributes
                 attrs = cClass.GetAttributes(attributeTypeB);
@@ -5522,7 +5535,6 @@ class C<T>
                 Assert.Equal("XAttribute", attribute.AttributeClass.Name);
             });
         }
-
 
         #endregion
 
@@ -8154,7 +8166,6 @@ public class X
 }
 ";
 
-
             var source3 = @"
 namespace X
 {
@@ -10507,7 +10518,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10524,15 +10535,111 @@ class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7),
                 // (5,7): error CS0306: The type 'int*' may not be used as a type argument
                 // [Attr<int*>] // 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 7),
                 // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 // [Attr<delegate*<int, void>>] // 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class Outer
+{
+    [Attr<int*>] // 1
+    class C1 { }
+
+    [Attr<delegate*<int, void>>] // 2
+    class C2 { }
+
+    [Attr<TypedReference>] // 3
+    class C3 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0306: The type 'int*' may not be used as a type argument
+                //     [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 11),
+                // (10,11): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(10, 11),
+                // (13,11): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            // Legal in C#11.  Allowed for back compat
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_OnUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+unsafe class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_InUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class C
+{
+    [Attr<int*[]>] // 1
+    class C1 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

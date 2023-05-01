@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _callback = callback;
         }
 
-        private IEditAndContinueWorkspaceService GetService()
-            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetService()
+            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         private ActiveStatementSpanProvider CreateActiveStatementSpanProvider(RemoteServiceCallbackId callbackId)
             => new((documentId, filePath, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetSpansAsync(callbackId, documentId, filePath, cancellationToken), cancellationToken));
@@ -156,14 +156,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    var updates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ModuleUpdate>.Empty);
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-                    var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
-
-                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
+                    return new EmitSolutionUpdateResults.Data()
+                    {
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+                        Diagnostics = GetUnexpectedUpdateError(solution, e),
+                        RudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
+                        SyntaxError = null,
+                    };
                 }
             }, cancellationToken);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
+            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
         }
 
         /// <summary>
@@ -232,6 +240,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                GetService().SetFileLoggingDirectory(logDirectory);
+                return default;
             }, cancellationToken);
         }
     }

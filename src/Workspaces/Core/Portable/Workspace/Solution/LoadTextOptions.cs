@@ -31,7 +31,7 @@ public readonly struct LoadTextOptions : IEquatable<LoadTextOptions>
         => !(left == right);
 
     public override int GetHashCode()
-        => ChecksumAlgorithm.GetHashCode();
+        => ((int)ChecksumAlgorithm).GetHashCode();
 
     public override string ToString()
         => $"{{ {nameof(ChecksumAlgorithm)}: {ChecksumAlgorithm} }}";

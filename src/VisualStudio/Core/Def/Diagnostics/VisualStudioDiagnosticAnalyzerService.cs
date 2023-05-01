@@ -307,6 +307,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
+            // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
+            ImmutableArray<Project> otherProjectsForMultiTfmProject;
+            if (project != null)
+            {
+                otherProjectsForMultiTfmProject = solution.Projects.Where(
+                    p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name).ToImmutableArray();
+                if (!otherProjectsForMultiTfmProject.IsEmpty)
+                    projectOrSolutionName = project.State.NameAndFlavor.name;
+            }
+            else
+            {
+                otherProjectsForMultiTfmProject = ImmutableArray<Project>.Empty;
+            }
+
             bool isAnalysisDisabled;
             if (project != null)
             {
@@ -323,10 +337,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
-            var statusBarUpdater = statusBar != null ?
-                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
-                null;
+            var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
+            var statusBarUpdater = statusBar != null
+                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
+                : null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
@@ -336,6 +350,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 {
                     var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
                     await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+
+                    foreach (var otherProject in otherProjectsForMultiTfmProject)
+                        await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
 
                     // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
                     // then ForceAnalyzeAsync will not cause analyzers to execute.
@@ -355,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 RoslynDebug.Assert(solution != null);
 
                 // First clear all special host diagostics for all involved projects.
-                var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
+                var projects = project != null ? otherProjectsForMultiTfmProject.Add(project) : solution.Projects;
                 foreach (var project in projects)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
@@ -367,19 +384,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
                 {
-                    // Compute diagnostics by overidding project's RunCodeAnalysis flag to true.
+                    // Compute diagnostics by overriding project's RunCodeAnalysis flag to true.
                     var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];
                         project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
                         tasks[index] = Task.Run(
-                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id));
+                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null,
+                                        includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None));
                     }
 
                     Task.WhenAll(tasks).Wait();
 
-                    // Report new host diagostics.
+                    // Report new host diagnostics.
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];

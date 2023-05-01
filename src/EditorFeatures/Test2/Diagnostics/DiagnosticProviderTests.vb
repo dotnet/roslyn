@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -133,10 +134,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="2" MappedColumn="53" OriginalFile="Test.cs" OriginalLine="2" OriginalColumn="53"
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "as") %>/>
-                                  <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
-                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                                   <Warning Code="1633" Id="CS1633" MappedFile="Test.cs" MappedLine="4" MappedColumn="48" OriginalFile="Test.cs" OriginalLine="4" OriginalColumn="48"
                                       Message=<%= CSharpResources.WRN_IllegalPragma %>/>
+                                  <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
+                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                               </Diagnostics>
 
             ' Note: The below is removed because of bug # 550593.
@@ -260,14 +261,17 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
-                    workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language), BackgroundAnalysisScope.OpenFiles)
+                    workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result
+                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
+                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                     includeNonLocalDocumentDiagnostics:=True,
+                                                                                     CancellationToken.None).Result
 
                 registrationService.Unregister(workspace)
 

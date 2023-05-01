@@ -353,13 +353,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""TRACE""
 ]", "DEBUG", "TRACE");
 
-
             assert(@"
 [
   ""DEBUG"",
   ""TRACE""
 ]", "TRACE", "DEBUG");
-
 
             void assert(string expected, params string[] values)
             {

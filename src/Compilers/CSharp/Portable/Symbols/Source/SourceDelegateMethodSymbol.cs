@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
+        internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
         {
             Debug.Assert(_parameters.IsDefault);
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
-            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -96,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!delegateType.IsNoMoreVisibleThan(invoke.ReturnTypeWithAnnotations, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than delegate '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.GetFirstLocation(), delegateType, invoke.ReturnType);
             }
 
             var delegateTypeIsFile = delegateType.HasFileLocalTypes();
             if (!delegateTypeIsFile && invoke.ReturnType.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], invoke.ReturnType, delegateType);
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.GetFirstLocation(), invoke.ReturnType, delegateType);
             }
 
             for (int i = 0; i < invoke.Parameters.Length; i++)
@@ -111,15 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.GetFirstLocation(), delegateType, parameterSymbol.Type);
                 }
                 else if (!delegateTypeIsFile && parameterSymbol.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.GetFirstLocation(), parameterSymbol.Type, delegateType);
                 }
             }
 
-            diagnostics.Add(delegateType.Locations[0], useSiteInfo);
+            diagnostics.Add(delegateType.GetFirstLocation(), useSiteInfo);
         }
 
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)

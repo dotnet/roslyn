@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             _wrappers = wrappers;
         }
 
-        protected abstract SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions);
+        protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

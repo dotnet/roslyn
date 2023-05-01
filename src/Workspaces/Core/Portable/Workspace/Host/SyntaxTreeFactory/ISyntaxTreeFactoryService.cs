@@ -33,7 +33,5 @@ namespace Microsoft.CodeAnalysis.Host
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
-
-        SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }
 }

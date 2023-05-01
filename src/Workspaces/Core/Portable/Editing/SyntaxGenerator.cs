@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -149,14 +147,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
-        public abstract SyntaxNode MethodDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode MethodDeclaration(
             string name,
             IEnumerable<SyntaxNode>? parameters = null,
             IEnumerable<string>? typeParameters = null,
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
-            IEnumerable<SyntaxNode>? statements = null);
+            IEnumerable<SyntaxNode>? statements = null)
+        {
+            return MethodDeclaration(
+                name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers, statements);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode MethodDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? parameters,
+            IEnumerable<SyntaxNode>? typeParameters,
+            SyntaxNode? returnType,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            IEnumerable<SyntaxNode>? statements);
 
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
@@ -168,15 +181,43 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var decl = MethodDeclaration(
                 name,
+                typeParameters: method.TypeParameters.Select(p => TypeParameter(p)),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
             {
-                decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+                // Overrides are special.  Specifically, in an override, if a type parameter has no constraints, then we
+                // want to still add `where T : default` if that type parameter is used with NRT (e.g. `T?`) that way
+                // the language can distinguish if this is a Nullable Value Type or not.
+                if (method.IsOverride)
+                {
+                    foreach (var typeParameter in method.TypeParameters)
+                    {
+                        if (HasNullableAnnotation(typeParameter, method))
+                        {
+                            if (!HasSomeConstraint(typeParameter))
+                            {
+                                // if there are no constraints, add `where T : default` so it's known this not an NVT
+                                // and is just an unconstrained type parameter.
+                                decl = WithDefaultConstraint(decl, typeParameter.Name);
+                            }
+                            else if (!typeParameter.HasValueTypeConstraint)
+                            {
+                                // if there are some constraints, add `where T : class` so it's known this is not an NVT
+                                // and must specifically be some reference type.
+                                decl = WithTypeConstraint(decl, typeParameter.Name, SpecialTypeConstraintKind.ReferenceType);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+                }
             }
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
@@ -186,6 +227,17 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return decl;
+
+            bool HasNullableAnnotation(ITypeParameterSymbol typeParameter, IMethodSymbol method)
+            {
+                return method.ReturnType.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)) ||
+                    method.Parameters.Any(p => p.Type.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)));
+            }
+
+            static bool IsNullableAnnotatedTypeParameter(ITypeParameterSymbol typeParameter, ITypeParameterSymbol current)
+            {
+                return Equals(current, typeParameter) && current.NullableAnnotation == NullableAnnotation.Annotated;
+            }
         }
 
         /// <summary>
@@ -203,19 +255,17 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a method declaration matching an existing method symbol.
+        /// Creates a operator or conversion declaration matching an existing method symbol.
         /// </summary>
         public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode>? statements = null)
         {
-            if (method.MethodKind != MethodKind.UserDefinedOperator)
-            {
+            if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
                 throw new ArgumentException("Method is not an operator.");
-            }
 
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
@@ -259,11 +309,24 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
-        public abstract SyntaxNode ParameterDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
             SyntaxNode? initializer = null,
-            RefKind refKind = RefKind.None);
+            RefKind refKind = RefKind.None)
+        {
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode ParameterDeclaration(
+            string name,
+            SyntaxNode? type,
+            SyntaxNode? initializer,
+            RefKind refKind,
+            bool isExtension,
+            bool isParams);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
@@ -273,9 +336,17 @@ namespace Microsoft.CodeAnalysis.Editing
             return ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
-                initializer,
-                symbol.RefKind);
+                initializer is not null ? initializer :
+                symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
+                symbol.RefKind,
+                isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
+                symbol.IsParams);
         }
+
+        private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
+        private protected abstract SyntaxNode TypeParameter(string name);
+
+        private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
         /// Creates a property declaration. The property will have a <c>get</c> accessor if
@@ -306,14 +377,49 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
             IEnumerable<SyntaxNode>? setAccessorStatements = null)
         {
-            return PropertyDeclaration(
-                    property.Name,
-                    TypeExpression(property.Type),
-                    property.DeclaredAccessibility,
-                    DeclarationModifiers.From(property),
-                    getAccessorStatements,
-                    setAccessorStatements);
+            var propertyAccessibility = property.DeclaredAccessibility;
+            var getMethodSymbol = property.GetMethod;
+            var setMethodSymbol = property.SetMethod;
+
+            SyntaxNode? getAccessor = null;
+            SyntaxNode? setAccessor = null;
+
+            if (getMethodSymbol is not null)
+            {
+                var getMethodAccessibility = getMethodSymbol.DeclaredAccessibility;
+                getAccessor = GetAccessorDeclaration(getMethodAccessibility < propertyAccessibility ? getMethodAccessibility : Accessibility.NotApplicable, getAccessorStatements);
+            }
+
+            if (setMethodSymbol is not null)
+            {
+                var setMethodAccessibility = setMethodSymbol.DeclaredAccessibility;
+                setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
+            }
+
+            var propDecl = PropertyDeclaration(
+                property.Name,
+                TypeExpression(property.Type, property.RefKind),
+                getAccessor,
+                setAccessor,
+                propertyAccessibility,
+                DeclarationModifiers.From(property));
+
+            if (property.ExplicitInterfaceImplementations.Length > 0)
+            {
+                propDecl = this.WithExplicitInterfaceImplementations(propDecl,
+                    ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations));
+            }
+
+            return propDecl;
         }
+
+        private protected abstract SyntaxNode PropertyDeclaration(
+            string name,
+            SyntaxNode type,
+            SyntaxNode? getAccessor,
+            SyntaxNode? setAccessor,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers);
 
         public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
             => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);
@@ -347,13 +453,21 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
             IEnumerable<SyntaxNode>? setAccessorStatements = null)
         {
-            return IndexerDeclaration(
+            var indexerDecl = IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-                TypeExpression(indexer.Type),
+                TypeExpression(indexer.Type, indexer.RefKind),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
                 setAccessorStatements);
+
+            if (indexer.ExplicitInterfaceImplementations.Length > 0)
+            {
+                indexerDecl = this.WithExplicitInterfaceImplementations(indexerDecl,
+                    ImmutableArray<ISymbol>.CastUp(indexer.ExplicitInterfaceImplementations));
+            }
+
+            return indexerDecl;
         }
 
         /// <summary>
@@ -380,11 +494,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode EventDeclaration(IEventSymbol symbol)
         {
-            return EventDeclaration(
+            var ev = EventDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 symbol.DeclaredAccessibility,
                 DeclarationModifiers.From(symbol));
+
+            if (symbol.ExplicitInterfaceImplementations.Length > 0)
+            {
+                ev = this.WithExplicitInterfaceImplementations(ev,
+                    ImmutableArray<ISymbol>.CastUp(symbol.ExplicitInterfaceImplementations));
+            }
+
+            return ev;
         }
 
         /// <summary>
@@ -448,6 +570,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 statements);
         }
 
+        private protected abstract SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod);
+
         /// <summary>
         /// Converts method, property and indexer declarations into public interface implementations.
         /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
@@ -477,35 +601,73 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a class declaration.
         /// </summary>
-        public abstract SyntaxNode ClassDeclaration(
+        public SyntaxNode ClassDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             SyntaxNode? baseType = null,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return ClassDeclaration(
+                isRecord: false, name, typeParameters?.Select(TypeParameter), accessibility, modifiers, baseType, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode ClassDeclaration(
+            bool isRecord,
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            SyntaxNode? baseType,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates a struct declaration.
         /// </summary>
-        public abstract SyntaxNode StructDeclaration(
+        public SyntaxNode StructDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return StructDeclaration(
+                isRecord: false, name, typeParameters?.Select(TypeParameter), accessibility, modifiers, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode StructDeclaration(
+            bool isRecord,
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates a interface declaration.
         /// </summary>
-        public abstract SyntaxNode InterfaceDeclaration(
+        public SyntaxNode InterfaceDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return InterfaceDeclaration(
+                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode InterfaceDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates an enum declaration.
@@ -534,13 +696,25 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a delegate declaration.
         /// </summary>
-        public abstract SyntaxNode DelegateDeclaration(
+        public SyntaxNode DelegateDeclaration(
             string name,
             IEnumerable<SyntaxNode>? parameters = null,
             IEnumerable<string>? typeParameters = null,
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default);
+            DeclarationModifiers modifiers = default)
+        {
+            return DelegateDeclaration(
+                name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers);
+        }
+
+        private protected abstract SyntaxNode DelegateDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? parameters,
+            IEnumerable<SyntaxNode>? typeParameters,
+            SyntaxNode? returnType,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers);
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.
@@ -575,10 +749,13 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.SharedConstructor:
                             return ConstructorDeclaration(method);
 
-                        case MethodKind.Ordinary:
+                        case MethodKind.Destructor:
+                            return DestructorDeclaration(method);
+
+                        case MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation:
                             return MethodDeclaration(method);
 
-                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.UserDefinedOperator or MethodKind.Conversion:
                             return OperatorDeclaration(method);
                     }
 
@@ -589,60 +766,53 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.NamedType:
                     var type = (INamedTypeSymbol)symbol;
-                    SyntaxNode? declaration = null;
 
-                    switch (type.TypeKind)
+                    var declaration = type.TypeKind switch
                     {
-                        case TypeKind.Class:
-                            declaration = ClassDeclaration(
+                        TypeKind.Class => ClassDeclaration(
+                            type.IsRecord,
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            modifiers: DeclarationModifiers.From(type),
+                            baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Struct => StructDeclaration(
+                            type.IsRecord,
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            modifiers: DeclarationModifiers.From(type),
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Interface => InterfaceDeclaration(
+                            type.Name,
+                            type.TypeParameters.Select(TypeParameter),
+                            accessibility: type.DeclaredAccessibility,
+                            interfaceTypes: type.Interfaces.Select(TypeExpression),
+                            members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        TypeKind.Enum => EnumDeclaration(
+                            type.Name,
+                            underlyingType: type.EnumUnderlyingType is null or { SpecialType: SpecialType.System_Int32 }
+                                ? null
+                                : TypeExpression(type.EnumUnderlyingType.SpecialType),
+                            accessibility: type.DeclaredAccessibility,
+                            members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration)),
+                        TypeKind.Delegate => type.GetMembers(WellKnownMemberNames.DelegateInvokeName) is [IMethodSymbol invoke, ..]
+                            ? DelegateDeclaration(
                                 type.Name,
+                                typeParameters: type.TypeParameters.Select(TypeParameter),
+                                parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
+                                returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                 accessibility: type.DeclaredAccessibility,
-                                modifiers: DeclarationModifiers.From(type),
-                                baseType: (type.BaseType != null) ? TypeExpression(type.BaseType) : null,
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Struct:
-                            declaration = StructDeclaration(
-                                type.Name,
-                                accessibility: type.DeclaredAccessibility,
-                                modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Interface:
-                            declaration = InterfaceDeclaration(
-                                type.Name,
-                                accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces.Select(TypeExpression),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
-                            break;
-                        case TypeKind.Enum:
-                            declaration = EnumDeclaration(
-                                type.Name,
-                                underlyingType: (type.EnumUnderlyingType == null || type.EnumUnderlyingType.SpecialType == SpecialType.System_Int32) ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
-                                accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
-                            break;
-                        case TypeKind.Delegate:
-                            var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
-                            if (invoke != null)
-                            {
-                                declaration = DelegateDeclaration(
-                                    type.Name,
-                                    parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
-                                    returnType: TypeExpression(invoke.ReturnType),
-                                    accessibility: type.DeclaredAccessibility,
-                                    modifiers: DeclarationModifiers.From(type));
-                            }
-
-                            break;
-                    }
+                                modifiers: DeclarationModifiers.From(type))
+                            : null,
+                        _ => null,
+                    };
 
                     if (declaration != null)
-                    {
                         return WithTypeParametersAndConstraints(declaration, type.TypeParameters);
-                    }
 
                     break;
             }
@@ -652,13 +822,21 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private static bool CanBeDeclared(ISymbol symbol)
         {
+            // Skip implicitly declared members from a record.  No need to synthesize those as the compiler will do it
+            // anyways.
+            if (symbol.ContainingType?.IsRecord is true)
+            {
+                if (symbol.IsImplicitlyDeclared)
+                    return false;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Parameter:
-                    return true;
+                    return symbol.CanBeReferencedByName;
 
                 case SymbolKind.Method:
                     var method = (IMethodSymbol)symbol;
@@ -666,8 +844,9 @@ namespace Microsoft.CodeAnalysis.Editing
                     {
                         case MethodKind.Constructor:
                         case MethodKind.SharedConstructor:
-                        case MethodKind.Ordinary:
                             return true;
+                        case MethodKind.Ordinary:
+                            return method.CanBeReferencedByName;
                     }
 
                     break;
@@ -681,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Interface:
                         case TypeKind.Enum:
                         case TypeKind.Delegate:
-                            return true;
+                            return type.CanBeReferencedByName;
                     }
 
                     break;
@@ -694,11 +873,11 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (typeParameters.Length > 0)
             {
-                declaration = WithTypeParameters(declaration, typeParameters.Select(tp => tp.Name));
+                declaration = WithTypeParameters(declaration, typeParameters.Select(tp => TypeParameter(tp)));
 
                 foreach (var tp in typeParameters)
                 {
-                    if (tp.HasConstructorConstraint || tp.HasReferenceTypeConstraint || tp.HasValueTypeConstraint || tp.ConstraintTypes.Length > 0)
+                    if (HasSomeConstraint(tp))
                     {
                         declaration = this.WithTypeConstraint(declaration, tp.Name,
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
@@ -712,13 +891,19 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
+        private static bool HasSomeConstraint(ITypeParameterSymbol typeParameter)
+            => typeParameter.HasConstructorConstraint || typeParameter.HasReferenceTypeConstraint || typeParameter.HasValueTypeConstraint || typeParameter.ConstraintTypes.Length > 0;
+
         internal abstract SyntaxNode WithExplicitInterfaceImplementations(
             SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations, bool removeDefaults = true);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
         /// </summary>
-        public abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameters);
+        public SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameters)
+            => WithTypeParameters(declaration, typeParameters.Select(n => TypeParameter(n)));
+
+        private protected abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> typeParameters);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -730,6 +915,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
         public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null);
+
+        private protected abstract SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName);
 
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
@@ -1127,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the accessor of the specified kind for the declaration.
         /// </summary>
-        public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
+        public SyntaxNode? GetAccessor(SyntaxNode declaration, DeclarationKind kind)
             => this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
 
         /// <summary>
@@ -1269,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return false;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         protected static SyntaxNode? PreserveTrivia<TNode>(TNode? node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
             if (node == null)
@@ -1317,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
         /// </summary>
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public abstract TNode ClearTrivia<TNode>([MaybeNull] TNode node) where TNode : SyntaxNode;
 
 #pragma warning disable CA1822 // Mark members as static - shipped public API
@@ -1600,7 +1787,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
-        public abstract SyntaxNode LiteralExpression(object? value);
+        public SyntaxNode LiteralExpression(object? value)
+            => GenerateExpression(type: null, value, canUseFieldReference: true);
 
         /// <summary>
         /// Creates an expression for a typed constant.
@@ -1728,7 +1916,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates an expression that denotes a type.
         /// </summary>
-        public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
+            => TypeExpression(typeSymbol, RefKind.None);
+
+        private protected abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
 
         /// <summary>
         /// Creates an expression that denotes a type. If addImport is false,

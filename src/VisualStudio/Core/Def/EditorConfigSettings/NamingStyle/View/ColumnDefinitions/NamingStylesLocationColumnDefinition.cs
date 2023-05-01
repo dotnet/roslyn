@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
@@ -32,6 +33,25 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         public override bool DefaultVisible => true;
         public override bool IsFilterable => true;
         public override bool IsSortable => true;
+
+        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+        {
+            if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
+            {
+                content = null;
+                return false;
+            }
+
+            content = GetLocationString(setting.Location);
+            return true;
+
+            static string GetLocationString(SettingLocation? location)
+                => location?.LocationKind switch
+                {
+                    LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path!,
+                    _ => ServicesVSResources.Visual_Studio_Settings,
+                };
+        }
 
         public override bool TryCreateColumnContent(
             ITableEntryHandle entry,

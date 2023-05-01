@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,9 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
         }
 
-        protected override bool IsRecordDeclaration(SyntaxNode node)
-            => node is RecordDeclarationSyntax;
-
         protected override bool SupportsDiscard(SyntaxTree tree)
             => tree.Options.LanguageVersion() >= LanguageVersion.CSharp7;
 
@@ -32,6 +30,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override bool IsIfConditionalDirective(SyntaxNode node)
             => node is IfDirectiveTriviaSyntax;
+
+        protected override bool ReturnsThrow(SyntaxNode node)
+        {
+            if (node is not BaseMethodDeclarationSyntax methodSyntax)
+            {
+                return false;
+            }
+
+            if (methodSyntax.ExpressionBody is not null)
+            {
+                return methodSyntax.ExpressionBody.Expression is ThrowExpressionSyntax;
+            }
+
+            return methodSyntax.Body is { Statements: [ThrowStatementSyntax] };
+        }
 
         protected override CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider)
             => ((CSharpAnalyzerOptionsProvider)provider).UnusedValueExpressionStatement;
@@ -50,15 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // So, we conservatively bail out from removable assignment analysis for such cases.
 
             var statementAncestor = unusedSymbolWriteOperation.Syntax.FirstAncestorOrSelf<StatementSyntax>()?.Parent;
-            switch (statementAncestor)
-            {
-                case BlockSyntax _:
-                case SwitchSectionSyntax _:
-                    return false;
-
-                default:
-                    return true;
-            }
+            return statementAncestor is not (BlockSyntax or SwitchSectionSyntax);
         }
 
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
@@ -78,6 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
                 case DeclarationPatternSyntax declarationPattern:
                     return declarationPattern.Designation.GetLocation();
+
+                case RecursivePatternSyntax recursivePattern:
+                    Debug.Assert(recursivePattern.Designation is not null, "If we got to this point variable designation cannot be null");
+                    return recursivePattern.Designation!.GetLocation();
+
+                case ListPatternSyntax listPattern:
+                    Debug.Assert(listPattern.Designation is not null, "If we got to this point variable designation cannot be null");
+                    return listPattern.Designation!.GetLocation();
 
                 default:
                     // C# syntax node for foreach statement has no syntax node for the loop control variable declaration,

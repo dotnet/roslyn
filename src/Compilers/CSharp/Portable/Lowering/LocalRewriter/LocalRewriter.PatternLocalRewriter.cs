@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We share input variables if there is no when clause (because a when clause might mutate them).
                 bool anyWhenClause =
                     decisionDag.TopologicallySortedNodes
-                    .Any(static node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } });
+                    .Any(static node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValueOpt: null } });
 
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
@@ -639,6 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void storeToTemp(BoundDagTemp temp, BoundExpression expr)
                 {
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
+
                     if (canShareInputs && (expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
                     {
                         // we've arranged to use the input value from the variable it is already stored in

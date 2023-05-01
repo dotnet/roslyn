@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<AnalyzerConfig> _analyzerConfigValueSource;
 
         private AnalyzerConfigDocumentState(
-            HostWorkspaceServices solutionServices,
+            SolutionServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ITextAndVersionSource textAndVersionSource,
@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public AnalyzerConfigDocumentState(
+            SolutionServices solutionServices,
             DocumentInfo documentInfo,
-            LoadTextOptions loadTextOptions,
-            HostWorkspaceServices solutionServices)
-            : base(documentInfo, loadTextOptions, solutionServices)
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentInfo, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new AsyncLazy<AnalyzerConfig>(
                 asynchronousComputeFunction: async cancellationToken => AnalyzerConfig.Parse(await GetTextAsync(cancellationToken).ConfigureAwait(false), FilePath),
-                synchronousComputeFunction: cancellationToken => AnalyzerConfig.Parse(GetTextSynchronously(cancellationToken), FilePath),
-                cacheResult: true);
+                synchronousComputeFunction: cancellationToken => AnalyzerConfig.Parse(GetTextSynchronously(cancellationToken), FilePath));
         }
 
         public AnalyzerConfig GetAnalyzerConfig(CancellationToken cancellationToken) => _analyzerConfigValueSource.GetValue(cancellationToken);

@@ -425,7 +425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
 Done:
-
             Return namedType
         End Function
 
@@ -668,7 +667,6 @@ Done:
                 Return If(Interlocked.CompareExchange(_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
             End Get
         End Property
-
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.

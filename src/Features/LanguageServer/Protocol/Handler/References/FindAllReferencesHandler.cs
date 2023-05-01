@@ -50,15 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-            Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
-
             var document = context.Document;
             var workspace = context.Workspace;
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>[]>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
@@ -71,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
             await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
     }
 }

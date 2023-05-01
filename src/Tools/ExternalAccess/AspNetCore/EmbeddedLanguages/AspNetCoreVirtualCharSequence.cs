@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 
         /// <inheritdoc cref="VirtualCharSequence.FromBounds"/>
         public static AspNetCoreVirtualCharSequence FromBounds(
-            AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2) =>
-            new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
+            AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2)
+            => new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
 
         /// <inheritdoc cref="VirtualCharSequence.IndexOf"/>
         public int IndexOf(AspNetCoreVirtualChar @char)
@@ -72,16 +72,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
             public bool MoveNext()
                 => _enumerator.MoveNext();
 
-            public AspNetCoreVirtualChar Current
+            public readonly AspNetCoreVirtualChar Current
                 => new(_enumerator.Current);
 
             public void Reset()
                 => _enumerator.Reset();
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
                 => this.Current;
 
-            public void Dispose()
+            public readonly void Dispose()
                 => _enumerator.Dispose();
         }
     }

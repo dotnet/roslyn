@@ -364,20 +364,10 @@
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
 
-  <!-- Workaround for https://github.com/dotnet/roslyn/issues/63189 -->
-  <Target Name="DisableJsonGenerator"
-           AfterTargets="ResolvePackageAssets">
+  <!-- Workaround for https://github.com/dotnet/runtime/pull/84936 -->
+  <Target Name="ExcludeSlowJSImportGenerator" AfterTargets="ResolveTargetingPackAssets">
     <ItemGroup>
-      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(NuGetPackageId)' == 'System.Text.Json'" />
-    </ItemGroup>
-  </Target>
-  
-  <!-- Workaround for https://github.com/dotnet/wpf/issues/6792 -->
-  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile" Condition="'$(UseWpf)' == 'true'">
-    <ItemGroup>
-        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
-        <Analyzer Remove="@(Analyzer)" />
-        <Analyzer Include="@(FilteredAnalyzer)" />
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Microsoft.Interop.JavaScript.JSImportGenerator' AND '%(Analyzer.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref'" />
     </ItemGroup>
   </Target>
 

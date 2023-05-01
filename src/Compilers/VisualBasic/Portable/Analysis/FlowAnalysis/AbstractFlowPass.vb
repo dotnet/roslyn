@@ -518,7 +518,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
         End Class
 
-
         ''' <summary>
         ''' When branching into constructs that don't support jumps into/out of (i.e. lambdas), 
         ''' we save the pending branches when visiting more nested constructs.

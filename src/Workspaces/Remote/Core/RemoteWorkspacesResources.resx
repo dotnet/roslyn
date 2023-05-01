@@ -156,6 +156,9 @@
   <data name="FeatureName_FindUsages" xml:space="preserve">
     <value>Find usages</value>
   </data>
+  <data name="FeatureName_FullyQualify" xml:space="preserve">
+    <value>Fully qualify</value>
+  </data>
   <data name="FeatureName_GlobalNotificationDelivery" xml:space="preserve">
     <value>Global notification delivery</value>
   </data>
@@ -218,5 +221,8 @@
   </data>
   <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
     <value>Unit testing search</value>
+  </data>
+  <data name="FeatureName_KeepAlive" xml:space="preserve">
+    <value>Keep alive service</value>
   </data>
 </root>

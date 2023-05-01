@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
         public override IEntryBucket? CreateBucketForEntry(ITableEntryHandle entry)
         {
             var categoryName = GetCategoryName(entry);
-            return categoryName is not null ? new StringEntryBucket(GetCategoryName(entry)) : null;
+            return categoryName is not null ? new StringEntryBucket(categoryName, tooltip: categoryName) : null;
         }
     }
 }

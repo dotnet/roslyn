@@ -35,12 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private UnboundLambda AnalyzeAnonymousFunction(
             AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            // !!! The only binding operations allowed here - binding type references
+
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
-            ImmutableArray<DeclarationScope> scopes = default;
+            ImmutableArray<ScopedKind> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
@@ -54,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
+                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, lambdaSyntax.ArrowToken);
+
                 checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
             }
 
@@ -82,17 +86,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // delegate (int x) { }
                     // delegate { }
                     var anon = (AnonymousMethodExpressionSyntax)syntax;
+                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon.DelegateKeyword);
+
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
                     {
                         parameterSyntaxList = anon.ParameterList!.Parameters;
                     }
+
                     break;
             }
 
-            var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
-            var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+            bool isAsync = false;
+            bool isStatic = false;
             var hasParamsArray = false;
+
+            foreach (var modifier in syntax.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+                {
+                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, modifier);
+                    isAsync = true;
+                }
+                else if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                {
+                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, modifier);
+                    isStatic = true;
+                }
+            }
 
             if (parameterSyntaxList != null)
             {
@@ -100,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
-                var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
+                var scopesBuilder = ArrayBuilder<ScopedKind>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
                 var defaultValueBuilder = ArrayBuilder<EqualsValueClauseSyntax?>.GetInstance();
 
@@ -134,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, syntax, p.Default.EqualsToken.GetLocation());
+                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, p.Default.EqualsToken);
                         }
                     }
 
@@ -147,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
-                    var scope = DeclarationScope.Unscoped;
+                    var scope = ScopedKind.None;
 
                     if (typeSyntax == null)
                     {
@@ -165,6 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
                         {
                             hasParamsArray = true;
+
+                            ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
+                                WellKnownMember.System_ParamArrayAttribute__ctor,
+                                diagnostics,
+                                paramsKeyword.GetLocation());
                         }
                     }
 
@@ -188,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
-                if (scopesBuilder.Any(s => s != DeclarationScope.Unscoped))
+                if (scopesBuilder.Any(s => s != ScopedKind.None))
                 {
                     scopes = scopesBuilder.ToImmutable();
                 }
@@ -258,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
             Debug.Assert(syntax is not ScopedTypeSyntax);
-            syntax = syntax.SkipScoped(out _).SkipRef(out RefKind refKind);
-            if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
+            syntax = syntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
+            if (syntax is IdentifierNameSyntax { Identifier.RawContextualKind: (int)SyntaxKind.VarKeyword })
             {
                 diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
             }
@@ -351,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Parser will only have accepted static/async as allowed modifiers on this construct.
             // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
             // are reported now.
-            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics.DiagnosticBag ?? new DiagnosticBag());
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
             if (data.HasSignature)
             {

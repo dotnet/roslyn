@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -836,11 +837,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public IEnumerable<GraphNode> GetCreatedNodes(CancellationToken cancellationToken)
+        public ImmutableArray<GraphNode> GetCreatedNodes(CancellationToken cancellationToken)
         {
             using (_gate.DisposableWait(cancellationToken))
             {
-                return _createdNodes.ToArray();
+                return _createdNodes.ToImmutableArray();
             }
         }
     }

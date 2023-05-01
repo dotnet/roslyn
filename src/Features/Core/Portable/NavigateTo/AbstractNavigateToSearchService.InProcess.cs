@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             var containerMatcher = patternContainer != null
-                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer)
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
                 : null;
 
             using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
@@ -182,6 +182,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var match in nameMatches)
                 matchedSpans.AddRange(match.MatchedSpans);
 
+            using var allPatternMatches = TemporaryArray<PatternMatch>.Empty;
+            allPatternMatches.AddRange(containerMatches);
+            allPatternMatches.AddRange(nameMatches);
+
             // If we were not given a Document instance, then we're finding matches in cached data
             // and thus could be 'stale'.
             return new RoslynNavigateToItem(
@@ -192,7 +196,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 kind,
                 matchKind,
                 isCaseSensitive,
-                matchedSpans.ToImmutableAndClear());
+                matchedSpans.ToImmutableAndClear(),
+                allPatternMatches.ToImmutableAndClear());
         }
 
         private static async ValueTask<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(

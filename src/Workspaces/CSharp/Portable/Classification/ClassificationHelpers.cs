@@ -4,9 +4,9 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -246,28 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is SingleVariableDesignationSyntax singleVariableDesignation && singleVariableDesignation.Identifier == token)
             {
-                var parent = singleVariableDesignation.Parent;
-
-                // Handle nested Tuple deconstruction
-                while (parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    parent = parent.Parent;
-                }
-
-                // Checking for DeclarationExpression covers the following cases:
-                // - Out parameters used within a field initializer or within a method. `int.TryParse("1", out var x)`
-                // - Tuple deconstruction. `var (x, _) = (1, 2);`
-                //
-                // Checking for DeclarationPattern covers the following cases:
-                // - Is patterns. `if (foo is Action action)`
-                // - Switch patterns. `case int x when x > 0:`
-                if (parent.IsKind(SyntaxKind.DeclarationExpression) ||
-                    parent.IsKind(SyntaxKind.DeclarationPattern))
-                {
-                    return ClassificationTypeNames.LocalName;
-                }
-
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeNames.LocalName;
             }
             else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
             {
@@ -518,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);

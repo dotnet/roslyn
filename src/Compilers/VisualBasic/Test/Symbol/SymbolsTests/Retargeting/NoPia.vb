@@ -1589,7 +1589,6 @@ End Interface
     ]]></file>
 </compilation>
 
-
             Dim pia1 = CreateCompilationWithMscorlib40(piaSource, options:=TestOptions.ReleaseDll)
             CompileAndVerify(pia1)
 

@@ -137,7 +137,7 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
         public Task GroupUsings()
         {
             var code = @"using M;
@@ -181,7 +181,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
         }
 
-        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
         public Task SortAndGroupUsings()
         {
             var code = @"using M;
@@ -563,8 +563,8 @@ namespace A
             var expectedNumberOfUnsupportedDiagnosticIds =
                 language switch
                 {
-                    LanguageNames.CSharp => 35,
-                    LanguageNames.VisualBasic => 72,
+                    LanguageNames.CSharp => 41,
+                    LanguageNames.VisualBasic => 78,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 
@@ -816,9 +816,9 @@ class C
 
             // must set global options since incremental analyzer infra reads from global options
             var globalOptions = workspace.GlobalOptions;
-            globalOptions.SetGlobalOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp), separateUsingGroups);
-            globalOptions.SetGlobalOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemUsingsFirst);
-            globalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredImportPlacement);
+            globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
+            globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
+            globalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement);
 
             var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
             {

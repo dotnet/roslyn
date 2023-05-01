@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitAsNewLocalDeclarations(node As BoundAsNewLocalDeclarations) As BoundNode
@@ -75,7 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' example will be bound to a BoundLocalDeclaration, see LocalRewriter.VisitLocalDeclaration for the special case).
                 '
                 Dim objectInitializer As BoundObjectInitializerExpression = GetBoundObjectInitializerFromInitializer(initializerToRewrite)
-
 
                 ' rewrite the initializer for each declared variable because the initializer may contain placeholders that need
                 ' to be replaced with the current bound local

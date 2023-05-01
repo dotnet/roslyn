@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Workspace = workspace;
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,
@@ -240,6 +240,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
+        }
+
+        public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                GetLocalService().SetFileLoggingDirectory(logDirectory);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteEditAndContinueService>(
+                    (service, cancellationToken) => service.SetFileLoggingDirectoryAsync(logDirectory, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private sealed class LocalConnection : IDisposable

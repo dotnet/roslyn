@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool IsStatic => false;
             public override bool HasParamsArray => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
-            public override DeclarationScope DeclaredScope(int index) => DeclarationScope.Unscoped;
+            public override ScopedKind DeclaredScope(int index) => ScopedKind.None;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
-            public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
+            public override Location ParameterLocation(int index) { return _parameters[index].TryGetFirstLocation(); }
             // Query unbound lambdas don't have associated parameter syntax
             public override ParameterSyntax ParameterSyntax(int index) => null;
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed

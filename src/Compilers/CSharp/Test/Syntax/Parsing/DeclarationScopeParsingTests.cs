@@ -3275,18 +3275,48 @@ scoped scoped ref R z = ref x;
 scoped record A;
 ";
 
-            if (langVersion < MessageID.IDS_TopLevelStatements.RequiredVersion())
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(langVersion);
+            if (langVersion == LanguageVersion.CSharp8)
             {
-                UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
                     // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                     // scoped record A;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "scoped record A;").WithArguments("top-level statements", "9.0").WithLocation(2, 1)
-                    );
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "scoped record A;").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                    // (2,1): error CS8400: Feature 'ref fields' is not available in C# 8.0. Please use language version 11.0 or greater.
+                    // scoped record A;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 1),
+                    // (2,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    // scoped record A;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 8),
+                    // (2,15): warning CS0168: The variable 'A' is declared but never used
+                    // scoped record A;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
             }
-            else
+            else if (langVersion == LanguageVersion.CSharp10)
             {
-                UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+                CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
+                    // (2,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // scoped record A;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 1),
+                    // (2,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    // scoped record A;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 8),
+                    // (2,15): warning CS0168: The variable 'A' is declared but never used
+                    // scoped record A;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
             }
+            else if (langVersion == LanguageVersion.CSharp11)
+            {
+                CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
+                    // (2,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    // scoped record A;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 8),
+                    // (2,15): warning CS0168: The variable 'A' is declared but never used
+                    // scoped record A;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
+            }
+
+            UsingTree(source, parseOptions);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11419,9 +11449,12 @@ foreach (scoped ref int[M(out var b)] a in collection);
 scoped ref struct B { }
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,8): error CS1001: Identifier expected
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12)
@@ -11429,11 +11462,22 @@ scoped ref struct B { }
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
@@ -11487,16 +11531,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS1514: { expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 32),
-                // (3,32): error CS1513: } expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 32),
-                // (3,33): error CS1525: Invalid expression term ')'
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 33)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -11553,24 +11588,12 @@ readonly scoped record struct C();
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

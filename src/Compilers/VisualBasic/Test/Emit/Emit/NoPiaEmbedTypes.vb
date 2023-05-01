@@ -4343,7 +4343,6 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-
         <Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")>
         Public Sub ParametersWithoutNames()
             Dim sources =
@@ -4369,7 +4368,6 @@ End Class
                                                                                 GetReference(display:="ParametersWithoutNames.dll", embedInteropTypes:=True)
                                                                          },
                                                                          options:=TestOptions.ReleaseDll)
-
 
             AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("I1").GetMember(Of MethodSymbol)("M1").Parameters, False)
 

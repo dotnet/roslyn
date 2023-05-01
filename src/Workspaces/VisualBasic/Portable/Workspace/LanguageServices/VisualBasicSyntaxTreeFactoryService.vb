@@ -77,9 +77,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
         End Function
-
-        Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode
-            Return VisualBasicSyntaxNode.DeserializeFrom(stream, cancellationToken)
-        End Function
     End Class
 End Namespace

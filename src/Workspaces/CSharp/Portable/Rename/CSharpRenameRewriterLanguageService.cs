@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly Solution _solution;
             private readonly string _replacementText;
             private readonly string _originalText;
-            private readonly ICollection<string> _possibleNameConflicts;
-            private readonly Dictionary<TextSpan, RenameLocation> _renameLocations;
-            private readonly ISet<TextSpan> _conflictLocations;
+            private readonly ImmutableArray<string> _possibleNameConflicts;
+            private readonly ImmutableDictionary<TextSpan, RenameLocation> _renameLocations;
+            private readonly ImmutableHashSet<TextSpan> _conflictLocations;
             private readonly SemanticModel _semanticModel;
             private readonly CancellationToken _cancellationToken;
 

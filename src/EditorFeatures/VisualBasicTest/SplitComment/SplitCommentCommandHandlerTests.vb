@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
             Return TestWorkspace.CreateVisualBasic(markup)
         End Function
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfComment()
             TestHandled(
@@ -34,7 +34,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfDoubleComment1()
             TestHandled(
@@ -53,7 +53,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfDoubleComment2()
             TestHandled(
@@ -72,7 +72,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfDoubleComment3()
             TestHandled(
@@ -91,7 +91,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfCommentWithLeadingSpace1()
             TestHandled(
@@ -110,7 +110,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitStartOfCommentWithLeadingSpace2()
             TestHandled(
@@ -129,7 +129,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitMiddleOfComment()
             TestHandled(
@@ -148,7 +148,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitEndOfComment()
             TestNotHandled(
@@ -160,7 +160,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestNotAtEndOfFile()
             TestNotHandled(
@@ -169,7 +169,7 @@ End Module
         ' Test Comment[||]")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitCommentOutOfMethod()
             TestHandled(
@@ -190,7 +190,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitCommentOutOfModule()
             TestHandled(
@@ -211,7 +211,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitCommentOutOfClass()
             TestHandled(
@@ -232,7 +232,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitCommentOutOfNamespace()
             TestHandled(
@@ -257,7 +257,7 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact>
         Public Sub TestSplitCommentWithLineContinuation()
             TestNotHandled(
@@ -270,7 +270,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfTheory>
         <InlineData("X[||]Test Comment")>
         <InlineData("X [||]Test Comment")>
@@ -291,7 +291,7 @@ end class",
 end class")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
         <WpfTheory>
         <InlineData("X[||]Test Comment")>
         <InlineData("X [||]Test Comment")>
@@ -312,7 +312,7 @@ end class",
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
         <WpfFact>
         Public Sub TestSplitWithCommentAfterwards1()
             TestNotHandled(
@@ -323,7 +323,7 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
         <WpfFact>
         Public Sub TestSplitWithCommentAfterwards2()
             TestNotHandled(
@@ -336,7 +336,7 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
         <WpfFact>
         Public Sub TestSplitWithCommentAfterwards3()
             TestNotHandled(
@@ -348,7 +348,7 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
         <WpfFact>
         Public Sub TestSplitWithCommentAfterwards4()
             TestNotHandled(

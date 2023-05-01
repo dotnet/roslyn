@@ -374,7 +374,6 @@ public struct C
     }
 }";
 
-
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (6,25): error CS0037: Cannot convert null to 'System.TypedReference' because it is a non-nullable value type
@@ -1202,7 +1201,6 @@ class A
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(1, constructor.Parameters.Length);
         }
-
 
         [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
         [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]

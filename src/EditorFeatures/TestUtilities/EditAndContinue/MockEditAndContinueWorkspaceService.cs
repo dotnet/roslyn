@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal delegate void ActionOut<TArg1>(out TArg1 arg);
     internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
 
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
-    internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    [Export(typeof(IEditAndContinueService)), Shared]
+    internal class MockEditAndContinueWorkspaceService : IEditAndContinueService
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
         public Func<Solution, ActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
@@ -84,5 +84,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
             => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+            => throw new NotImplementedException();
     }
 }

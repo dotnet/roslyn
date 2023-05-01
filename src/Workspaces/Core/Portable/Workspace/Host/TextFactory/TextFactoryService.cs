@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Host
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return (reader is TextReaderWithLength textReaderWithLength) ?
-                SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding, checksumAlgorithm) :
-                SourceText.From(reader.ReadToEnd(), encoding, checksumAlgorithm);
+            return (reader is TextReaderWithLength textReaderWithLength)
+                ? SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding, checksumAlgorithm)
+                : SourceText.From(reader.ReadToEnd(), encoding, checksumAlgorithm);
         }
     }
 }
