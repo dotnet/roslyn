@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<T>(
                 new SyntaxInputNode<T>(
-                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), _syntaxHelper),
+                    new PredicateSyntaxStrategy<T>(_transformFactory.WrapUserFunction(predicate), _transformFactory.WrapUserFunction(transform), _syntaxHelper),
                     _transformFactory,
                     _registerOutputAndDeferredInput));
         }

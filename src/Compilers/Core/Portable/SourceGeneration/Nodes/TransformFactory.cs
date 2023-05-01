@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<IIncrementalGeneratorNode, IIncrementalGeneratorNode> _baseNodeForComparerAndTrackingName = new();
         private readonly Dictionary<(IIncrementalGeneratorNode node, object? comparer), IIncrementalGeneratorNode> _withComparer = new();
         private readonly Dictionary<(IIncrementalGeneratorNode, string?), IIncrementalGeneratorNode> _withTrackingName = new();
-        private readonly Dictionary<object, object> _wrappedComparers = new();
+        private readonly Dictionary<object, object> _wrappedUserObjects = new();
 
         public T WithContext<T>(
             T node,
@@ -72,12 +73,22 @@ namespace Microsoft.CodeAnalysis
 
         internal IEqualityComparer<T> WrapUserComparer<T>(IEqualityComparer<T> comparer)
         {
-            if (_wrappedComparers.TryGetValue(comparer, out var wrappedComparer))
+            if (_wrappedUserObjects.TryGetValue(comparer, out var wrappedComparer))
                 return (IEqualityComparer<T>)wrappedComparer;
 
             var wrappedComparerT = comparer.WrapUserComparer();
-            _wrappedComparers.Add(comparer, wrappedComparerT);
+            _wrappedUserObjects.Add(comparer, wrappedComparerT);
             return wrappedComparerT;
+        }
+
+        internal Func<TInput, CancellationToken, TOutput> WrapUserFunction<TInput, TOutput>(Func<TInput, CancellationToken, TOutput> userFunction)
+        {
+            if (_wrappedUserObjects.TryGetValue(userFunction, out var wrappedUserFunction))
+                return (Func<TInput, CancellationToken, TOutput>)wrappedUserFunction;
+
+            var wrappedUserFunctionT = userFunction.WrapUserFunction();
+            _wrappedUserObjects.Add(userFunction, wrappedUserFunctionT);
+            return wrappedUserFunctionT;
         }
     }
 }
