@@ -415,7 +415,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-        Return this.GetBoundMethodBody(compilationState, New BindingDiagnosticBag(diagnostics), methodBodyBinder)
+        Return this.GetBoundMethodBody(compilationState, BindingDiagnosticBagFactory.NewBag(diagnostics), methodBodyBinder)
     End Function
 
 End Module

@@ -7,7 +7,12 @@
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
+    <ImportedNamespaces>Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,IdentifierComparison /= Microsoft.CodeAnalysis.CaseInsensitiveComparison=False,Microsoft.CodeAnalysis=False,Microsoft.CodeAnalysis.VisualBasic=False,Microsoft.CodeAnalysis.VisualBasic.Emit=False,Microsoft.CodeAnalysis.VisualBasic.Symbols=False,Microsoft.CodeAnalysis.VisualBasic.Syntax=False,Roslyn.Utilities=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Microsoft.CodeAnalysis.VisualBasic.Test.Utilities=True</ImportedNamespaces>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="My Project\**" />
+    <EmbeddedResource Remove="My Project\**" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -16,13 +21,13 @@
     <ProjectReference Include="..\..\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Import Include="BindingDiagnosticBag = Microsoft.CodeAnalysis.BindingDiagnosticBag(Of Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol)" />
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Microsoft.CodeAnalysis" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Emit" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Symbols" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Syntax" />
-    <Import Include="System.Xml.Linq" />
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
@@ -38,8 +43,5 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
   </ItemGroup>
 </Project>

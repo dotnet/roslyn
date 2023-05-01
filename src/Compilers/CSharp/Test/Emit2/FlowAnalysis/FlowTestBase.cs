@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         internal ImmutableArray<Diagnostic> FlowDiagnostics(CSharpCompilation compilation)
         {
-            var flowDiagnostics = BindingDiagnosticBag.GetInstance();
+            var flowDiagnostics = BindingDiagnosticBagFactory.GetInstance();
             foreach (var method in AllMethods(compilation.SourceModule.GlobalNamespace))
             {
                 var sourceSymbol = method as SourceMemberMethodSymbol;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
-                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
+                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, BindingDiagnosticBagFactory.New(new DiagnosticBag()));
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
