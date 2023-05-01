@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), fallbackOptions, generateEquals, generateGetHashCode);
+                this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), fallbackOptions, globalOptions, generateEquals, generateGetHashCode);
         }
 
         private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
