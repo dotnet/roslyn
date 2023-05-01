@@ -17,18 +17,23 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly IncrementalGeneratorInitializationContext _context;
         private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
-        private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly TransformFactory _transformFactory;
+        private readonly Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly Action<SyntaxInputNode, ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> _registerOutputAndDeferredInput;
         private readonly ISyntaxHelper _syntaxHelper;
 
         internal SyntaxValueProvider(
             IncrementalGeneratorInitializationContext context,
             ArrayBuilder<SyntaxInputNode> inputNodes,
-            Action<IIncrementalGeneratorOutputNode> registerOutput,
+            TransformFactory transformFactory,
+            Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> registerOutput,
             ISyntaxHelper syntaxHelper)
         {
             _context = context;
             _inputNodes = inputNodes;
+            _transformFactory = transformFactory;
             _registerOutput = registerOutput;
+            _registerOutputAndDeferredInput = RegisterOutputAndDeferredInput;
             _syntaxHelper = syntaxHelper;
         }
 
@@ -45,7 +50,8 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValuesProvider<T>(
                 new SyntaxInputNode<T>(
                     new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), _syntaxHelper),
-                    RegisterOutputAndDeferredInput));
+                    _transformFactory,
+                    _registerOutputAndDeferredInput));
         }
 
         /// <summary>
@@ -54,14 +60,14 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
             var node = new SyntaxInputNode<ISyntaxContextReceiver?>(
-                new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper), RegisterOutputAndDeferredInput);
+                new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper), _transformFactory, _registerOutputAndDeferredInput);
             _inputNodes.Add(node);
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
 
-        private void RegisterOutputAndDeferredInput(SyntaxInputNode node, IIncrementalGeneratorOutputNode output)
+        private void RegisterOutputAndDeferredInput(SyntaxInputNode node, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output)
         {
-            _registerOutput(output);
+            _registerOutput(outputNodes, output);
             if (!_inputNodes.Contains(node))
             {
                 _inputNodes.Add(node);

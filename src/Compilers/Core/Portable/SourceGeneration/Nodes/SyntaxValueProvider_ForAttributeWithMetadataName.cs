@@ -56,7 +56,6 @@ public readonly struct GeneratorAttributeSyntaxContext
 
 public partial struct SyntaxValueProvider
 {
-    private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
         SymbolDisplayFormat.QualifiedNameArityFormat.AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
 
@@ -80,8 +79,8 @@ public partial struct SyntaxValueProvider
         Func<SyntaxNode, CancellationToken, bool> predicate,
         Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform)
     {
-        var metadataName = fullyQualifiedMetadataName.Contains('+')
-            ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
+        var metadataName = fullyQualifiedMetadataName.LastIndexOf('+') is >= 0 and var index
+            ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName[(index + 1)..])
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
         var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName(metadataName.UnmangledTypeName, predicate);

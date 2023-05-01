@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
+        private readonly TransformFactory _transformFactory;
 
         internal readonly ISyntaxHelper SyntaxHelper;
 
@@ -31,33 +32,38 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<SyntaxInputNode> syntaxInputBuilder,
             ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
             ISyntaxHelper syntaxHelper,
+            TransformFactory transformFactory,
             string sourceExtension)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
             SyntaxHelper = syntaxHelper;
+            _transformFactory = transformFactory;
             _sourceExtension = sourceExtension;
         }
 
-        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
+        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, _transformFactory, RegisterOutput, SyntaxHelper);
 
-        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithContext(_transformFactory, RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
+
+        // Exposed for Razor external access layer
+        internal ArrayBuilder<IIncrementalGeneratorOutputNode> OutputNodes => _outputNodes;
 
         // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
         // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
         // changes).
         internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
-            => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
+            => new(SharedInputNodes.CompilationOptions.WithContext(_transformFactory, RegisterOutput)
                 .WithComparer(ReferenceEqualityComparer.Instance)
                 .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
 
-        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithContext(_transformFactory, RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
 
-        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts));
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithContext(_transformFactory, RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts));
 
-        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions));
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithContext(_transformFactory, RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions));
 
-        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences));
+        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithContext(_transformFactory, RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences));
 
         public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
@@ -69,17 +75,17 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction()));
 
-        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
+        private static void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode outputNode)
         {
-            if (!_outputNodes.Contains(outputNode))
+            if (!outputNodes.Contains(outputNode))
             {
-                _outputNodes.Add(outputNode);
+                outputNodes.Add(outputNode);
             }
         }
 
-        private static void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
+        private void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
         {
-            node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(), kind, sourceExt));
+            node.RegisterOutput(_outputNodes, new SourceOutputNode<TSource>(node, action.WrapUserAction(), kind, sourceExt));
         }
     }
 

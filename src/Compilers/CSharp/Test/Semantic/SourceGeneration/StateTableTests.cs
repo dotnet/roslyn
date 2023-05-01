@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -1157,6 +1158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 _callback = callback;
             }
 
+            public TransformFactory? TransformFactory => null;
+
             public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
             {
                 previousTable ??= NodeStateTable<T>.Empty;
@@ -1167,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             public IIncrementalGeneratorNode<T> WithTrackingName(string name) => this;
 
-            public void RegisterOutput(IIncrementalGeneratorOutputNode output) { }
+            public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) { }
         }
     }
 }
