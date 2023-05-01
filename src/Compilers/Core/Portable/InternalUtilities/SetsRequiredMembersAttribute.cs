@@ -19,4 +19,13 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }
 
+#else
+
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+
+#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
+[assembly: TypeForwardedTo(typeof(SetsRequiredMembersAttribute))]
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
 #endif
