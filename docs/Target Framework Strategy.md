@@ -16,7 +16,7 @@ It is important that our shipping APIs maintain consistent API surface area acro
 
 The reason for `public` is standard design pattern. The reason for `internal` is a combination of the following problems:
 
-- Our repository make use of `InternalsVisibleTo` which effectively promotes `internal` APIs to `public` ones.
+- Our repository make use of `InternalsVisibleTo` which allows other assemblies to directly reference signatures of `internal` members.
 - Our repository ships a mix of target frameworks. Typically workspaces and below will ship more recent TFMs than the layers above it. Compiler has to ship newer TFM for source build while IDE is constrained by Visual Studio's private runtime hence adopts newer TFM slower.
 - Our repository invests in polyfill APIs to make compiling against multiple TFMs in the same project a seamless experience.
 
@@ -24,16 +24,16 @@ Taken together though this means that our `internal` surface area in many cases 
 
 Consider a specific example of what goes wrong when our `internal` APIs are not consistent across TFM:
 
-- Workspaces today targets `net6.0` and `net7.0` and it contains our `EnumerableExtensions.cs` which polyfills many extensions methods on `IEnumerable<T>`. In `net7.0` the `OrderBy` extension method is not needed because it was put into the .NET core libraries.
+- Workspaces today targets `net6.0` and `net7.0` and it contains our `EnumerableExtensions.cs` which polyfills many extensions methods on `IEnumerable<T>`. In `net7.0` the `Order` extension method is not needed because it was put into the .NET core libraries.
 - Language Server Protocol targets `net6.0` and consumes the `OrderyBy` polyfill from Workspaces
 
-Lets assume for a second that we `#if` the `OrderBy` method such that it's not present in `net7.0`.  Locally this all builds because we compile the `net6.0` versions against each other so they're consistent. However if an external project which targets `net7.0` and consumes both Workspaces and Language Server Protocol then it will be in a broken state. The Protocol binary is expecting Workspaces to contain a polyfill method for `OrderBy` but it does not since it's at `net7.0` and it was `#if` out. As a result this will fail at runtime with missing method exceptions.
+Let's assume for a second that we `#if` the `OrderBy` method such that it's not present in `net7.0`.  Locally this all builds because we compile the `net6.0` versions against each other so they're consistent. However if an external project which targets `net7.0` and consumes both Workspaces and Language Server Protocol then it will be in a broken state. The Protocol binary is expecting Workspaces to contain a polyfill method for `OrderBy` but it does not since it's at `net7.0` and it was `#if` out. As a result this will fail at runtime with missing method exceptions.
 
 This problem primarily comes from our use of polyfill APIs. To avoid this we employ the following rule:
 
 > When there is an `#if NET.*` that declares a non-private member, there must be an `#else` that defines an equivalent binary compatible symbol
 
-This comes up in two forms 
+This comes up in two forms:
 
 ## Pattern for types 
 When creating a polyfill for a type use the `#if !NET...` to declare the type and in the `#else` use a `TypeForwardedTo` for the actual type.
