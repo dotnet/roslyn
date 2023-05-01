@@ -20,15 +20,35 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     public partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        private sealed record AdditionalFileInfo(string Path, SourceText SourceText, bool IsShippedApi);
+        private sealed record AdditionalFileInfo(SourceText SourceText, bool IsShippedApi)
+        {
+            public string GetPath(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
+            {
+                foreach (var (additionalText, sourceText) in additionalFiles)
+                {
+                    if (SourceText == sourceText)
+                        return additionalText.Path;
+                }
+
+                throw new InvalidOperationException();
+            }
+        }
 
         private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
         {
             public bool IsDefault => FileInfo == null;
 
             public SourceText SourceText => FileInfo.SourceText;
-            public string Path => FileInfo.Path;
             public bool IsShippedApi => FileInfo.IsShippedApi;
+
+            public string GetPath(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
+                => FileInfo.GetPath(additionalFiles);
+
+            public Location GetLocation(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
+            {
+                LinePositionSpan linePositionSpan = SourceText.Lines.GetLinePositionSpan(Span);
+                return Location.Create(GetPath(additionalFiles), Span, linePositionSpan);
+            }
         }
 
         private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
@@ -51,6 +71,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
             private readonly Compilation _compilation;
+            private readonly ImmutableDictionary<AdditionalText, SourceText> _additionalFiles;
             private readonly ApiData _unshippedData;
             private readonly bool _useNullability;
             private readonly bool _isPublic;
@@ -60,9 +81,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private readonly IReadOnlyDictionary<string, ApiLine> _apiMap;
             private readonly AnalyzerOptions _analyzerOptions;
 
-            internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
+            internal Impl(Compilation compilation, ImmutableDictionary<AdditionalText, SourceText> additionalFiles, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
             {
                 _compilation = compilation;
+                _additionalFiles = additionalFiles;
                 _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
@@ -223,12 +245,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                         else
                         {
-                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.GetPath(_additionalFiles));
                         }
                     }
                     else if (hasApiEntryWithNullability && symbolUsesOblivious)
                     {
-                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.GetPath(_additionalFiles));
                     }
                 }
                 else
@@ -679,7 +701,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         continue;
                     }
 
-                    Location location = GetLocationFromApiLine(pair.Value);
+                    Location location = pair.Value.GetLocation(_additionalFiles);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(ApiNamePropertyBagKey, pair.Value.Text);
                     reportDiagnostic(Diagnostic.Create(GetDiagnostic(RemoveDeletedPublicApiRule, RemoveDeletedInternalApiRule), location, propertyBag, pair.Value.Text));
                 }
@@ -694,16 +716,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
                     {
-                        Location location = GetLocationFromApiLine(markedAsRemoved.ApiLine);
+                        Location location = markedAsRemoved.ApiLine.GetLocation(_additionalFiles);
                         reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
                     }
                 }
-            }
-
-            private static Location GetLocationFromApiLine(ApiLine apiLine)
-            {
-                LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
-                return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)

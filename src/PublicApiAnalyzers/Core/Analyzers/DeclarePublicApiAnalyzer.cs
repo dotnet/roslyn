@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -18,14 +16,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// Cache from additional text instance to the api data we have read out for that specific file.  We only store
-        /// data for additional texts that explicitly match the public/internal api file names we expect.
-        /// <para/>
-        /// Intentionally not static.  We don't want this table living globally.  Rather, it should be tied to the
-        /// lifetime of this type and whatever owner it has.
-        /// </summary>
-        private readonly ConditionalWeakTable<AdditionalText, ApiData> _additionalTextToApiData = new();
+        private static readonly SourceTextValueProvider<ApiData> s_shippingApiDataProvider = new(static text => ReadApiData(text, isShippedApi: true));
+        private static readonly SourceTextValueProvider<ApiData> s_nonShippingApiDataProvider = new(static text => ReadApiData(text, isShippedApi: false));
 
         internal const string Extension = ".txt";
         internal const string PublicShippedFileNamePrefix = "PublicAPI.Shipped";
@@ -111,7 +103,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             CheckAndRegisterImplementation(isPublic: true);
             CheckAndRegisterImplementation(isPublic: false);
@@ -120,9 +112,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var errors = new List<Diagnostic>();
                 // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
-                if (!TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic, compilationContext.CancellationToken, errors, out var shippedData, out var unshippedData))
+                if (!TryGetAndValidateApiFiles(context, isPublic, errors, out var additionalFiles, out var shippedData, out var unshippedData))
                 {
-                    compilationContext.RegisterCompilationEndAction(context =>
+                    context.RegisterCompilationEndAction(context =>
                     {
                         foreach (Diagnostic cur in errors)
                         {
@@ -135,13 +127,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 Debug.Assert(errors.Count == 0);
 
-                RegisterImplActions(compilationContext, new Impl(compilationContext.Compilation, shippedData, unshippedData, isPublic, compilationContext.Options));
+                RegisterImplActions(context, new Impl(context.Compilation, additionalFiles, shippedData, unshippedData, isPublic, context.Options));
                 return;
 
-                bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
+                bool TryGetAndValidateApiFiles(CompilationStartAnalysisContext context, bool isPublic, List<Diagnostic> errors, [NotNullWhen(true)] out ImmutableDictionary<AdditionalText, SourceText>? additionalFiles, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
                 {
-                    return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
-                           && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
+                    return TryGetApiData(context, isPublic, errors, out additionalFiles, out shippedData, out unshippedData)
+                           && ValidateApiFiles(additionalFiles, shippedData, unshippedData, isPublic, errors);
                 }
 
                 static void RegisterImplActions(CompilationStartAnalysisContext compilationContext, Impl impl)
@@ -160,7 +152,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-        private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
+        private static ApiData ReadApiData(SourceText sourceText, bool isShippedApi)
         {
             var apiBuilder = ArrayBuilder<ApiLine>.GetInstance();
             var removedBuilder = ArrayBuilder<RemovedApiLine>.GetInstance();
@@ -169,7 +161,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             // current line we're on.  Note: we ignore whitespace lines when computing this.
             var lineNumber = -1;
 
-            var additionalFileInfo = new AdditionalFileInfo(path, sourceText, isShippedApi);
+            var additionalFileInfo = new AdditionalFileInfo(sourceText, isShippedApi);
 
             foreach (var line in sourceText.Lines)
             {
@@ -201,17 +193,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutableAndFree(), removedBuilder.ToImmutableAndFree(), lastNullableLineNumber);
         }
 
-        private bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, bool isPublic, List<Diagnostic> errors, CancellationToken cancellationToken, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
+        private static bool TryGetApiData(CompilationStartAnalysisContext context, bool isPublic, List<Diagnostic> errors, [NotNullWhen(true)] out ImmutableDictionary<AdditionalText, SourceText>? additionalFiles, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
         {
             using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
             using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
 
-            AddApiTexts(analyzerOptions.AdditionalFiles, isPublic, allShippedData, allUnshippedData, cancellationToken);
+            AddApiTexts(context, isPublic, out additionalFiles, allShippedData, allUnshippedData);
 
             // Both missing.
             if (allShippedData.Count == 0 && allUnshippedData.Count == 0)
             {
-                if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
+                if (TryGetEditorConfigOptionForMissingFiles(context.Options, context.Compilation, out var silentlyBailOutOnMissingApiFiles) &&
                     silentlyBailOutOnMissingApiFiles)
                 {
                     shippedData = null;
@@ -350,16 +342,19 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private void AddApiTexts(
-            ImmutableArray<AdditionalText> additionalTexts,
+        [SuppressMessage("MicrosoftCodeAnalysisPerformance", "RS1012:Start action has no registered actions", Justification = "This is not a start action")]
+        private static void AddApiTexts(
+            CompilationStartAnalysisContext context,
             bool isPublic,
+            out ImmutableDictionary<AdditionalText, SourceText> additionalFiles,
             ArrayBuilder<ApiData> allShippedData,
-            ArrayBuilder<ApiData> allUnshippedData,
-            CancellationToken cancellationToken)
+            ArrayBuilder<ApiData> allUnshippedData)
         {
-            foreach (var additionalText in additionalTexts)
+            additionalFiles = ImmutableDictionary<AdditionalText, SourceText>.Empty;
+
+            foreach (var additionalText in context.Options.AdditionalFiles)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                context.CancellationToken.ThrowIfCancellationRequested();
 
                 var file = new PublicApiFile(additionalText.Path, isPublic);
 
@@ -367,18 +362,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (!file.IsApiFile)
                     continue;
 
-                if (!_additionalTextToApiData.TryGetValue(additionalText, out var apiData))
-                {
-                    apiData = ReadApiData(additionalText.Path, additionalText.GetText(cancellationToken), file.IsShipping);
-                    apiData = _additionalTextToApiData.GetValue(additionalText, _ => apiData);
-                }
+                var apiDataProvider = file.IsShipping ? s_shippingApiDataProvider : s_nonShippingApiDataProvider;
+                var text = additionalText.GetText(context.CancellationToken);
+                additionalFiles = additionalFiles.Add(additionalText, text);
+                if (!context.TryGetValue(text, apiDataProvider, out var apiData))
+                    continue;
 
                 var resultList = file.IsShipping ? allShippedData : allUnshippedData;
                 resultList.Add(apiData);
             }
         }
 
-        private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, bool isPublic, List<Diagnostic> errors)
+        private static bool ValidateApiFiles(ImmutableDictionary<AdditionalText, SourceText> additionalFiles, ApiData shippedData, ApiData unshippedData, bool isPublic, List<Diagnostic> errors)
         {
             var descriptor = isPublic ? PublicApiFilesInvalid : InternalApiFilesInvalid;
             if (!shippedData.RemovedApiList.IsEmpty)
@@ -399,24 +394,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             using var publicApiMap = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal);
-            ValidateApiList(publicApiMap, shippedData.ApiList, isPublic, errors);
-            ValidateApiList(publicApiMap, unshippedData.ApiList, isPublic, errors);
+            ValidateApiList(additionalFiles, publicApiMap, shippedData.ApiList, isPublic, errors);
+            ValidateApiList(additionalFiles, publicApiMap, unshippedData.ApiList, isPublic, errors);
 
             return errors.Count == 0;
         }
 
-        private static void ValidateApiList(Dictionary<string, ApiLine> publicApiMap, ImmutableArray<ApiLine> apiList, bool isPublic, List<Diagnostic> errors)
+        private static void ValidateApiList(ImmutableDictionary<AdditionalText, SourceText> additionalFiles, Dictionary<string, ApiLine> publicApiMap, ImmutableArray<ApiLine> apiList, bool isPublic, List<Diagnostic> errors)
         {
             foreach (ApiLine cur in apiList)
             {
                 string textWithoutOblivious = cur.Text.TrimStart(ObliviousMarkerArray);
                 if (publicApiMap.TryGetValue(textWithoutOblivious, out ApiLine existingLine))
                 {
-                    LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
-                    Location existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);
-
-                    LinePositionSpan duplicateLinePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    Location duplicateLocation = Location.Create(cur.Path, cur.Span, duplicateLinePositionSpan);
+                    Location existingLocation = existingLine.GetLocation(additionalFiles);
+                    Location duplicateLocation = cur.GetLocation(additionalFiles);
                     errors.Add(Diagnostic.Create(isPublic ? DuplicateSymbolInPublicApiFiles : DuplicateSymbolInInternalApiFiles, duplicateLocation, new[] { existingLocation }, cur.Text));
                 }
                 else
