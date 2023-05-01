@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag?diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
