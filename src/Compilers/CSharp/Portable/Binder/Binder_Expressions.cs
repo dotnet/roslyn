@@ -2030,17 +2030,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Alias:
                     {
                         var alias = (AliasSymbol)symbol;
-                        symbol = alias.Target;
-                        switch (symbol.Kind)
+                        return alias.Target switch
                         {
-                            case SymbolKind.NamedType:
-                            case SymbolKind.ErrorType:
-                                return new BoundTypeExpression(node, alias, (NamedTypeSymbol)symbol, hasErrors: isError);
-                            case SymbolKind.Namespace:
-                                return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, alias, hasErrors: isError);
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-                        }
+                            TypeSymbol typeSymbol => new BoundTypeExpression(node, alias, typeSymbol, hasErrors: isError),
+                            NamespaceSymbol namespaceSymbol => new BoundNamespaceExpression(node, namespaceSymbol, alias, hasErrors: isError),
+                            _ => throw ExceptionUtilities.UnexpectedValue(alias.Target.Kind),
+                        };
                     }
 
                 case SymbolKind.RangeVariable:
