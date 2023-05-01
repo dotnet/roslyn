@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="diagName">GetBaseNamesForDiagnostic(typeSyntax) (basically dot-delimited list of names).  Shortened as different prefixes are checked.</param>
             ''' <param name="forwardedToAssembly">Set if some prefix matches a forwarded type.</param>
             ''' <param name="diagBag">Diagnostics bag (Nothing if errors should not be reported).</param>
-            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As BindingDiagnosticBag)
+            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As BindingDiagnosticBag?)
                 Dim currTypeSyntax As TypeSyntax = typeSyntax
                 Dim currDiagName As String = diagName
 

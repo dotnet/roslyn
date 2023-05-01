@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal abstract EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics)
         {
             return null;
         }

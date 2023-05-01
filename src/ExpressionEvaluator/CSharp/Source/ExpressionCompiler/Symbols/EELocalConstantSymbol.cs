@@ -84,11 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics)
         {
             if (diagnostics != null && _value.IsBad)
             {
-                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name);
+                diagnostics.Value.Add(ErrorCode.ERR_BadPdbData, Location.None, Name);
             }
 
             return _value;

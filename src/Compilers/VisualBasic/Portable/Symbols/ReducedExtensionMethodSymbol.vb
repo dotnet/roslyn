@@ -83,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim inferenceDiagnostic = If(reducedUseSiteInfo.AccumulatesDependencies,
                                              BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=False, withDependencies:=True),
                                              BindingDiagnosticBag.Discarded)
+                Dim inferenceDiagnosticOpt As BindingDiagnosticBag? = inferenceDiagnostic
 
                 Dim success As Boolean = TypeArgumentInference.Infer(possiblyExtensionMethod,
                                                arguments:=ImmutableArray.Create(Of BoundExpression)(
@@ -101,9 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                typeArgumentsLocation:=Nothing,
                                                asyncLambdaSubToFunctionMismatch:=Nothing,
                                                useSiteInfo:=reducedUseSiteInfo,
-                                               diagnostic:=inferenceDiagnostic,
+                                               diagnostic:=inferenceDiagnosticOpt,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
+                inferenceDiagnostic = inferenceDiagnosticOpt.Value
                 parameterToArgumentMap.Free()
 
                 If Not success OrElse Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
