@@ -6,7 +6,7 @@ The roslyn repository produces components for a number of different products tha
 
 - Build Tools: requires us to ship compilers on `net472`
 - .NET SDK: requires us to ship compilers on current servicing target framework (presently `net6.0`)
-- Source build: requires us to `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net7.0` and `net6.0` respectively)
+- Source build: requires us to `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net8.0` and `net7.0` respectively)
 - Visual Studio: requires us to ship `net472` for base IDE components and `net6.0` for private runtime components.
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
@@ -20,7 +20,7 @@ The reason for `public` is standard design pattern. The reason for `internal` is
 - Our repository ships a mix of target frameworks. Typically workspaces and below will ship more recent TFMs than the layers above it. Compiler has to ship newer TFM for source build while IDE is constrained by Visual Studio's private runtime hence adopts newer TFM slower.
 - Our repository invests in polyfill APIs to make compiling against multiple TFMs in the same project a seamless experience.
 
-Taken together though this means that our `internal` surface area in many cases effectively `public` when it comes to binary compatibility. For example a consuming project can end up with `net7.0` binaries from workspaces layer and `net6.0` binaries from IDE layer. Because there is `InternalsVisibleTo` between these binaries the `internal` API surface area is effectively `public`. This requires us to have a consistent strategy for achieving 
+Taken together though this means that our `internal` surface area in many cases effectively `public` when it comes to binary compatibility. For example a consuming project can end up with `net7.0` binaries from workspaces layer and `net6.0` binaries from IDE layer. Because there is `InternalsVisibleTo` between these binaries the `internal` API surface area is effectively `public`. This requires us to have a consistent strategy for achieving binary compatibility across TFM combinations.
 
 Consider a specific example of what goes wrong when our `internal` APIs are not consistent across TFM:
 
@@ -31,7 +31,7 @@ Let's assume for a second that we `#if` the `OrderBy` method such that it's not 
 
 This problem primarily comes from our use of polyfill APIs. To avoid this we employ the following rule:
 
-> When there is an `#if NET.*` that declares a non-private member, there must be an `#else` that defines an equivalent binary compatible symbol
+> When there is a `#if` directive that matches the regex `#if !?NET.*` that declares a non-private member, there must be an `#else` that defines an equivalent binary compatible symbol
 
 This comes up in two forms:
 
