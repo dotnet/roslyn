@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     internal static class AnalysisContextExtensions
     {
         /// <summary>
-        /// Returns true if the given <paramref name="span"/> is in the analysis span of the given <paramref name="context"/>,
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
         ///  - <see cref="SyntaxTreeAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
         ///  OR
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             => !context.FilterSpan.HasValue || span.IntersectsWith(context.FilterSpan.Value);
 
         /// <summary>
-        /// Returns true if the given <paramref name="span"/> is in the analysis span of the given <paramref name="context"/>,
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
         ///  - <see cref="SemanticModelAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
         ///  OR
