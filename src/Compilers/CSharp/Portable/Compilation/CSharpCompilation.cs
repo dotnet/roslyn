@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (simpleProgramEntryPointSymbol is object)
                     {
-                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                         diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, simpleProgramEntryPointSymbol.ReturnTypeSyntax.Location);
                         entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
                     }
@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
-                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                var noMainFoundDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                 RoslynDebug.Assert(noMainFoundDiagnostics.DiagnosticBag is object);
 
                 bool checkValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var candidate in entryPointCandidates)
                 {
-                    var perCandidateBag = BindingDiagnosticBag.GetInstance(diagnostics);
+                    var perCandidateBag = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
                     if (IsTaskLike)
@@ -2387,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            ReportUnusedImports(filterTree: null, new BindingDiagnosticBag(diagnostics), cancellationToken);
+            ReportUnusedImports(filterTree: null, BindingDiagnosticBagFactory.New(diagnostics), cancellationToken);
         }
 
         private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
@@ -2448,7 +2448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We could do this check after we have built the transitive closure
                     // in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
                     // the level of accuracy is probably not worth the complexity this would add.
-                    var bindingDiagnostics = new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                    var bindingDiagnostics = BindingDiagnosticBagFactory.New(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
                     RoslynDebug.Assert(bindingDiagnostics.DependenciesBag is object);
 
                     foreach (var aliasedNamespace in externAliasesToCheck)
@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DiagnosticBag? builder = DiagnosticBag.GetInstance();
 
-            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, new BindingDiagnosticBag(builder), cancellationToken);
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, BindingDiagnosticBagFactory.New(builder), cancellationToken);
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
@@ -2759,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
-                var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(),
+                var methodBodyDiagnostics = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance(),
                                                                      builder.DependenciesBag is object ? new ConcurrentSet<AssemblySymbol>() : null);
                 RoslynDebug.Assert(methodBodyDiagnostics.DiagnosticBag is object);
                 GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
+            var bindingDiagnostics = BindingDiagnosticBagFactory.New(diagnostics);
 
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
@@ -2880,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(reportUnusedUsings);
 
-                    var discarded = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    var discarded = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance());
                     Debug.Assert(discarded.DiagnosticBag is object);
 
                     foreach (var otherTree in SyntaxTrees)
@@ -3007,14 +3007,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntaxTree != null)
             {
-                var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                var builder = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, withDependencies: false);
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }
 
             if (_lazyClsComplianceDiagnostics.IsDefault || _lazyClsComplianceDependencies.IsDefault)
             {
-                var builder = BindingDiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBagFactory.GetInstance();
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken);
                 var result = builder.ToReadOnlyAndFree();
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDependencies, result.Dependencies);
@@ -3264,7 +3264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emittingPdb,
                     hasDeclarationErrors,
                     emitMethodBodies: true,
-                    diagnostics: new BindingDiagnosticBag(methodBodyDiagnosticBag),
+                    diagnostics: BindingDiagnosticBagFactory.New(methodBodyDiagnosticBag),
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
@@ -3417,7 +3417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag? xmlDiagnostics = DiagnosticBag.GetInstance();
 
             string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, new BindingDiagnosticBag(xmlDiagnostics), cancellationToken);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, BindingDiagnosticBagFactory.New(xmlDiagnostics), cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics, cancellationToken);
         }

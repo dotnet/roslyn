@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
-            _declarationDiagnostics = new BindingDiagnosticBag();
+            _declarationDiagnostics = BindingDiagnosticBagFactory.New();
         }
 
         public MessageID MessageID { get { return _messageID; } }

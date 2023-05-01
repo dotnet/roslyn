@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
 
             // Only persist if there are no dependencies and the calculation
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             if (startsCycle)
             {
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, GetFirstLocation(), this);

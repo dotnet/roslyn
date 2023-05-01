@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // By setting StartMethodChecks, we've committed to doing the checks and setting
                         // FinishMethodChecks.  So there is no cancellation supported between one and the other.
-                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                         try
                         {
                             MethodChecks(diagnostics);

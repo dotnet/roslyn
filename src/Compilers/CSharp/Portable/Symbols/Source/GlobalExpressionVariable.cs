@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             TypeWithAnnotations type;
             bool isVar;
 

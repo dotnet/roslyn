@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazySynthesizedExplicitImplementations is null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();

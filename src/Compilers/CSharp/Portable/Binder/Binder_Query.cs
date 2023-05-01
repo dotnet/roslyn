@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lambdaLeft = MakeQueryUnboundLambda(state.RangeVariableMap(), x, k, diagnostics.AccumulatesDependencies);
 
                         // this is the unoptimized form (when v is not the identifier x)
-                        var d = BindingDiagnosticBag.GetInstance(diagnostics);
+                        var d = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                         BoundExpression lambdaRight = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v, diagnostics.AccumulatesDependencies);
                         result = MakeQueryInvocation(state.selectOrGroup, e, "GroupBy", ImmutableArray.Create(lambdaLeft, lambdaRight), d
 #if DEBUG

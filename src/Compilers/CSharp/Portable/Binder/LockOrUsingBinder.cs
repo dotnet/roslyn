@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
-                var expressionDiagnostics = BindingDiagnosticBag.GetInstance();
+                var expressionDiagnostics = BindingDiagnosticBagFactory.GetInstance();
                 BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 if (targetTypeOpt is object)
                 {

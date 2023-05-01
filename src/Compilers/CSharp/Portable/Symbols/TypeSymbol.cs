@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolAndDiagnostics ComputeImplementationAndDiagnosticsForInterfaceMember(Symbol interfaceMember, bool ignoreImplementationInInterfaces, out bool implementationInInterfacesMightChangeResult)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: this.DeclaringCompilation is object);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, withDependencies: this.DeclaringCompilation is object);
             var implementingMember = ComputeImplementationForInterfaceMember(interfaceMember, this, diagnostics, ignoreImplementationInInterfaces, out implementationInInterfacesMightChangeResult);
             var implementingMemberAndDiagnostics = new SymbolAndDiagnostics(implementingMember, diagnostics.ToReadOnlyAndFree());
             return implementingMemberAndDiagnostics;

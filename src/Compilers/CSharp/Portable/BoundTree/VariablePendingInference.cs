@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
-                    var inferenceDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance()
+                    var inferenceDiagnostics = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance()
 #if DEBUG
                                                                         , PooledHashSet<AssemblySymbol>.GetInstance()
 #endif

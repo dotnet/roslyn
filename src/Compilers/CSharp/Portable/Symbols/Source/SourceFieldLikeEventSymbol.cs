@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _name = declaratorSyntax.Identifier.ValueText;
 
-            var declaratorDiagnostics = BindingDiagnosticBag.GetInstance();
+            var declaratorDiagnostics = BindingDiagnosticBagFactory.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
 

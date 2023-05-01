@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                     }
 
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
                     if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
                     {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ImmutableArray<NamedTypeSymbol>.Empty;
                 }
 
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 var acyclicInterfaces = MakeAcyclicInterfaces(basesBeingResolved, diagnostics);
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
                 {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);

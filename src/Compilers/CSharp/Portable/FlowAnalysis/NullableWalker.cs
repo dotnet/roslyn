@@ -7619,7 +7619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.TryGetFirstLocation() ?? location, node.Syntax.Location);
                     tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
-                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
+                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: BindingDiagnosticBagFactory.New(Diagnostics));
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
@@ -7811,7 +7811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 targetInvokeMethod,
                 sourceInvokeMethod,
-                new BindingDiagnosticBag(Diagnostics),
+                BindingDiagnosticBagFactory.New(Diagnostics),
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
                 extraArgument: (targetType, location),
@@ -7857,7 +7857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
             }
 
-            var diagnostics = new BindingDiagnosticBag(Diagnostics);
+            var diagnostics = BindingDiagnosticBagFactory.New(Diagnostics);
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
                 targetInvokeMethod,

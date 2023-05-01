@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
             BindingDiagnosticBag firstFailed = null;
-            var candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+            var candidateDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
 
             for (int i = 0, n = overloadResolutionResult.ResultsBuilder.Count; i < n; i++)
             {
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (firstFailed == null)
                     {
                         firstFailed = candidateDiagnostics;
-                        candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                        candidateDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                     }
                     else
                     {

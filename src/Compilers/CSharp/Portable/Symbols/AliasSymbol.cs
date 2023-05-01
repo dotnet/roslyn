@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // the target is not yet bound. If it is an ordinary alias, bind the target
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
-                var newDiagnostics = BindingDiagnosticBag.GetInstance();
+                var newDiagnostics = BindingDiagnosticBagFactory.GetInstance();
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern
                     ? ResolveExternAliasTarget(newDiagnostics)

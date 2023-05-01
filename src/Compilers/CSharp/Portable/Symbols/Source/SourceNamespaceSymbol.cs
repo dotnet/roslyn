@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_nameToMembersMap == null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 if (Interlocked.CompareExchange(ref _nameToMembersMap, MakeNameToMembersMap(diagnostics), null) == null)
                 {
                     // NOTE: the following is not cancellable.  Once we've set the

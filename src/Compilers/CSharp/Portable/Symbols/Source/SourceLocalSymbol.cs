@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
                     Location initValueNodeLocation = _initializer.Value.Location;
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     Debug.Assert(inProgress != this);
                     var type = this.Type;
                     if (boundInitValue == null)

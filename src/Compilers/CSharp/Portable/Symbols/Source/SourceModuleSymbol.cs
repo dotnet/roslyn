@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     var globalNS = new SourceNamespaceSymbol(
                         this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
-                                diagnostics = BindingDiagnosticBag.GetInstance();
+                                diagnostics = BindingDiagnosticBagFactory.GetInstance();
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 

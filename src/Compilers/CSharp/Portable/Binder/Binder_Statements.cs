@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declTypeOpt.HasType || isVar);
             Debug.Assert(typeSyntax != null);
 
-            var localDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+            var localDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
             // if we are not given desired syntax, we use declarator
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
@@ -1279,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // check for a special ref-returning method
-                    var additionalDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                    var additionalDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                     fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
@@ -3999,7 +3999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
                                                                 SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result)
         {
-            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+            var bindingDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
 
             try
             {

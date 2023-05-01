@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_fixedSize == FixedSizeNotInitialized)
                 {
-                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
+                    BindingDiagnosticBag diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     int size = 0;
 
                     VariableDeclaratorSyntax declarator = VariableDeclaratorNode;

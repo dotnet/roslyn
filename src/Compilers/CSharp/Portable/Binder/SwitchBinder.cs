@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_switchGoverningExpression == null)
             {
-                var switchGoverningDiagnostics = new BindingDiagnosticBag();
+                var switchGoverningDiagnostics = BindingDiagnosticBagFactory.New();
                 var boundSwitchExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
                 _switchGoverningDiagnostics = switchGoverningDiagnostics;
                 Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);

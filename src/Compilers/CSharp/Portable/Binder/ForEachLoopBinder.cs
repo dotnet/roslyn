@@ -469,11 +469,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 hasErrors = true;
 
-                createConversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: false);
+                createConversionDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: false, withDependencies: false);
             }
             else
             {
-                createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                createConversionDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
             }
 
             BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);

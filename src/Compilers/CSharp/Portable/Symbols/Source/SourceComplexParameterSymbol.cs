@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (state.NotePartComplete(CompletionPart.StartDefaultSyntaxValue))
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     Debug.Assert(diagnostics.DiagnosticBag != null);
                     var previousValue = Interlocked.CompareExchange(
                         ref _lazyDefaultSyntaxValue,
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // we will just get a bad constant value above and return early.
                 new BoundLiteral(parameterSyntax, defaultValue, Type));
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(diagnostics.DiagnosticBag != null);
             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, parameterSyntax, diagnostics.DiagnosticBag);
             AddDeclarationDiagnostics(diagnostics);

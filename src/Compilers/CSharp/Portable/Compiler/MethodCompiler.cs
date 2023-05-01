@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We make sure that an asynchronous mutation to the diagnostic bag does not
                     // confuse the method body generator by making a fresh bag and then loading
                     // any diagnostics emitted into it back into the main diagnostic bag.
-                    var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
+                    var diagnosticsThisMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics);
 
                     var method = methodWithBody.Method;
                     var lambda = method as SynthesizedClosureMethod;
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if (!_globalHasErrors)
             {
-                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
+                var discardedDiagnostics = BindingDiagnosticBagFactory.GetInstance(_diagnostics);
                 foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken).ForwardingMethods)
                 {
                     Debug.Assert(synthesizedExplicitImpl.SynthesizesLoweredBoundBody);
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)synthesizedAccessor != null && !_globalHasErrors)
             {
                 Debug.Assert(synthesizedAccessor.SynthesizesLoweredBoundBody);
-                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
+                var discardedDiagnostics = BindingDiagnosticBagFactory.GetInstance(_diagnostics);
                 synthesizedAccessor.GenerateMethodBody(compilationState, discardedDiagnostics);
                 Debug.Assert(!discardedDiagnostics.HasAnyErrors());
                 _diagnostics.AddDependencies(discardedDiagnostics);
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
 
-            var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
+            var diagnosticsThisMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics);
             try
             {
                 BoundBlock boundBody = MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(eventSymbol, isAddMethod, _compilation, diagnosticsThisMethod);
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImportChain oldImportChain = compilationState.CurrentImportChain;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
-            var diagsForCurrentMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
+            var diagsForCurrentMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics);
 
             try
             {
@@ -1546,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.AreLocalsZeroed);
             bool hasStackalloc;
-            var diagnosticsForThisMethod = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+            var diagnosticsForThisMethod = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
             try
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;

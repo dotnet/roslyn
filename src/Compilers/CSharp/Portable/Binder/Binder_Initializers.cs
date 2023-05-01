@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers)
         {
-            var diagsForInstanceInitializers = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+            var diagsForInstanceInitializers = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
             ImportChain? firstImportChain;
             processedInitializers.BoundInitializers = BindFieldInitializers(compilation, scriptInitializerOpt, fieldInitializers, diagsForInstanceInitializers, out firstImportChain);
             processedInitializers.HasErrors = diagsForInstanceInitializers.HasAnyErrors();

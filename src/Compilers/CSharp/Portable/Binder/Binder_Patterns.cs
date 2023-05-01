@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // It is not a tuple type. Seek an appropriate Deconstruct method.
                     var inputPlaceholder = new BoundImplicitReceiver(positionalClause, declType); // A fake receiver expression to permit us to reuse binding logic
-                    var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                    var deconstructDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                     BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                         positionalClause.Subpatterns.Count, inputPlaceholder, positionalClause,
                         deconstructDiagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // It is not a tuple type. Seek an appropriate Deconstruct method.
                             var inputPlaceholder = new BoundImplicitReceiver(node, strippedInputType); // A fake receiver expression to permit us to reuse binding logic
-                            var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                            var deconstructDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                             BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                                 tupleDesignation.Variables.Count, inputPlaceholder, node, deconstructDiagnostics,
                                 outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,

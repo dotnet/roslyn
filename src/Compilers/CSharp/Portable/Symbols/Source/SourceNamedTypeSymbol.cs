@@ -282,7 +282,7 @@ next:;
             {
                 GetTypeParameterConstraintKinds();
 
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
@@ -751,7 +751,7 @@ next:;
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
                     {
                         AddDeclarationDiagnostics(diagnostics);

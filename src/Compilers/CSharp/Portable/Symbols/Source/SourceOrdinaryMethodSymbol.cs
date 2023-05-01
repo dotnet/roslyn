@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 GetTypeParameterConstraintKinds();
 
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
                     this.DeclaringCompilation

@@ -2736,7 +2736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
 
-            var bag = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+            var bag = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
@@ -2752,7 +2752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindCastCore(node, underlyingExpr, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
                 }
 
-                var bag2 = BindingDiagnosticBag.GetInstance(diagnostics);
+                var bag2 = BindingDiagnosticBagFactory.GetInstance(diagnostics);
 
                 var result = BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: bag2);
 
@@ -6438,7 +6438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: a member of the type E in both cases. In other words, the rule simply permits access to the 
             // SPEC: static members and nested types of E where a compile-time error would otherwise have occurred. 
 
-            var valueDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+            var valueDiagnostics = BindingDiagnosticBagFactory.Create(diagnostics);
             var boundValue = BindIdentifier(left, invoked: false, indexed: false, diagnostics: valueDiagnostics);
 
             Symbol leftSymbol;
@@ -6468,7 +6468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var leftName = left.Identifier.ValueText;
                         if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
                         {
-                            var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+                            var typeDiagnostics = BindingDiagnosticBagFactory.Create(diagnostics);
                             var boundType = BindNamespaceOrType(left, typeDiagnostics);
                             if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.AllIgnoreOptions))
                             {
@@ -7344,7 +7344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionMethodScopes(this))
             {
                 var methodGroup = MethodGroup.GetInstance();
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, withDependencies);
 
                 this.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
@@ -8192,7 +8192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var attemptDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+            var attemptDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
             if (result is object)
             {
@@ -8205,7 +8205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
-            var attemptDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+            var attemptDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
 
             TypeSymbol type = GetSpecialType(specialType, attemptDiagnostics, node);
 
@@ -8976,7 +8976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.LookupError == null);
 
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
 
@@ -9106,7 +9106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, withDependencies: false);
                 Error(diagnostics, node.LookupError, node.NameSyntax);
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }

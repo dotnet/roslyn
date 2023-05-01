@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeSyntax = fieldSyntax.Declaration.Type;
             var compilation = this.DeclaringCompilation;
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             RefKind refKind = RefKind.None;
             TypeWithAnnotations type;
 
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
-            var diagnosticsForFirstDeclarator = BindingDiagnosticBag.GetInstance();
+            var diagnosticsForFirstDeclarator = BindingDiagnosticBagFactory.GetInstance();
 
             Symbol associatedPropertyOrEvent = this.AssociatedSymbol;
             if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)

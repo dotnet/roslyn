@@ -4,6 +4,8 @@
 
 #nullable enable
 
+global using BindingDiagnosticBag = Microsoft.CodeAnalysis.BindingDiagnosticBag<Microsoft.CodeAnalysis.CSharp.Symbols.AssemblySymbol>;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,33 +14,25 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class BindingDiagnosticBag : BindingDiagnosticBag<AssemblySymbol>
+    internal static class BindingDiagnosticBagFactory
     {
-        public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
-
         private static readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool> s_reportUseSiteDiagnostic = Symbol.ReportUseSiteDiagnostic;
 
-        public BindingDiagnosticBag()
-            : this(usePool: false)
-        { }
+        public static BindingDiagnosticBag New()
+            => New(usePool: false);
 
-        private BindingDiagnosticBag(bool usePool)
-            : base(usePool, s_reportUseSiteDiagnostic)
-        { }
+        private static BindingDiagnosticBag New(bool usePool)
+            => new BindingDiagnosticBag(usePool, s_reportUseSiteDiagnostic);
 
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
-            : base(diagnosticBag, dependenciesBag: null, s_reportUseSiteDiagnostic)
-        {
-        }
+        public static BindingDiagnosticBag New(DiagnosticBag? diagnosticBag)
+            => new BindingDiagnosticBag(diagnosticBag, dependenciesBag: null, s_reportUseSiteDiagnostic);
 
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
-            : base(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic)
-        {
-        }
+        public static BindingDiagnosticBag New(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
+            => new BindingDiagnosticBag(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic);
 
         internal static BindingDiagnosticBag GetInstance()
         {
-            return new BindingDiagnosticBag(usePool: true);
+            return BindingDiagnosticBagFactory.New(usePool: true);
         }
 
         internal static BindingDiagnosticBag GetInstance(bool withDiagnostics, bool withDependencies)
@@ -50,15 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInstance();
                 }
 
-                return new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                return BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance());
             }
             else if (withDependencies)
             {
-                return new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                return BindingDiagnosticBagFactory.New(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
             }
             else
             {
-                return Discarded;
+                return BindingDiagnosticBag.Discarded;
             }
         }
 
@@ -73,18 +67,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (template.AccumulatesDependencies)
                 {
-                    return new BindingDiagnosticBag();
+                    return BindingDiagnosticBagFactory.New();
                 }
 
-                return new BindingDiagnosticBag(new DiagnosticBag());
+                return BindingDiagnosticBagFactory.New(new DiagnosticBag());
             }
             else if (template.AccumulatesDependencies)
             {
-                return new BindingDiagnosticBag(diagnosticBag: null, new HashSet<AssemblySymbol>());
+                return BindingDiagnosticBagFactory.New(diagnosticBag: null, new HashSet<AssemblySymbol>());
             }
             else
             {
-                return Discarded;
+                return BindingDiagnosticBag.Discarded;
             }
         }
     }

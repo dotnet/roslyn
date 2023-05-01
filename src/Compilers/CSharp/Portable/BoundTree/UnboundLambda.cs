@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder lambdaBodyBinder;
             BoundBlock block;
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
             var compilation = Binder.Compilation;
             var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnType,
             RefKind refKind)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
             var lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda!,
                                                   returnType,
                                                   parameterTypes,

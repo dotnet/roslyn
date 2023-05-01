@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);

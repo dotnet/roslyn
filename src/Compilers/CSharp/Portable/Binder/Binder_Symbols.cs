@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case LookupResultKind.Viable:
                     // Case (2)
-                    var resultDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+                    var resultDiagnostics = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
                     bool wasError;
                     symbol = ResultSymbol(
                         lookupResult,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void ReportMissingTupleElementNamesAttributesIfNeeded(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
         {
-            var bag = BindingDiagnosticBag.GetInstance(diagnostics);
+            var bag = BindingDiagnosticBagFactory.GetInstance(diagnostics);
             if (!compilation.HasTupleNamesAttributes(bag, location))
             {
                 var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                var bag = BindingDiagnosticBag.GetInstance(diagnostics);
+                var bag = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                 if (!Compilation.HasDynamicEmitAttributes(bag, node.Location))
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (haveStaticCandidates)
                     {
                         Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, colorColorValueReceiver.Syntax, parameter.Name, parameter.Type, parameter);
-                        discarded = BindingDiagnosticBag.GetInstance(diagnostics);
+                        discarded = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                     }
 
                     receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, discarded ?? diagnostics);

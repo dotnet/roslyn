@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !resolution.IsEmpty &&
                             resolution.ResultKind == LookupResultKind.Viable)
                     {
-                        var overloadDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+                        var overloadDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
                         result.ReportDiagnostics(
                             binder: binder, location: expr.Syntax.Location, nodeOpt: expr.Syntax, diagnostics: overloadDiagnostics,

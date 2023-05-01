@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<AttributeSyntax>? beforeAttributePartBound = null,
             Action<AttributeSyntax>? afterAttributePartBound = null)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //    3. Remove the collected diagnostics, if any.
                         if (toRemove.Count != 0)
                         {
-                            var filtered = BindingDiagnosticBag.GetInstance();
+                            var filtered = BindingDiagnosticBagFactory.GetInstance();
 
                             filtered.AddDependencies(diagnostics);
 

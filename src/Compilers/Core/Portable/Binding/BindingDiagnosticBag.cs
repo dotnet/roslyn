@@ -18,33 +18,40 @@ namespace Microsoft.CodeAnalysis
     /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal abstract class BindingDiagnosticBag<TAssemblySymbol>
+    internal sealed class BindingDiagnosticBag<TAssemblySymbol>
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
+        public static readonly BindingDiagnosticBag<TAssemblySymbol> Discarded = new BindingDiagnosticBag<TAssemblySymbol>(null, null, null);
+
         public readonly DiagnosticBag? DiagnosticBag;
         public readonly ICollection<TAssemblySymbol>? DependenciesBag;
 
-        private readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool> _reportUseSiteDiagnostic;
+        private readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool>? _reportUseSiteDiagnostic;
 
         private BindingDiagnosticBag(
             DiagnosticBag? diagnosticBag,
-            Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
+            Func<DiagnosticInfo, DiagnosticBag, Location, bool>? reportUseSiteDiagnostic)
         {
+#if DEBUG
+            if (diagnosticBag != null)
+                Debug.Assert(reportUseSiteDiagnostic != null);
+#endif
+
             DiagnosticBag = diagnosticBag;
             _reportUseSiteDiagnostic = reportUseSiteDiagnostic;
         }
 
-        protected BindingDiagnosticBag(
+        public BindingDiagnosticBag(
             DiagnosticBag? diagnosticBag,
             ICollection<TAssemblySymbol>? dependenciesBag,
-            Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
+            Func<DiagnosticInfo, DiagnosticBag, Location, bool>? reportUseSiteDiagnostic)
             : this(diagnosticBag, reportUseSiteDiagnostic)
         {
             Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
             DependenciesBag = dependenciesBag;
         }
 
-        protected BindingDiagnosticBag(bool usePool, Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
+        public BindingDiagnosticBag(bool usePool, Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
             : this(
                   usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(),
                   usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>(),
@@ -234,6 +241,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (DiagnosticBag is DiagnosticBag diagnosticBag)
             {
+                Debug.Assert(_reportUseSiteDiagnostic != null);
                 if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                 {
                     bool haveError = false;
@@ -310,6 +318,7 @@ namespace Microsoft.CodeAnalysis
 
             if (DiagnosticBag is object)
             {
+                Debug.Assert(_reportUseSiteDiagnostic != null);
                 return _reportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
             }
 

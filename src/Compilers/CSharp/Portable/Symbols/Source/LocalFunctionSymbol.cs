@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingSymbol.DeclaringCompilation == binder.Compilation);
             _containingSymbol = containingSymbol;
 
-            _declarationDiagnostics = new BindingDiagnosticBag();
+            _declarationDiagnostics = BindingDiagnosticBagFactory.New();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AsyncMethodChecks(addTo);
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: addTo.AccumulatesDependencies);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: false, withDependencies: addTo.AccumulatesDependencies);
             if (IsEntryPointCandidate && !IsGenericMethod &&
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
                 compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(_declarationDiagnostics);
 
             var parameters = ParameterHelpers.MakeParameters(
                 WithTypeParametersBinder,
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance(_declarationDiagnostics);
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
             TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipScoped(out _).SkipRef(), diagnostics);
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 GetTypeParameterConstraintKinds();
 
                 var syntax = Syntax;
-                var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance(_declarationDiagnostics);
                 var constraints = this.MakeTypeParameterConstraintTypes(
                     WithTypeParametersBinder,
                     TypeParameters,

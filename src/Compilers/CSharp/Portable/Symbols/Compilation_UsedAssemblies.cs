@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_usedAssemblyReferencesFrozen && !Volatile.Read(ref _usedAssemblyReferencesFrozen))
             {
-                var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
+                var diagnostics = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
                 RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
 
                 GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, cancellationToken);

@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var unusedDiagnostics =
 #if DEBUG
-                    new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance());
                 Debug.Assert(unusedDiagnostics.DiagnosticBag is object);
 #else
                     BindingDiagnosticBag.Discarded;
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation.GetBinderFactory(typeSyntax.SyntaxTree).GetBinder(typeSyntax).Flags ==
                 (parameterOrReturnTypeBinder.Flags & ~BinderFlags.SemanticModel));
 
-            var localDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), // Examined, but not reported.
+            var localDiagnostics = BindingDiagnosticBagFactory.New(DiagnosticBag.GetInstance(), // Examined, but not reported.
                                                             diagnostics.DependenciesBag);
             Debug.Assert(localDiagnostics.DiagnosticBag is object);
 

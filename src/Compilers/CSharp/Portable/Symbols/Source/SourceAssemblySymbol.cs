@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishAttributeChecks:
                         if (_state.NotePartComplete(CompletionPart.StartAttributeChecks))
                         {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                             ValidateAttributeSemantics(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             var thisThreadCompleted = _state.NotePartComplete(CompletionPart.FinishAttributeChecks);
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ReportDiagnosticsForAddedModules()
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
 
             foreach (var pair in _compilation.GetBoundReferenceManager().ReferencedModuleIndexMap)
             {
@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
 
                 ImmutableArray<string> netModuleNames;
                 ImmutableArray<CSharpAttributeData> attributesFromNetModules = GetNetModuleAttributes(out netModuleNames);

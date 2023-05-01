@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishBaseType:
                         if (state.NotePartComplete(CompletionPart.StartBaseType))
                         {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                             CheckBase(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishInterfaces:
                         if (state.NotePartComplete(CompletionPart.StartInterfaces))
                         {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                             CheckInterfaces(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishInterfaces);
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
 
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (state.NotePartComplete(CompletionPart.MembersCompletedChecksStarted))
                             {
-                                var diagnostics = BindingDiagnosticBag.GetInstance();
+                                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                                 AfterMembersCompletedChecks(diagnostics);
                                 AddDeclarationDiagnostics(diagnostics);
 
@@ -1287,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeMembers == null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyTypeMembers, MakeTypeMembers(diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);
@@ -1563,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return membersAndInitializers;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBagFactory.GetInstance();
             membersAndInitializers = BuildMembersAndInitializers(diagnostics);
 
             var alreadyKnown = Interlocked.CompareExchange(ref _lazyMembersAndInitializers, membersAndInitializers, null);
@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyMembersDictionary == null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 var membersDictionary = MakeAllMembers(diagnostics);
 
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
@@ -2256,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
@@ -3097,7 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 declaredMembersAndInitializers = buildDeclaredMembersAndInitializers(diagnostics);
 
                 var alreadyKnown = Interlocked.CompareExchange(ref _lazyDeclaredMembersAndInitializers, declaredMembersAndInitializers, DeclaredMembersAndInitializers.UninitializedSentinel);
@@ -3159,7 +3159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_lazySimpleProgramEntryPoints.IsDefault)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 var simpleProgramEntryPoints = buildSimpleProgramEntryPoint(diagnostics);
 
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazySimpleProgramEntryPoints, simpleProgramEntryPoints))

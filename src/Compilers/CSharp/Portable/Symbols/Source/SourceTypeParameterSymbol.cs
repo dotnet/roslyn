@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_lazyBounds.IsSet())
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBagFactory.GetInstance();
                 var bounds = this.ResolveBounds(inProgress, diagnostics);
 
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
