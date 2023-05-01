@@ -151,13 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Free();
         }
 
-        private void CompleteAsyncMethodChecks(BindingDiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        private void CompleteAsyncMethodChecks(BindingDiagnosticBag? diagnosticsOpt, CancellationToken cancellationToken)
         {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
                 if (diagnosticsOpt != null)
                 {
-                    AddDeclarationDiagnostics(diagnosticsOpt);
+                    AddDeclarationDiagnostics(diagnosticsOpt.Value);
                 }
 
                 CompleteAsyncMethodChecksBetweenStartAndFinish();

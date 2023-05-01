@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
             var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
-            BindingDiagnosticBag firstFailed = null;
+            BindingDiagnosticBag? firstFailed = null;
             var candidateDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
 
             for (int i = 0, n = overloadResolutionResult.ResultsBuilder.Count; i < n; i++)
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AddRange(firstFailed);
                 }
 
-                firstFailed.Free();
+                firstFailed.Value.Free();
             }
 
             candidateDiagnostics.Free();
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             // It is never legal to box a restricted type, even if we are boxing it as the receiver
             // of a method call. When must be box? We skip boxing when the method in question is defined

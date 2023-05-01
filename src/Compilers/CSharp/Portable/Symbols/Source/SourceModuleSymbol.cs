@@ -235,19 +235,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag?diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
                                 diagnostics = BindingDiagnosticBagFactory.GetInstance();
-                                ValidateLinkedAssemblies(diagnostics, cancellationToken);
+                                ValidateLinkedAssemblies(diagnostics.Value, cancellationToken);
                             }
 
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)
                                 {
-                                    _assemblySymbol.AddDeclarationDiagnostics(diagnostics);
+                                    _assemblySymbol.AddDeclarationDiagnostics(diagnostics.Value);
                                 }
 
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (diagnostics != null)
                             {
-                                diagnostics.Free();
+                                diagnostics.Value.Free();
                             }
                         }
                         break;

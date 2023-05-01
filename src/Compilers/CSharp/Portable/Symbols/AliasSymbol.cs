@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 GetAliasTarget(null);
                 RoslynDebug.Assert(_aliasTargetDiagnostics != null);
-                return _aliasTargetDiagnostics;
+                return _aliasTargetDiagnostics.Value;
             }
         }
 

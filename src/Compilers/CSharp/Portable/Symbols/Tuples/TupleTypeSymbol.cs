@@ -55,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (numElements >= ValueTupleRestPosition && diagnostics != null && !underlyingType.IsErrorType())
             {
                 WellKnownMember wellKnownTupleRest = GetTupleTypeMember(ValueTupleRestPosition, ValueTupleRestPosition);
-                _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
+                _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics.Value, syntax);
             }
 
             if (diagnostics?.DiagnosticBag is object && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
                 // Complain about unembeddable types from linked assemblies.
-                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics.DiagnosticBag);
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics.Value.DiagnosticBag);
             }
 
             var locations = locationOpt is null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (shouldCheckConstraints && diagnostics != null)
             {
                 Debug.Assert(syntax is object);
-                constructedType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, compilation.Conversions, includeNullability, syntax.Location, diagnostics),
+                constructedType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, compilation.Conversions, includeNullability, syntax.Location, diagnostics.Value),
                                                  syntax, elementLocations, nullabilityDiagnosticsOpt: includeNullability ? diagnostics : null);
             }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
                 if (diagnostics is object && syntax is object)
                 {
-                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
+                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics.Value, firstTupleType);
                 }
 
                 NamedTypeSymbol? chainedTupleType = null;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     chainedTupleType = compilation.GetWellKnownType(GetTupleType(ValueTupleRestPosition));
                     if (diagnostics is object && syntax is object)
                     {
-                        ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
+                        ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics.Value, chainedTupleType);
                     }
                 }
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
-            RoslynDebug.Assert(diagnostics is object && syntax is object);
+            RoslynDebug.Assert(syntax is object);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);

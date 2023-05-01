@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: This method doesn't unwrap aliases.
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAlias(ExpressionSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null, bool suppressUseSiteDiagnostics = false)
         {
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null || suppressUseSiteDiagnostics);
 
@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol UnwrapAlias(Symbol symbol, out AliasSymbol alias, BindingDiagnosticBag diagnostics, SyntaxNode syntax, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(syntax != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             if (symbol.Kind == SymbolKind.Alias)
             {
@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (haveInstanceCandidates)
                 {
-                    BindingDiagnosticBag discarded = null;
+                    BindingDiagnosticBag? discarded = null;
                     if (haveStaticCandidates)
                     {
                         Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, colorColorValueReceiver.Syntax, parameter.Name, parameter.Type, parameter);

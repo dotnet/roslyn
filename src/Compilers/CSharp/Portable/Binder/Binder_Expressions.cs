@@ -4176,7 +4176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)constructor != null);
             Debug.Assert(constructor.MethodKind == MethodKind.Constructor ||
                 constructor.MethodKind == MethodKind.StaticConstructor); // error scenario: constructor initializer on static constructor
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             NamedTypeSymbol containingType = constructor.ContainingType;
 

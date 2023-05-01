@@ -59,6 +59,15 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public object SyncRoot
+        {
+            get
+            {
+                Debug.Assert(DiagnosticBag != null);
+                return DiagnosticBag;
+            }
+        }
+
         public bool IsDiscarded => _reportUseSiteDiagnostic == null;
 
         [MemberNotNullWhen(true, nameof(DiagnosticBag))]

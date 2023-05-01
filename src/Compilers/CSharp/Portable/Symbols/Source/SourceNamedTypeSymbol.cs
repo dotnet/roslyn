@@ -1221,7 +1221,7 @@ next:;
             {
                 if (diagnose)
                 {
-                    diagnosticsOpt.Add(ErrorCode.ERR_AttributeUsageOnNonAttributeClass, node.Name.Location, node.GetErrorDisplayName());
+                    diagnosticsOpt.Value.Add(ErrorCode.ERR_AttributeUsageOnNonAttributeClass, node.Name.Location, node.GetErrorDisplayName());
                 }
 
                 return AttributeUsageInfo.Null;
@@ -1237,7 +1237,7 @@ next:;
                     {
                         // invalid attribute target
                         CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
-                        diagnosticsOpt.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                        diagnosticsOpt.Value.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
                     }
 
                     return AttributeUsageInfo.Null;

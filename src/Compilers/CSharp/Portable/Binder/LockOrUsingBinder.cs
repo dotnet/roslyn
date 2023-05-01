@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (diagnostics != null)
             {
-                diagnostics.AddRange(_lazyExpressionAndDiagnostics.Diagnostics, allowMismatchInDependencyAccumulation: true);
+                diagnostics.Value.AddRange(_lazyExpressionAndDiagnostics.Diagnostics, allowMismatchInDependencyAccumulation: true);
             }
 
             return _lazyExpressionAndDiagnostics.Expression;

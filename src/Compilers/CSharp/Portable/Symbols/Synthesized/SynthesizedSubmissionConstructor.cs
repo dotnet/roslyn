@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType)
         {
             Debug.Assert(containingType.TypeKind == TypeKind.Submission);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             var compilation = containingType.DeclaringCompilation;
 

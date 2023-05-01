@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
             }
 
-            lock (_declarationDiagnostics)
+            lock (_declarationDiagnostics.SyncRoot)
             {
                 if (_lazyParameters != null)
                 {
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || !returnType.IsVoidType()
                 || returnTypeSyntax.HasErrors);
 
-            lock (_declarationDiagnostics)
+            lock (_declarationDiagnostics.SyncRoot)
             {
                 if (_lazyReturnType is object)
                 {
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     diagnostics);
-                lock (_declarationDiagnostics)
+                lock (_declarationDiagnostics.SyncRoot)
                 {
                     if (_lazyTypeParameterConstraintTypes.IsDefault)
                     {

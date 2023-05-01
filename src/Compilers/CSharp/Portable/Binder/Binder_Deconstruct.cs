@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object?)mergedType == null && diagnostics is object)
                     {
                         // a typeless element on the right, matching no variable on the left
-                        Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
+                        Error(diagnostics.Value, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
                     }
                 }
 

@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = arguments.Diagnostics;
 
             Debug.Assert(syntax != null);
-            Debug.Assert(diagnostics != null);
+            // Debug.Assert(diagnostics != null);
 
             var value = DecodeDefaultParameterValueAttribute(description, attribute, syntax, diagnose: true, diagnosticsOpt: diagnostics);
             if (!value.IsBad)
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConstantValue DecodeDefaultParameterValueAttribute(AttributeDescription description, CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag diagnosticsOpt)
+        private ConstantValue DecodeDefaultParameterValueAttribute(AttributeDescription description, CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(!attribute.HasErrors);
 
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConstantValue DecodeDefaultParameterValueAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag diagnosticsOpt)
+        private ConstantValue DecodeDefaultParameterValueAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(!diagnose || diagnosticsOpt != null);
 
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
                 if (diagnose)
                 {
-                    diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, node.Name.Location);
+                    diagnosticsOpt.Value.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, node.Name.Location);
                 }
                 return ConstantValue.Bad;
             }
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                         if (diagnose)
                         {
-                            diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
+                            diagnosticsOpt.Value.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
                         }
                         return ConstantValue.Bad;
                     }
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // error CS1910: Argument of type '{0}' is not applicable for the DefaultParameterValue attribute
                     if (diagnose)
                     {
-                        diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.TypeInternal);
+                        diagnosticsOpt.Value.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.TypeInternal);
                     }
                     return ConstantValue.Bad;
                 }
@@ -999,15 +999,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
                 {
-                    diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
-                    diagnosticsOpt.Add(node.Name, useSiteInfo);
+                    diagnosticsOpt.Value.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
+                    diagnosticsOpt.Value.Add(node.Name, useSiteInfo);
                 }
                 return ConstantValue.Bad;
             }
 
             if (diagnose)
             {
-                diagnosticsOpt.Add(node.Name, useSiteInfo);
+                diagnosticsOpt.Value.Add(node.Name, useSiteInfo);
             }
 
             return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
