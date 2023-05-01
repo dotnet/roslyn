@@ -231,9 +231,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
+                // ILegacyGlobalOptionsWorkspaceService is not provided in LSP, so don't give the code action with Dialog if it is null
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                if (globalOptions == null)
+                {
+                    return null;
+                }
 
+                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
                     FeaturesResources.Add_null_checks,
