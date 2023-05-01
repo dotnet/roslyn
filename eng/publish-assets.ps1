@@ -120,7 +120,7 @@ function Publish-Npm([string]$npmPackagesDir) {
   Write-Host ""
   Write-Host "Publishing NPM packages in $npmPackagesDir..."
 
-  $npmrcPath = [IO.Path]::Combine($RepoRoot, "src", "VisualStudio", "Microsoft.CodeAnalysis.LanguageServer.Internal", ".npmrc")
+  $npmrcPath = [IO.Path]::Combine($RepoRoot, "src", "VisualStudio", "Microsoft.VisualStudio.LanguageServices.DevKit", ".npmrc")
   if (-not (Test-Path $npmrcPath)) {
     throw "Missing .npmrc at $npmrcPath"
   }

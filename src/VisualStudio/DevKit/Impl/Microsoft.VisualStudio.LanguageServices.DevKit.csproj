@@ -14,11 +14,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
   </ItemGroup>
 
   <PropertyGroup>

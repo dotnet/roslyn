@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.DevKit;
 
 internal static class VSCodeTelemetryLogger
 {

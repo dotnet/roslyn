@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services.Telemetry
 {
     internal class TelemetryService : IDisposable
     {
-        private const string AssemblyName = "Microsoft.CodeAnalysis.LanguageServer.Internal.dll";
-        private const string ClassName = "Microsoft.CodeAnalysis.LanguageServer.Internal.VSCodeTelemetryLogger";
+        private const string AssemblyName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
+        private const string ClassName = "Microsoft.VisualStudio.LanguageServices.DevKit.VSCodeTelemetryLogger";
 
         private readonly AssemblyLoadContextWrapper _alcWrapper;
         private readonly Lazy<MethodInfo> _logMethod;
