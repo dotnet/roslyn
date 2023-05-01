@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<IIncrementalGeneratorNode, IIncrementalGeneratorNode> _baseNodeForComparerAndTrackingName = new();
         private readonly Dictionary<(IIncrementalGeneratorNode node, object? comparer), IIncrementalGeneratorNode> _withComparer = new();
         private readonly Dictionary<(IIncrementalGeneratorNode, string?), IIncrementalGeneratorNode> _withTrackingName = new();
+        private readonly Dictionary<object, object> _wrappedComparers = new();
 
         public T WithContext<T>(
             T node,
@@ -67,6 +68,16 @@ namespace Microsoft.CodeAnalysis
         private IIncrementalGeneratorNode<T> GetBaseNodeForComparerAndTrackingName<T>(IIncrementalGeneratorNode<T> node)
         {
             return (IIncrementalGeneratorNode<T>)_baseNodeForComparerAndTrackingName.GetOrAdd(node, node);
+        }
+
+        internal IEqualityComparer<T> WrapUserComparer<T>(IEqualityComparer<T> comparer)
+        {
+            if (_wrappedComparers.TryGetValue(comparer, out var wrappedComparer))
+                return (IEqualityComparer<T>)wrappedComparer;
+
+            var wrappedComparerT = comparer.WrapUserComparer();
+            _wrappedComparers.Add(comparer, wrappedComparerT);
+            return wrappedComparerT;
         }
     }
 }

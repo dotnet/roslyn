@@ -109,7 +109,10 @@ namespace Microsoft.CodeAnalysis
 
         internal static IEqualityComparer<T> WrapUserComparer<T>(this IEqualityComparer<T> comparer)
         {
-            return new WrappedUserComparer<T>(comparer);
+            if (comparer is not WrappedUserComparer<T> wrappedComparer)
+                wrappedComparer = new WrappedUserComparer<T>(comparer);
+
+            return wrappedComparer;
         }
     }
 }
