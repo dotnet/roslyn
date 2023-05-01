@@ -47,6 +47,7 @@ $arch = [System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture
 if (!$arch) { # Windows Powershell leaves this blank
     $arch = 'x64'
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { $arch = 'ARM64' }
+    if (${env:ProgramFiles(Arm)}) { $arch = 'ARM64' }
 }
 
 # Search for all .NET runtime versions referenced from MSBuild projects and arrange to install them.
