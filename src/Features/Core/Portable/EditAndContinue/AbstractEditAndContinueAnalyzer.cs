@@ -2417,16 +2417,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             PooledDictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits = null;
             PooledDictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits = null;
 
-            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
-            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var newCompilation = newModel.Compilation;
-
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var processedSymbols);
             using var _2 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var semanticEdits);
 
             try
             {
+                var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
+                var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var newCompilation = newModel.Compilation;
+
                 INamedTypeSymbol? lazyLayoutAttribute = null;
 
                 foreach (var edit in editScript.Edits)
@@ -3310,6 +3310,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics,
                         cancellationToken);
                 }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
