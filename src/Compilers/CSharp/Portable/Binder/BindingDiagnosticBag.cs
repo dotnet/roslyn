@@ -87,41 +87,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Discarded;
             }
         }
+    }
 
-        internal void AddDependencies(Symbol? symbol)
+    internal static class BindingDiagnosticBagExtensions
+    {
+        internal static void AddDependencies(this BindingDiagnosticBag diagnosticBag, Symbol? symbol)
         {
-            if (symbol is object && DependenciesBag is object)
+            if (symbol is object && diagnosticBag.DependenciesBag is object)
             {
-                AddDependencies(symbol.GetUseSiteInfo());
+                diagnosticBag.AddDependencies(symbol.GetUseSiteInfo());
             }
         }
 
-        internal bool ReportUseSite(Symbol? symbol, SyntaxNode node)
+        internal static bool ReportUseSite(this BindingDiagnosticBag diagnosticBag, Symbol? symbol, SyntaxNode node)
         {
-            return ReportUseSite(symbol, static node => node.Location, node);
+            return ReportUseSite(diagnosticBag, symbol, static node => node.Location, node);
         }
 
-        internal bool ReportUseSite(Symbol? symbol, SyntaxToken token)
+        internal static bool ReportUseSite(this BindingDiagnosticBag diagnosticBag, Symbol? symbol, SyntaxToken token)
         {
-            return ReportUseSite(symbol, static token => token.GetLocation(), token);
+            return ReportUseSite(diagnosticBag, symbol, static token => token.GetLocation(), token);
         }
 
-        internal bool ReportUseSite(Symbol? symbol, Location location)
-            => ReportUseSite(symbol, static location => location, location);
+        internal static bool ReportUseSite(this BindingDiagnosticBag diagnosticBag, Symbol? symbol, Location location)
+            => ReportUseSite(diagnosticBag, symbol, static location => location, location);
 
-        internal bool ReportUseSite<TData>(Symbol? symbol, Func<TData, Location> getLocation, TData data)
+        internal static bool ReportUseSite<TData>(this BindingDiagnosticBag diagnosticBag, Symbol? symbol, Func<TData, Location> getLocation, TData data)
         {
             if (symbol is object)
             {
-                return Add(symbol.GetUseSiteInfo(), getLocation, data);
+                return diagnosticBag.Add(symbol.GetUseSiteInfo(), getLocation, data);
             }
 
             return false;
         }
 
-        internal void AddAssembliesUsedByNamespaceReference(NamespaceSymbol ns)
+        internal static void AddAssembliesUsedByNamespaceReference(this BindingDiagnosticBag diagnosticBag, NamespaceSymbol ns)
         {
-            if (DependenciesBag is null)
+            if (diagnosticBag.DependenciesBag is null)
             {
                 return;
             }
@@ -144,44 +147,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (containingAssembly?.IsMissing == false)
                     {
-                        DependenciesBag!.Add(containingAssembly);
+                        diagnosticBag.DependenciesBag!.Add(containingAssembly);
                     }
                 }
             }
         }
 
-        internal CSDiagnosticInfo Add(ErrorCode code, Location location)
+        internal static CSDiagnosticInfo Add(this BindingDiagnosticBag diagnosticBag, ErrorCode code, Location location)
         {
             var info = new CSDiagnosticInfo(code);
-            Add(info, location);
+            Add(diagnosticBag, info, location);
             return info;
         }
 
-        internal CSDiagnosticInfo Add(ErrorCode code, SyntaxNode syntax, params object[] args)
-            => Add(code, syntax.Location, args);
+        internal static CSDiagnosticInfo Add(this BindingDiagnosticBag diagnosticBag, ErrorCode code, SyntaxNode syntax, params object[] args)
+            => Add(diagnosticBag, code, syntax.Location, args);
 
-        internal CSDiagnosticInfo Add(ErrorCode code, SyntaxToken syntax, params object[] args)
-            => Add(code, syntax.GetLocation()!, args);
+        internal static CSDiagnosticInfo Add(this BindingDiagnosticBag diagnosticBag, ErrorCode code, SyntaxToken syntax, params object[] args)
+            => Add(diagnosticBag, code, syntax.GetLocation()!, args);
 
-        internal CSDiagnosticInfo Add(ErrorCode code, Location location, params object[] args)
+        internal static CSDiagnosticInfo Add(this BindingDiagnosticBag diagnosticBag, ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);
-            Add(info, location);
+            Add(diagnosticBag, info, location);
             return info;
         }
 
-        internal CSDiagnosticInfo Add(ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
+        internal static CSDiagnosticInfo Add(this BindingDiagnosticBag diagnosticBag, ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
-            Add(info, location);
+            Add(diagnosticBag, info, location);
             return info;
         }
 
-        internal void Add(DiagnosticInfo? info, Location location)
+        internal static void Add(this BindingDiagnosticBag diagnosticBag, DiagnosticInfo? info, Location location)
         {
             if (info is object)
             {
-                DiagnosticBag?.Add(info, location);
+                diagnosticBag.DiagnosticBag?.Add(info, location);
             }
         }
     }
