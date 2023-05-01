@@ -18,12 +18,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(RazorWorkspaceListenerInitializer)), Shared]
 internal sealed class RazorWorkspaceListenerInitializer
 {
-    private static string _projectRazorJsonFileName = "project.razor.vscode.json";
-
-    internal static void SetProjectRazorJsonFileName(string projectRazorJsonFileName)
-    {
-        _projectRazorJsonFileName = projectRazorJsonFileName;
-    }
+    // This should be moved to the Razor side once things are announced, so defaults are all in one
+    // place, in case things ever need to change
+    private const string _projectRazorJsonFileName = "project.razor.vscode.json";
 
     private readonly ILogger _logger;
     private readonly Lazy<RazorWorkspaceListener> _razorWorkspaceListener;
