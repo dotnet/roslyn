@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Interlocked.CompareExchange(lazyNetModuleAttributesBag, CustomAttributesBag(Of VisualBasicAttributeData).Empty, Nothing)
             Else
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 Dim netModuleNames As ImmutableArray(Of String) = Nothing
                 Dim attributesFromNetModules As ImmutableArray(Of VisualBasicAttributeData) = GetNetModuleAttributes(netModuleNames)
                 Dim wellKnownData As WellKnownAttributeData = Nothing
@@ -1159,7 +1159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If _lazyAssemblyLevelDeclarationErrors.IsDefault OrElse _lazyAssemblyLevelDeclarationDependencies.IsDefault Then
 
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
                 Dim emitExtensionAttribute As ThreeState = CType(_lazyEmitExtensionAttribute, ThreeState)
                 If emitExtensionAttribute = ThreeState.Unknown Then

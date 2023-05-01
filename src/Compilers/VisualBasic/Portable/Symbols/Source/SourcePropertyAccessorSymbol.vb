@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim retType = _lazyReturnType
                 If retType Is Nothing Then
 
-                    Dim diagBag = BindingDiagnosticBag.GetInstance()
+                    Dim diagBag = BindingDiagnosticBagFactory.GetInstance()
                     Dim sourceModule = ContainingSourceModule
                     Dim errorLocation As SyntaxNodeOrToken = Nothing
                     retType = GetReturnType(sourceModule, errorLocation, diagBag)
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim params = _lazyParameters
                 If params.IsDefault Then
 
-                    Dim diagBag = BindingDiagnosticBag.GetInstance()
+                    Dim diagBag = BindingDiagnosticBagFactory.GetInstance()
                     Dim sourceModule = ContainingSourceModule
 
                     params = GetParameters(sourceModule, diagBag)

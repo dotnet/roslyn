@@ -2075,7 +2075,7 @@ lReportErrorOnTwoTokens:
         Private Sub EnsureSignature()
             If _lazyParameters.IsDefault Then
 
-                Dim diagBag = BindingDiagnosticBag.GetInstance()
+                Dim diagBag = BindingDiagnosticBagFactory.GetInstance()
                 Dim sourceModule = ContainingSourceModule
 
                 Dim params As ImmutableArray(Of ParameterSymbol) = GetParameters(sourceModule, diagBag)

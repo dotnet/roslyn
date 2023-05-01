@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Not IsCallStatementContext(node) AndAlso
                 ShouldBindWithoutArguments(node, group, diagnostics) Then
 
-                Dim tmpDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim tmpDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                 Dim result As BoundExpression = Nothing
 
                 Debug.Assert(node.Expression IsNot Nothing)
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 ' All queryable sources have default indexer, which maps to an ElementAtOrDefault method or property on the source.
-                Dim tempDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim tempDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
 
                 target = MakeRValue(target, tempDiagnostics)
 
@@ -1857,7 +1857,7 @@ ProduceBoundNode:
                     i += 1
                 End If
 
-                Dim candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim candidateDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
 
                 ' Collect diagnostic for this candidate
                 ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocation, lookupResult, candidates(i), arguments, argumentNames,
@@ -3177,7 +3177,7 @@ ProduceBoundNode:
 
                         If callerInfoValue IsNot Nothing Then
                             ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                            Dim ignoreDiagnostics = BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance())
                             Dim literal As BoundLiteral
 
                             If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then

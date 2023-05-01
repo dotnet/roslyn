@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The temporary error messages should only be shown if binding the member access itself failed, or the bound
             ' member access is usable for the initialization (non shared, writable field or property).
             ' Otherwise more specific diagnostics will be shown .
-            Dim memberBindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim memberBindingDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
@@ -768,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim unusedExpression As BoundExpression = Nothing
             Dim unusedLValuePlaceholder As BoundLValuePlaceholder = Nothing
             Dim unusedRValuePlaceholder As BoundRValuePlaceholder = Nothing
-            Dim temporaryDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Dim temporaryDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
             Dim matchesDesignPattern As Boolean = False
 
             ' From Dev10:
@@ -799,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 matchesDesignPattern = True
 
             Else
-                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                 Dim ienumerable = GetSpecialType(SpecialType.System_Collections_IEnumerable,
                                                  objectCreationSyntax,
                                                  ienumerableUseSiteDiagnostics)

@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If GetLazyConstantTuple() Is Nothing Then
                 Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
                 Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 Dim constantTuple As EvaluatedConstant = MakeConstantTuple(dependencies, diagnostics)
                 dependencies.Freeze()
 
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
             Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
             valueTuple = MakeConstantTuple(dependencies, diagnostics)
             dependencies.Freeze()
 

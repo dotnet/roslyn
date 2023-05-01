@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                 StateFlags.ReportedVarianceDiagnostics,
                                                                 0,
-                                                                If(diagnostics IsNot Nothing, New BindingDiagnosticBag(diagnostics), Nothing))
+                                                                If(diagnostics IsNot Nothing, BindingDiagnosticBagFactory.NewBag(diagnostics), Nothing))
 
             If diagnostics IsNot Nothing Then
                 diagnostics.Free()
@@ -1669,7 +1669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetMembersAndInitializers() As MembersAndInitializers
             If _lazyMembersAndInitializers Is Nothing Then
-                Dim diagBag = BindingDiagnosticBag.GetInstance()
+                Dim diagBag = BindingDiagnosticBagFactory.GetInstance()
                 Dim membersAndInitializers = BuildMembersAndInitializers(diagBag)
                 m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag)
                 Debug.Assert(_lazyMembersAndInitializers IsNot Nothing)
@@ -1998,7 +1998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Not Me.IsStructureType Then
                         _lazyStructureCycle = ThreeState.False
                     Else
-                        Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                        Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                         Dim hasCycle = Me.CheckStructureCircularity(diagnostics)
 
                         ' In either case we use AtomicStoreIntegerAndDiagnostics.
@@ -3462,7 +3462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ExplicitInterfaceImplementationMap As MultiDictionary(Of Symbol, Symbol)
             Get
                 If m_lazyExplicitInterfaceImplementationMap Is Nothing Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim implementationMap = MakeExplicitInterfaceImplementationMap(diagnostics)
                     OverrideHidingHelper.CheckHidingAndOverridingForType(Me, diagnostics)
 

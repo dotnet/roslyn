@@ -732,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub EnsureSignature()
             If _lazyParameters.IsDefault Then
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
                 Dim params As ImmutableArray(Of ParameterSymbol) = ComputeParameters(diagnostics)
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
                 If _lazyImplementedProperties.IsDefault Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),

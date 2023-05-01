@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
+            Dim bag = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             EnsureSpecialType(SpecialType.System_Object, bag)
             EnsureSpecialType(SpecialType.System_Void, bag)

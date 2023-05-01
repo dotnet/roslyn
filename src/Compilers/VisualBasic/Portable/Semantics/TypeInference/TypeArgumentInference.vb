@@ -459,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        delegateParam.Type.Equals(currentTypedNode.DeclaredTypeParam) Then
 
                                         If Graph.Diagnostic Is Nothing Then
-                                            Graph.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Graph.UseSiteInfo.AccumulatesDependencies)
+                                            Graph.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Graph.UseSiteInfo.AccumulatesDependencies)
                                         End If
 
                                         ' If this was an argument to the unbound Lambda, infer Object.
@@ -2125,7 +2125,7 @@ HandleAsAGeneralExpression:
 
                                 If lambdaReturnType Is Nothing Then
                                     If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
+                                        Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                     End If
 
                                     Debug.Assert(Me.Diagnostic IsNot Nothing)
@@ -2148,7 +2148,7 @@ HandleAsAGeneralExpression:
 
                                     ' Let's keep return type inference errors
                                     If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
+                                        Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                     End If
 
                                     Me.Diagnostic.AddRange(returnTypeInfo.Value)
@@ -2168,7 +2168,7 @@ HandleAsAGeneralExpression:
 
                                         ' Let's keep return type inference warnings, if any.
                                         If Me.Diagnostic Is Nothing Then
-                                            Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
+                                            Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                         End If
 
                                         Me.Diagnostic.AddRange(returnTypeInfo.Value)
@@ -2179,7 +2179,7 @@ HandleAsAGeneralExpression:
                                         ' Let's preserve diagnostics that caused the failure
                                         If Not boundLambda.Diagnostics.Diagnostics.IsDefaultOrEmpty Then
                                             If Me.Diagnostic Is Nothing Then
-                                                Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
+                                                Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                             End If
 
                                             Me.Diagnostic.AddRange(boundLambda.Diagnostics)

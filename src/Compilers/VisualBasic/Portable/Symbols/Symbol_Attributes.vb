@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              ByRef lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData),
                                              Optional symbolPart As AttributeLocation = 0)
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
             Dim sourceAssembly = DirectCast(If(Me.Kind = SymbolKind.Assembly, Me, Me.ContainingAssembly), SourceAssemblySymbol)
             Dim sourceModule = sourceAssembly.SourceModule
             Dim compilation = sourceAssembly.DeclaringCompilation

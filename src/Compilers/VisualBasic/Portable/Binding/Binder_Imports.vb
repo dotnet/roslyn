@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       data As ImportData,
                                                       diagnostics As DiagnosticBag)
                 Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
-                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag(diagnostics, dependenciesBag)
 
                 Dim aliasesName = aliasImportSyntax.Name
                 Dim aliasTarget As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(aliasesName, diagBag)
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         data As ImportData,
                                                         diagnostics As DiagnosticBag)
                 Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
-                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag(diagnostics, dependenciesBag)
 
                 Debug.Assert(membersImportsSyntax.Alias Is Nothing)
                 Dim importsName = membersImportsSyntax.Name
@@ -220,9 +220,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              diagnostics As DiagnosticBag)
 #If DEBUG Then
                 Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
-                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag(diagnostics, dependenciesBag)
 #Else
-                Dim diagBag = New BindingDiagnosticBag(diagnostics)
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag(diagnostics)
 #End If
 
                 Dim prefix As String = Nothing

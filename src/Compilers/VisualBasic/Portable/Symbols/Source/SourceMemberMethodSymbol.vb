@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
-            Dim diagnostics As BindingDiagnosticBag = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics As BindingDiagnosticBag = BindingDiagnosticBagFactory.GetInstance()
 
             ' Ensure explicit implementations are resolved.
             If Not Me.ExplicitInterfaceImplementations.IsEmpty Then
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim params = _lazyTypeParameters
                 If params.IsDefault Then
 
-                    Dim diagBag = BindingDiagnosticBag.GetInstance
+                    Dim diagBag = BindingDiagnosticBagFactory.GetInstance
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     params = GetTypeParameters(sourceModule, diagBag)
 
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyImplementedMethods.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim implementedMethods As ImmutableArray(Of MethodSymbol)
 
                     If Me.IsPartial Then
@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyHandles.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
 
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim boundHandledEvents = Me.GetHandles(sourceModule, diagnostics)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(_lazyHandles,

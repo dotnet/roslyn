@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
             If _lazyConstraintTypes.IsDefault Then
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 Dim constraints = GetDeclaredConstraints(diagnostics)
                 Dim reportConflicts = DirectConstraintConflictKind.DuplicateTypeConstraint Or
                     If(ReportRedundantConstraints(), DirectConstraintConflictKind.RedundantConstraint, DirectConstraintConflictKind.None)

@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim typeBinder As Binder = BinderBuilder.CreateBinderForType(containingType.ContainingSourceModule, PropertyOrEvent.AttributeSyntax.SyntaxTree, containingType)
                 methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(Me, accessorBlock, typeBinder)
 
-                Dim bindingDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag)
+                Dim bindingDiagnostics = BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag)
 #If DEBUG Then
                 ' Enable DEBUG check for ordering of simple name binding.
                 methodBodyBinder.EnableSimpleNameBindingOrderChecks(True)

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
             Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
 
-            Dim diagBag = BindingDiagnosticBag.GetInstance()
+            Dim diagBag = BindingDiagnosticBagFactory.GetInstance()
 
             Dim syntax = Me.EventSyntax
             Dim paramListOpt = syntax.ParameterList
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
             ' Force parameters and return value of Invoke method to be bound and errors reported.
             ' Parameters on other delegate methods are derived from Invoke so we don't need to call those.

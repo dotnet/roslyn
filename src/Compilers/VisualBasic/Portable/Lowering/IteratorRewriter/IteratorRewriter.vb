@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
+            Dim bag = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)

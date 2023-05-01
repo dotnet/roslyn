@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
 
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim result = _propertyOrEvent.Type
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then

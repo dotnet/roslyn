@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If IsConst Then
                     If _evaluatedConstant Is Nothing Then
-                        Dim diagBag = New BindingDiagnosticBag()
+                        Dim diagBag = BindingDiagnosticBagFactory.NewBag()
 
                         ' BindLocalConstantInitializer may be called before or after the constant's type has been set.
                         ' It is called before when we are inferring the constant's type. In that case the constant has no explicit type 

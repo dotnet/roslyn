@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
-            Dim localDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Dim localDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
             Debug.Assert(localDiagnostics.AccumulatesDiagnostics)
 
             Try

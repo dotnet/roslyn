@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 If _lazyParameters.IsDefault Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
                     Dim parameterType As TypeSymbol
                     If Me.MethodKind = MethodKind.EventRemove AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent Then
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
                 If _lazyReturnType Is Nothing Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
                     Dim compilation = Me.DeclaringCompilation
                     Dim type As TypeSymbol

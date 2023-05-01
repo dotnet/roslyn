@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim crefBinder = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._syntaxTree, DocumentationCommentBinder.BinderType.Cref)
                         Dim useSiteInfo = crefBinder.GetNewCompoundUseSiteInfo(_diagnostics)
-                        Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, _diagnostics.AccumulatesDependencies)
+                        Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, _diagnostics.AccumulatesDependencies)
                         Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
                         _diagnostics.AddDependencies(diagnostics)
                         _diagnostics.AddDependencies(useSiteInfo)

@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Me Is source.Binder)
 
             Dim maxRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
-            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, source.WithDependencies)
             Dim targetReturnType As TypeSymbol
 
             If source.ReturnType IsNot Nothing Then
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function InferAnonymousDelegateForLambda(source As UnboundLambda) As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(Me Is source.Binder)
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, source.WithDependencies)
 
             ' Using Void as return type, because BuildBoundLambdaParameters doesn't use it and it is as good as any other value.
             Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
@@ -895,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, ImmutableBindingDiagnostic(Of AssemblySymbol).Empty)
             End If
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, source.WithDependencies)
 
             ' Clone parameters. 
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetParameters, diagnostics)

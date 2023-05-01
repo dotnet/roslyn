@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Bind the project level imports.
         Private Function BindImports(cancellationToken As CancellationToken) As BoundImports
-            Dim diagBag As New BindingDiagnosticBag
+            Dim diagBag = BindingDiagnosticBagFactory.NewBag
 
             Dim membersMap = New HashSet(Of NamespaceOrTypeSymbol)
             Dim aliasesMap = New Dictionary(Of String, AliasAndImportsClausePosition)(IdentifierComparison.Comparer)
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim aliasesBuilder = ArrayBuilder(Of AliasAndImportsClausePosition).GetInstance()
             Dim aliasesInfoBuilder = ArrayBuilder(Of GlobalImportInfo).GetInstance()
             Dim xmlNamespaces = New Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
-            Dim diagBagForThisImport = BindingDiagnosticBag.GetInstance()
+            Dim diagBagForThisImport = BindingDiagnosticBagFactory.GetInstance()
 
             Try
                 For Each globalImport In Options.GlobalImports

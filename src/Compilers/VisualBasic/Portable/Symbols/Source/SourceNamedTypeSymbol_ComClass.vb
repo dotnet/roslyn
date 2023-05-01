@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return
                 End If
 
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = ImmutableArray(Of NamedTypeSymbol).Empty
                 Dim interfaceMembers = ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)).GetInstance()
                 Dim eventMembers = ArrayBuilder(Of KeyValuePair(Of EventSymbol, Integer)).GetInstance()

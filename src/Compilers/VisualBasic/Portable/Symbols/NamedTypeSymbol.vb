@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overridable Function GetDeclaredBase(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             If _lazyDeclaredBase Is ErrorTypeSymbol.UnknownResultType Then
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 AtomicStoreReferenceAndDiagnostics(_lazyDeclaredBase, MakeDeclaredBase(basesBeingResolved, diagnostics), diagnostics, ErrorTypeSymbol.UnknownResultType)
                 diagnostics.Free()
             End If
@@ -790,7 +790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overridable Function GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As ImmutableArray(Of NamedTypeSymbol)
             If _lazyDeclaredInterfaces.IsDefault Then
-                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                 AtomicStoreArrayAndDiagnostics(_lazyDeclaredInterfaces, MakeDeclaredInterfaces(basesBeingResolved, diagnostics), diagnostics)
                 diagnostics.Free()
             End If
@@ -862,7 +862,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim tmp = ContainingType.BaseTypeNoUseSiteDiagnostics
                     End If
 
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance
                     Dim acyclicBase = Me.MakeAcyclicBaseType(diagnostics)
 
                     AtomicStoreReferenceAndDiagnostics(Me._lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
@@ -879,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If Me._lazyInterfaces.IsDefault Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance
                     Dim acyclicInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.MakeAcyclicInterfaces(diagnostics)
 
                     AtomicStoreArrayAndDiagnostics(Me._lazyInterfaces, acyclicInterfaces, diagnostics)

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
                     sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics)

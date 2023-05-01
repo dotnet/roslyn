@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If _lazyBoundInformation Is Nothing Then
-                Dim diagBag As New BindingDiagnosticBag(New DiagnosticBag())
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag(New DiagnosticBag())
                 Dim lazyBoundInformation = BindFileInformation(diagBag.DiagnosticBag, cancellationToken)
                 _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag)
             End If
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsValidated()
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
-                Dim diagBag As New BindingDiagnosticBag()
+                Dim diagBag = BindingDiagnosticBagFactory.NewBag()
                 ValidateImports(_sourceModule.DeclaringCompilation, boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
                 _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag)
             End If
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            diagnostics As BindingDiagnosticBag)
             ' TODO: Dev10 reports error on specific type parts rather than the import
             ' (reporting error on Object rather than C in C = A(Of Object) for instance).
-            Dim clauseDiagnostics = BindingDiagnosticBag.GetInstance()
+            Dim clauseDiagnostics = BindingDiagnosticBagFactory.GetInstance()
 
             For i = 0 To memberImports.Length - 1
                 ValidateImportsClause(compilation, clauseDiagnostics, memberImports(i).NamespaceOrType,

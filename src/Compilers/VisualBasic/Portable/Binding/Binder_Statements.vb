@@ -2649,7 +2649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf IsInAsyncContext() Then
                         ' 3.
-                        Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+                        Dim diagBag = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
                         If Not BindAwait(statement, boundExpression, diagBag, bindAsStatement:=True).HasErrors AndAlso Not diagBag.HasAnyErrors Then
                             diagnostics.AddDependencies(diagBag)
@@ -3718,7 +3718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' because it is more efficient.
 
             Dim interfaceSpecialType As SpecialType = SpecialType.None
-            Dim detailedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim detailedDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             If MatchesForEachCollectionDesignPattern(collectionType, collection,
                                                      currentType,
@@ -3738,7 +3738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isEnumerable = True
             Else
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
-                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
                 Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
                 Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)

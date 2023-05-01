@@ -3067,7 +3067,7 @@ Bailout:
 
                     ' Deal with Optional arguments.
                     If defaultValueDiagnostics Is Nothing Then
-                        defaultValueDiagnostics = BindingDiagnosticBag.GetInstance()
+                        defaultValueDiagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Else
                         defaultValueDiagnostics.Clear()
                     End If
@@ -4901,7 +4901,7 @@ ContinueCandidatesLoop:
                                 Dim diagnostics = candidate.TypeArgumentInferenceDiagnosticsOpt
 
                                 If diagnostics Is Nothing Then
-                                    diagnostics = BindingDiagnosticBag.Create(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
+                                    diagnostics = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
                                     candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
                                 End If
 

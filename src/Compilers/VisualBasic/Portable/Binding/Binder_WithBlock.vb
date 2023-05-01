@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me._withBlockInfo Is Nothing Then
                 ' Because we cannot guarantee that diagnostics will be freed we 
                 ' don't allocate this diagnostics bag from a pool
-                Dim diagnostics As New BindingDiagnosticBag()
+                Dim diagnostics = BindingDiagnosticBagFactory.NewBag()
 
                 ' Bind the expression as a value
                 Dim boundExpression As BoundExpression = Me.ContainingBinder.BindValue(Me.Expression, diagnostics)

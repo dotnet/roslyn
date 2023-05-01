@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As DelegateResolutionResult
             Debug.Assert(targetType IsNot Nothing)
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, addressOfExpression.WithDependencies)
+            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, addressOfExpression.WithDependencies)
             Dim result As OverloadResolution.OverloadResolutionResult = Nothing
             Dim fromMethod As MethodSymbol = Nothing
 
@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As BindingDiagnosticBag
         ) As KeyValuePair(Of MethodSymbol, MethodConversionKind)
 
-            Dim argumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Dim argumentDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
             Dim couldTryZeroArgumentRelaxation As Boolean = True
 
             Dim matchingMethod As KeyValuePair(Of MethodSymbol, MethodConversionKind) = ResolveMethodForDelegateInvokeFullOrRelaxed(
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there have been parameters and if there was no ambiguous match before, try zero argument relaxation.
             If matchingMethod.Key Is Nothing AndAlso couldTryZeroArgumentRelaxation Then
 
-                Dim zeroArgumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim zeroArgumentDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                 Dim argumentMatchingMethod = matchingMethod
 
                 matchingMethod = ResolveMethodForDelegateInvokeFullOrRelaxed(

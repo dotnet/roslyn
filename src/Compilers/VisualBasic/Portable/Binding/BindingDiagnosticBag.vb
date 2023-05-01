@@ -8,11 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend NotInheritable Class BindingDiagnosticBag
-        Inherits BindingDiagnosticBag(Of AssemblySymbol)
-
-        Public Shared ReadOnly Discarded As New BindingDiagnosticBag(Nothing, Nothing)
-
+    Friend NotInheritable Class BindingDiagnosticBagFactory
         Private Shared ReadOnly s_reportUseSiteDiagnostic As Func(Of DiagnosticInfo, DiagnosticBag, Location, Boolean) =
             Function(diagnosticInfo, diagnosticBag, location) As Boolean
                 Debug.Assert(diagnosticInfo.Severity = DiagnosticSeverity.Error)
@@ -20,24 +16,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End Function
 
-        Public Sub New()
-            MyBase.New(usePool:=False, s_reportUseSiteDiagnostic)
-        End Sub
+        Public Shared Function NewBag() As BindingDiagnosticBag
+            Return New BindingDiagnosticBag(usePool:=False, s_reportUseSiteDiagnostic)
+        End Function
 
-        Private Sub New(usePool As Boolean)
-            MyBase.New(usePool, s_reportUseSiteDiagnostic)
-        End Sub
+        Private Shared Function NewBag(usePool As Boolean) As BindingDiagnosticBag
+            Return New BindingDiagnosticBag(usePool, s_reportUseSiteDiagnostic)
+        End Function
 
-        Public Sub New(diagnosticBag As DiagnosticBag)
-            MyBase.New(diagnosticBag, dependenciesBag:=Nothing, s_reportUseSiteDiagnostic)
-        End Sub
+        Public Shared Function NewBag(diagnosticBag As DiagnosticBag) As BindingDiagnosticBag
+            Return New BindingDiagnosticBag(diagnosticBag, dependenciesBag:=Nothing, s_reportUseSiteDiagnostic)
+        End Function
 
-        Public Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
-            MyBase.New(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic)
-        End Sub
+        Public Shared Function NewBag(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol)) As BindingDiagnosticBag
+            Return New BindingDiagnosticBag(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic)
+        End Function
 
         Friend Shared Function GetInstance() As BindingDiagnosticBag
-            Return New BindingDiagnosticBag(usePool:=True)
+            Return NewBag(usePool:=True)
         End Function
 
         Friend Shared Function GetInstance(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
@@ -46,12 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return GetInstance()
                 End If
 
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
+                Return BindingDiagnosticBagFactory.NewBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
 
             ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Return BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance())
             Else
-                Return Discarded
+                Return BindingDiagnosticBag.Discarded
             End If
         End Function
 
@@ -62,15 +58,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function Create(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
             If withDependencies Then
                 If withDiagnostics Then
-                    Return New BindingDiagnosticBag()
+                    Return BindingDiagnosticBagFactory.NewBag()
                 End If
 
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)())
+                Return BindingDiagnosticBagFactory.NewBag(diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)())
 
             ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(New DiagnosticBag())
+                Return BindingDiagnosticBagFactory.NewBag(New DiagnosticBag())
             Else
-                Return Discarded
+                Return BindingDiagnosticBag.Discarded
             End If
         End Function
 

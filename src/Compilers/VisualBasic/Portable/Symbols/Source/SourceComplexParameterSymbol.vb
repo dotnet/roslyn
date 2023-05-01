@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
             Get
                 If _lazyDefaultValue Is ConstantValue.Unset Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     If Interlocked.CompareExchange(_lazyDefaultValue, BindDefaultValue(inProgress, diagnostics), ConstantValue.Unset) Is ConstantValue.Unset Then
                         DirectCast(ContainingModule, SourceModuleSymbol).AddDeclarationDiagnostics(diagnostics)
                     End If

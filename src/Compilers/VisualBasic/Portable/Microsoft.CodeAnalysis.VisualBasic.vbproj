@@ -15,7 +15,12 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Visual Basic, $(AssemblyName).dll.
     </PackageDescription>
+    <ImportedNamespaces>Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,IdentifierComparison /= Microsoft.CodeAnalysis.CaseInsensitiveComparison=False,Roslyn.Utilities=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Microsoft.CodeAnalysis.VisualBasic=True</ImportedNamespaces>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="My Project\**" />
+    <EmbeddedResource Remove="My Project\**" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
@@ -42,6 +47,7 @@
     <None Include="Errors\Errors.vb" />
   </ItemGroup>
   <ItemGroup>
+    <Import Include="BindingDiagnosticBag = Microsoft.CodeAnalysis.BindingDiagnosticBag(Of Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol)" />
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
@@ -71,9 +77,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BasicCodeAnalysisRules.ruleset">

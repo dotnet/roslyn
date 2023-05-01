@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not _usedAssemblyReferencesFrozen AndAlso Not Volatile.Read(_usedAssemblyReferencesFrozen) Then
 
-                Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(), New ConcurrentSet(Of AssemblySymbol)())
+                Dim diagnostics = BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance(), New ConcurrentSet(Of AssemblySymbol)())
                 RoslynDebug.Assert(diagnostics.AccumulatesDiagnostics)
 
                 GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages:=True, diagnostics, cancellationToken)

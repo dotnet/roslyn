@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each implemented In ExplicitInterfaceImplementations
                 If Not implemented.Type.IsSameType(type, TypeCompareKind.IgnoreTupleNames) Then
                     If diagnostics Is Nothing Then
-                        diagnostics = BindingDiagnosticBag.GetInstance()
+                        diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     End If
 
                     Dim errLocation = GetImplementingLocation(implemented)
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' on Type which is inferred, potentially from interface
                         ' implementations which relies on DelegateParameters.
                         Dim binder = CreateBinderForTypeDeclaration()
-                        Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                        Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
                         ContainingSourceModule.AtomicStoreArrayAndDiagnostics(
                             _lazyDelegateParameters,
@@ -459,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 If _lazyType Is Nothing Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Dim isTypeInferred = False
                     Dim isDelegateFromImplements = False
                     Dim eventType = ComputeType(diagnostics, isTypeInferred, isDelegateFromImplements)
@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
                 If _lazyImplementedEvents.IsDefault Then
-                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedEvents,
                                                                           ComputeImplementedEvents(diagnostics),
                                                                           diagnostics)

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
         Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
-            Dim queue = New BindingDiagnosticBag(diagnostics.DiagnosticBag, New ConcurrentSet(Of AssemblySymbol))
+            Dim queue = BindingDiagnosticBagFactory.NewBag(diagnostics.DiagnosticBag, New ConcurrentSet(Of AssemblySymbol))
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
             checker.WaitForWorkers()

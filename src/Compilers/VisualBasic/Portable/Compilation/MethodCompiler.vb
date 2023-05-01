@@ -874,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
             For Each methodDef In privateImplClass.GetMethods(Nothing)
                 Dim method = DirectCast(methodDef.GetInternalSymbol(), MethodSymbol)
-                Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
+                Dim diagnosticsThisMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics)
 
                 Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
@@ -923,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim methodOrdinal As Integer = 0
 
                 For Each method In additionalType.GetMethodsToEmit()
-                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
+                    Dim diagnosticsThisMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics)
 
                     Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each methodWithBody In compilationState.SynthesizedMethods
                 If Not methodWithBody.Body.HasErrors Then
                     Dim method = methodWithBody.Method
-                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
+                    Dim diagnosticsThisMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics)
 
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                          method,
@@ -1233,7 +1233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
-            Dim diagsForCurrentMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
+            Dim diagsForCurrentMethod = BindingDiagnosticBagFactory.GetInstance(_diagnostics)
 
             Dim methodBinderOpt As Binder = Nothing
             Dim injectConstructorCall As Boolean
@@ -1471,7 +1471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If method.IsImplicitlyDeclared AndAlso
                method.AssociatedSymbol IsNot Nothing AndAlso
                method.AssociatedSymbol.IsMyGroupCollectionProperty Then
-                diagnostics = BindingDiagnosticBag.GetInstance(diagsForCurrentMethod)
+                diagnostics = BindingDiagnosticBagFactory.GetInstance(diagsForCurrentMethod)
             End If
 
             Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing

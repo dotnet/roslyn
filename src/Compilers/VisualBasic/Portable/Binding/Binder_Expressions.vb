@@ -1100,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim ret = DirectCast(functionBlock.Statements(0), ReturnStatementSyntax)
-            Dim exprDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim exprDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
             Dim result As BoundExpression = (New DefaultInstancePropertyBinder(Me)).BindValue(ret.Expression, exprDiagnostics)
 
             If result.HasErrors OrElse exprDiagnostics.HasAnyErrors() Then
@@ -2679,13 +2679,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If leftOpt.Kind = SyntaxKind.IdentifierName Then
                 Dim node = DirectCast(leftOpt, SimpleNameSyntax)
-                Dim leftDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                Dim leftDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                 Dim boundLeft = Me.BindSimpleName(node, False, leftDiagnostics)
 
                 Dim boundValue = boundLeft
                 Dim propertyDiagnostics As BindingDiagnosticBag = Nothing
                 If boundLeft.Kind = BoundKind.PropertyGroup Then
-                    propertyDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+                    propertyDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
                     boundValue = Me.AdjustReceiverValue(boundLeft, node, propertyDiagnostics)
                 End If
 
@@ -2713,7 +2713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TYPEKIND.TypeParameter Then
-                            Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                            Dim typeDiagnostics = BindingDiagnosticBagFactory.Create(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
@@ -2724,7 +2724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Return boundType
                                 End If
 
-                                Dim valueDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                                Dim valueDiagnostics = BindingDiagnosticBagFactory.Create(diagnostics)
                                 valueDiagnostics.AddRangeAndFree(leftDiagnostics)
                                 If propertyDiagnostics IsNot Nothing Then
                                     valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
@@ -4664,10 +4664,10 @@ lElseClause:
                 diagnostics = BindingDiagnosticBag.Discarded
             End If
 
-            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim ignoreDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             ' Will accumulate all ignored diagnostics in case we want to add them
-            Dim allIgnoreDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Dim allIgnoreDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
 
             Dim awaitableInstancePlaceholder = New BoundRValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated()
             Dim awaiterInstancePlaceholder As BoundLValuePlaceholder = Nothing

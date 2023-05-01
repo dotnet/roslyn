@@ -621,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim binder As binder = Me.GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
                             Dim reference As CrefReferenceSyntax = DirectCast(attr, XmlCrefAttributeSyntax).Reference
                             Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(_diagnostics)
-                            Dim diagnostics = BindingDiagnosticBag.GetInstance(_diagnostics)
+                            Dim diagnostics = BindingDiagnosticBagFactory.GetInstance(_diagnostics)
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False,
                                                                                                               diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
                             _diagnostics.AddDependencies(diagnostics)

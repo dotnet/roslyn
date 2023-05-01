@@ -789,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
-                Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Dim diagnostics = BindingDiagnosticBagFactory.NewBag(DiagnosticBag.GetInstance())
                 Dim resultNode = binder.ReclassifyAsValue(boundExpression, diagnostics)
 
                 ' Reclassify ArrayLiterals and other expressions missing types to expressions with types.

@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 Dim inferenceDiagnostic = If(reducedUseSiteInfo.AccumulatesDependencies,
-                                             BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=True),
+                                             BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=False, withDependencies:=True),
                                              BindingDiagnosticBag.Discarded)
 
                 Dim success As Boolean = TypeArgumentInference.Infer(possiblyExtensionMethod,

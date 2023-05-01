@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim binder As Binder = BinderBuilder.CreateBinderForType(container.ContainingSourceModule, syntaxNode.SyntaxTree, container)
 
             Debug.Assert(binder.IsDefaultInstancePropertyAllowed)
-            Dim defaultInstancePropertyDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim defaultInstancePropertyDiagnostics = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=False, withDependencies:=diagnostics.AccumulatesDependencies)
             Dim instance As BoundExpression = binder.TryDefaultInstanceProperty(New BoundTypeExpression(syntaxNode, container), defaultInstancePropertyDiagnostics)
 
             If instance Is Nothing Then

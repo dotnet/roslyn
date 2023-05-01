@@ -1619,7 +1619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim singleDeclaration = FirstDeclarationWithExplicitBases()
                 If singleDeclaration IsNot Nothing Then
                     Dim location = singleDeclaration.NameLocation
-                    diagnostics = BindingDiagnosticBag.GetInstance()
+                    diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
                     localBase.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
 
@@ -1671,7 +1671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim singleDeclaration = FirstDeclarationWithExplicitInterfaces()
                 If singleDeclaration IsNot Nothing Then
                     Dim location = singleDeclaration.NameLocation
-                    diagnostics = BindingDiagnosticBag.GetInstance()
+                    diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     For Each [interface] In localInterfaces
                         [interface].CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
                     Next
@@ -1748,7 +1748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim underlyingType = Me._lazyEnumUnderlyingType
 
                 If underlyingType Is Nothing Then
-                    Dim tempDiags = BindingDiagnosticBag.GetInstance
+                    Dim tempDiags = BindingDiagnosticBagFactory.GetInstance
                     Dim blockRef = SyntaxReferences(0)
                     Dim tree = blockRef.SyntaxTree
                     Dim syntax = DirectCast(blockRef.GetSyntax, EnumBlockSyntax)

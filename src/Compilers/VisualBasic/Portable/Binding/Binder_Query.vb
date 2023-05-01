@@ -2326,7 +2326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Need to verify result type of the condition and enforce ExprIsOperandOfConditionalBranch for possible future conversions.
             ' In order to do verification, we simply attempt conversion to boolean in the same manner as BindBooleanExpression.
-            Dim conversionDiagnostic = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim conversionDiagnostic = BindingDiagnosticBagFactory.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, condition, diagnostics)
 
@@ -4347,7 +4347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result As BoundExpression = Nothing
-            Dim additionalDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Dim additionalDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
 
             ' Does it have Function AsQueryable() As CT returning queryable collection?
             Dim asQueryable As BoundExpression = BindQueryOperatorCall(source.Syntax, source, StringConstants.AsQueryableMethod,
