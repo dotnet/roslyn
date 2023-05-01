@@ -4293,6 +4293,7 @@ readonly ref struct R
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,19): error CS1978: Cannot use an expression of type 'R' as an argument to a dynamically dispatched operation
+                //         y = new R(default(R), d);
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "default(R)").WithArguments("R").WithLocation(9, 19)
             );
         }
