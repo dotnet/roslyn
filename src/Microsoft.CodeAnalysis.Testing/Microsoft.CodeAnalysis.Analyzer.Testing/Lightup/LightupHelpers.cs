@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
 
             Expression<Func<T, TResult>> expression =
                 Expression.Lambda<Func<T, TResult>>(
-                    Expression.Call(instance, property.GetMethod),
+                    Expression.Convert(Expression.Call(instance, property.GetMethod), typeof(TResult)),
                     parameter);
             return expression.Compile();
         }
