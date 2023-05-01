@@ -3765,7 +3765,7 @@ public class C<T> where T : System.TypedReference
         }
 
         [Fact]
-        public void ERR_ManagedAddr_ShallowRecursive()
+        public void WRN_ManagedAddr_ShallowRecursive()
         {
             var text = @"
 public unsafe struct S1
@@ -3787,7 +3787,7 @@ public unsafe struct S2
         }
 
         [Fact]
-        public void ERR_ManagedAddr_DeepRecursive()
+        public void WRN_ManagedAddr_DeepRecursive()
         {
             var text = @"
 public unsafe struct A
@@ -3819,7 +3819,7 @@ public unsafe struct A
         }
 
         [Fact]
-        public void ERR_ManagedAddr_Alias()
+        public void WRN_ManagedAddr_Alias()
         {
             var text = @"
 using Alias = S;
@@ -3837,7 +3837,7 @@ public unsafe struct S
         }
 
         [Fact()]
-        public void ERR_ManagedAddr_Members()
+        public void WRN_ManagedAddr_Members()
         {
             var text = @"
 public unsafe struct S
@@ -3873,6 +3873,21 @@ public unsafe struct S
                 // (10,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     int this[S* p] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "p").WithArguments("S").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void WRN_ManagedAddr_ArrayPointer()
+        {
+            var text = @"
+public unsafe struct S
+{
+    public int[]* s;
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
+                //     public int[]* s;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("int[]").WithLocation(4, 19));
         }
 
         [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
