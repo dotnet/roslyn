@@ -477,7 +477,7 @@ namespace N
 
         void M()
         {
-            _ = [|Alias|] * Factor;
+            _ = Alias * Factor;
         }
     }
 }
