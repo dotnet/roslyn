@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : requiresUnsafe(type))
+                        if (type.ContainsPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }
@@ -979,30 +979,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return false;
-            }
-
-            static bool requiresUnsafe(TypeSymbol type)
-            {
-                // BACKCOMPAT: nested pointers like `List<int*[]>` did not require `unsafe`,
-                // and `unsafe` in aliases was only introduced in C# 12,
-                // so we maintain this legacy behavior.
-                while (true)
-                {
-                    switch (type.TypeKind)
-                    {
-                        case TypeKind.Pointer:
-                        case TypeKind.FunctionPointer:
-                            return true;
-                        case TypeKind.Array:
-                            type = ((ArrayTypeSymbol)type).ElementType;
-                            break;
-                        default:
-                            // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
-                            // but that's already an error, so there's no reason to report it.  Also, this
-                            // matches Type::isUnsafe in Dev10.
-                            return false;
-                    }
-                }
             }
         }
 

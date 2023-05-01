@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the implied argument would have an unsafe type.  We need to check
             // the parameters explicitly, since there won't be bound nodes for the implied
             // arguments until lowering.
-            if (method.HasPointerOrFunctionPointerParameterType())
+            if (method.HasParameterContainingPointerType())
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.

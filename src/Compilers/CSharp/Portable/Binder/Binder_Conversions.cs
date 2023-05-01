@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((selectedMethod.HasPointerOrFunctionPointerParameterType() || selectedMethod.ReturnType.IsPointerOrFunctionPointer())
+            if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointer())
                 && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
                 return true;

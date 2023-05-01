@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool HasPointerOrFunctionPointerParameterType(this Symbol member)
+        internal static bool HasParameterContainingPointerType(this Symbol member)
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.Type.IsPointerOrFunctionPointer())
+                if (parameterType.Type.ContainsPointer())
                 {
                     return true;
                 }
