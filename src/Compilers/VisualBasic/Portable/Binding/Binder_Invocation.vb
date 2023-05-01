@@ -2254,7 +2254,7 @@ ProduceBoundNode:
                         End If
                     Else
                         If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.Value.HasAnyResolvedErrors Then
                             ' Already reported some errors, let's not report a general inference error
                             Return
                         End If
@@ -2285,7 +2285,7 @@ ProduceBoundNode:
                 End If
 
                 If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                   candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
+                   candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.Value.HasAnyErrors Then
                     Return
                 End If
 

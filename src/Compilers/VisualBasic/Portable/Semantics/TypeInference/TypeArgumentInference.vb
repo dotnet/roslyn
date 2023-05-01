@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
-            ByRef diagnostic As BindingDiagnosticBag,
+            ByRef diagnostic As BindingDiagnosticBag?,
             Optional inferTheseTypeParameters As BitVector = Nothing
         ) As Boolean
             Debug.Assert(candidate Is candidate.ConstructedFrom)
@@ -606,7 +606,7 @@ HandleAsAGeneralExpression:
         Private Class InferenceGraph
             Inherits Graph(Of InferenceNode)
 
-            Public Diagnostic As BindingDiagnosticBag
+            Public Diagnostic As BindingDiagnosticBag?
             Public ObjectType As NamedTypeSymbol
             Public ReadOnly Candidate As MethodSymbol
             Public ReadOnly Arguments As ImmutableArray(Of BoundExpression)
@@ -625,7 +625,7 @@ HandleAsAGeneralExpression:
             Private ReadOnly _typeParameterNodes As ImmutableArray(Of TypeParameterNode)
 
             Private Sub New(
-                diagnostic As BindingDiagnosticBag,
+                diagnostic As BindingDiagnosticBag?,
                 candidate As MethodSymbol,
                 arguments As ImmutableArray(Of BoundExpression),
                 parameterToArgumentMap As ArrayBuilder(Of Integer),
@@ -713,7 +713,7 @@ HandleAsAGeneralExpression:
                 <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
                 <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
                 <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
-                ByRef diagnostic As BindingDiagnosticBag,
+                ByRef diagnostic As BindingDiagnosticBag?,
                 inferTheseTypeParameters As BitVector
             ) As Boolean
                 Dim graph As New InferenceGraph(diagnostic, candidate, arguments, parameterToArgumentMap, paramArrayItems,

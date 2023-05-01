@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal readonly struct BindingDiagnosticBag<TAssemblySymbol>
+    internal readonly struct BindingDiagnosticBag<TAssemblySymbol> : IEquatable<BindingDiagnosticBag<TAssemblySymbol>>
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         public static readonly BindingDiagnosticBag<TAssemblySymbol> Discarded = new BindingDiagnosticBag<TAssemblySymbol>(null, null, null);
@@ -58,6 +59,24 @@ namespace Microsoft.CodeAnalysis
                   reportUseSiteDiagnostic)
         {
         }
+
+        public override bool Equals(object? obj)
+            => obj is BindingDiagnosticBag<TAssemblySymbol> bag &&
+               Equals(bag);
+
+        public bool Equals(BindingDiagnosticBag<TAssemblySymbol> bag)
+            => DiagnosticBag == bag.DiagnosticBag &&
+               DependenciesBag == bag.DependenciesBag &&
+               _reportUseSiteDiagnostic == bag._reportUseSiteDiagnostic;
+
+        public override int GetHashCode()
+            => Hash.Combine(DiagnosticBag, Hash.Combine(DiagnosticBag, _reportUseSiteDiagnostic?.GetHashCode() ?? 0));
+
+        public static bool operator ==(BindingDiagnosticBag<TAssemblySymbol> bag1, BindingDiagnosticBag<TAssemblySymbol> bag2)
+            => bag1.Equals(bag2);
+
+        public static bool operator !=(BindingDiagnosticBag<TAssemblySymbol> bag1, BindingDiagnosticBag<TAssemblySymbol> bag2)
+            => !(bag1 == bag2);
 
         public object SyncRoot
         {

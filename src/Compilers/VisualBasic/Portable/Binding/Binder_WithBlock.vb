@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(expressionPlaceholder IsNot Nothing AndAlso (expressionPlaceholder.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse expressionPlaceholder.Kind = BoundKind.WithRValueExpressionPlaceholder))
                 Debug.Assert(draftSubstitute IsNot Nothing)
                 Debug.Assert(Not draftInitializers.IsDefault)
-                Debug.Assert(diagnostics IsNot Nothing)
+                ' Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.OriginalExpression = originalExpression
                 Me.ExpressionPlaceholder = expressionPlaceholder

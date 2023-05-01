@@ -43,9 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Sub New(valueExpression As BoundExpression, valueDiagnostics As BindingDiagnosticBag, typeExpression As BoundExpression, typeDiagnostics As BindingDiagnosticBag)
             Debug.Assert(valueExpression IsNot Nothing, "Field 'valueExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(valueDiagnostics IsNot Nothing, "Field 'valueDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            ' Debug.Assert(valueDiagnostics IsNot Nothing, "Field 'valueDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            ' Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._valueExpression = valueExpression
             Me._valueDiagnostics = valueDiagnostics
@@ -57,9 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Operator =(a As BoundTypeOrValueData, b As BoundTypeOrValueData) As Boolean
             Return a.ValueExpression Is b.ValueExpression AndAlso
-                a.ValueDiagnostics Is b.ValueDiagnostics AndAlso
+                a.ValueDiagnostics = b.ValueDiagnostics AndAlso
                 a.TypeExpression Is b.TypeExpression AndAlso
-                a.TypeDiagnostics Is b.TypeDiagnostics
+                a.TypeDiagnostics = b.TypeDiagnostics
         End Operator
 
         Public Shared Operator <>(a As BoundTypeOrValueData, b As BoundTypeOrValueData) As Boolean

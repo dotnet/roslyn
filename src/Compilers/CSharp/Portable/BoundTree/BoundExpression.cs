@@ -630,9 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (object)a.ValueSymbol == (object)b.ValueSymbol &&
                 (object)a.ValueExpression == (object)b.ValueExpression &&
-                (object)a.ValueDiagnostics == (object)b.ValueDiagnostics &&
+                a.ValueDiagnostics == b.ValueDiagnostics &&
                 (object)a.TypeExpression == (object)b.TypeExpression &&
-                (object)a.TypeDiagnostics == (object)b.TypeDiagnostics;
+                a.TypeDiagnostics == b.TypeDiagnostics;
         }
 
         public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool Equals(object? obj)
         {
-            return obj is BoundTypeOrValueData && (BoundTypeOrValueData)obj == this;
+            return obj is BoundTypeOrValueData data && data == this;
         }
 
         public override int GetHashCode()

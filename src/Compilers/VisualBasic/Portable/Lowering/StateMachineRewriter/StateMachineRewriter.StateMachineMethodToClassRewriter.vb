@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(stateField IsNot Nothing)
                 Debug.Assert(hoistedVariables IsNot Nothing)
                 Debug.Assert(initialProxies IsNot Nothing)
-                Debug.Assert(diagnostics IsNot Nothing)
+                ' Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField

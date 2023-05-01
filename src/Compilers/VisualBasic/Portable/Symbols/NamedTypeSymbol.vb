@@ -752,26 +752,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub AtomicStoreReferenceAndDiagnostics(Of T As Class)(ByRef variable As T,
                                                                      value As T,
-                                                                     diagBag As BindingDiagnosticBag,
+                                                                     diagBag As BindingDiagnosticBag?,
                                                                      Optional comparand As T = Nothing)
             Debug.Assert(value IsNot comparand)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 Interlocked.CompareExchange(variable, value, comparand)
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, comparand)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag.Value, comparand)
                 End If
             End If
         End Sub
 
         Friend Sub AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
                                                              value As ImmutableArray(Of T),
-                                                             diagBag As BindingDiagnosticBag)
+                                                             diagBag As BindingDiagnosticBag?)
             Debug.Assert(Not value.IsDefault)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 ImmutableInterlocked.InterlockedCompareExchange(variable, value, Nothing)
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)

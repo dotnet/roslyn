@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(symbol IsNot Nothing)
                     Debug.Assert(syntaxTree IsNot Nothing)
-                    Debug.Assert(diagnostics IsNot Nothing)
+                    ' Debug.Assert(diagnostics IsNot Nothing)
 
                     Me._symbol = symbol
                     Me._syntaxTree = syntaxTree

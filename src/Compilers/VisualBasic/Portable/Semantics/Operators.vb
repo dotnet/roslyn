@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function ValidateOverloadedOperator(
             method As MethodSymbol,
             opInfo As OperatorInfo,
-            diagnosticsOpt As BindingDiagnosticBag,
+            diagnosticsOpt As BindingDiagnosticBag?,
             assemblyBeingBuiltOpt As AssemblySymbol
         ) As Boolean
             Debug.Assert(method.IsMethodKindBasedOnSyntax OrElse diagnosticsOpt Is Nothing)
@@ -333,14 +333,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Select Case opInfo.UnaryOperatorKind
                                 Case UnaryOperatorKind.IsTrue
                                     If diagnosticsOpt IsNot Nothing Then
-                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsTrueKeyword)), method.Locations(0))
+                                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsTrueKeyword)), method.Locations(0))
                                         result = False
                                     Else
                                         Return False
                                     End If
                                 Case UnaryOperatorKind.IsFalse
                                     If diagnosticsOpt IsNot Nothing Then
-                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsFalseKeyword)), method.Locations(0))
+                                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsFalseKeyword)), method.Locations(0))
                                         result = False
                                     Else
                                         Return False
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.LeftShift, BinaryOperatorKind.RightShift
                         If method.Parameters(1).Type.GetNullableUnderlyingTypeOrSelf().SpecialType <> Microsoft.CodeAnalysis.SpecialType.System_Int32 Then
                             If diagnosticsOpt IsNot Nothing Then
-                                diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresIntegerParameter1,
+                                diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresIntegerParameter1,
                                                                        SyntaxFacts.GetText(If(opInfo.BinaryOperatorKind = BinaryOperatorKind.LeftShift,
                                                                                               SyntaxKind.LessThanLessThanToken,
                                                                                               SyntaxKind.GreaterThanGreaterThanToken))), method.Locations(0))
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not targetsContainingType Then
                 If diagnosticsOpt IsNot Nothing Then
-                    diagnosticsOpt.Add(ErrorFactory.ErrorInfo(targetMismatchError, method.ContainingSymbol), method.Locations(0))
+                    diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(targetMismatchError, method.ContainingSymbol), method.Locations(0))
                     result = False
                 Else
                     Return False
@@ -400,28 +400,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If sourceType.IsObjectType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromObject), method.Locations(0))
+                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromObject), method.Locations(0))
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf targetType.IsObjectType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToObject), method.Locations(0))
+                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToObject), method.Locations(0))
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf sourceType.IsInterfaceType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromInterfaceType), method.Locations(0))
+                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromInterfaceType), method.Locations(0))
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf targetType.IsInterfaceType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToInterfaceType), method.Locations(0))
+                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToInterfaceType), method.Locations(0))
                         result = False
                     Else
                         Return False
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           sourceType Is targetType,
                           sourceType.GetNullableUnderlyingTypeOrSelf() Is targetType.GetNullableUnderlyingTypeOrSelf()) Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToSameType), method.Locations(0))
+                        diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToSameType), method.Locations(0))
                         result = False
                     Else
                         Return False
@@ -439,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        (targetType.Kind = SymbolKind.NamedType OrElse targetType.Kind = SymbolKind.TypeParameter) Then
                     If Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(targetType, sourceType, useSiteInfo) Then
                         If diagnosticsOpt IsNot Nothing Then
-                            diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
+                            diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromBaseType,
                                                                       ERRID.ERR_ConversionToDerivedType)), method.Locations(0))
                             result = False
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     ElseIf Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(sourceType, targetType, useSiteInfo) Then
                         If diagnosticsOpt IsNot Nothing Then
-                            diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
+                            diagnosticsOpt.Value.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromDerivedType,
                                                                       ERRID.ERR_ConversionToBaseType)), method.Locations(0))
                             result = False
@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If result AndAlso diagnosticsOpt IsNot Nothing Then
-                diagnosticsOpt.Add(method.Locations(0), useSiteInfo)
+                diagnosticsOpt.Value.Add(method.Locations(0), useSiteInfo)
             End If
 
             Return result

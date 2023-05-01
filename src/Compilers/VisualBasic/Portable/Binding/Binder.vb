@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="typeId">Type to get</param>
         ''' <param name="node">Where to report the error, if any.</param>
-        Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As BindingDiagnosticBag) As NamedTypeSymbol
+        Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As BindingDiagnosticBag?) As NamedTypeSymbol
             Dim reportedAnError As Boolean = False
             Return GetSpecialType(Compilation, typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
         End Function
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetSpecialType(Compilation, typeId, node, diagBag, reportedAnError, suppressUseSiteError)
         End Function
 
-        Public Shared Function GetSpecialType(compilation As VisualBasicCompilation, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As BindingDiagnosticBag, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
+        Public Shared Function GetSpecialType(compilation As VisualBasicCompilation, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As BindingDiagnosticBag?, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
             Dim symbol As NamedTypeSymbol = compilation.GetSpecialType(typeId)
 
             If diagBag IsNot Nothing Then
@@ -1078,7 +1078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim ctor As Symbol = GetWellKnownTypeMember(Me.Compilation, attributeCtor, useSiteInfo)
 
             If Not WellKnownMembers.IsSynthesizedAttributeOptional(attributeCtor) Then
-                Debug.Assert(diagnostics IsNot Nothing)
+                ' Debug.Assert(diagnostics IsNot Nothing)
 
                 If ReportUseSite(diagnostics, syntax, useSiteInfo) Then
                     Return True
@@ -1105,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = GetUseSiteInfoForWellKnownTypeMember(memberSymbol, attributeCtor, compilation.Options.EmbedVbCoreRuntime)
 
             If Not WellKnownMembers.IsSynthesizedAttributeOptional(attributeCtor) Then
-                Debug.Assert(diagnostics IsNot Nothing)
+                ' Debug.Assert(diagnostics IsNot Nothing)
 
                 If diagnostics.Add(useSiteInfo, location) Then
                     Return True

@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If (left.HasErrors OrElse right.HasErrors) Then
                 ' Suppress any additional diagnostics by overriding DiagnosticBag.
-                If diagnostics Is originalDiagnostics Then
+                If diagnostics = originalDiagnostics Then
                     diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     hasError = True
 
                     ' Suppress any additional diagnostics by overriding DiagnosticBag.
-                    If diagnostics Is originalDiagnostics Then
+                    If diagnostics = originalDiagnostics Then
                         diagnostics = BindingDiagnosticBag.Discarded
                     End If
                 End If

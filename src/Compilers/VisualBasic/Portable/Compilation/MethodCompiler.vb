@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        filter As Predicate(Of Symbol),
                        cancellationToken As CancellationToken)
 
-            Debug.Assert(diagnostics IsNot Nothing)
+            ' Debug.Assert(diagnostics IsNot Nothing)
             Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Debug.Assert(diagnostics.DependenciesBag Is Nothing OrElse TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
 
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               filter As Predicate(Of Symbol),
                                               diagnostics As BindingDiagnosticBag,
                                               Optional cancellationToken As CancellationToken = Nothing)
-            Debug.Assert(diagnostics IsNot Nothing)
+            ' Debug.Assert(diagnostics IsNot Nothing)
             Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             If compilation.PreviousSubmission IsNot Nothing Then
@@ -1505,12 +1505,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim submissionInitialization = If(method.IsSubmissionConstructor,
                 SynthesizedSubmissionConstructorSymbol.MakeSubmissionInitialization(block.Syntax, method, previousSubmissionFields, _compilation),
                 ImmutableArray(Of BoundStatement).Empty)
-            Dim hasErrors = body.HasErrors OrElse diagsForCurrentMethod.HasAnyErrors OrElse (diagnostics IsNot diagsForCurrentMethod AndAlso diagnostics.HasAnyErrors)
+            Dim hasErrors = body.HasErrors OrElse diagsForCurrentMethod.HasAnyErrors OrElse (diagnostics <> diagsForCurrentMethod AndAlso diagnostics.HasAnyErrors)
             SetGlobalErrorIfTrue(hasErrors)
 
             ' Actual emitting is only done if we have a module in which to emit and no errors so far.
             If _moduleBeingBuiltOpt Is Nothing OrElse hasErrors Then
-                If diagnostics IsNot diagsForCurrentMethod Then
+                If diagnostics <> diagsForCurrentMethod Then
                     DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics.DiagnosticBag, diagsForCurrentMethod.DiagnosticBag)
                     diagsForCurrentMethod.AddDependencies(diagnostics)
                     diagnostics.Free()
@@ -1547,7 +1547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _moduleBeingBuiltOpt.SetMethodBody(If(method.PartialDefinitionPart, method), methodBody)
             End If
 
-            If diagnostics IsNot diagsForCurrentMethod Then
+            If diagnostics <> diagsForCurrentMethod Then
                 DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics.DiagnosticBag, diagsForCurrentMethod.DiagnosticBag)
                 diagsForCurrentMethod.AddDependencies(diagnostics)
                 diagnostics.Free()

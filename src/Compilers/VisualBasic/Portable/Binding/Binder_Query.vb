@@ -822,7 +822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(variable, ImmutableArray.Create(Of BoundExpression)(source, selectorLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(selectorLambda) Then
+                    If Not callDiagnostics.IsDiscarded AndAlso ShouldSuppressDiagnostics(selectorLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
                         callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
@@ -2573,7 +2573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(ordering, ImmutableArray.Create(Of BoundExpression)(sourceOrPreviousOrdering, keyLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(keyLambda) Then
+                    If Not callDiagnostics.IsDiscarded AndAlso ShouldSuppressDiagnostics(keyLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
                         callDiagnostics = BindingDiagnosticBag.Discarded
                     End If

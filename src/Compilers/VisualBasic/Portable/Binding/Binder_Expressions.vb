@@ -2683,10 +2683,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim boundLeft = Me.BindSimpleName(node, False, leftDiagnostics)
 
                 Dim boundValue = boundLeft
-                Dim propertyDiagnostics As BindingDiagnosticBag = Nothing
+                Dim propertyDiagnostics As BindingDiagnosticBag? = Nothing
                 If boundLeft.Kind = BoundKind.PropertyGroup Then
                     propertyDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics)
-                    boundValue = Me.AdjustReceiverValue(boundLeft, node, propertyDiagnostics)
+                    boundValue = Me.AdjustReceiverValue(boundLeft, node, propertyDiagnostics.Value)
                 End If
 
                 Dim leftSymbol = boundValue.ExpressionSymbol
@@ -2727,7 +2727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim valueDiagnostics = BindingDiagnosticBagFactory.Create(diagnostics)
                                 valueDiagnostics.AddRangeAndFree(leftDiagnostics)
                                 If propertyDiagnostics IsNot Nothing Then
-                                    valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
+                                    valueDiagnostics.AddRangeAndFree(propertyDiagnostics.Value)
                                 End If
 
                                 Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
@@ -2737,7 +2737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If propertyDiagnostics IsNot Nothing Then
-                    propertyDiagnostics.Free()
+                    propertyDiagnostics.Value.Free()
                 End If
 
                 diagnostics.AddRangeAndFree(leftDiagnostics)
@@ -2982,7 +2982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">diagnostic bag if errors are to be reported</param>
         ''' <returns>Returns the symbol's type or an ErrorTypeSymbol if the local is referenced before its definition or if the symbol is still being bound.</returns>
         ''' <remarks>This method safely returns a local symbol's type by checking for circular references or references before declaration.</remarks>
-        Private Function GetLocalSymbolType(localSymbol As LocalSymbol, node As VisualBasicSyntaxNode, Optional diagnostics As BindingDiagnosticBag = Nothing) As TypeSymbol
+        Private Function GetLocalSymbolType(localSymbol As LocalSymbol, node As VisualBasicSyntaxNode, Optional diagnostics As BindingDiagnosticBag? = Nothing) As TypeSymbol
             Dim localType As TypeSymbol = Nothing
             ' Check if local symbol is used before it's definition.
             ' Do span comparison first in order to optimize performance for non-error cases. 
@@ -2997,10 +2997,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
                    declarationLocation.SourceTree Is referenceLocation.SourceTree Then
 
-                    localType = localSymbol.UseBeforeDeclarationResultType
+                    localType = LocalSymbol.UseBeforeDeclarationResultType
 
                     If diagnostics IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
+                        ReportDiagnostic(diagnostics.Value, node, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
                     End If
                 End If
 

@@ -834,19 +834,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Function AtomicStoreReferenceAndDiagnostics(Of T As Class)(ByRef variable As T,
                                                                      value As T,
-                                                                     diagBag As BindingDiagnosticBag,
+                                                                     diagBag As BindingDiagnosticBag?,
                                                                      Optional comparand As T = Nothing) As Boolean
             Debug.Assert(value IsNot comparand)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 Return Interlocked.CompareExchange(variable, value, comparand) Is comparand AndAlso comparand Is Nothing
             Else
                 Dim stored = False
                 SyncLock _diagnosticLock
                     If variable Is comparand Then
-                        StoreDeclarationDiagnostics(diagBag)
+                        StoreDeclarationDiagnostics(diagBag.Value)
                         stored = Interlocked.CompareExchange(variable, value, comparand) Is comparand
-                        If Not stored AndAlso Not IsEmptyIgnoringLazyDiagnostics(diagBag) Then
+                        If Not stored AndAlso Not IsEmptyIgnoringLazyDiagnostics(diagBag.Value) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
@@ -870,15 +870,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub AtomicStoreIntegerAndDiagnostics(ByRef variable As Integer,
                                                     value As Integer,
                                                     comparand As Integer,
-                                                    diagBag As BindingDiagnosticBag)
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+                                                    diagBag As BindingDiagnosticBag?)
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 Interlocked.CompareExchange(variable, value, comparand)
             Else
                 SyncLock _diagnosticLock
                     If variable = comparand Then
-                        StoreDeclarationDiagnostics(diagBag)
+                        StoreDeclarationDiagnostics(diagBag.Value)
                         If Interlocked.CompareExchange(variable, value, comparand) <> comparand AndAlso
-                            Not IsEmptyIgnoringLazyDiagnostics(diagBag) Then
+                            Not IsEmptyIgnoringLazyDiagnostics(diagBag.Value) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
@@ -896,17 +896,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function AtomicSetFlagAndStoreDiagnostics(ByRef variable As Integer,
                                                mask As Integer,
                                                comparand As Integer,
-                                               diagBag As BindingDiagnosticBag) As Boolean
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+                                               diagBag As BindingDiagnosticBag?) As Boolean
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 Return ThreadSafeFlagOperations.Set(variable, mask)
             Else
                 SyncLock _diagnosticLock
                     Dim change = (variable And mask) = comparand
                     If change Then
-                        StoreDeclarationDiagnostics(diagBag)
+                        StoreDeclarationDiagnostics(diagBag.Value)
 
                         If Not ThreadSafeFlagOperations.Set(variable, mask) AndAlso
-                             Not IsEmptyIgnoringLazyDiagnostics(diagBag) Then
+                             Not IsEmptyIgnoringLazyDiagnostics(diagBag.Value) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
@@ -945,17 +945,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
                                                              value As ImmutableArray(Of T),
-                                                             diagBag As BindingDiagnosticBag) As Boolean
+                                                             diagBag As BindingDiagnosticBag?) As Boolean
             Debug.Assert(Not value.IsDefault)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 Return ImmutableInterlocked.InterlockedInitialize(variable, value)
             Else
                 SyncLock _diagnosticLock
                     If variable.IsDefault Then
-                        StoreDeclarationDiagnostics(diagBag)
+                        StoreDeclarationDiagnostics(diagBag.Value)
                         Dim stored = ImmutableInterlocked.InterlockedInitialize(variable, value)
-                        If Not stored AndAlso Not IsEmptyIgnoringLazyDiagnostics(diagBag) Then
+                        If Not stored AndAlso Not IsEmptyIgnoringLazyDiagnostics(diagBag.Value) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
@@ -972,21 +972,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub AtomicStoreAttributesAndDiagnostics(attributesBag As CustomAttributesBag(Of VisualBasicAttributeData),
                                                        attributesToStore As ImmutableArray(Of VisualBasicAttributeData),
-                                                       diagBag As BindingDiagnosticBag)
+                                                       diagBag As BindingDiagnosticBag?)
             Debug.Assert(attributesBag IsNot Nothing)
             Debug.Assert(Not attributesToStore.IsDefault)
 
             RecordPresenceOfBadAttributes(attributesToStore)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
+            If diagBag Is Nothing OrElse diagBag.Value.IsEmpty Then
                 attributesBag.SetAttributes(attributesToStore)
             Else
                 SyncLock _diagnosticLock
                     If Not attributesBag.IsSealed Then
-                        StoreDeclarationDiagnostics(diagBag)
+                        StoreDeclarationDiagnostics(diagBag.Value)
 
                         If Not attributesBag.SetAttributes(attributesToStore) AndAlso
-                            Not IsEmptyIgnoringLazyDiagnostics(diagBag) Then
+                            Not IsEmptyIgnoringLazyDiagnostics(diagBag.Value) Then
 
                             ' If this gets hit, then someone set attributes in the bag without going through this
                             ' routine, or else someone set attributes in the bag with this routine but an empty

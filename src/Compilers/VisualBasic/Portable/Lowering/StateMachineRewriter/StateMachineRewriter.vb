@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(body IsNot Nothing)
             Debug.Assert(method IsNot Nothing)
             Debug.Assert(compilationState IsNot Nothing)
-            Debug.Assert(diagnostics IsNot Nothing)
+            ' Debug.Assert(diagnostics IsNot Nothing)
             Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Debug.Assert(stateMachineType IsNot Nothing)
 

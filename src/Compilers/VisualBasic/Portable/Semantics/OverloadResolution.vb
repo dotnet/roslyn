@@ -710,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public NotInferredTypeArguments As BitVector
 
-            Public TypeArgumentInferenceDiagnosticsOpt As BindingDiagnosticBag
+            Public TypeArgumentInferenceDiagnosticsOpt As BindingDiagnosticBag?
 
             Public Sub New(candidate As Candidate, state As CandidateAnalysisResultState)
                 Me.Candidate = candidate
@@ -2871,7 +2871,7 @@ Bailout:
             Dim conversionKinds As KeyValuePair(Of ConversionKind, MethodSymbol)() = Nothing
             Dim conversionBackKinds As KeyValuePair(Of ConversionKind, MethodSymbol)() = Nothing
             Dim optionalArguments As OptionalArgument() = Nothing
-            Dim defaultValueDiagnostics As BindingDiagnosticBag = Nothing
+            Dim defaultValueDiagnostics As BindingDiagnosticBag? = Nothing
 
             BuildParameterToArgumentMap(candidate, arguments, argumentNames, parameterToArgumentMap, paramArrayItems)
 
@@ -4905,7 +4905,7 @@ ContinueCandidatesLoop:
                                     candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
                                 End If
 
-                                Binder.ReportDiagnostic(diagnostics,
+                                Binder.ReportDiagnostic(diagnostics.Value,
                                                         typeArgumentsLocation(i),
                                                         ERRID.WRN_TypeInferenceAssumed3,
                                                         candidate.Candidate.TypeParameters(i),

@@ -1612,7 +1612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As BindingDiagnosticBag = Nothing
+            Dim diagnostics As BindingDiagnosticBag? = Nothing
             Dim localBase = BaseTypeNoUseSiteDiagnostics
             If localBase IsNot Nothing Then
                 ' Check constraints on the first declaration with explicit bases.
@@ -1621,7 +1621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBagFactory.GetInstance()
 
-                    localBase.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                    localBase.CheckAllConstraints(location, diagnostics.Value, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
 
                     If IsGenericType Then
                         ' Check that generic type does not derive from System.Attribute. 
@@ -1631,13 +1631,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly)
                         Dim isBaseType As Boolean = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(localBase, useSiteInfo)
 
-                        diagnostics.Add(location, useSiteInfo)
+                        diagnostics.Value.Add(location, useSiteInfo)
 
                         If isBaseType Then
                             ' WARNING: in case System_Attribute was not found or has errors, the above check may 
                             '          fail to detect inheritance from System.Attribute, but we assume that in this case 
                             '          another error will be generated anyway
-                            Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_GenericClassCannotInheritAttr)
+                            Binder.ReportDiagnostic(diagnostics.Value, location, ERRID.ERR_GenericClassCannotInheritAttr)
                         End If
                     End If
                 End If
@@ -1664,7 +1664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As BindingDiagnosticBag = Nothing
+            Dim diagnostics As BindingDiagnosticBag? = Nothing
             Dim localInterfaces = InterfacesNoUseSiteDiagnostics
             If Not localInterfaces.IsEmpty Then
                 ' Check constraints on the first declaration with explicit interfaces.
@@ -1673,7 +1673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBagFactory.GetInstance()
                     For Each [interface] In localInterfaces
-                        [interface].CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                        [interface].CheckAllConstraints(location, diagnostics.Value, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
                     Next
                 End If
             End If
@@ -1686,7 +1686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If diagnostics IsNot Nothing Then
-                diagnostics.Free()
+                diagnostics.Value.Free()
             End If
         End Sub
 

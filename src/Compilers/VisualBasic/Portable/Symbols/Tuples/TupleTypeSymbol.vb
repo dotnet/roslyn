@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      shouldCheckConstraints As Boolean,
                                      errorPositions As ImmutableArray(Of Boolean),
                                      Optional syntax As SyntaxNode = Nothing,
-                                     Optional diagnostics As BindingDiagnosticBag = Nothing) As TupleTypeSymbol
+                                     Optional diagnostics As BindingDiagnosticBag? = Nothing) As TupleTypeSymbol
             Debug.Assert(Not shouldCheckConstraints OrElse syntax IsNot Nothing)
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim tupleUnderlyingType As NamedTypeSymbol = TupleTypeSymbol.GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics)
             If diagnostics?.DiagnosticBag IsNot Nothing AndAlso DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
                 ' Complain about unembeddable types from linked assemblies.
-                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics.DiagnosticBag)
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics.Value.DiagnosticBag)
             End If
 
             Dim constructedType = TupleTypeSymbol.Create(locationOpt, tupleUnderlyingType, elementLocations, elementNames, errorPositions)
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (numElements - 1) \ (RestPosition - 1) + 1
         End Function
 
-        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
+        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag?) As NamedTypeSymbol
             Dim numElements As Integer = elementTypes.Length
             Dim remainder As Integer
             Dim chainLength As Integer = TupleTypeSymbol.NumberOfValueTuples(numElements, remainder)
@@ -548,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim wellKnownType As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(remainder))
 
             If diagnostics IsNot Nothing AndAlso syntax IsNot Nothing Then
-                Binder.ReportUseSite(diagnostics, syntax, wellKnownType)
+                Binder.ReportUseSite(diagnostics.Value, syntax, wellKnownType)
             End If
 
             Dim namedTypeSymbol As NamedTypeSymbol = wellKnownType.Construct(ImmutableArray.Create(Of TypeSymbol)(elementTypes, (chainLength - 1) * (TupleTypeSymbol.RestPosition - 1), remainder))
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim wellKnownType2 As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(TupleTypeSymbol.RestPosition))
 
                 If diagnostics IsNot Nothing AndAlso syntax IsNot Nothing Then
-                    Binder.ReportUseSite(diagnostics, syntax, wellKnownType2)
+                    Binder.ReportUseSite(diagnostics.Value, syntax, wellKnownType2)
                 End If
                 Do
                     Dim typeArguments As ImmutableArray(Of TypeSymbol) = ImmutableArray.Create(Of TypeSymbol)(elementTypes, ([loop] - 1) * (TupleTypeSymbol.RestPosition - 1), TupleTypeSymbol.RestPosition - 1).Add(namedTypeSymbol)
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Sub VerifyTupleTypePresent(cardinality As Integer, syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
-            Debug.Assert(diagnostics IsNot Nothing AndAlso syntax IsNot Nothing)
+            Debug.Assert(syntax IsNot Nothing)
             Dim arity As Integer
             Dim num As Integer = TupleTypeSymbol.NumberOfValueTuples(cardinality, arity)
             Dim wellKnownType As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(arity))

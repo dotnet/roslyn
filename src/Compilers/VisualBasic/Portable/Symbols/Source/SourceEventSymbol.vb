@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As BindingDiagnosticBag = Nothing
+            Dim diagnostics As BindingDiagnosticBag? = Nothing
             Dim type = Me.Type
             For Each implemented In ExplicitInterfaceImplementations
                 If Not implemented.Type.IsSameType(type, TypeCompareKind.IgnoreTupleNames) Then
@@ -294,13 +294,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     Dim errLocation = GetImplementingLocation(implemented)
-                    diagnostics.Add(ERRID.ERR_EventImplMismatch5, errLocation, {Me, implemented, implemented.ContainingType, type, implemented.Type})
+                    diagnostics.Value.Add(ERRID.ERR_EventImplMismatch5, errLocation, {Me, implemented, implemented.ContainingType, type, implemented.Type})
                 End If
             Next
 
             If diagnostics IsNot Nothing Then
-                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics)
-                diagnostics.Free()
+                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics.Value)
+                diagnostics.Value.Free()
             End If
         End Sub
 

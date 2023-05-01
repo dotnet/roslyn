@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
-            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As BindingDiagnosticBag) As AssemblySymbol
+            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As BindingDiagnosticBag?) As AssemblySymbol
                 Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
 
                 ' NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
@@ -430,9 +430,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If errorInfo.Code = ERRID.ERR_TypeFwdCycle2 Then
                             Debug.Assert(forwardedType.ContainingAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
-                            Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, fullName, forwardedType.ContainingAssembly)
+                            Binder.ReportDiagnostic(diagBag.Value, typeSyntax, ERRID.ERR_TypeFwdCycle2, fullName, forwardedType.ContainingAssembly)
                         ElseIf errorInfo.Code = ERRID.ERR_TypeForwardedToMultipleAssemblies Then
-                            Binder.ReportDiagnostic(diagBag, typeSyntax, errorInfo)
+                            Binder.ReportDiagnostic(diagBag.Value, typeSyntax, errorInfo)
                             Return Nothing ' Cannot determine a suitable forwarding assembly
                         End If
                     End If

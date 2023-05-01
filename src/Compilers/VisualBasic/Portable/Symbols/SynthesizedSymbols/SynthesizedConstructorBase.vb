@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_isShared = isShared
 
             If binder IsNot Nothing Then
-                Debug.Assert(diagnostics IsNot Nothing)
+                ' Debug.Assert(diagnostics IsNot Nothing)
                 m_voidType = binder.GetSpecialType(SpecialType.System_Void, syntaxReference.GetSyntax(), diagnostics)
             Else
                 ' NOTE: binder is Nothing for constructors generated for some 

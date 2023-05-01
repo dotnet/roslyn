@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagnostics = arguments.Diagnostics
 
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
-            Debug.Assert(diagnostics IsNot Nothing)
+            ' Debug.Assert(diagnostics IsNot Nothing)
 
             Dim value = DecodeDefaultParameterValueAttribute(description, attribute)
             If Not value.IsBad Then

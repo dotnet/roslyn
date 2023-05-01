@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag) As ImmutableArray(Of Symbol)
+        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag?) As ImmutableArray(Of Symbol)
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(crefReference)
 
             Dim result As Symbol = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, If(diagnosticBag, BindingDiagnosticBag.Discarded))
@@ -449,7 +449,7 @@ lAgain:
                                                 typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                 <Out> ByRef signatureTypes As ArrayBuilder(Of SignatureElement),
                                                 <Out> ByRef returnType As TypeSymbol,
-                                                diagnosticBag As BindingDiagnosticBag)
+                                                diagnosticBag As BindingDiagnosticBag?)
 
             signatureTypes = Nothing
             returnType = Nothing
