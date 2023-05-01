@@ -991,7 +991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
+            Dim diagnostics = arguments.Diagnostics
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                 ' Already have an attribute, no need to add another one.

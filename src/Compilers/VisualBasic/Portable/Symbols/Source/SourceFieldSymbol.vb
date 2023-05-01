@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
+            Dim diagnostics = arguments.Diagnostics
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
                 diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
@@ -756,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
             Dim constValue As ConstantValue
-            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
+            Dim diagnostics = arguments.Diagnostics
 
             If Me.IsConst Then
                 If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then

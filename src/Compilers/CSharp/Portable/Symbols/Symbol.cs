@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
         {
             var attribute = arguments.Attribute;
-            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var diagnostics = arguments.Diagnostics;
 
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
                 attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))

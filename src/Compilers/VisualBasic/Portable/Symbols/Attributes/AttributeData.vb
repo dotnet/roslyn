@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
-            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
             If Not hasErrors Then
                 Dim data As T = arguments.GetOrCreateData(Of T)()
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim argSyntaxLocation As Location = If(arguments.AttributeSyntaxOpt IsNot Nothing,
                                                                arguments.AttributeSyntaxOpt.ArgumentList.Arguments(1).GetLocation(),
                                                                NoLocation.Singleton)
-                        DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
+                        arguments.Diagnostics.Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
 
                     ElseIf (Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName)) Then
 
