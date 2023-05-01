@@ -3,13 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Contains common arguments to Symbol.DecodeWellKnownAttribute method in both the language compilers.
     /// </summary>
-    internal struct DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation>
+    internal struct DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation>
+        where TAssemblySymbol : class, IAssemblySymbolInternal
         where TAttributeSyntax : SyntaxNode
         where TAttributeData : AttributeData
     {
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Diagnostic bag.
         /// </summary>
-        public BindingDiagnosticBag Diagnostics { get; set; }
+        public BindingDiagnosticBag<TAssemblySymbol> Diagnostics { get; set; }
 
         /// <summary>
         /// Specific part of the symbol to which the attributes apply, or AttributeLocation.None if the attributes apply to the symbol itself.

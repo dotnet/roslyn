@@ -1051,7 +1051,7 @@ next:;
             }
         }
 
-        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
@@ -1094,7 +1094,7 @@ next:;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.StructLayoutAttribute))
             {
-                AttributeData.DecodeStructLayoutAttribute<TypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(
+                AttributeData.DecodeStructLayoutAttribute<TypeWellKnownAttributeData, AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation>(
                     ref arguments, this.DefaultMarshallingCharSet, defaultAutoLayoutSize: 0, messageProvider: MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
@@ -1247,7 +1247,7 @@ next:;
             }
         }
 
-        private void DecodeCoClassAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeCoClassAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);

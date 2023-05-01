@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DecodeWellKnownAttributeAppliedToMethod(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeWellKnownAttributeAppliedToMethod(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
             {
-                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
+                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
             {
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
-            ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
+            ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             AttributeDescription description)
         {
             if (arguments.Attribute.IsTargetAttribute(this, description))
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void DecodeWellKnownAttributeAppliedToReturnValue(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeWellKnownAttributeAppliedToReturnValue(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
                 // MarshalAs applied to the return value:
-                MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute |
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             RoslynDebug.Assert(arguments.AttributeSyntaxOpt?.ArgumentList is object);
 
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;

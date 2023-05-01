@@ -354,10 +354,11 @@ namespace Microsoft.CodeAnalysis
             return ObsoleteAttributeData.Experimental;
         }
 
-        internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
-            ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
+        internal static void DecodeMethodImplAttribute<T, TAssemblySymbol, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
+            ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
             CommonMessageProvider messageProvider)
             where T : CommonMethodWellKnownAttributeData, new()
+            where TAssemblySymbol : class, IAssemblySymbolInternal
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
         {
@@ -413,12 +414,13 @@ namespace Microsoft.CodeAnalysis
             arguments.GetOrCreateData<T>().SetMethodImplementation(arguments.Index, (MethodImplAttributes)options | codeType);
         }
 
-        internal static void DecodeStructLayoutAttribute<TTypeWellKnownAttributeData, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
-            ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
+        internal static void DecodeStructLayoutAttribute<TTypeWellKnownAttributeData, TAssemblySymbol, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
+            ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
             CharSet defaultCharSet,
             int defaultAutoLayoutSize,
             CommonMessageProvider messageProvider)
             where TTypeWellKnownAttributeData : CommonTypeWellKnownAttributeData, new()
+            where TAssemblySymbol : class, IAssemblySymbolInternal
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
         {

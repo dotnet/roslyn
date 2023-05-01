@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </para>
         /// </remarks>
 #nullable enable
-        protected void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.Diagnostics.DiagnosticBag is not null);
             Debug.Assert(arguments.AttributeSyntaxOpt is not null);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        protected virtual void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected virtual void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
         }
 
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int totalAttributesCount = boundAttributes.Length;
             HashSet<NamedTypeSymbol> uniqueAttributeTypes = new HashSet<NamedTypeSymbol>();
-            var arguments = new DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation>();
+            var arguments = new DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation>();
             arguments.Diagnostics = diagnostics;
             arguments.AttributesCount = totalAttributesCount;
             arguments.SymbolPart = symbolPart;

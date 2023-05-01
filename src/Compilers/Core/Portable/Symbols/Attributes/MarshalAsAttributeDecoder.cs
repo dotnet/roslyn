@@ -12,12 +12,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class MarshalAsAttributeDecoder<TWellKnownAttributeData, TAttributeSyntax, TAttributeData, TAttributeLocation>
+    internal static class MarshalAsAttributeDecoder<TWellKnownAttributeData, TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation>
         where TWellKnownAttributeData : WellKnownAttributeData, IMarshalAsAttributeTarget, new()
+        where TAssemblySymbol : class, IAssemblySymbolInternal
         where TAttributeSyntax : SyntaxNode
         where TAttributeData : AttributeData
     {
-        internal static void Decode(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, AttributeTargets target, CommonMessageProvider messageProvider)
+        internal static void Decode(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, AttributeTargets target, CommonMessageProvider messageProvider)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis
             return unmanagedType;
         }
 
-        private static void DecodeMarshalAsCustom(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
+        private static void DecodeMarshalAsCustom(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void DecodeMarshalAsComInterface(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, UnmanagedType unmanagedType, CommonMessageProvider messageProvider)
+        private static void DecodeMarshalAsComInterface(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, UnmanagedType unmanagedType, CommonMessageProvider messageProvider)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void DecodeMarshalAsArray(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider, bool isFixed)
+        private static void DecodeMarshalAsArray(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider, bool isFixed)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void DecodeMarshalAsSafeArray(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
+        private static void DecodeMarshalAsSafeArray(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void DecodeMarshalAsFixedString(ref DecodeWellKnownAttributeArguments<TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
+        private static void DecodeMarshalAsFixedString(ref DecodeWellKnownAttributeArguments<TAssemblySymbol, TAttributeSyntax, TAttributeData, TAttributeLocation> arguments, CommonMessageProvider messageProvider)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 

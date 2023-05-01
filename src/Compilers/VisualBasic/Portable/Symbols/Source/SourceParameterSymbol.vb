@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(hasAnyDiagnostics, Nothing, attribute)
         End Function
 
-        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.OutAttribute) Then
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
-                MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
+                MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
                 Dim index = GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex
                 If index = Ordinal Then
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.DecodeWellKnownAttribute(arguments)
         End Sub
 
-        Private Sub DecodeDefaultParameterValueAttribute(description As AttributeDescription, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Private Sub DecodeDefaultParameterValueAttribute(description As AttributeDescription, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attribute = arguments.Attribute
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 

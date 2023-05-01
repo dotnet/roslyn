@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefSafetyRulesAttribute = 1 << 13,
         }
 
-        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
+        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
         {
             var attribute = arguments.Attribute;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
@@ -1508,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return true;
 
-            bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
+            bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
             {
                 if (attribute.IsTargetAttribute(this, attributeDescription))
                 {

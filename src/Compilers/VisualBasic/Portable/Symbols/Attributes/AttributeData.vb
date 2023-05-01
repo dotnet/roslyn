@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyIsSecurityAttribute.Value
         End Function
 
-        Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
             Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             If Not hasErrors Then
@@ -375,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' See <see cref="Microsoft.CodeAnalysis.CodeGen.PermissionSetAttributeWithFileReference"/> for remaining fixup steps.
         ''' </remarks>
         ''' <returns>String containing the resolved file path if PermissionSetAttribute needs fixup during codegen, null otherwise.</returns>
-        Friend Function DecodePermissionSetAttribute(compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)) As String
+        Friend Function DecodePermissionSetAttribute(compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)) As String
             Dim resolvedFilePath As String = Nothing
             Dim namedArgs = Me.CommonNamedArguments
 
