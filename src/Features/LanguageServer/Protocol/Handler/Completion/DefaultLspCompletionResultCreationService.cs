@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// <summary>
         /// Command name implemented by the client and invoked when an item with complex edit is committed.
         /// </summary>
-        private const string CompleteComplexEditCommand = "roslyn.client.completionComplexEdit";
+        public const string CompleteComplexEditCommand = "roslyn.client.completionComplexEdit";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             bool snippetsSupported,
             bool itemDefaultsSupported,
             TextSpan defaultSpan,
+            string typedText,
             CompletionItem item,
             CompletionService completionService,
             CancellationToken cancellationToken)
@@ -42,14 +43,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
             if (item.IsComplexTextEdit)
             {
-                // For complex change, we'd insert a placeholder edit as part of completion
-                // and rely on resolve request and a post resolution command to make the full change.
-                var completionChange = CompletionChange.Create(new TextChange(defaultSpan, item.DisplayText));
-                PopulateTextEdit(lspItem, completionChange, documentText, itemDefaultsSupported, defaultSpan);
+                //await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                // For unimported item, we use display text (type or method name) as the text edit text, and rely on resolve handler to add missing import as additional edit.
+                // For other complex edit item, we return a no-op edit and rely on resolve handler to compute the actual change and provide the command to apply it.
+                var completionChangeNewText = item.Flags.IsExpanded() ? item.DisplayText : typedText;
+                PopulateTextEdit(lspItem, completionChangeSpan: defaultSpan, completionChangeNewText, documentText, itemDefaultsSupported, defaultSpan: defaultSpan);
             }
             else
             {
-                await PopulateSimpleTextEditAsync(
+                await GetChangeAndPopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
                     var lspOffset = newPosition is null ? -1 : newPosition.Value;
 
-                    lspItem.Command = new LSP.Command()
+                    lspItem.Command = lspItem.Command = new LSP.Command()
                     {
                         CommandIdentifier = CompleteComplexEditCommand,
                         Title = nameof(CompleteComplexEditCommand),
