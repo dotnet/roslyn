@@ -315,14 +315,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Try
             End Function
 
-            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As BindingDiagnosticBag) As DiagnosticInfo
+            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As BindingDiagnosticBag?) As DiagnosticInfo
                 Dim diagInfo As DiagnosticInfo
 
                 If diagName = "Any" AndAlso IsParameterTypeOfDeclareMethod(typeSyntax) Then
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ObsoleteAsAny, diagName)
 
                     If diagBag IsNot Nothing Then
-                        Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
+                        Binder.ReportDiagnostic(diagBag.Value, typeSyntax, diagInfo)
                     End If
 
                     Return diagInfo
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If diagBag IsNot Nothing Then
-                    Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
+                    Binder.ReportDiagnostic(diagBag.Value, typeSyntax, diagInfo)
                 End If
 
                 Return diagInfo

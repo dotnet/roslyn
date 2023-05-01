@@ -1649,7 +1649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                 diagnostics)
 
             If diagnostics IsNot Nothing Then
-                diagnostics.Free()
+                diagnostics.Value.Free()
             End If
         End Sub
 

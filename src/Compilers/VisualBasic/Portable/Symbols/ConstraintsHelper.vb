@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     tuple As TupleTypeSymbol,
                                     syntaxNode As SyntaxNode,
                                     elementLocations As ImmutableArray(Of Location),
-                                    diagnostics As BindingDiagnosticBag,
+                                    diagnostics As BindingDiagnosticBag?,
                                     template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
             If Not RequiresChecking(type) Then
@@ -452,6 +452,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If syntaxNode.HasErrors Then
                 Return
             End If
+
+            Debug.Assert(diagnostics IsNot Nothing)
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim underlyingTupleTypeChain = ArrayBuilder(Of NamedTypeSymbol).GetInstance
@@ -472,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' If this is the TRest type parameter, we report it on 
                     ' the entire type syntax as it does not map to any tuple element.
                     Dim location = If(ordinal = TupleTypeSymbol.RestIndex, syntaxNode.Location, elementLocations(ordinal + offset))
-                    diagnostics.Add(diagnostic.UseSiteInfo, location)
+                    diagnostics.Value.Add(diagnostic.UseSiteInfo, location)
                 Next
 
                 diagnosticsBuilder.Clear()

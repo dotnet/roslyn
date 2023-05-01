@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                operatorResultType.GetNullableUnderlyingTypeOrSelf().IsErrorType() OrElse
                (forceToBooleanType IsNot Nothing AndAlso forceToBooleanType.GetNullableUnderlyingTypeOrSelf().IsErrorType()) Then
                 ' Suppress any additional diagnostics by overriding DiagnosticBag.
-                If diagnostics Is originalDiagnostics Then
+                If diagnostics = originalDiagnostics Then
                     diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If

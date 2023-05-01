@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If diagBag IsNot Nothing Then
                 Dim info = GetUseSiteInfoForSpecialType(symbol, suppressUseSiteError)
-                If ReportUseSite(diagBag, node, info) Then
+                If ReportUseSite(diagBag.Value, node, info) Then
                     reportedAnError = True
                 End If
             End If

@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ' needs to put the squiggly on the first "z".
 
                                         Debug.Assert(Graph.Diagnostic IsNot Nothing)
-                                        unboundLambda.Binder.ReportLambdaParameterInferredToBeObject(lambdaParameter, Graph.Diagnostic)
+                                        unboundLambda.Binder.ReportLambdaParameterInferredToBeObject(lambdaParameter, Graph.Diagnostic.Value)
 
                                         skipThisNode = False
                                         Exit For
@@ -904,7 +904,7 @@ HandleAsAGeneralExpression:
                 typeArgumentsLocation = inferredFromLocation.AsImmutableOrNull()
                 inferenceLevel = graph._typeInferenceLevel
 
-                Debug.Assert(diagnostic Is Nothing OrElse diagnostic Is graph.Diagnostic)
+                Debug.Assert(diagnostic Is Nothing OrElse diagnostic.Value = graph.Diagnostic.Value)
                 diagnostic = graph.Diagnostic
 
                 asyncLambdaSubToFunctionMismatch = graph._asyncLambdaSubToFunctionMismatch
@@ -2129,7 +2129,7 @@ HandleAsAGeneralExpression:
                                     End If
 
                                     Debug.Assert(Me.Diagnostic IsNot Nothing)
-                                    lambdaReturnType = queryLambda.LambdaSymbol.ContainingBinder.MakeRValue(queryLambda.Expression, Me.Diagnostic).Type
+                                    lambdaReturnType = queryLambda.LambdaSymbol.ContainingBinder.MakeRValue(queryLambda.Expression, Me.Diagnostic.Value).Type
                                 End If
                             End If
 
@@ -2151,7 +2151,7 @@ HandleAsAGeneralExpression:
                                         Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                     End If
 
-                                    Me.Diagnostic.AddRange(returnTypeInfo.Value)
+                                    Me.Diagnostic.Value.AddRange(returnTypeInfo.Value)
 
                                 ElseIf returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
                                     lambdaReturnType = Nothing
@@ -2171,8 +2171,8 @@ HandleAsAGeneralExpression:
                                             Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                         End If
 
-                                        Me.Diagnostic.AddRange(returnTypeInfo.Value)
-                                        Me.Diagnostic.AddDependencies(boundLambda.Diagnostics.Dependencies)
+                                        Me.Diagnostic.Value.AddRange(returnTypeInfo.Value)
+                                        Me.Diagnostic.Value.AddDependencies(boundLambda.Diagnostics.Dependencies)
                                     Else
                                         lambdaReturnType = Nothing
 
@@ -2182,7 +2182,7 @@ HandleAsAGeneralExpression:
                                                 Me.Diagnostic = BindingDiagnosticBagFactory.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                             End If
 
-                                            Me.Diagnostic.AddRange(boundLambda.Diagnostics)
+                                            Me.Diagnostic.Value.AddRange(boundLambda.Diagnostics)
                                         End If
                                     End If
                                 End If

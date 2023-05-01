@@ -3069,7 +3069,7 @@ Bailout:
                     If defaultValueDiagnostics Is Nothing Then
                         defaultValueDiagnostics = BindingDiagnosticBagFactory.GetInstance()
                     Else
-                        defaultValueDiagnostics.Clear()
+                        defaultValueDiagnostics.Value.Clear()
                     End If
 
                     Dim receiverOpt As BoundExpression = Nothing
@@ -3077,10 +3077,10 @@ Bailout:
                         receiverOpt = methodOrPropertyGroup.ReceiverOpt
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments, receiverOpt)
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics.Value, callerInfoOpt, parameterToArgumentMap, arguments, receiverOpt)
 
-                    If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.HasAnyErrors Then
-                        Debug.Assert(Not defaultValueDiagnostics.DiagnosticBag.AsEnumerable().Any())
+                    If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.Value.HasAnyErrors Then
+                        Debug.Assert(Not defaultValueDiagnostics.Value.DiagnosticBag.AsEnumerable().Any())
                         ' Mark these as compiler generated so they are ignored by later phases. For example,
                         ' these bound nodes will mess up the incremental binder cache, because they use the
                         ' the same syntax node as the method identifier from the invocation / AddressOf if they
@@ -3149,7 +3149,7 @@ Bailout:
                     If optionalArguments Is Nothing Then
                         optionalArguments = New OptionalArgument(candidate.Candidate.ParameterCount - 1) {}
                     End If
-                    optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion, defaultValueDiagnostics.DependenciesBag.ToImmutableArray())
+                    optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion, defaultValueDiagnostics.Value.DependenciesBag.ToImmutableArray())
                 End If
 
                 If Not Conversions.IsIdentityConversion(conversionBack.Key) Then
@@ -3168,7 +3168,7 @@ Bailout:
 
 Bailout:
             If defaultValueDiagnostics IsNot Nothing Then
-                defaultValueDiagnostics.Free()
+                defaultValueDiagnostics.Value.Free()
             End If
 
             If paramArrayItems IsNot Nothing Then

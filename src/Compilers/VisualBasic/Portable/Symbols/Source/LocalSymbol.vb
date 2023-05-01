@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
+        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag?
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -907,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Value, Nothing)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As BindingDiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As BindingDiagnosticBag?
                 GetConstantValue(containingBinder)
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, Nothing)
             End Function
@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _originalVariable.GetConstantValue(binder)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag?
                 Return _originalVariable.GetConstantValueDiagnostics(binder)
             End Function
 

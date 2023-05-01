@@ -3020,9 +3020,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       we use UnknownResultType for such locals.
                 If diagnostics IsNot Nothing Then
                     If localSymbol.IsConst Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CircularEvaluation1, localSymbol)
+                        ReportDiagnostic(diagnostics.Value, node, ERRID.ERR_CircularEvaluation1, localSymbol)
                     Else
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CircularInference1, localSymbol)
+                        ReportDiagnostic(diagnostics.Value, node, ERRID.ERR_CircularInference1, localSymbol)
                     End If
                 End If
 

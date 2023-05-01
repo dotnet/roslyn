@@ -1137,7 +1137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(variable, ImmutableArray.Create(Of BoundExpression)(source, manySelectorLambda, joinSelectorLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso
+                    If Not callDiagnostics.IsDiscarded AndAlso
                        (ShouldSuppressDiagnostics(manySelectorLambda) OrElse ShouldSuppressDiagnostics(joinSelectorLambda)) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
                         callDiagnostics = BindingDiagnosticBag.Discarded
@@ -2376,7 +2376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(operatorSyntax, ImmutableArray.Create(Of BoundExpression)(source, filterLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                If diagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(filterLambda) Then
+                If Not diagnostics.IsDiscarded AndAlso ShouldSuppressDiagnostics(filterLambda) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
                     diagnostics = BindingDiagnosticBag.Discarded
                 End If
