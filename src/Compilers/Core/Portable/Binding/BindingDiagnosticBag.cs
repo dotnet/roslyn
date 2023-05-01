@@ -24,20 +24,31 @@ namespace Microsoft.CodeAnalysis
         public readonly DiagnosticBag? DiagnosticBag;
         public readonly ICollection<TAssemblySymbol>? DependenciesBag;
 
-        private BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
+        private readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool> _reportUseSiteDiagnostic;
+
+        private BindingDiagnosticBag(
+            DiagnosticBag? diagnosticBag,
+            Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
         {
             DiagnosticBag = diagnosticBag;
+            _reportUseSiteDiagnostic = reportUseSiteDiagnostic;
         }
 
-        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
-            : this(diagnosticBag)
+        protected BindingDiagnosticBag(
+            DiagnosticBag? diagnosticBag,
+            ICollection<TAssemblySymbol>? dependenciesBag,
+            Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
+            : this(diagnosticBag, reportUseSiteDiagnostic)
         {
             Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
             DependenciesBag = dependenciesBag;
         }
 
-        protected BindingDiagnosticBag(bool usePool)
-            : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
+        protected BindingDiagnosticBag(bool usePool, Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
+            : this(
+                  usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(),
+                  usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>(),
+                  reportUseSiteDiagnostic)
         {
         }
 
@@ -229,7 +240,7 @@ namespace Microsoft.CodeAnalysis
                     var location = getLocation(data);
                     foreach (var diagnosticInfo in useSiteInfo.Diagnostics)
                     {
-                        if (ReportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location))
+                        if (_reportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location))
                         {
                             haveError = true;
                         }
@@ -267,8 +278,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
-
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode node)
             => Add(useSiteInfo, static node => node.Location, node);
 
@@ -301,7 +310,7 @@ namespace Microsoft.CodeAnalysis
 
             if (DiagnosticBag is object)
             {
-                return ReportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
+                return _reportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
             }
 
             return info.Severity == DiagnosticSeverity.Error;
