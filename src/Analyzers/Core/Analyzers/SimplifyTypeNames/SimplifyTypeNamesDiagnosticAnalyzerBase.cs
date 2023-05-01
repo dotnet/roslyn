@@ -268,8 +268,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var root = context.GetAnalysisRoot(findInTrivia: true);
-
                 // Get the state information for the syntax tree. If the state information is not available, it is
                 // initialized directly to a completed state, ensuring that concurrent (or future) calls to
                 // AnalyzeCodeBlock will always read completed==true, and intervalTree does not need to be initialized
@@ -294,6 +292,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     }
                 }
 
+                var root = context.GetAnalysisRoot(findInTrivia: true);
                 var diagnostics = _analyzer.AnalyzeSemanticModel(context, root, intervalTree);
 
                 // After this point, cancellation is not allowed due to possible state alteration
