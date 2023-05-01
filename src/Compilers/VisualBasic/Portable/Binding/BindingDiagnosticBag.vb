@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -76,39 +77,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function Create(template As BindingDiagnosticBag) As BindingDiagnosticBag
             Return Create(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
         End Function
+    End Class
 
-        Friend ReadOnly Property IsEmpty As Boolean
-            Get
-                Return (DiagnosticBag Is Nothing OrElse DiagnosticBag.IsEmptyWithoutResolution) AndAlso DependenciesBag.IsNullOrEmpty()
-            End Get
-        End Property
-
-        Friend Overloads Function Add(node As BoundNode, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
-            Return Add(node.Syntax.Location, useSiteInfo)
+    Friend Module BindingDiagnosticBadExtensions
+        <Extension>
+        Friend Function IsEmpty(diagnosticBag As BindingDiagnosticBag) As Boolean
+            Return (diagnosticBag.DiagnosticBag Is Nothing OrElse diagnosticBag.DiagnosticBag.IsEmptyWithoutResolution) AndAlso diagnosticBag.DependenciesBag.IsNullOrEmpty()
         End Function
 
-        Friend Overloads Function Add(syntax As SyntaxNodeOrToken, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
-            Return Add(syntax.GetLocation(), useSiteInfo)
+        <Extension>
+        Friend Function Add(diagnosticBag As BindingDiagnosticBag, node As BoundNode, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+            Return diagnosticBag.Add(node.Syntax.Location, useSiteInfo)
         End Function
 
-        Friend Function ReportUseSite(symbol As Symbol, node As SyntaxNode) As Boolean
-            Return ReportUseSite(symbol, node.Location)
+        <Extension>
+        Friend Function Add(diagnosticBag As BindingDiagnosticBag, syntax As SyntaxNodeOrToken, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+            Return diagnosticBag.Add(syntax.GetLocation(), useSiteInfo)
         End Function
 
-        Friend Function ReportUseSite(symbol As Symbol, token As SyntaxToken) As Boolean
-            Return ReportUseSite(symbol, token.GetLocation())
+        <Extension>
+        Friend Function ReportUseSite(diagnosticBag As BindingDiagnosticBag, symbol As Symbol, node As SyntaxNode) As Boolean
+            Return ReportUseSite(diagnosticBag, symbol, node.Location)
         End Function
 
-        Friend Function ReportUseSite(symbol As Symbol, location As Location) As Boolean
+        <Extension>
+        Friend Function ReportUseSite(diagnosticBag As BindingDiagnosticBag, symbol As Symbol, token As SyntaxToken) As Boolean
+            Return ReportUseSite(diagnosticBag, symbol, token.GetLocation())
+        End Function
+
+        <Extension>
+        Friend Function ReportUseSite(diagnosticBag As BindingDiagnosticBag, symbol As Symbol, location As Location) As Boolean
             If symbol IsNot Nothing Then
-                Return Add(symbol.GetUseSiteInfo(), location)
+                Return diagnosticBag.Add(symbol.GetUseSiteInfo(), location)
             End If
 
             Return False
         End Function
 
-        Friend Sub AddAssembliesUsedByCrefTarget(symbol As Symbol)
-            If DependenciesBag Is Nothing Then
+        <Extension>
+        Friend Sub AddAssembliesUsedByCrefTarget(diagnosticBag As BindingDiagnosticBag, symbol As Symbol)
+            If diagnosticBag.DependenciesBag Is Nothing Then
                 Return
             End If
 
@@ -116,58 +124,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If ns IsNot Nothing Then
                 Debug.Assert(Not ns.IsGlobalNamespace)
-                AddAssembliesUsedByNamespaceReference(ns)
+                AddAssembliesUsedByNamespaceReference(diagnosticBag, ns)
             Else
-                AddDependencies(If(TryCast(symbol, TypeSymbol), symbol.ContainingType))
+                AddDependencies(diagnosticBag, If(TryCast(symbol, TypeSymbol), symbol.ContainingType))
             End If
         End Sub
 
-        Friend Overloads Sub AddDependencies(symbol As Symbol)
-            If DependenciesBag Is Nothing OrElse symbol Is Nothing Then
+        <Extension>
+        Friend Sub AddDependencies(diagnosticBag As BindingDiagnosticBag, symbol As Symbol)
+            If diagnosticBag.DependenciesBag Is Nothing OrElse symbol Is Nothing Then
                 Return
             End If
 
-            AddDependencies(symbol.GetUseSiteInfo())
+            diagnosticBag.AddDependencies(symbol.GetUseSiteInfo())
         End Sub
 
-        Friend Sub AddAssembliesUsedByNamespaceReference(ns As NamespaceSymbol)
-            If DependenciesBag Is Nothing Then
+        <Extension>
+        Friend Sub AddAssembliesUsedByNamespaceReference(diagnosticBag As BindingDiagnosticBag, ns As NamespaceSymbol)
+            If diagnosticBag.DependenciesBag Is Nothing Then
                 Return
             End If
 
-            AddAssembliesUsedByNamespaceReferenceImpl(ns)
+            AddAssembliesUsedByNamespaceReferenceImpl(diagnosticBag, ns)
         End Sub
 
-        Private Sub AddAssembliesUsedByNamespaceReferenceImpl(ns As NamespaceSymbol)
+        Private Sub AddAssembliesUsedByNamespaceReferenceImpl(diagnosticBag As BindingDiagnosticBag, ns As NamespaceSymbol)
             ' Treat all assemblies contributing to this namespace symbol as used
             If ns.Extent.Kind = NamespaceKind.Compilation Then
                 For Each constituent In ns.ConstituentNamespaces
-                    AddAssembliesUsedByNamespaceReferenceImpl(constituent)
+                    AddAssembliesUsedByNamespaceReferenceImpl(diagnosticBag, constituent)
                 Next
             Else
                 Dim containingAssembly As AssemblySymbol = ns.ContainingAssembly
 
                 If containingAssembly IsNot Nothing AndAlso Not containingAssembly.IsMissing Then
-                    DependenciesBag.Add(containingAssembly)
+                    diagnosticBag.DependenciesBag.Add(containingAssembly)
                 End If
             End If
         End Sub
 
-        Friend Overloads Function Add(code As ERRID, location As Location) As DiagnosticInfo
+        <Extension>
+        Friend Function Add(diagnosticBag As BindingDiagnosticBag, code As ERRID, location As Location) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code)
-            Add(info, location)
+            Add(diagnosticBag, info, location)
             Return info
         End Function
 
-        Friend Overloads Function Add(code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
+        <Extension>
+        Friend Function Add(diagnosticBag As BindingDiagnosticBag, code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code, args)
-            Add(info, location)
+            Add(diagnosticBag, info, location)
             Return info
         End Function
 
-        Friend Overloads Sub Add(info As DiagnosticInfo, location As Location)
-            DiagnosticBag?.Add(New VBDiagnostic(info, location))
+        <Extension>
+        Friend Sub Add(diagnosticBag As BindingDiagnosticBag, info As DiagnosticInfo, location As Location)
+            diagnosticBag.DiagnosticBag?.Add(New VBDiagnostic(info, location))
         End Sub
-
-    End Class
+    End Module
 End Namespace
