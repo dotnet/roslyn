@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             bool snippetsSupported,
             bool itemDefaultsSupported,
             TextSpan defaultSpan,
+            string typedText,
             CompletionItem item,
             CompletionService completionService,
             CancellationToken cancellationToken)
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else
             {
-                await PopulateSimpleTextEditAsync(
+                await GetChangeAndPopulateSimpleTextEditAsync(
                     document,
                     documentText,
                     itemDefaultsSupported,
