@@ -1237,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
 
-            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var diagnostics = arguments.Diagnostics;
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             var attribute = arguments.Attribute;

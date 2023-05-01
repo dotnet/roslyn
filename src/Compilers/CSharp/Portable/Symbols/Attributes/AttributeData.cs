@@ -236,10 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             where T : WellKnownAttributeData, ISecurityAttributeTarget, new()
         {
             Debug.Assert(!this.HasErrors);
-            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             bool hasErrors;
-            DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, (BindingDiagnosticBag)arguments.Diagnostics);
+            DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, arguments.Diagnostics);
 
             if (!hasErrors)
             {
@@ -249,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.IsTargetAttribute(targetSymbol, AttributeDescription.PermissionSetAttribute))
                 {
-                    string? resolvedPathForFixup = DecodePermissionSetAttribute(compilation, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+                    string? resolvedPathForFixup = DecodePermissionSetAttribute(compilation, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
                     if (resolvedPathForFixup != null)
                     {
                         securityData.SetPathForPermissionSetAttributeFixup(arguments.Index, resolvedPathForFixup, arguments.AttributesCount);
@@ -265,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!compilation.Options.AllowUnsafe)
             {
                 Debug.Assert(arguments.AttributeSyntaxOpt is object);
-                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
-            ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
+            arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
         }
 
         internal static void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
