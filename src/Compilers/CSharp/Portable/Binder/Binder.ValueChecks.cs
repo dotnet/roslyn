@@ -3730,7 +3730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escape = Math.Max(escape, GetValEscape(dynamicObjectCreation.InitializerExpressionOpt, scopeOfTheContainingExpression));
                     }
 
-                    return GetValEscape(dynamicObjectCreation.Arguments, scopeOfTheContainingExpression);
+                    return escape;
 
                 case BoundKind.WithExpression:
                     var withExpression = (BoundWithExpression)expr;
