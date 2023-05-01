@@ -320,7 +320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
 
             ' Differences from C#:
             '
@@ -340,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
@@ -361,9 +360,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
                 Dim index = GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex
                 If index = Ordinal Then
-                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                    arguments.Diagnostics.Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)
                 ElseIf index = -1 Then
-                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                    arguments.Diagnostics.Add(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, arguments.AttributeSyntaxOpt.Location, Me.Name)
                 End If
             End If
 
@@ -372,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub DecodeDefaultParameterValueAttribute(description As AttributeDescription, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attribute = arguments.Attribute
-            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
+            Dim diagnostics = arguments.Diagnostics
 
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)

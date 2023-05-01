@@ -2161,7 +2161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
+            Dim diagnostics = arguments.Diagnostics
 
             ' If we start caching information about GuidAttribute here, implementation of HasGuidAttribute function should be changed accordingly.
             ' If we start caching information about ClassInterfaceAttribute here, implementation of HasClassInterfaceAttribute function should be changed accordingly.
