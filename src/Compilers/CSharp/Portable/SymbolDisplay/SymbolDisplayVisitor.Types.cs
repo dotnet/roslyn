@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol })
             {
                 var fileDescription = identifier.DisplayFilePath is { Length: not 0 } path ? path
-                    : internalSymbol.Locations.FirstOrNone().SourceTree is { } tree ? $"<tree {internalSymbol.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
+                    : internalSymbol.GetFirstLocationOrNone().SourceTree is { } tree ? $"<tree {internalSymbol.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
                     : "<unknown>";
 
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));

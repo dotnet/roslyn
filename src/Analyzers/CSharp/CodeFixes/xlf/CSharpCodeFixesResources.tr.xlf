@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Make_field_required">
         <source>Make field 'required'</source>
-        <target state="new">Make field 'required'</target>
+        <target state="translated">Alanı 'required' yap</target>
         <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_method_async">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Make_property_required">
         <source>Make property 'required'</source>
-        <target state="new">Make property 'required'</target>
+        <target state="translated">Özelliği 'required' yap</target>
         <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_ref_struct">

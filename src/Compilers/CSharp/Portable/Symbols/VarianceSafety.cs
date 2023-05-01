@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(container.IsInterfaceType());
                 Debug.Assert(container.TypeParameters.Any(static tp => tp.Variance != VarianceKind.None));
-                diagnostics.Add(ErrorCode.ERR_VarianceInterfaceNesting, member.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_VarianceInterfaceNesting, member.GetFirstLocation());
             }
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 requireOutputSafety: false,
                 requireInputSafety: true,
                 context: @event,
-                locationProvider: e => e.Locations[0],
+                locationProvider: e => e.GetFirstLocation(),
                 locationArg: @event,
                 diagnostics: diagnostics);
         }
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         requireOutputSafety: false,
                         requireInputSafety: true,
                         context: context,
-                        locationProvider: t => t.Locations[0],
+                        locationProvider: t => t.GetFirstLocation(),
                         locationArg: typeParameter,
                         diagnostics: diagnostics);
                 }
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // reference rather than the specific type parameter, for instance, returning
             // "C<T>[]" for "interface I<in T> { C<T>[] F(); }" rather than the type parameter
             // in "C<T>[]", but that is better than returning the location of T within "I<in T>".
-            var location = locationProvider(locationArg) ?? unsafeTypeParameter.Locations[0];
+            var location = locationProvider(locationArg) ?? unsafeTypeParameter.GetFirstLocation();
 
             // CONSIDER: instead of using the same error code for all variance errors, we could use different codes for "requires input-safe", 
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and

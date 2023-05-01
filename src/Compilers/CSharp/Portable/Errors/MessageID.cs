@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeaturePrimaryConstructors = MessageBase + 12833,
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
-        IDS_FeatureExtensions = MessageBase + 12835,
+
+        IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
+        IDS_FeatureExtensions = MessageBase + 12836,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -317,29 +319,85 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
-            BindingDiagnosticBag diagnostics,
+            DiagnosticBag diagnostics,
             SyntaxNode syntax,
             Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
-            if (diag is object)
-            {
-                diagnostics.Add(diag, location ?? syntax.GetLocation());
-                return false;
-            }
-            return true;
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree.Options,
+                static tuple => tuple.location ?? tuple.syntax.Location,
+                (syntax, location));
         }
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             DiagnosticBag diagnostics,
+            SyntaxToken syntax,
+            Location? location = null)
+        {
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree!.Options,
+                static tuple => tuple.location ?? tuple.syntax.GetLocation(),
+                (syntax, location));
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
             SyntaxNode syntax,
             Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
-            if (diag is object)
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree.Options,
+                static tuple => tuple.location ?? tuple.syntax.Location,
+                (syntax, location));
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
+            SyntaxToken syntax,
+            Location? location = null)
+        {
+            return CheckFeatureAvailability(
+                feature,
+                diagnostics,
+                syntax.SyntaxTree!.Options,
+                static tuple => tuple.location ?? tuple.syntax.GetLocation(),
+                (syntax, location));
+        }
+
+        private static bool CheckFeatureAvailability<TData>(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            ParseOptions parseOptions,
+            Func<TData, Location> getLocation,
+            TData data)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)parseOptions) is { } diagInfo)
             {
-                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                diagnostics.Add(diagInfo, getLocation(data));
+                return false;
+            }
+            return true;
+        }
+
+        private static bool CheckFeatureAvailability<TData>(
+            this MessageID feature,
+            BindingDiagnosticBag diagnostics,
+            ParseOptions parseOptions,
+            Func<TData, Location> getLocation,
+            TData data)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)parseOptions) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, getLocation(data));
                 return false;
             }
             return true;
@@ -394,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
+                case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
                 case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 

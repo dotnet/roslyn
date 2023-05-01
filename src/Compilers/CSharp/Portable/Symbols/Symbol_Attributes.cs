@@ -590,7 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var attributeDeclarationSyntax in attributeDeclarationSyntaxList)
                     {
                         // We bind the attribute only if it has a matching target for the given ownerSymbol and attributeLocation.
-                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics))
+                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics) &&
+                            ShouldBindAttributes(attributeDeclarationSyntax, diagnostics))
                         {
                             if (syntaxBuilder == null)
                             {
@@ -642,6 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binders = ImmutableArray<Binder>.Empty;
                 return ImmutableArray<AttributeSyntax>.Empty;
             }
+        }
+
+        protected virtual bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, BindingDiagnosticBag diagnostics)
+        {
+            return true;
         }
 
 #nullable enable

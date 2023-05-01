@@ -415,5 +415,168 @@ class Program
 
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67867")>
+        Public Async Function TestCSharp_SimplifyBaseConstructorCall() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public A(Id id, IEnumerable<D> deps) { }
+}
+{|Simplify:
+public partial class B : A
+{
+    public B() : base(default(Id), default(IEnumerable<D>)) { }
+}
+|}
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+    <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public A(Id id, IEnumerable<D> deps) { }
+}
+
+public partial class B : A
+{
+    public B() : base(default, default) { }
+}
+
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+</code>
+
+            Await TestAsync(input, expected, DoNotPreferBraces)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67867")>
+        Public Async Function TestCSharp_DoNotSimplifyBothArgumentsInAmbiguousBaseConstructorCall() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public A(Id id, IEnumerable<D> deps) { }
+    public A(string s, V v) { }
+}
+{|Simplify:
+public partial class B : A
+{
+    public B() : base(default(Id), default(IEnumerable<D>)) { }
+}
+|}
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+    <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public A(Id id, IEnumerable<D> deps) { }
+    public A(string s, V v) { }
+}
+
+public partial class B : A
+{
+    public B() : base(default, default(IEnumerable<D>)) { }
+}
+
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+</code>
+
+            Await TestAsync(input, expected, DoNotPreferBraces)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67867")>
+        Public Async Function TestCSharp_DoNotSimplifyBothArgumentsInAmbiguousCall() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public void Goo(Id id, IEnumerable<D> deps) { }
+    public void Goo(string s, V v) { }
+}
+{|Simplify:
+public partial class B : A
+{
+    public B()
+    {
+        Goo((Id)default, (IEnumerable<D>)default);
+    }
+}
+|}
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+    <![CDATA[
+using System.Collections.Generic;
+
+public partial class A
+{
+    public void Goo(Id id, IEnumerable<D> deps) { }
+    public void Goo(string s, V v) { }
+}
+
+public partial class B : A
+{
+    public B()
+    {
+        Goo(default, (IEnumerable<D>)default);
+    }
+}
+
+public partial class D { }
+public partial class Id { }
+public partial class V { }
+]]>
+</code>
+
+            Await TestAsync(input, expected, DoNotPreferBraces)
+        End Function
     End Class
 End Namespace

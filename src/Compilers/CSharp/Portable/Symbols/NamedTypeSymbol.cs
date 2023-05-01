@@ -217,12 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
 
-            ArrayBuilder<MethodSymbol> operators = ArrayBuilder<MethodSymbol>.GetInstance();
-            foreach (MethodSymbol candidate in candidates.OfType<MethodSymbol>())
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
+            foreach (var candidate in candidates)
             {
-                if (candidate.MethodKind == MethodKind.UserDefinedOperator || candidate.MethodKind == MethodKind.Conversion)
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
                 {
-                    operators.Add(candidate);
+                    operators.Add(method);
                 }
             }
 
