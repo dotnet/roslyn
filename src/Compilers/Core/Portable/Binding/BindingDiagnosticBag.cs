@@ -113,14 +113,11 @@ namespace Microsoft.CodeAnalysis
             AddDependencies(other.Dependencies);
         }
 
-        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol>? other, bool allowMismatchInDependencyAccumulation = false)
+        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol> other, bool allowMismatchInDependencyAccumulation = false)
         {
-            if (other is object)
-            {
-                AddRange(other.DiagnosticBag);
-                Debug.Assert(allowMismatchInDependencyAccumulation || !other.AccumulatesDependencies || this.AccumulatesDependencies);
-                AddDependencies(other.DependenciesBag);
-            }
+            AddRange(other.DiagnosticBag);
+            Debug.Assert(allowMismatchInDependencyAccumulation || !other.AccumulatesDependencies || this.AccumulatesDependencies);
+            AddDependencies(other.DependenciesBag);
         }
 
         internal void AddRange(DiagnosticBag? bag)

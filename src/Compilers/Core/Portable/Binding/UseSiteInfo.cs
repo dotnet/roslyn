@@ -132,18 +132,14 @@ namespace Microsoft.CodeAnalysis
             _assemblyBeingBuilt = assemblyBeingBuilt;
         }
 
-        public CompoundUseSiteInfo(BindingDiagnosticBag<TAssemblySymbol>? futureDestination, TAssemblySymbol assemblyBeingBuilt)
+        public CompoundUseSiteInfo(BindingDiagnosticBag<TAssemblySymbol> futureDestination, TAssemblySymbol assemblyBeingBuilt)
         {
             Debug.Assert(assemblyBeingBuilt is object);
             Debug.Assert(assemblyBeingBuilt is ISourceAssemblySymbolInternal);
 
             this = default;
 
-            if (futureDestination is null)
-            {
-                _discardLevel = DiscardLevel.DiagnosticsAndDependencies;
-            }
-            else if (!futureDestination.AccumulatesDependencies)
+            if (!futureDestination.AccumulatesDependencies)
             {
                 _discardLevel = DiscardLevel.Dependencies;
             }
