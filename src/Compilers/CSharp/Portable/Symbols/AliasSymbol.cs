@@ -326,8 +326,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
                     // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
                     // call back into GetAliasTarget on the same thread resulting in a dead lock scenario.
-                    bool won = Interlocked.Exchange(ref _aliasTargetDiagnostics, newDiagnostics) == null;
-                    Debug.Assert(won, "Only one thread can win the alias target CompareExchange");
+
+                    // Note: it is safe to do this write without any synchronization as only one thread could win in the
+                    // Interlocked.CompareExchange above.  And no thread can try to read this value until seeing that
+                    // we've reached the CompletionPart.AliasTarget state (which is set below this).  So the winning
+                    // thread will always see this set, and any losing thread will spin-wait for this to complete, which
+                    // ensures they will see the value as well.
+                    var oldDiagnostics = _aliasTargetDiagnostics;
+                    _aliasTargetDiagnostics = newDiagnostics;
+
+                    Debug.Assert(oldDiagnostics == null, "Only one thread can win the alias target CompareExchange");
 
                     _state.NotePartComplete(CompletionPart.AliasTarget);
                     // we do not clear this.aliasTargetName, as another thread might be about to use it for ResolveAliasTarget(...)
