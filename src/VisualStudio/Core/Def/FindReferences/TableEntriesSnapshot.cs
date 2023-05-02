@@ -24,6 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly int _versionNumber;
 
             private readonly ImmutableList<Entry> _entries;
+
+            /// <summary>
+            /// A list of callback actions to invoke when this snapshot is disposed.
+            /// </summary>
             private readonly List<Action> _disposeCallbacks = new();
 
             public TableEntriesSnapshot(ImmutableList<Entry> entries, int versionNumber)

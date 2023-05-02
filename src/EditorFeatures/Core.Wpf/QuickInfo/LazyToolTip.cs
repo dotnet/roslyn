@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -54,11 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             {
                 try
                 {
-                    AssertIsForeground();
-
-                    _element.ToolTip = null;
-                    _disposableToolTip?.Dispose();
-                    _disposableToolTip = null;
+                    Interlocked.Exchange(ref _disposableToolTip, null)?.Dispose();
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
@@ -79,8 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     if (_disposableToolTip is not null)
                         return;
 
-                    _disposableToolTip = _createToolTip();
-                    _element.ToolTip = _disposableToolTip.Target.ToolTip;
+                    using var disposableToolTip = _createToolTip();
+                    _disposableToolTip = disposableToolTip.AddReference();
+                    _element.ToolTip = disposableToolTip.Target.ToolTip;
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {

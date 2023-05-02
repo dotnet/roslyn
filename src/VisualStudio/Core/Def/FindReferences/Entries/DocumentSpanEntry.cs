@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         try
                         {
-                            disposable?.Dispose();
+                            disposable.Dispose();
                         }
                         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {

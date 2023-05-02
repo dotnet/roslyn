@@ -229,8 +229,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var document = updatedSolution.GetTextDocument(documentId);
             if (document != null)
             {
-                using var updater = _updater?.AddReference();
-                RoslynDebug.AssertNotNull(updater);
+                Contract.ThrowIfNull(_updater);
+                using var updater = _updater.AddReference();
 
                 updater.Target.UpdateView(document, spanSource);
             }
