@@ -64,6 +64,11 @@
         <target state="translated">編輯和繼續無法繼續暫停的列舉程式，因為對應的 yield return 陳述式已刪除</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">產生器</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'start' 不可為負值</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end' 不可小於 'start'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">

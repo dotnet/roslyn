@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
                     base.VisitNullableType(node),
                     simplifier: s_simplifyNullableType);

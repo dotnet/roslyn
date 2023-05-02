@@ -175,17 +175,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: false);
                 result = BindArgListOperator(node, diagnostics, analyzedArguments);
             }
+            else if (receiverIsInvocation(node, out InvocationExpressionSyntax nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
+
+                while (true)
+                {
+                    result = bindArgumentsAndInvocation(node, boundExpression, analyzedArguments, diagnostics);
+                    nested = node;
+
+                    if (!invocations.TryPop(out node))
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(node.Expression.Kind() is SyntaxKind.SimpleMemberAccessExpression);
+                    var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
+                    analyzedArguments.Clear();
+                    VerifyUnchecked(nested, diagnostics, result); // BindExpression does this after calling BindExpressionInternal  
+                    boundExpression = BindMemberAccessWithBoundLeft(memberAccess, result, memberAccess.Name, memberAccess.OperatorToken, invoked: true, indexed: false, diagnostics);
+                }
+
+                invocations.Free();
+            }
             else
             {
                 BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
-                boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
-                string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+                result = bindArgumentsAndInvocation(node, boundExpression, analyzedArguments, diagnostics);
             }
 
             analyzedArguments.Free();
             return result;
+
+            BoundExpression bindArgumentsAndInvocation(InvocationExpressionSyntax node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
+            {
+                boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
+                string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                return BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+            }
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, out InvocationExpressionSyntax nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver, RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } && !receiver.MayBeNameofOperator())
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
         }
 
         private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
