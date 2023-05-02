@@ -5,12 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Services
 {
@@ -25,6 +28,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             _assemblyLoadContext = assemblyLoadContext;
             _loadedAssemblies = loadedFiles;
             _logger = logger;
+        }
+
+        public static bool TryLoadExtension(string assemblyFilePath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
+        {
+            var dir = Path.GetDirectoryName(assemblyFilePath);
+            var fileName = Path.GetFileName(assemblyFilePath);
+            var fileNameNoExt = Path.GetFileNameWithoutExtension(assemblyFilePath);
+
+            Contract.ThrowIfNull(dir);
+            Contract.ThrowIfNull(fileName);
+            Contract.ThrowIfNull(fileNameNoExt);
+
+            var loadContext = TryCreate(fileNameNoExt, dir, logger);
+            if (loadContext != null)
+            {
+                assembly = loadContext.GetAssembly(fileName);
+                return true;
+            }
+
+            assembly = null;
+            return false;
         }
 
         public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, ILogger? logger)

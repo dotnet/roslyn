@@ -13,9 +13,11 @@ internal sealed class LanguageServerTestComposition
     /// </summary>
     private const string DevKitExtensionSubdirectory = "DevKit";
 
-    private static string GetDevKitExtensionDirectory()
-        => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory);
+    private const string DevKitAssemblyFileName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
+
+    private static string GetDevKitExtensionPath()
+        => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
     public static Task<ExportProvider> CreateExportProviderAsync(bool includeDevKitComponents)
-        => ExportProviderBuilder.CreateExportProviderAsync(devKitDirectory: includeDevKitComponents ? GetDevKitExtensionDirectory() : null);
+        => ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths: includeDevKitComponents ? new[] { GetDevKitExtensionPath() } : Array.Empty<string>());
 }

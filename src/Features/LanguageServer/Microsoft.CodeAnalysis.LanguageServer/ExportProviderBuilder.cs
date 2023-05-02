@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    private const string DevKitAssemblyFileName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
-
-    public static async Task<ExportProvider> CreateExportProviderAsync(string? devKitDirectory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths)
     {
         var baseDirectory = AppContext.BaseDirectory;
 
@@ -46,13 +44,11 @@ internal sealed class ExportProviderBuilder
             typeof(ExportProviderBuilder).Assembly
         };
 
-        // Additional Roslyn services:
-        if (devKitDirectory != null)
+        foreach (var extensionAssemblyPath in extensionAssemblyPaths)
         {
-            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "C# DevKit", devKitDirectory, logger: null);
-            if (loadContext != null)
+            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger: null, out var extensionAssembly))
             {
-                assemblies.Add(loadContext.GetAssembly(DevKitAssemblyFileName));
+                assemblies.Add(extensionAssembly);
             }
         }
 
