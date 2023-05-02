@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
@@ -24,13 +25,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
         }
 
-        public PreviewWorkspace(Solution solution)
+        protected PreviewWorkspace(Solution solution)
             : base(solution.Workspace.Services.HostServices, WorkspaceKind.Preview)
         {
             var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
+
+        public static ReferenceCountedDisposable<PreviewWorkspace> Create(Solution solution)
+            => new(new PreviewWorkspace(solution));
 
         public void EnableSolutionCrawler()
         {

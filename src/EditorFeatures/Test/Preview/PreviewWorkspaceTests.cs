@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public void TestPreviewCreationWithSolution()
         {
             using var custom = new AdhocWorkspace();
-            using var previewWorkspace = new PreviewWorkspace(custom.CurrentSolution);
-            Assert.NotNull(previewWorkspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.Create(custom.CurrentSolution);
+            Assert.NotNull(previewWorkspace.Target.CurrentSolution);
         }
 
         [Fact]
@@ -138,15 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnosticTagger()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
-            using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.Create(workspace.CurrentSolution);
 
             // preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
-            previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+            previewWorkspace.Target.TryApplyChanges(previewWorkspace.Target.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
             // enable preview diagnostics
-            previewWorkspace.EnableSolutionCrawler();
+            previewWorkspace.Target.EnableSolutionCrawler();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
@@ -184,8 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
 
             // set up tagger for both buffers
-            var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+            var leftBuffer = diffView.Target.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+            var rightBuffer = diffView.Target.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
 
             var leftDocument = leftBuffer.GetRelatedDocuments().Single();
             var rightDocument = rightBuffer.GetRelatedDocuments().Single();

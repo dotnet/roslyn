@@ -5,23 +5,38 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal class DifferenceViewerPreview : IDisposable
+    internal sealed class DifferenceViewerPreview : IDisposable
     {
         private IDifferenceViewer _viewer;
 
-        public DifferenceViewerPreview(IDifferenceViewer viewer)
+        private DifferenceViewerPreview(
+            IDifferenceViewer viewer,
+            ReferenceCountedDisposable<PreviewWorkspace> leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace> rightWorkspace)
         {
             Contract.ThrowIfNull(viewer);
             _viewer = viewer;
+            LeftWorkspace = leftWorkspace?.TryAddReference();
+            RightWorkspace = rightWorkspace?.TryAddReference();
         }
 
+        public static ReferenceCountedDisposable<DifferenceViewerPreview> Create(
+            IDifferenceViewer viewer,
+            ReferenceCountedDisposable<PreviewWorkspace> leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace> rightWorkspace)
+            => new(new DifferenceViewerPreview(viewer, leftWorkspace, rightWorkspace));
+
         public IDifferenceViewer Viewer => _viewer;
+
+        public ReferenceCountedDisposable<PreviewWorkspace> LeftWorkspace { get; }
+        public ReferenceCountedDisposable<PreviewWorkspace> RightWorkspace { get; }
 
         public void Dispose()
         {
@@ -33,6 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             }
 
             _viewer = null;
+
+            LeftWorkspace?.Dispose();
+            RightWorkspace?.Dispose();
         }
 
         ~DifferenceViewerPreview()
