@@ -183,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
-        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned. 
+        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned.
+        /// The returned expression has not been converted if needed, so callers need to make sure that the expression is converted before being put into the
+        /// bound tree. Make sure to test with unconverted constructs such as switch expressions, target-typed new, or interpolated strings.
         /// </summary>
         /// <remarks>
         /// Returned expression need not be a <see cref="BoundBadExpression"/>, but is guaranteed to have HasErrors set to true.
@@ -4960,7 +4962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
-            return ToBadExpression(boundExpression, LookupResultKind.NotAValue);
+            return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember
@@ -5201,6 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind,
             bool suppressErrors)
         {
+            Debug.Assert(!boundMember.NeedsToBeConverted());
             if (!suppressErrors)
             {
                 string member;
