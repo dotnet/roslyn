@@ -2019,7 +2019,7 @@ BC37321: Required member 'Public Item2 As Integer' must be set in the object ini
 BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
         Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37321: Required member 'Public Rest As (Integer, Integer)' must be set in the object initializer or attribute arguments.
+BC37321: Required member 'Public Rest As TRest' must be set in the object initializer or attribute arguments.
         Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                             </expected>)
