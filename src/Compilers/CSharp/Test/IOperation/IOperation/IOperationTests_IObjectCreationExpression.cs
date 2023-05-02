@@ -15364,7 +15364,8 @@ Block[B5] - Exit
                 }
                 """;
 
-            var expectedDiagnostics = new[]{
+            var expectedDiagnostics = new[]
+            {
                 // (1,37): error CS0747: Invalid initializer member declarator
                 // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{asdf}""").WithLocation(1, 37),
