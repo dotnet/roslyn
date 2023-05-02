@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
@@ -32,22 +31,36 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     {
     }
 
-    public void InitializeSession(string telemetryLevel)
+    public void InitializeSession(string telemetryLevel, bool isDefaultSession)
     {
-        _telemetrySession?.Dispose();
-        _telemetrySession = CreateTelemetryService(telemetryLevel);
-        _telemetrySession.Start();
+        Debug.Assert(_telemetrySession == null);
+
+        var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel);
+        var session = new TelemetrySession($"{{{sessionSettingsJson}}}");
+
+        if (isDefaultSession)
+        {
+            TelemetryService.SetDefaultSession(session);
+        }
+
+        session.Start();
+
+        _telemetrySession = session;
     }
 
     public void Log(string name, ImmutableDictionary<string, object?> properties)
     {
+        Debug.Assert(_telemetrySession != null);
+
         var telemetryEvent = new TelemetryEvent(name);
         SetProperties(telemetryEvent, properties);
-        PostEvent(telemetryEvent);
+        _telemetrySession.PostEvent(telemetryEvent);
     }
 
     public void LogBlockStart(string eventName, int kind, int blockId)
     {
+        Debug.Assert(_telemetrySession != null);
+        
         _pendingScopes[blockId] = kind switch
         {
             0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
@@ -59,7 +72,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     public void LogBlockEnd(int blockId, ImmutableDictionary<string, object?> properties, CancellationToken cancellationToken)
     {
         var found = _pendingScopes.TryRemove(blockId, out var scope);
-        Contract.Requires(found);
+        Debug.Assert(found);
 
         var endEvent = GetEndEvent(scope);
         SetProperties(endEvent, properties);
@@ -76,6 +89,8 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void ReportFault(string eventName, string description, int logLevel, bool forceDump, int processId, Exception exception)
     {
+        Debug.Assert(_telemetrySession != null);
+
         var faultEvent = new FaultEvent(
             eventName: eventName,
             description: description,
@@ -102,14 +117,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
                 return 0;
             });
 
-        _telemetrySession!.PostEvent(faultEvent);
-    }
-
-    private static TelemetrySession CreateTelemetryService(string telemetryLevel)
-    {
-        var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel);
-        TelemetryService.SetDefaultSession(new TelemetrySession($"{{{sessionSettingsJson}}}"));
-        return TelemetryService.DefaultSession;
+        _telemetrySession.PostEvent(faultEvent);
     }
 
     private static string CreateSessionSettingsJson(string telemetryLevel)
@@ -123,25 +131,25 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         var sb = new StringBuilder();
 
         var kvp = new Dictionary<string, string>
-                {
-                    { "Id", StringToJsonValue(customSessionId) },
-                    { "HostName", StringToJsonValue("Default") },
+        {
+            { "Id", StringToJsonValue(customSessionId) },
+            { "HostName", StringToJsonValue("Default") },
 
-					// Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
-                    // validation of this value so there is no need to do so on this end. If it's invalid,
-                    // it defaults to off.
-					{ "TelemetryLevel", StringToJsonValue(telemetryLevel) },
+            // Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
+            // validation of this value so there is no need to do so on this end. If it's invalid,
+            // it defaults to off.
+            { "TelemetryLevel", StringToJsonValue(telemetryLevel) },
 
-					// this sets the Telemetry Session Created by LSP Server to be the Root Initial session
-					// This means that the SessionID set here by "Id" will be the SessionID used by cloned session
-					// further down stream
-					{ "IsInitialSession", "true" },
-                    { "CollectorApiKey", StringToJsonValue(CollectorApiKey) },
+            // this sets the Telemetry Session Created by LSP Server to be the Root Initial session
+            // This means that the SessionID set here by "Id" will be the SessionID used by cloned session
+            // further down stream
+            { "IsInitialSession", "true" },
+            { "CollectorApiKey", StringToJsonValue(CollectorApiKey) },
 
-					// using 1010 to indicate VS Code and not to match it to devenv 1000
-					{ "AppId", "1010" },
-                    { "ProcessStartTime", processStartTime },
-                };
+            // using 1010 to indicate VS Code and not to match it to devenv 1000
+            { "AppId", "1010" },
+            { "ProcessStartTime", processStartTime },
+        };
 
         foreach (var keyValue in kvp)
         {
@@ -168,9 +176,6 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             TelemetryScope<UserTaskEvent> userTask => userTask.EndEvent,
             _ => throw new InvalidCastException($"Unexpected value for scope: {scope}")
         };
-
-    private void PostEvent(TelemetryEvent telemetryEvent)
-        => _telemetrySession?.PostEvent(telemetryEvent);
 
     private static void SetProperties(TelemetryEvent telemetryEvent, ImmutableDictionary<string, object?> properties)
     {

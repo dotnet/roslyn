@@ -11,8 +11,28 @@
 
   <ItemGroup>
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
-    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"/>
+
+    <ProjectReference Include="..\..\..\VisualStudio\LanguageServer\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false" />
+  </ItemGroup>
+
+  <!--
+    Copy files contained in the NPM package to a DevKit subdirectory to emulate deployment of the DevKit extension in VS Code.
+  -->
+  <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
+    <MSBuild Projects="..\..\..\VisualStudio\LanguageServer\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj"
+             Targets="CollectNpmInputs">
+      <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(_DevKitExtensionFile)" Link="DevKit\%(_DevKitExtensionFile.Filename)%(_DevKitExtensionFile.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>

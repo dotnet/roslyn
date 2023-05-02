@@ -15,8 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Can only reference Microsoft.CodeAnalysis.Contracts namespace -->
+    <!-- Can only reference internal Microsoft.CodeAnalysis.Contracts namespace (via Restricted IVT) or public APIs. -->
     <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+
+    <!-- Hide workspaces behind extern alias to avoid ambiguities in linked files -->
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Aliases>DoNotUse</Aliases>
     </ProjectReference>
@@ -51,9 +53,9 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="CollectNpmInputs" DependsOnTargets="Build">
-    <Message Text="Package version is $(PackageVersion)" Importance="high" />
-    <Message Text="Version is $(Version)" Importance="high" />
+  <Target Name="CollectNpmInputs" DependsOnTargets="Build" Returns="@(NpmContent)">
+    <Message Text="Package version is $(PackageVersion)" />
+    <Message Text="Version is $(Version)" />
     <ItemGroup>
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.Remotecontrol.dll" />

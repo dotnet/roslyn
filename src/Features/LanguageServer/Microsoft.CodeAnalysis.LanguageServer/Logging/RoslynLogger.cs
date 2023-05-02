@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
             if (reporter is not null && telemetryLevel is not null)
             {
-                reporter.InitializeSession(telemetryLevel);
+                reporter.InitializeSession(telemetryLevel, isDefaultSession: true);
                 _telemetryReporter = reporter;
             }
 
