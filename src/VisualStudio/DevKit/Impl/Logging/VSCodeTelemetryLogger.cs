@@ -60,7 +60,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     public void LogBlockStart(string eventName, int kind, int blockId)
     {
         Debug.Assert(_telemetrySession != null);
-        
+
         _pendingScopes[blockId] = kind switch
         {
             0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
