@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return this;
         }
 
-        object? IPreviewPaneService.GetPreviewPane(DiagnosticData? data, IReadOnlyList<object>? previewContent)
+        IDisposable? IPreviewPaneService.GetPreviewPane(DiagnosticData? data, IReadOnlyList<PreviewWrapper>? previewContent)
         {
             if (data == null || string.IsNullOrWhiteSpace(data.Message))
             {

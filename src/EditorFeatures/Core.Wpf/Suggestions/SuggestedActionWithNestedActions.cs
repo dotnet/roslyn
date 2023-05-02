@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public override bool HasActionSets => true;
 
-        public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
+        public sealed override Task<IEnumerable<SuggestedActionSet>?> GetActionSetsAsync(CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<SuggestedActionSet>?>(NestedActionSets);
 
         protected override Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {

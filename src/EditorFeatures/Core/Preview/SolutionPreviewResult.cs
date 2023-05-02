@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public bool IsEmpty => _previews.Count == 0;
 
-        public async Task<IReadOnlyList<object>?> GetPreviewsAsync(DocumentId? preferredDocumentId = null, ProjectId? preferredProjectId = null, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<PreviewWrapper>?> GetPreviewsAsync(DocumentId? preferredDocumentId = null, ProjectId? preferredProjectId = null, CancellationToken cancellationToken = default)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             cancellationToken.ThrowIfCancellationRequested();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor
                        _previews.IndexOf(i1) - _previews.IndexOf(i2);
             });
 
-            var result = new List<object>();
+            var result = new List<PreviewWrapper>();
             var gotRichPreview = false;
 
             try
@@ -68,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor
                     cancellationToken.ThrowIfCancellationRequested();
                     if (previewItem.Text != null)
                     {
-                        result.Add(previewItem.Text);
+                        result.Add(PreviewWrapper.FromNonReferenceCounted(previewItem.Text));
                     }
                     else if (!gotRichPreview)
                     {
-                        var preview = await previewItem.LazyPreview(cancellationToken).ConfigureAwait(true);
-                        if (preview != null)
+                        if (await previewItem.TryGetPreviewAsync(cancellationToken).ConfigureAwait(true) is { } preview)
                         {
                             result.Add(preview);
                             gotRichPreview = true;

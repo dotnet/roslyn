@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -124,11 +125,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
-                var content = (await previews.GetPreviewsAsync())[0];
-                using (var diffView = content as DifferenceViewerPreview)
+                var previewResult = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var previews = await previewResult.GetPreviewsAsync();
+                try
                 {
-                    Assert.NotNull(diffView.Viewer);
+                    var content = previews[0];
+                    using (var diffView = content.Preview as DifferenceViewerPreview)
+                    {
+                        Assert.NotNull(diffView.Viewer);
+                    }
+                }
+                finally
+                {
+                    if (previews is not null)
+                    {
+                        foreach (var preview in previews)
+                            preview.Dispose();
+                    }
                 }
             }
             else
@@ -139,18 +152,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var previews = await contents.GetPreviewsAsync();
                 if (previews != null)
                 {
-                    foreach (var preview in previews)
+                    try
                     {
-                        if (preview != null)
+                        foreach (var preview in previews)
                         {
-                            var diffView = preview as DifferenceViewerPreview;
+                            RoslynDebug.AssertNotNull(preview.Preview);
+                            var diffView = preview.Preview as DifferenceViewerPreview;
                             if (diffView?.Viewer != null)
                             {
                                 hasPreview = true;
-                                diffView.Dispose();
                                 break;
                             }
                         }
+                    }
+                    finally
+                    {
+                        foreach (var preview in previews)
+                            preview.Dispose();
                     }
                 }
 

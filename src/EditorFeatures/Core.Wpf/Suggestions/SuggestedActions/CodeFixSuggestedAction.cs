@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFix fix,
             object provider,
             CodeAction action,
-            SuggestedActionSet fixAllFlavors)
+            SuggestedActionSet? fixAllFlavors)
             : base(threadingContext,
                    sourceProvider,
                    workspace,

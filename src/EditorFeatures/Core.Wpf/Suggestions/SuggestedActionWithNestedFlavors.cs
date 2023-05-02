@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
-        private readonly SuggestedActionSet _additionalFlavors;
+        private readonly SuggestedActionSet? _additionalFlavors;
         private ImmutableArray<SuggestedActionSet> _nestedFlavors;
+        private readonly List<Action> _disposeCallbacks = new();
 
         public SuggestedActionWithNestedFlavors(
             IThreadingContext threadingContext,
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction,
-            SuggestedActionSet additionalFlavors)
+            SuggestedActionSet? additionalFlavors)
             : base(threadingContext,
                    sourceProvider,
                    workspace,
@@ -60,7 +61,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public sealed override bool HasActionSets => true;
 
-        public sealed override async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public override void Dispose()
+        {
+            foreach (var callback in _disposeCallbacks)
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+            }
+
+            _disposeCallbacks.Clear();
+            base.Dispose();
+        }
+
+        public sealed override async Task<IEnumerable<SuggestedActionSet>?> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             if (_nestedFlavors.IsDefault)
             {
-                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+                var extensionManager = this.Workspace.Services.GetRequiredService<IExtensionManager>();
 
                 // We use ConfigureAwait(true) to stay on the UI thread.
                 _nestedFlavors = await extensionManager.PerformFunctionAsync(
@@ -100,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return builder.ToImmutableAndFree();
         }
 
-        private async Task<SuggestedActionSet> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
+        private async Task<SuggestedActionSet?> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
         {
             // We use ConfigureAwait(true) to stay on the UI thread.
             var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
@@ -122,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         // 'null' / empty collection from within GetPreviewAsync().
         public override bool HasPreview => true;
 
-        public override async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+        public override async Task<object?> GetPreviewAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -140,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
             var preferredProjectId = preferredDocumentId?.ProjectId;
 
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = this.Workspace.Services.GetRequiredService<IExtensionManager>();
             var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
             {
                 // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
@@ -163,9 +181,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
+            var previewPane = previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
+            if (previewPane is not null)
+                _disposeCallbacks.Add(previewPane.Dispose);
+
+            return previewPane;
         }
 
-        protected virtual DiagnosticData GetDiagnostic() => null;
+        protected virtual DiagnosticData? GetDiagnostic() => null;
     }
 }

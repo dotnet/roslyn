@@ -14,13 +14,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal class PreviewPane : NSView
     {
-        private DifferenceViewerPreview? _differenceViewerPreview;
         private readonly NSTextField? titleField;
+        private readonly IReadOnlyList<PreviewWrapper> _previewContent;
+        private readonly ICocoaDifferenceViewer? _differenceViewer;
 
-        public PreviewPane(string? id, string? title, Uri? helpLink, string? helpLinkToolTipText, IReadOnlyList<object> previewContent)
+        public PreviewPane(string? id, string? title, Uri? helpLink, string? helpLinkToolTipText, IReadOnlyList<PreviewWrapper> previewContent)
         {
-            _differenceViewerPreview = (DifferenceViewerPreview)previewContent[0];
-            var view = ((ICocoaDifferenceViewer)_differenceViewerPreview.Viewer).VisualElement;
+            _previewContent = previewContent;
+            _differenceViewer = (ICocoaDifferenceViewer)((DifferenceViewerPreview)previewContent[0].Preview).Viewer;
+            var view = _differenceViewer.VisualElement;
 
             var originalSize = view.Frame.Size;
 
@@ -92,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             NSLayoutConstraint.ActivateConstraints(constraints);
 
-            _differenceViewerPreview.Viewer.InlineView.TryMoveCaretToAndEnsureVisible(
-                new Microsoft.VisualStudio.Text.SnapshotPoint(_differenceViewerPreview.Viewer.InlineView.TextSnapshot, 0));
+            _differenceViewer.InlineView.TryMoveCaretToAndEnsureVisible(
+                new Microsoft.VisualStudio.Text.SnapshotPoint(_differenceViewer.InlineView.TextSnapshot, 0));
         }
 
         public PreviewPane(NativeHandle ptr)
@@ -137,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             if (disposing)
             {
-                _differenceViewerPreview?.Dispose();
-                _differenceViewerPreview = null;
+                foreach (var preview in _previewContent)
+                    preview.Dispose();
             }
 
             base.Dispose(disposing);
