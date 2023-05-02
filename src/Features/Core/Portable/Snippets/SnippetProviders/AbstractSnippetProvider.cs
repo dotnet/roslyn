@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -87,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            // Generates the snippet as a list of textchanges
+            // Generates the snippet as a list of text changes
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            // Applies the snippet textchanges to the document 
+            // Applies the snippet text changes to the document 
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
             // Finds the inserted snippet and replaces the node in the document with a node that has added trivia
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Skips the first and last token since
             // those do not need elastic trivia added to them.
             var nodeWithTrivia = node.ReplaceTokens(allTokens.Skip(1).Take(allTokens.Count - 2),
-                (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                (oldToken, _) => oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
 
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         }
 
         /// <summary>
-        /// Locates the snippet that was inserted. Generates trivia for every token in that syntaxnode.
+        /// Locates the snippet that was inserted. Generates trivia for every token in that SyntaxNode.
         /// Replaces the SyntaxNodes and gets back the new document.
         /// </summary>
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
@@ -242,14 +241,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
 
             if (!isCorrectContainer(closestNode))
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the if statement.
-            if (closestNode.SpanStart != position)
             {
                 return null;
             }

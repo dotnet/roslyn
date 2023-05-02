@@ -72,6 +72,10 @@ internal sealed class LanguageServerWorkspaceFactory
             }
         }
 
-        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w =>
+        {
+            w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
+            return ValueTask.CompletedTask;
+        });
     }
 }

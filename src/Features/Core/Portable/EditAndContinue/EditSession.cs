@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (analysis.RudeEditErrors.Length > 0)
                             {
                                 documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
-                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
+                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, newProject.State.Attributes.TelemetryId);
                             }
                         }
 
